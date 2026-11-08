@@ -91,9 +91,10 @@ jobs:
           export APPIMAGE_EXTRACT_AND_RUN=1
           export QMAKE="$QT_ROOT_DIR/bin/qmake"
           export QML_SOURCES_PATHS="$GITHUB_WORKSPACE/qml"
-          # SQLite for the database, the CUPS backend for printing
+          # SQLite for the database, the CUPS backend for printing, TLS for
+          # the update check
           export EXTRA_PLATFORM_PLUGINS="libqoffscreen.so"
-          export EXTRA_QT_MODULES="sql;printsupport"
+          export EXTRA_QT_MODULES="sql;printsupport;network"
           export EXTRA_QT_PLUGINS="$EXTRA_QT_MODULES" # name in older plugin versions
           export LD_LIBRARY_PATH="$QT_ROOT_DIR/lib:$LD_LIBRARY_PATH"
           ./linuxdeploy-x86_64.AppImage --appdir AppDir --executable build/trainingsplaner \
@@ -108,6 +109,12 @@ jobs:
           printf 'INSERT IGNORE INTO sp VALUES ("muster_erika","N","2026-01-01 00:00:00",NOW(),"ci","Muster","Erika","1",NULL,NULL,NULL)\n' > ci.bak
           APPIMAGE_EXTRACT_AND_RUN=1 QT_QPA_PLATFORM=offscreen \
             ./trainingsplaner-linux-x64.AppImage --db "$RUNNER_TEMP/ci.sqlite" --import ci.bak
+          # The update check reaches GitHub over TLS (2: answer, but no
+          # release information, for example the API's rate limit)
+          status=0
+          APPIMAGE_EXTRACT_AND_RUN=1 QT_QPA_PLATFORM=offscreen \
+            ./trainingsplaner-linux-x64.AppImage --db "$RUNNER_TEMP/ci.sqlite" --check-update || status=$?
+          [ "$status" -ne 1 ]
 
       # A version after the one in CMake, rising with the commit time, so
       # package managers upgrade every nightly
@@ -170,6 +177,21 @@ jobs:
           Copy-Item LICENSE Trainingsplaner/LICENSE.txt
           Compress-Archive -Path Trainingsplaner -DestinationPath trainingsplaner-windows-x64.zip
 
+      # Inno Setup is on the runner image; install it should it go missing
+      - name: Installer
+        shell: pwsh
+        run: |
+          $paths = "${env:ProgramFiles(x86)}\Inno Setup*\ISCC.exe", "$env:ProgramFiles\Inno Setup*\ISCC.exe"
+          $iscc = Get-ChildItem $paths -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $iscc) {
+            choco install innosetup --no-progress -y
+            $iscc = Get-ChildItem $paths -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $iscc) { throw "Inno Setup not found" }
+          $version = (Select-String -Path build/CMakeCache.txt -Pattern '^CMAKE_PROJECT_VERSION:STATIC=(.+)$').Matches[0].Groups[1].Value
+          & $iscc.FullName /Q "/O$PWD" "/DAppVersion=$version" "/DAppFiles=$PWD\Trainingsplaner" packaging/windows/trainingsplaner.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed with $LASTEXITCODE" }
+
       - name: Smoke test
         shell: pwsh
         env:
@@ -179,10 +201,32 @@ jobs:
           $p = Start-Process Trainingsplaner/trainingsplaner.exe -ArgumentList "--db", "$env:RUNNER_TEMP\ci.sqlite", "--import", "ci.bak" -Wait -PassThru -NoNewWindow
           if ($p.ExitCode -ne 0) { throw "Import failed with $($p.ExitCode)" }
 
+          # Install silently as the program's update does, start the
+          # installed program, then uninstall; the data must stay
+          $dir = "$env:RUNNER_TEMP\tp-install"
+          $p = Start-Process ./trainingsplaner-windows-x64-setup.exe -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/NOLAUNCH=1", "/DIR=`"$dir`"" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "Setup failed with $($p.ExitCode)" }
+          if (-not (Test-Path "$dir\unins000.exe")) { throw "No uninstaller installed" }
+          $p = Start-Process "$dir\trainingsplaner.exe" -ArgumentList "--db", "$env:RUNNER_TEMP\ci2.sqlite", "--import", "ci.bak" -Wait -PassThru -NoNewWindow
+          if ($p.ExitCode -ne 0) { throw "Installed program failed with $($p.ExitCode)" }
+          $p = Start-Process "$dir\unins000.exe" -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "Uninstall failed with $($p.ExitCode)" }
+          # The uninstaller removes itself a moment after it exits
+          Start-Sleep -Seconds 5
+          if (Test-Path "$dir\trainingsplaner.exe") { throw "Program still there after uninstalling" }
+          if (-not (Test-Path "$env:RUNNER_TEMP\ci2.sqlite")) { throw "Uninstalling removed the data" }
+
+          # The update check reaches GitHub over TLS (2: answer, but no
+          # release information, for example the API's rate limit)
+          $p = Start-Process Trainingsplaner/trainingsplaner.exe -ArgumentList "--db", "$env:RUNNER_TEMP\ci.sqlite", "--check-update" -Wait -PassThru -NoNewWindow
+          if ($p.ExitCode -eq 1) { throw "Update check could not reach GitHub" }
+
       - uses: actions/upload-artifact@v4
         with:
           name: trainingsplaner-windows
-          path: trainingsplaner-windows-x64.zip
+          path: |
+            trainingsplaner-windows-x64-setup.exe
+            trainingsplaner-windows-x64.zip
           retention-days: 1
 
   macos:
@@ -225,6 +269,15 @@ jobs:
           macdeployqt build/Trainingsplaner.app -qmldir="$GITHUB_WORKSPACE/qml" -dmg
           mv build/Trainingsplaner.dmg trainingsplaner-macos.dmg
 
+      # The deployed app reaches GitHub over TLS (2: answer, but no
+      # release information, for example the API's rate limit)
+      - name: Smoke test
+        run: |
+          status=0
+          QT_QPA_PLATFORM=offscreen build/Trainingsplaner.app/Contents/MacOS/trainingsplaner \
+            --db "$RUNNER_TEMP/ci.sqlite" --check-update || status=$?
+          [ "$status" -ne 1 ]
+
       - uses: actions/upload-artifact@v4
         with:
           name: trainingsplaner-macos
@@ -252,4 +305,4 @@ jobs:
           gh release delete nightly --cleanup-tag --yes || true
           gh release create nightly artifacts/* --prerelease --target "$GITHUB_SHA" \
             --title "Nightly $(date -u +%Y-%m-%d)" \
-            --notes "Built from $GITHUB_SHA. Neueste Entwicklungsversion, ungetestet im Alltag. Windows: zip entpacken und trainingsplaner.exe starten; SmartScreen warnt, weil das Programm nicht signiert ist (Weitere Informationen, Trotzdem ausführen). macOS: beim ersten Start mit Rechtsklick und Öffnen starten."
+            --notes "Built from $GITHUB_SHA. Neueste Entwicklungsversion, ungetestet im Alltag. Windows: trainingsplaner-windows-x64-setup.exe ausführen (oder das zip entpacken und trainingsplaner.exe starten); SmartScreen warnt, weil das Programm nicht signiert ist (Weitere Informationen, Trotzdem ausführen). macOS: das Programm aus dem dmg in den Programme-Ordner ziehen; beim ersten Start blockiert macOS es, dann unter Systemeinstellungen › Datenschutz & Sicherheit „Dennoch öffnen“ wählen."

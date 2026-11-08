@@ -18,14 +18,23 @@ Each [release](https://github.com/iam-peter/trainingsplaner/releases) has:
 
 | File | For |
 |---|---|
-| `trainingsplaner-windows-x64.zip` | Windows 10/11: unzip, start `trainingsplaner.exe` |
+| `trainingsplaner-windows-x64-setup.exe` | Windows 10/11: installer, no administrator rights needed |
+| `trainingsplaner-windows-x64.zip` | Windows 10/11 without installing: unzip, start `trainingsplaner.exe` |
 | `trainingsplaner-macos.dmg` | macOS, Apple silicon and Intel |
 | `trainingsplaner-linux-x64.AppImage` | any Linux |
 | `trainingsplaner-linux-x64.deb` | Debian and Ubuntu, with its own Qt |
 
 The programs aren't signed: Windows SmartScreen asks once (*Weitere
-Informationen*, *Trotzdem ausführen*), on macOS open the app with a right
-click and *Öffnen* the first time.
+Informationen*, *Trotzdem ausführen*). macOS blocks the first start; then
+choose *Dennoch öffnen* under System Settings › Privacy & Security.
+
+**Updates.** At start, at most once a day, the program asks GitHub for the
+latest release and shows a bar when there is a newer one. Installed with
+the Windows installer, *Jetzt aktualisieren* downloads the new installer,
+checks its SHA-256 against the one GitHub publishes, runs it silently and
+starts the new version. On macOS, Linux and from the zip it opens the
+download. The training data stays in the user's profile and survives
+updates and uninstalling.
 
 ## Features
 
@@ -99,7 +108,7 @@ file.
 | Workflow | What it does |
 |---|---|
 | **CI** | builds and tests every push and pull request on Linux |
-| **Nightly** | every night with new commits (or by hand): builds and tests on Linux, Windows and macOS and replaces the `nightly` pre-release |
+| **Nightly** | every night with new commits (or by hand): builds and tests on Linux, Windows and macOS, builds the Windows installer (`packaging/windows/trainingsplaner.iss`, Inno Setup) and tests installing, the update check and uninstalling, then replaces the `nightly` pre-release |
 | **Promote Release** | run by hand with a version such as `0.2.0`: publishes the current nightly's files as release `v0.2.0` |
 | **Website** | publishes `pages/` on GitHub Pages; the page finds the newest release and nightly by itself |
 
@@ -117,6 +126,7 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `--open 1:2`, `ex:8`, `hist:8`, `chart:8` | open a session (day:number), an exercise's week, history or chart |
 | `--page planung --open maz\|itp\|ro\|laststufen`, `--page analyse --open individual\|group\|check\|chart` | open a tab |
 | `--grab <file.png>` | save a screenshot and exit (for testing) |
+| `--check-update` | print the latest release and exit (0 found, 2 GitHub answered without one, 1 unreachable) |
 
 ## Code layout
 
@@ -156,6 +166,10 @@ training). That data stays in the local database file and is never part of
 this repository: `.gitignore` excludes data exports (`*.bak`), databases and
 generated PDFs. Tests use invented athletes only. When reporting a problem,
 do not attach a real database or export.
+
+The only network access is the update check, which sends no training data:
+GitHub sees the program version (as user agent) and the IP address. It can
+be switched off under Einstellungen › Allgemein.
 
 ## Licence
 

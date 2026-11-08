@@ -1,5 +1,6 @@
 #include "bakimport.h"
 #include "database.h"
+#include "updater.h"
 
 #include <QApplication>
 #include <QCommandLineParser>
@@ -12,6 +13,7 @@
 #include <QQuickStyle>
 #include <QQuickWindow>
 #include <QStandardPaths>
+#include <QTextStream>
 #include <QSvgRenderer>
 #include <QTimer>
 #include <QtQml/qqmlextensionplugin.h>
@@ -86,7 +88,14 @@ int main(int argc, char *argv[])
                                            QStringLiteral("Trainingseinheit (1:2 = Tag:TE) oder Übung (ex:8) öffnen."),
                                            QStringLiteral("tag:te"));
     parser.addOptions({dbOption, importOption, grabOption, athleteOption, weekOption, pageOption, sessionOption});
+    const QCommandLineOption checkUpdateOption(QStringLiteral("check-update"),
+                                               QStringLiteral("Neueste Version bei GitHub erfragen und beenden."));
+    parser.addOption(checkUpdateOption);
     parser.process(app);
+    if (parser.isSet(checkUpdateOption)) {
+        QTextStream out(stdout);
+        return Updater::checkFromCommandLine(out);
+    }
 
     QString dbPath = parser.value(dbOption);
     if (dbPath.isEmpty()) {

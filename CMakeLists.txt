@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 6.8 REQUIRED COMPONENTS
-    Core Gui Widgets Sql Svg Quick QuickControls2 PrintSupport Test QuickTest)
+    Core Gui Widgets Sql Svg Quick QuickControls2 PrintSupport Network Test QuickTest)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -25,6 +25,7 @@ add_library(tpcore STATIC
     src/analysis.cpp    src/analysis.h
     src/bakimport.cpp   src/bakimport.h
     src/weekreport.cpp  src/weekreport.h
+    src/update.cpp      src/update.h
 )
 target_include_directories(tpcore PUBLIC src)
 target_link_libraries(tpcore PUBLIC Qt6::Core Qt6::Gui Qt6::Sql)
@@ -46,8 +47,10 @@ qt_add_qml_module(tpqml
         src/planstore.cpp src/planstore.h
         src/itpmodel.cpp src/itpmodel.h
         src/analysisapi.cpp src/analysisapi.h
+        src/updater.cpp src/updater.h
     QML_FILES
         qml/Main.qml
+        qml/UpdateDialog.qml
         qml/WeekPage.qml
         qml/SessionCell.qml
         qml/SessionDialog.qml
@@ -82,6 +85,7 @@ qt_add_qml_module(tpqml
 )
 target_link_libraries(tpqml PUBLIC
     tpcore
+    Qt6::Network
     Qt6::Quick
     Qt6::QuickControls2
     Qt6::Widgets

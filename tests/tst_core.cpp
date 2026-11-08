@@ -7,6 +7,7 @@
 #include "exerciseweek.h"
 #include "model.h"
 #include "steps.h"
+#include "update.h"
 #include "weekreport.h"
 
 #include <QFileInfo>
@@ -43,6 +44,8 @@ private slots:
     void itpFromRo();
     void sectionAnalysis();
     void exerciseWeekApply();
+    void compareVersions();
+    void parseRelease();
 
 private:
     QTemporaryDir m_dir;
@@ -733,4 +736,52 @@ void TestCore::sectionAnalysis()
 }
 
 QTEST_MAIN(TestCore)
+void TestCore::compareVersions()
+{
+    using Update::compareVersions;
+    QCOMPARE(compareVersions(QStringLiteral("0.2.0"), QStringLiteral("0.2.0")), 0);
+    QCOMPARE(compareVersions(QStringLiteral("v0.2.0"), QStringLiteral("0.2.0")), 0);
+    QCOMPARE(compareVersions(QStringLiteral("0.10.0"), QStringLiteral("0.9.3")), 1);
+    QCOMPARE(compareVersions(QStringLiteral("0.2"), QStringLiteral("0.2.1")), -1);
+    QCOMPARE(compareVersions(QStringLiteral("1.0.0-rc.1"), QStringLiteral("1.0.0")), -1);
+    QCOMPARE(compareVersions(QStringLiteral("1.0.0"), QStringLiteral("1.0.0-rc.2")), 1);
+    QCOMPARE(compareVersions(QStringLiteral("1.0.0-rc.1"), QStringLiteral("1.0.0-rc.2")), -1);
+    QCOMPARE(compareVersions(QStringLiteral("1.0.0-rc.1"), QStringLiteral("0.9.0")), 1);
+}
+
+void TestCore::parseRelease()
+{
+    const QByteArray json = R"({
+        "tag_name": "v0.3.0", "draft": false, "prerelease": false,
+        "html_url": "https://github.com/x/y/releases/tag/v0.3.0", "body": "## Neu",
+        "assets": [
+            {"name": "trainingsplaner-windows-x64.zip", "size": 1,
+             "browser_download_url": "https://example.org/zip"},
+            {"name": "trainingsplaner-windows-x64-setup.exe", "size": 1234,
+             "digest": "sha256:00ff10",
+             "browser_download_url": "https://example.org/setup.exe"},
+            {"name": "trainingsplaner-macos.dmg", "size": 5,
+             "browser_download_url": "https://example.org/dmg"}
+        ]})";
+    const Update::Release w = Update::parseRelease(json, Update::Platform::Windows);
+    QVERIFY(w.isValid());
+    QCOMPARE(w.version, QStringLiteral("0.3.0"));
+    QCOMPARE(w.notes, QStringLiteral("## Neu"));
+    QCOMPARE(w.asset, QUrl(QStringLiteral("https://example.org/setup.exe")));
+    QCOMPARE(w.size, 1234);
+    QCOMPARE(w.sha256, QByteArray::fromHex("00ff10"));
+
+    const Update::Release m = Update::parseRelease(json, Update::Platform::MacOS);
+    QCOMPARE(m.asset, QUrl(QStringLiteral("https://example.org/dmg")));
+    QVERIFY(m.sha256.isEmpty());
+    // No AppImage in this release: the release page is the way
+    const Update::Release l = Update::parseRelease(json, Update::Platform::Linux);
+    QVERIFY(l.isValid());
+    QVERIFY(l.asset.isEmpty());
+
+    QVERIFY(!Update::parseRelease(R"({"tag_name": "nightly", "prerelease": true})", Update::Platform::Windows).isValid());
+    QVERIFY(!Update::parseRelease(R"({"tag_name": "nightly"})", Update::Platform::Windows).isValid());
+    QVERIFY(!Update::parseRelease("not json", Update::Platform::Windows).isValid());
+}
+
 #include "tst_core.moc"

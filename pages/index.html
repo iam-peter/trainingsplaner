@@ -136,12 +136,13 @@
     <p class="lead" id="download-lead">Für Windows, macOS und Linux.</p>
     <div class="downloads">
       <div class="download" data-os="windows">
-        <div><h3>Windows</h3><div class="meta">Windows 10 und 11, 64 Bit. Zip entpacken und <code>trainingsplaner.exe</code> starten.</div></div>
-        <a class="nightly" data-nightly="trainingsplaner-windows-x64.zip" href="https://github.com/iam-peter/trainingsplaner/releases/tag/nightly">Nightly</a>
-        <a class="button" data-asset="trainingsplaner-windows-x64.zip" href="https://github.com/iam-peter/trainingsplaner/releases">.zip</a>
+        <div><h3>Windows</h3><div class="meta">Windows 10 und 11, 64 Bit. Installiert ohne Administratorrechte und meldet neue Versionen selbst.
+          Ohne Installation: <a data-alt="trainingsplaner-windows-x64.zip" href="https://github.com/iam-peter/trainingsplaner/releases">Zip-Archiv</a>.</div></div>
+        <a class="nightly" data-nightly="trainingsplaner-windows-x64-setup.exe" href="https://github.com/iam-peter/trainingsplaner/releases/tag/nightly">Nightly</a>
+        <a class="button" data-asset="trainingsplaner-windows-x64-setup.exe" data-fallback="trainingsplaner-windows-x64.zip" data-fallback-label=".zip" href="https://github.com/iam-peter/trainingsplaner/releases">Installer</a>
       </div>
       <div class="download" data-os="macos">
-        <div><h3>macOS</h3><div class="meta">Apple Silicon und Intel. Beim ersten Start mit Rechtsklick → Öffnen.</div></div>
+        <div><h3>macOS</h3><div class="meta">Apple Silicon und Intel. In den Programme-Ordner ziehen; beim ersten Start unter Systemeinstellungen › Datenschutz &amp; Sicherheit „Dennoch öffnen“ wählen.</div></div>
         <a class="nightly" data-nightly="trainingsplaner-macos.dmg" href="https://github.com/iam-peter/trainingsplaner/releases/tag/nightly">Nightly</a>
         <a class="button" data-asset="trainingsplaner-macos.dmg" href="https://github.com/iam-peter/trainingsplaner/releases">.dmg</a>
       </div>
@@ -181,7 +182,11 @@
     </details>
     <details>
       <summary>Windows warnt beim Start. Ist das gefährlich?</summary>
-      <p>Das Programm ist nicht digital signiert, deshalb zeigt Windows SmartScreen eine Warnung. Mit „Weitere Informationen“ und „Trotzdem ausführen“ startet es. Der Quellcode ist öffentlich einsehbar.</p>
+      <p>Das Programm ist (noch) nicht digital signiert, deshalb zeigt Windows SmartScreen eine Warnung. Mit „Weitere Informationen“ und „Trotzdem ausführen“ startet es. Der Quellcode ist öffentlich einsehbar.</p>
+    </details>
+    <details>
+      <summary>Wie bekomme ich neue Versionen?</summary>
+      <p>Das Programm fragt beim Start höchstens einmal am Tag bei GitHub nach einer neuen Version und meldet sie oben im Fenster. Unter Windows (mit dem Installer eingerichtet) genügt dann ein Klick auf „Jetzt aktualisieren“: das Programm lädt die neue Version, prüft sie, installiert sie und startet neu. Unter macOS und Linux öffnet es den Download. Die Daten bleiben bei jedem Update erhalten. Abschalten lässt sich die Abfrage unter Einstellungen › Allgemein.</p>
     </details>
     <details>
       <summary>Wie kann ich Daten zwischen zwei Rechnern austauschen?</summary>
@@ -234,11 +239,23 @@
       const nightly = list.find(r => r.tag_name === "nightly");
       const has = (release, name) => release && release.assets.some(a => a.name === name);
 
-      // The stable release, the nightly until there is one
+      // The stable release, the nightly until there is one. A release
+      // from before the installer offers the zip instead.
       const main = stable || nightly;
       for (const link of document.querySelectorAll("[data-asset]")) {
-        if (has(main, link.dataset.asset))
-          link.href = `${base}/download/${main.tag_name}/${link.dataset.asset}`;
+        let name = link.dataset.asset;
+        if (!has(main, name) && link.dataset.fallback && has(main, link.dataset.fallback)) {
+          name = link.dataset.fallback;
+          link.textContent = link.dataset.fallbackLabel;
+        }
+        if (has(main, name)) {
+          link.href = `${base}/download/${main.tag_name}/${name}`;
+          link.dataset.found = "true";
+        }
+      }
+      for (const link of document.querySelectorAll("[data-alt]")) {
+        if (has(main, link.dataset.alt))
+          link.href = `${base}/download/${main.tag_name}/${link.dataset.alt}`;
       }
       for (const link of document.querySelectorAll("[data-nightly]")) {
         if (has(nightly, link.dataset.nightly)) {
@@ -255,13 +272,13 @@
       if (stable) {
         info.textContent = `Version ${stable.tag_name.replace(/^v/, "")} vom ${date(stable.published_at)}`;
         hero.textContent = `Herunterladen ${labels[os]}`;
-        if (has(stable, asset.dataset.asset)) hero.href = asset.href;
+        if (asset.dataset.found) hero.href = asset.href;
       } else if (nightly) {
         info.textContent = `Vorabversion vom ${date(nightly.published_at)}`;
         document.getElementById("download-lead").textContent =
           "Für Windows, macOS und Linux. Noch gibt es nur die Vorabversion (Nightly).";
         hero.textContent = `Vorabversion ${labels[os]}`;
-        if (has(nightly, asset.dataset.asset)) hero.href = asset.href;
+        if (asset.dataset.found) hero.href = asset.href;
       }
     })
     .catch(() => {
