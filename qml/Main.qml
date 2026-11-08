@@ -25,7 +25,7 @@ ApplicationWindow {
     title: "Trainingsplaner Gewichtheben"
 
     // The controls take the application palette, so a palette set by the
-    // program (--farbschema) reaches them as well as the system's
+    // program (Einstellungen › Farbschema) reaches them as well as the system's
     palette.window: Theme.system.window
     palette.windowText: Theme.system.windowText
     palette.base: Theme.system.base
@@ -41,6 +41,7 @@ ApplicationWindow {
     palette.light: Theme.system.light
     palette.toolTipBase: Theme.system.toolTipBase
     palette.toolTipText: Theme.system.toolTipText
+    palette.link: Theme.link
 
     header: ToolBar {
         RowLayout {
@@ -125,9 +126,35 @@ ApplicationWindow {
                 onClicked: settingsDialog.open()
             }
             IconToolButton {
+                id: helpButton
                 iconName: "circle-help"
                 text: "Hilfe"
-                onClicked: helpDialog.open()
+                onClicked: helpMenu.open()
+                Menu {
+                    id: helpMenu
+                    y: helpButton.height
+                    // As wide as the longest entry (Menu's own width is fixed)
+                    width: {
+                        let w = 200
+                        for (let i = 0; i < count; ++i)
+                            w = Math.max(w, itemAt(i) ? itemAt(i).implicitWidth : 0)
+                        return w + leftPadding + rightPadding
+                    }
+                    KeyMenuItem {
+                        text: "Hilfe"
+                        keys: "F1"
+                        onTriggered: helpDialog.open()
+                    }
+                    MenuItem {
+                        text: "Problem melden oder Wunsch äußern…"
+                        onTriggered: Qt.openUrlExternally(Updater.issueUrl)
+                    }
+                    MenuSeparator {}
+                    MenuItem {
+                        text: "Über den Trainingsplaner"
+                        onTriggered: aboutDialog.open()
+                    }
+                }
             }
         }
     }
@@ -300,6 +327,7 @@ ApplicationWindow {
 
     SettingsDialog {
         id: settingsDialog
+        objectName: "settingsDialog"
         onCheckUpdatesRequested: {
             Updater.check()
             updateDialog.open()
@@ -309,6 +337,12 @@ ApplicationWindow {
     UpdateDialog {
         id: updateDialog
         objectName: "updateDialog"
+    }
+
+    AboutDialog {
+        id: aboutDialog
+        objectName: "aboutDialog"
+        onShowUpdateDetails: updateDialog.open()
     }
 
     HelpDialog {

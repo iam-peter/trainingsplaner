@@ -1,5 +1,6 @@
 #include "bakimport.h"
 #include "database.h"
+#include "colorscheme.h"
 #include "updater.h"
 
 #include <QApplication>
@@ -13,8 +14,6 @@
 #include <QQuickStyle>
 #include <QQuickWindow>
 #include <QStandardPaths>
-#include <QPalette>
-#include <QStyleHints>
 #include <QTextStream>
 #include <QSvgRenderer>
 #include <QTimer>
@@ -90,7 +89,7 @@ int main(int argc, char *argv[])
                                            QStringLiteral("Trainingseinheit (1:2 = Tag:TE) oder Übung (ex:8) öffnen."),
                                            QStringLiteral("tag:te"));
     const QCommandLineOption schemeOption(QStringLiteral("farbschema"),
-                                          QStringLiteral("Farbschema unabhängig vom System: hell oder dunkel."),
+                                          QStringLiteral("Farbschema für diesen Start, unabhängig von der Einstellung: hell oder dunkel."),
                                           QStringLiteral("schema"));
     const QCommandLineOption checkUpdateOption(QStringLiteral("check-update"),
                                                QStringLiteral("Neueste Version bei GitHub erfragen und beenden."));
@@ -101,34 +100,12 @@ int main(int argc, char *argv[])
         QTextStream out(stdout);
         return Updater::checkFromCommandLine(out);
     }
-    if (parser.isSet(schemeOption)) {
-        const QString scheme = parser.value(schemeOption);
-        const bool dark = scheme == QLatin1String("dunkel");
-        QGuiApplication::styleHints()->setColorScheme(dark ? Qt::ColorScheme::Dark : Qt::ColorScheme::Light);
-        if (dark) {
-            // Also a dark palette, for platforms without colour schemes
-            QPalette p;
-            p.setColor(QPalette::Window, QColor(0x2b, 0x2a, 0x29));
-            p.setColor(QPalette::WindowText, QColor(0xee, 0xec, 0xea));
-            p.setColor(QPalette::Base, QColor(0x1f, 0x1e, 0x1d));
-            p.setColor(QPalette::AlternateBase, QColor(0x2f, 0x2d, 0x2b));
-            p.setColor(QPalette::Text, QColor(0xee, 0xec, 0xea));
-            p.setColor(QPalette::Button, QColor(0x35, 0x33, 0x31));
-            p.setColor(QPalette::ButtonText, QColor(0xee, 0xec, 0xea));
-            p.setColor(QPalette::Highlight, QColor(0xc2, 0x41, 0x0c));
-            p.setColor(QPalette::HighlightedText, Qt::white);
-            p.setColor(QPalette::PlaceholderText, QColor(0x9a, 0x95, 0x90));
-            p.setColor(QPalette::ToolTipBase, QColor(0x35, 0x33, 0x31));
-            p.setColor(QPalette::ToolTipText, QColor(0xee, 0xec, 0xea));
-            p.setColor(QPalette::Mid, QColor(0x55, 0x52, 0x4f));
-            p.setColor(QPalette::Dark, QColor(0x1a, 0x19, 0x18));
-            p.setColor(QPalette::Light, QColor(0x4a, 0x47, 0x44));
-            p.setColor(QPalette::Disabled, QPalette::Text, QColor(0x77, 0x73, 0x70));
-            p.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(0x77, 0x73, 0x70));
-            p.setColor(QPalette::Disabled, QPalette::WindowText, QColor(0x77, 0x73, 0x70));
-            QApplication::setPalette(p);
-        }
-    }
+
+    // The scheme chosen in the settings; --farbschema only for this start
+    QString scheme = ColorScheme::saved();
+    if (parser.isSet(schemeOption))
+        scheme = parser.value(schemeOption) == QLatin1String("dunkel") ? QStringLiteral("dark") : QStringLiteral("light");
+    ColorScheme::apply(scheme);
 
     QString dbPath = parser.value(dbOption);
     if (dbPath.isEmpty()) {

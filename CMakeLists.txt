@@ -49,6 +49,7 @@ qt_add_qml_module(tpqml
         src/itpmodel.cpp src/itpmodel.h
         src/analysisapi.cpp src/analysisapi.h
         src/updater.cpp src/updater.h
+        src/colorscheme.cpp src/colorscheme.h
     QML_FILES
         qml/Main.qml
         qml/KeyMenuItem.qml
@@ -56,6 +57,7 @@ qt_add_qml_module(tpqml
         qml/HelpDialog.qml
         qml/WelcomeDialog.qml
         qml/UpdateDialog.qml
+        qml/AboutDialog.qml
         qml/WeekPage.qml
         qml/SessionCell.qml
         qml/SessionDialog.qml

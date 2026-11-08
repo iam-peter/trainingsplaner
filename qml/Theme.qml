@@ -19,6 +19,7 @@ QtObject {
     readonly property color lineOutline: dark ? "#f87171" : "#c81e1e"
     readonly property color accent: dark ? "#fb923c" : "#c2410c"
     readonly property color error: dark ? "#f87171" : "#c00000"
+    readonly property color link: dark ? "#93c5fd" : "#1d4ed8"
 
     // Chart series: readable on the light and the dark chart background
     readonly property color ink: dark ? "#d6d3d1" : "#44403c"

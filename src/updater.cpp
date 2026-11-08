@@ -12,6 +12,8 @@
 #include <QProcess>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QSysInfo>
+#include <QUrlQuery>
 #include <QTextStream>
 #include <QTimer>
 
@@ -61,6 +63,24 @@ Updater::Updater(QObject *parent)
 QString Updater::currentVersion() const
 {
     return QCoreApplication::applicationVersion();
+}
+
+QString Updater::systemInfo() const
+{
+    return QStringLiteral("Trainingsplaner %1 · Qt %2 · %3 (%4)")
+        .arg(currentVersion(), QString::fromLatin1(qVersion()), QSysInfo::prettyProductName(),
+             QSysInfo::currentCpuArchitecture());
+}
+
+QUrl Updater::issueUrl() const
+{
+    // Only the program and system versions, nothing about the user
+    QUrl url(QStringLiteral("https://github.com/iam-peter/trainingsplaner/issues/new"));
+    QUrlQuery query;
+    query.addQueryItem(QStringLiteral("body"),
+                       QStringLiteral("\n\n---\n%1").arg(systemInfo()));
+    url.setQuery(query);
+    return url;
 }
 
 bool Updater::autoCheck() const

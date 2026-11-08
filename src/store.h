@@ -47,6 +47,8 @@ class Store : public QObject
     // No data yet and the welcome dialog not answered
     Q_PROPERTY(bool firstStart READ firstStart NOTIFY settingsChanged)
     Q_PROPERTY(bool hasDemoData READ hasDemoData NOTIFY athletesChanged)
+    // "system", "light" or "dark"; changes the colours at once
+    Q_PROPERTY(QString colorScheme READ colorScheme WRITE setColorScheme NOTIFY settingsChanged)
     Q_PROPERTY(int dataVersion READ dataVersion NOTIFY dataChanged)
 
 public:
@@ -80,6 +82,8 @@ public:
     QString sessionClipboardLabel() const { return m_sessionClipLabel; }
     QString undoLabel() const;
     bool firstStart() const;
+    QString colorScheme() const;
+    void setColorScheme(const QString &scheme);
     bool hasDemoData() const;
     Q_INVOKABLE void finishFirstStart();
     // Invented athletes with a few weeks around today, to try the program.

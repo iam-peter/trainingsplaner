@@ -27,6 +27,10 @@ class Updater : public QObject
     // idle, checking, upToDate, available, downloading, installing, error
     Q_PROPERTY(QString state READ state NOTIFY changed)
     Q_PROPERTY(QString currentVersion READ currentVersion CONSTANT)
+    // "Trainingsplaner 0.2.0 · Qt 6.11.3 · Windows 11 (x86_64)", for reports
+    Q_PROPERTY(QString systemInfo READ systemInfo CONSTANT)
+    // A new GitHub issue with the system information filled in
+    Q_PROPERTY(QUrl issueUrl READ issueUrl CONSTANT)
     Q_PROPERTY(QString latestVersion READ latestVersion NOTIFY changed)
     Q_PROPERTY(QString notes READ notes NOTIFY changed)
     Q_PROPERTY(QUrl releasePage READ releasePage NOTIFY changed)
@@ -46,6 +50,8 @@ public:
 
     QString state() const { return m_state; }
     QString currentVersion() const;
+    QString systemInfo() const;
+    QUrl issueUrl() const;
     QString latestVersion() const { return m_release.version; }
     QString notes() const { return m_release.notes; }
     QUrl releasePage() const { return m_release.page; }

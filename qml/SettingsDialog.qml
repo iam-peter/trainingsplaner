@@ -65,7 +65,12 @@ AppDialog {
         step25.checked = Store.weightStep !== 1
         step10.checked = Store.weightStep === 1
         autoUpdate.checked = Updater.autoCheck
+        schemeBefore = Store.colorScheme
     }
+
+    // The colours change at once as a preview; Abbrechen goes back
+    property string schemeBefore: "system"
+    onRejected: Store.colorScheme = schemeBefore
 
     signal checkUpdatesRequested()
 
@@ -346,6 +351,20 @@ AppDialog {
                     font.pixelSize: 11
                     color: palette.placeholderText
                     text: "Alle Daten stehen in dieser einen Datei. Zur Sicherung das Programm schließen und die Datei kopieren, oder „Daten exportieren…“ nutzen."
+                }
+                Label { text: "Farbschema:" }
+                RowLayout {
+                    Repeater {
+                        model: [{ value: "system", text: "wie das System" }, { value: "light", text: "Hell" },
+                                { value: "dark", text: "Dunkel" }]
+                        RadioButton {
+                            required property var modelData
+                            objectName: "scheme_" + modelData.value
+                            text: modelData.text
+                            checked: Store.colorScheme === modelData.value
+                            onToggled: if (checked) Store.colorScheme = modelData.value
+                        }
+                    }
                 }
                 Label { text: "Version:" }
                 RowLayout {

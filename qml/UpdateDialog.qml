@@ -41,7 +41,7 @@ AppDialog {
             Layout.fillWidth: true
             visible: dialog.state === "error"
             wrapMode: Text.Wrap
-            color: "#c00000"
+            color: Theme.error
             text: Updater.error
         }
 
@@ -77,6 +77,7 @@ AppDialog {
                 wrapMode: Text.Wrap
                 textFormat: Text.MarkdownText
                 text: Updater.notes
+                linkColor: Theme.link
                 onLinkActivated: (link) => Qt.openUrlExternally(link)
             }
         }

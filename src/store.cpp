@@ -3,6 +3,7 @@
 #include "bakexport.h"
 #include "bakimport.h"
 #include "competition.h"
+#include "colorscheme.h"
 #include "database.h"
 #include "demo.h"
 #include "exerciseweek.h"
@@ -895,6 +896,20 @@ QVariantMap Store::redo()
     const WeekChange c = m_redo.takeLast();
     m_undo.append(c);
     return restore(c, false);
+}
+
+QString Store::colorScheme() const
+{
+    return ColorScheme::saved();
+}
+
+void Store::setColorScheme(const QString &scheme)
+{
+    if (scheme == colorScheme())
+        return;
+    ColorScheme::save(scheme);
+    ColorScheme::apply(ColorScheme::saved());
+    emit settingsChanged();
 }
 
 bool Store::firstStart() const
