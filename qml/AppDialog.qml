@@ -7,7 +7,8 @@ import QtQuick.Controls
 // overlay, so it always covers the whole window, also after resizing.
 // A dialog opened from another dialog does not add a second dim layer.
 // The dialog takes the keyboard focus, so Esc closes it, and Enter answers
-// Yes/OK in a dialog that asks for that.
+// Yes/OK in a dialog that asks for that. The standard buttons are labelled
+// in German without depending on Qt's translation files being installed.
 Dialog {
     id: root
 
@@ -17,6 +18,19 @@ Dialog {
     // Position in the stack of open dialogs; the topmost one takes Enter
     property int level: 0
     readonly property bool enterAccepts: (standardButtons & (Dialog.Yes | Dialog.Ok)) !== 0
+
+    function labelButtons() {
+        const labels = [[Dialog.Ok, "OK"], [Dialog.Cancel, "Abbrechen"], [Dialog.Yes, "Ja"],
+                        [Dialog.No, "Nein"], [Dialog.Close, "Schließen"], [Dialog.Save, "Speichern"],
+                        [Dialog.Discard, "Verwerfen"], [Dialog.Apply, "Anwenden"]]
+        for (const [which, text] of labels) {
+            const button = standardButton(which)
+            if (button)
+                button.text = text
+        }
+    }
+    Component.onCompleted: labelButtons()
+    onStandardButtonsChanged: labelButtons()
 
     parent: Overlay.overlay
     anchors.centerIn: parent

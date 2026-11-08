@@ -25,6 +25,12 @@ Item {
         height: 100
     }
 
+    AppDialog {
+        id: question
+        title: "Frage"
+        standardButtons: Dialog.Yes | Dialog.No | Dialog.Cancel
+    }
+
     TestCase {
         name: "Dialogs"
         when: windowShown
@@ -67,6 +73,14 @@ Item {
             tryCompare(d, "height", 700)
             tryCompare(outer, "x", 350)   // centred in the window, not in its declaring item
             tryCompare(outer, "y", 250)
+        }
+
+        function test_germanButtons() {
+            compare(question.standardButton(Dialog.Yes).text, "Ja")
+            compare(question.standardButton(Dialog.No).text, "Nein")
+            compare(question.standardButton(Dialog.Cancel).text, "Abbrechen")
+            question.standardButtons = Dialog.Close
+            compare(question.standardButton(Dialog.Close).text, "Schließen")
         }
 
         function test_nestedDialogDimsOnce() {
