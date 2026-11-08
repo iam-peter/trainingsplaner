@@ -208,7 +208,7 @@
       <ol>
         <li><code>trainingsplaner-linux-x64.AppImage</code> herunterladen und an einen festen Ort legen, zum Beispiel <code>~/Programme</code>.</li>
         <li>Ausführbar machen: im Dateimanager unter Eigenschaften › Berechtigungen „Als Programm ausführen“ anhaken, oder im Terminal <code>chmod +x trainingsplaner-linux-x64.AppImage</code>.</li>
-        <li>Mit Doppelklick starten. Meldet das System, dass FUSE fehlt, unter Ubuntu und Debian <code>sudo apt install libfuse2</code> (ab Ubuntu 24.04: <code>libfuse2t64</code>) installieren.</li>
+        <li>Mit Doppelklick starten. Startet sie nicht und erscheint ein Hinweis auf FUSE (auf manchen Servern, in Containern oder bei sehr schlanken Systemen), im Terminal mit <code>./trainingsplaner-linux-x64.AppImage --appimage-extract-and-run</code> starten oder unter Debian und Ubuntu die <code>.deb</code>-Datei nehmen.</li>
       </ol>
       <h3>Debian und Ubuntu</h3>
       <p><code>sudo apt install ./trainingsplaner-linux-x64.deb</code> installiert das Programm mit Eintrag im Anwendungsmenü; eine neue Version wird genauso installiert. Entfernen mit <code>sudo apt remove trainingsplaner</code>.</p>
