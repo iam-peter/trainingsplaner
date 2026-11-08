@@ -33,21 +33,21 @@ ApplicationWindow {
 
     // The controls take the application palette, so a palette set by the
     // program (Einstellungen › Farbschema) reaches them as well as the system's
-    palette.window: Theme.system.window
-    palette.windowText: Theme.system.windowText
-    palette.base: Theme.system.base
-    palette.alternateBase: Theme.system.alternateBase
-    palette.text: Theme.system.text
-    palette.button: Theme.system.button
-    palette.buttonText: Theme.system.buttonText
+    palette.window: Theme.window
+    palette.windowText: Theme.windowText
+    palette.base: Theme.base
+    palette.alternateBase: Theme.alternateBase
+    palette.text: Theme.text
+    palette.button: Theme.button
+    palette.buttonText: Theme.buttonText
     palette.highlight: Theme.selection
-    palette.highlightedText: "#ffffff"
-    palette.placeholderText: Theme.system.placeholderText
-    palette.mid: Theme.system.mid
-    palette.dark: Theme.system.dark
-    palette.light: Theme.system.light
-    palette.toolTipBase: Theme.system.toolTipBase
-    palette.toolTipText: Theme.system.toolTipText
+    palette.highlightedText: Theme.selectedText
+    palette.placeholderText: Theme.placeholderText
+    palette.mid: Theme.mid
+    palette.dark: Theme.darkShade
+    palette.light: Theme.lightShade
+    palette.toolTipBase: Theme.toolTipBase
+    palette.toolTipText: Theme.toolTipText
     palette.link: Theme.link
 
     header: AppToolBar {
@@ -308,6 +308,7 @@ ApplicationWindow {
     SettingsDialog {
         id: settingsDialog
         objectName: "settingsDialog"
+        onStyleChanged: restartConfirm.open()
         onCheckUpdatesRequested: {
             Updater.check()
             updateDialog.open()
@@ -317,6 +318,17 @@ ApplicationWindow {
     UpdateDialog {
         id: updateDialog
         objectName: "updateDialog"
+    }
+
+    AppDialog {
+        id: restartConfirm
+        objectName: "restartConfirm"
+        title: "Neu starten?"
+        standardButtons: Dialog.Yes | Dialog.No
+        Label {
+            text: "Der neue Stil gilt nach einem Neustart des Programms.\nJetzt neu starten? Noch nicht gespeicherte Eingaben gehen dabei verloren."
+        }
+        onAccepted: Store.restart()
     }
 
     AboutDialog {

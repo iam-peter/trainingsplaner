@@ -73,7 +73,7 @@ Popup {
                     text: model.day
                     font.bold: model.today
                     color: inWeek ? palette.highlightedText : palette.text
-                    background: Rectangle { color: inWeek ? palette.highlight : "transparent"; radius: 3 }
+                    background: Rectangle { color: inWeek ? palette.highlight : "transparent"; radius: Theme.radius(3) }
                 }
                 onClicked: (date) => { popup.picked(popup.mondayOf(date)); popup.close() }
             }

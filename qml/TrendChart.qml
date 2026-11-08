@@ -288,7 +288,7 @@ Item {
         y: chart.plot ? chart.plot.top + 4 : 0
         width: valueColumn.implicitWidth + 16
         height: valueColumn.implicitHeight + 12
-        radius: 6
+        radius: Theme.radius(6)
         color: palette.toolTipBase
         border.color: palette.mid
 

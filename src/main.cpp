@@ -1,6 +1,7 @@
 #include "bakimport.h"
 #include "database.h"
 #include "colorscheme.h"
+#include "uistyle.h"
 #include "updater.h"
 
 #include <QApplication>
@@ -11,6 +12,7 @@
 #include <QPainter>
 #include <QMessageBox>
 #include <QQmlApplicationEngine>
+#include <QQmlEngine>
 #include <QQuickStyle>
 #include <QQuickWindow>
 #include <QStandardPaths>
@@ -20,6 +22,7 @@
 #include <QtQml/qqmlextensionplugin.h>
 
 Q_IMPORT_QML_PLUGIN(TrainingsplanerPlugin)
+Q_IMPORT_QML_PLUGIN(CarbonPlugin)
 
 namespace {
 
@@ -61,7 +64,6 @@ int main(int argc, char *argv[])
     QApplication::setApplicationDisplayName(QStringLiteral("Trainingsplaner Gewichtheben"));
     QApplication::setApplicationVersion(QStringLiteral(PROJECT_VERSION_STRING));
     QLocale::setDefault(QLocale(QLocale::German, QLocale::Germany));
-    QQuickStyle::setStyle(QStringLiteral("Fusion"));
     loadFonts();
     QApplication::setWindowIcon(appIcon());
     QGuiApplication::setDesktopFileName(QStringLiteral("trainingsplaner"));
@@ -91,10 +93,14 @@ int main(int argc, char *argv[])
     const QCommandLineOption schemeOption(QStringLiteral("farbschema"),
                                           QStringLiteral("Farbschema für diesen Start, unabhängig von der Einstellung: hell oder dunkel."),
                                           QStringLiteral("schema"));
+    const QCommandLineOption styleOption(QStringLiteral("stil"),
+                                         QStringLiteral("Stil für diesen Start, unabhängig von der Einstellung: "
+                                                        "Fusion, Carbon, Material, Universal, FluentWinUI3, Basic, Imagine …"),
+                                         QStringLiteral("stil"));
     const QCommandLineOption checkUpdateOption(QStringLiteral("check-update"),
                                                QStringLiteral("Neueste Version bei GitHub erfragen und beenden."));
     parser.addOptions({dbOption, importOption, grabOption, athleteOption, weekOption, pageOption, sessionOption,
-                       schemeOption, checkUpdateOption});
+                       schemeOption, styleOption, checkUpdateOption});
     parser.process(app);
     if (parser.isSet(checkUpdateOption)) {
         QTextStream out(stdout);
@@ -106,6 +112,22 @@ int main(int argc, char *argv[])
     if (parser.isSet(schemeOption))
         scheme = parser.value(schemeOption) == QLatin1String("dunkel") ? QStringLiteral("dark") : QStringLiteral("light");
     ColorScheme::apply(scheme);
+
+    // The style chosen in the settings; --stil only for this start
+    {
+        QQmlEngine probe;
+        UiStyle::detect(probe.importPathList());
+    }
+    if (parser.isSet(styleOption)
+        && UiStyle::choose(parser.value(styleOption)).compare(parser.value(styleOption), Qt::CaseInsensitive) != 0) {
+        QStringList names;
+        for (const UiStyle::Info &s : UiStyle::available())
+            names << s.name;
+        fprintf(stderr, "Stil \"%s\" ist nicht installiert. Vorhanden: %s\n",
+                qPrintable(parser.value(styleOption)), qPrintable(names.join(QStringLiteral(", "))));
+        return 3;
+    }
+    UiStyle::apply(UiStyle::choose(parser.isSet(styleOption) ? parser.value(styleOption) : UiStyle::saved()));
 
     QString dbPath = parser.value(dbOption);
     if (dbPath.isEmpty()) {

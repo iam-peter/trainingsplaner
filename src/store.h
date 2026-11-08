@@ -49,6 +49,11 @@ class Store : public QObject
     Q_PROPERTY(bool hasDemoData READ hasDemoData NOTIFY athletesChanged)
     // "system", "light" or "dark"; changes the colours at once
     Q_PROPERTY(QString colorScheme READ colorScheme WRITE setColorScheme NOTIFY settingsChanged)
+    // The Qt Quick Controls style in use, and the one chosen for the next
+    // start; [{name, label}] of the installed ones
+    Q_PROPERTY(QString activeStyle READ activeStyle CONSTANT)
+    Q_PROPERTY(QString uiStyle READ uiStyle WRITE setUiStyle NOTIFY settingsChanged)
+    Q_PROPERTY(QVariantList availableStyles READ availableStyles CONSTANT)
     Q_PROPERTY(int dataVersion READ dataVersion NOTIFY dataChanged)
 
 public:
@@ -83,6 +88,12 @@ public:
     QString undoLabel() const;
     bool firstStart() const;
     QString colorScheme() const;
+    QString activeStyle() const;
+    QString uiStyle() const;
+    void setUiStyle(const QString &name);
+    QVariantList availableStyles() const;
+    // Starts the program again (for a new style) and ends this one
+    Q_INVOKABLE void restart();
     void setColorScheme(const QString &scheme);
     bool hasDemoData() const;
     Q_INVOKABLE void finishFirstStart();

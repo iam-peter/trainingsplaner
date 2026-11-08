@@ -1,5 +1,6 @@
 #include "bakimport.h"
 #include "database.h"
+#include "uistyle.h"
 #include "update.h"
 
 #include <QCryptographicHash>
@@ -14,6 +15,7 @@
 #include <QtQuickTest>
 
 Q_IMPORT_QML_PLUGIN(TrainingsplanerPlugin)
+Q_IMPORT_QML_PLUGIN(CarbonPlugin)
 
 // Runs the QML tests against a fresh database in a temporary directory.
 class Setup : public QObject
@@ -40,6 +42,8 @@ public slots:
     void qmlEngineAvailable(QQmlEngine *engine)
     {
         engine->rootContext()->setContextProperty(QStringLiteral("updateFixtures"), m_fixtures);
+        // As the program does at start
+        UiStyle::detect(engine->importPathList());
     }
 
     void cleanupTestCase() { Database::close(); }

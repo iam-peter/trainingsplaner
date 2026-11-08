@@ -25,7 +25,7 @@ Rectangle {
 
     readonly property bool filled: session !== null
 
-    radius: 10
+    radius: Theme.radius(10)
     color: hover.hovered ? Theme.cellHover : Theme.cell
     border.color: activeFocus ? palette.highlight
                   : hover.hovered ? Theme.cellBorderHover : today ? Theme.accent : Theme.cellBorder

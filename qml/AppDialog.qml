@@ -65,6 +65,6 @@ Dialog {
     Overlay.modal: Rectangle {
         objectName: "dialogDim"
         anchors.fill: parent
-        color: root.nested ? "transparent" : Qt.rgba(0, 0, 0, 0.45)
+        color: root.nested ? "transparent" : Theme.dim
     }
 }

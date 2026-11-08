@@ -67,7 +67,7 @@ Frame {
     background: Rectangle {
         color: palette.window
         border.color: palette.mid
-        radius: 4
+        radius: Theme.radius(4)
     }
 
     RowLayout {

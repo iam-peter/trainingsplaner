@@ -13,6 +13,6 @@ Frame {
     background: Rectangle {
         color: control.filled ? control.palette.base : "transparent"
         border.color: Theme.line
-        radius: 4
+        radius: Theme.radius(4)
     }
 }

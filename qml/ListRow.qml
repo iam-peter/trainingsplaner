@@ -14,13 +14,14 @@ ItemDelegate {
     width: ListView.view ? ListView.view.width : implicitWidth
     hoverEnabled: true
     rightPadding: deleteButton.width + 8
-    leftInset: 2
-    rightInset: 2
-    topInset: 1
-    bottomInset: 1
+    // Carbon's lists select the full width
+    leftInset: Theme.carbon ? 0 : 2
+    rightInset: Theme.carbon ? 0 : 2
+    topInset: Theme.carbon ? 0 : 1
+    bottomInset: Theme.carbon ? 0 : 1
 
     background: Rectangle {
-        radius: 3
+        radius: Theme.radius(3)
         color: row.highlighted ? row.palette.highlight
                : row.down ? Qt.tint(row.palette.base, Qt.rgba(0.5, 0.5, 0.5, 0.25))
                : row.hovered ? Qt.tint(row.palette.base, Qt.rgba(0.5, 0.5, 0.5, 0.12))

@@ -38,6 +38,8 @@ file(GLOB TP_ICONS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} CONFIGURE_DEPENDS icons/
 # The QML module (UI and the Store singleton) as a static library, so the
 # QML tests can load the same module as the application.
 set_source_files_properties(qml/DialogStack.qml qml/Theme.qml qml/Glossary.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+add_subdirectory(carbon)
+
 qt_add_library(tpqml STATIC)
 qt_add_qml_module(tpqml
     URI Trainingsplaner
@@ -50,6 +52,7 @@ qt_add_qml_module(tpqml
         src/analysisapi.cpp src/analysisapi.h
         src/updater.cpp src/updater.h
         src/colorscheme.cpp src/colorscheme.h
+        src/uistyle.cpp src/uistyle.h
     QML_FILES
         qml/Main.qml
         qml/KeyMenuItem.qml
@@ -97,6 +100,8 @@ qt_add_qml_module(tpqml
         ${TP_ICONS}
 )
 target_link_libraries(tpqml PUBLIC
+    carbonstyle
+    carbonstyleplugin
     tpcore
     Qt6::Network
     Qt6::Quick
@@ -141,8 +146,11 @@ qt_add_executable(tst_qml tests/tst_qml.cpp)
 target_compile_definitions(tst_qml PRIVATE
     QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests")
 target_link_libraries(tst_qml PRIVATE tpqml tpqmlplugin Qt6::QuickTest)
+# The QML tests in the program's default style and in our own Carbon style
 add_test(NAME tst_qml COMMAND tst_qml)
-set_tests_properties(tst_qml PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+set_tests_properties(tst_qml PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_CONTROLS_STYLE=Fusion")
+add_test(NAME tst_qml_carbon COMMAND tst_qml)
+set_tests_properties(tst_qml_carbon PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_CONTROLS_STYLE=Carbon")
 
 include(GNUInstallDirs)
 install(TARGETS trainingsplaner

@@ -4,16 +4,20 @@
 #include "bakimport.h"
 #include "competition.h"
 #include "colorscheme.h"
+#include "uistyle.h"
 #include "database.h"
 #include "demo.h"
 #include "exerciseweek.h"
 #include "weekreport.h"
 
+#include <QCoreApplication>
 #include <QDateTime>
 #include <QDesktopServices>
 #include <QDir>
 #include <QFileInfo>
 #include <QPageLayout>
+#include <QProcess>
+#include <QQuickStyle>
 #include <QPainter>
 #include <QPrintDialog>
 #include <QPrinter>
@@ -910,6 +914,48 @@ void Store::setColorScheme(const QString &scheme)
     ColorScheme::save(scheme);
     ColorScheme::apply(ColorScheme::saved());
     emit settingsChanged();
+}
+
+QString Store::activeStyle() const
+{
+    return QQuickStyle::name();
+}
+
+QString Store::uiStyle() const
+{
+    return UiStyle::choose(UiStyle::saved());
+}
+
+void Store::setUiStyle(const QString &name)
+{
+    if (name == uiStyle())
+        return;
+    UiStyle::save(UiStyle::choose(name));
+    emit settingsChanged();
+}
+
+QVariantList Store::availableStyles() const
+{
+    QVariantList list;
+    for (const UiStyle::Info &s : UiStyle::available())
+        list.append(QVariantMap{{QStringLiteral("name"), s.name}, {QStringLiteral("label"), s.label}});
+    return list;
+}
+
+void Store::restart()
+{
+    // An AppImage runs from a temporary mount that ends with the program
+    QString program = qEnvironmentVariable("APPIMAGE");
+    if (program.isEmpty())
+        program = QCoreApplication::applicationFilePath();
+    // Without a style given on the command line, so the new one applies
+    QStringList args = QCoreApplication::arguments().mid(1);
+    const qsizetype i = args.indexOf(QStringLiteral("--stil"));
+    if (i >= 0)
+        args.remove(i, qMin<qsizetype>(2, args.size() - i));
+    args.removeIf([](const QString &a) { return a.startsWith(QLatin1String("--stil=")); });
+    if (QProcess::startDetached(program, args))
+        QCoreApplication::quit();
 }
 
 bool Store::firstStart() const
