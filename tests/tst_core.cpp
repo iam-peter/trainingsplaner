@@ -2,6 +2,7 @@
 #include "bakimport.h"
 #include "competition.h"
 #include "planning.h"
+#include "analysis.h"
 #include "database.h"
 #include "exerciseweek.h"
 #include "model.h"
@@ -40,6 +41,7 @@ private slots:
     void competitions();
     void planningBasics();
     void itpFromRo();
+    void sectionAnalysis();
     void exerciseWeekApply();
 
 private:
@@ -638,6 +640,96 @@ void TestCore::itpFromRo()
 
     QVERIFY(Planning::removeMaz(id));
     QVERIFY(Planning::targets(ro, QDate(2027, 1, 1), QDate(2027, 12, 31)).isEmpty());
+}
+
+void TestCore::sectionAnalysis()
+{
+    QCOMPARE(Analysis::slope({1, 2, 3}), 1.0);
+    QCOMPARE(Analysis::slope({10, Analysis::none, 30}), 10.0);
+    QVERIFY(std::isnan(Analysis::slope({5})));
+
+    Athlete a;
+    a.lastName = QStringLiteral("Analyse");
+    a.firstName = QStringLiteral("Anna");
+    const QString id = Database::saveAthlete(a);
+    const QDate w1(2028, 1, 3), w2 = w1.addDays(7), w3 = w1.addDays(14);
+    auto session = [&](const QDate &monday, int day, QList<Entry> entries) {
+        Session s;
+        s.day = day;
+        s.entries = entries;
+        QVERIFY(Database::saveSession(id, monday, Variant::Actual, s));
+    };
+    Entry snatch;
+    snatch.exercise = 1;
+    snatch.steps = {{60, 3, 2, 0}, {70, 2, 2, 1}};   // 10 Wh, 640 kg, 4 sets
+    Entry squat;
+    squat.exercise = 19;
+    squat.steps = {{100, 5, 1, 0}};                    // group K5
+    session(w1, 1, {snatch, squat});
+    session(w1, 3, {snatch});
+    Entry heavier = snatch;
+    heavier.steps = {{80, 1, 2, 0}};                   // 2 Wh
+    session(w2, 2, {heavier});
+    session(w3, 2, {snatch});
+
+    Analysis::Params p;
+    p.athleteId = id;
+    p.from = w1;
+    p.weeks = 3;
+    p.includeCompetitionWeeks = true;
+    Analysis::Section s = Analysis::section(p);
+    QCOMPARE(s.countedWeeks, 3);
+    QCOMPARE(s.sessions, 4.0);
+    QCOMPARE(s.rows.size(), 2);
+    const Analysis::Row &r = s.rows[0];
+    QCOMPARE(r.key, 1);
+    QCOMPARE(r.wh, (QList<double>{20, 2, 10}));
+    QCOMPARE(r.whTotal, 32.0);
+    QCOMPARE(r.whPerWeek, 32.0 / 3);
+    QCOMPARE(r.bw, (QList<double>{70, 80, 70}));
+    QCOMPARE(r.bwMax, 80.0);
+    QCOMPARE(r.mhgPeriod, (1280 + 160 + 640) / 32.0);
+    QCOMPARE(r.failed, 3.0);                            // UG counts per weight step, three steps
+    // The 30 heaviest of 32 reps leave out two 60 kg reps
+    QCOMPARE(r.mhgTop30, (2 * 80 + 12 * 70 + 16 * 60) / 30.0);
+    QCOMPARE(r.sgMean, 32.0 / 14);                      // 8 + 2 + 4 sets
+
+    // A competition in week 2 leaves that week out
+    Competition c;
+    c.athleteId = id;
+    c.date = w2.addDays(5);
+    c.snatch[0] = 70;
+    QVERIFY(Competitions::save(c));
+    p.includeCompetitionWeeks = false;
+    s = Analysis::section(p);
+    QCOMPARE(s.countedWeeks, 2);
+    QVERIFY(s.excluded[1]);
+    QCOMPARE(s.rows[0].whTotal, 30.0);
+    QCOMPARE(s.rows[0].bwMax, 70.0);
+
+    // Groups and percent of the MAZ targets
+    Maz m;
+    m.name = QStringLiteral("Analyse");
+    m.from = w1;
+    m.to = w3;
+    const QString mazId = Planning::saveMaz(m);
+    QVERIFY(Planning::saveMazAthlete({mazId, id, 0, 100, 140, 0, 0, {}}));
+    p.groups = true;
+    p.reference = Analysis::Reference::MazTarget;
+    p.mazId = mazId;
+    s = Analysis::section(p);
+    QCOMPARE(s.rows.size(), 2);
+    QCOMPARE(s.rows[0].key, -1);
+    QCOMPARE(s.rows[1].key, -5);
+    QVERIFY(s.rows[0].percent);
+    QCOMPARE(s.rows[0].bwMax, 70.0 * 100 / 120);       // groups: mean of both targets
+
+    // Reps per weight
+    const Analysis::LoadTable t = Analysis::loadTable(id, Variant::Actual, 1, w1, 3);
+    QCOMPARE(t.kg, (QList<int>{80, 70, 60}));
+    QCOMPARE(t.reps[1], (QList<int>{8, 0, 4}));
+    QCOMPARE(t.totals[2], 18);
+    QCOMPARE(Analysis::sessionCounts(id, w1, 3, Variant::Actual), (QList<int>{2, 1, 1}));
 }
 
 QTEST_MAIN(TestCore)

@@ -190,14 +190,20 @@ Item {
                     }
                 }
                 if (l.trend) {
+                    // Only over the weeks that have values, inside the plot area
                     const r = chart.regression(l.values)
-                    if (r) {
+                    const defined = l.values.map((v, i) => v === null || v === undefined || isNaN(v) ? -1 : i)
+                                            .filter(i => i >= 0)
+                    if (r && defined.length >= 2) {
+                        const a = defined[0], b = defined[defined.length - 1]
+                        ctx.save()
+                        ctx.beginPath(); ctx.rect(left, top, w, h); ctx.clip()
                         ctx.setLineDash([3, 3])
                         ctx.lineWidth = 1.5
                         ctx.beginPath()
-                        ctx.moveTo(xAt(0), yL(r[0])); ctx.lineTo(xAt(n - 1), yL(r[0] + r[1] * (n - 1)))
+                        ctx.moveTo(xAt(a), yL(r[0] + r[1] * a)); ctx.lineTo(xAt(b), yL(r[0] + r[1] * b))
                         ctx.stroke()
-                        ctx.setLineDash([])
+                        ctx.restore()
                     }
                 }
             }
