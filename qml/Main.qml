@@ -119,6 +119,19 @@ ApplicationWindow {
         }
     }
 
+    // Ctrl+1 … Ctrl+5 switch pages
+    Repeater {
+        model: 5
+        Item {
+            required property int index
+            Shortcut {
+                sequence: "Ctrl+" + (index + 1)
+                enabled: DialogStack.open === 0
+                onActivated: tabs.currentIndex = index
+            }
+        }
+    }
+
     StackLayout {
         anchors.fill: parent
         currentIndex: tabs.currentIndex

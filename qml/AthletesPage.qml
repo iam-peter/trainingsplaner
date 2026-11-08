@@ -56,6 +56,12 @@ Page {
         }
     }
 
+    Shortcut {
+        sequence: StandardKey.Save
+        enabled: page.visible && page.dirty && DialogStack.open === 0
+        onActivated: page.save()
+    }
+
     readonly property bool bornValid: bornField.text.trim() === "" || Store.parseDate(bornField.text) !== ""
 
     RowLayout {

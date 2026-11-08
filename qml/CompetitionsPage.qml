@@ -69,6 +69,12 @@ Page {
         totalLabel.text = s > 0 && c > 0 ? String(s + c) : "–"
     }
 
+    Shortcut {
+        sequence: StandardKey.Save
+        enabled: page.visible && page.dirty && tabs.currentIndex === 0 && DialogStack.open === 0
+        onActivated: page.save()
+    }
+
     function save() {
         error = Store.saveCompetition({
             athleteId: athleteId,

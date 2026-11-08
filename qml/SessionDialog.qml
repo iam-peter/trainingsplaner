@@ -124,7 +124,7 @@ AppDialog {
 
     Shortcut {
         sequence: "Ctrl+S"
-        enabled: dialog.visible
+        enabled: dialog.visible && !discardConfirm.visible && !deleteConfirm.visible && !historyDialog.visible
         onActivated: dialog.save()
     }
     Shortcut {

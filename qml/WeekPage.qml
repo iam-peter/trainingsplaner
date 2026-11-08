@@ -104,6 +104,46 @@ Page {
         exerciseDialog.edit(athleteId, monday, variant, exercise)
     }
 
+    function focusSession(day, number) {
+        const rows = threeSessions ? 3 : 2
+        day = Math.min(7, Math.max(1, day))
+        number = Math.min(rows, Math.max(1, number))
+        cells.itemAt((number - 1) * 7 + day - 1).forceActiveFocus()
+    }
+
+    function askRemoveSession(day, number) {
+        if (!hasAthlete || !sessionAt(day, number))
+            return
+        removeConfirm.day = day
+        removeConfirm.number = number
+        removeConfirm.open()
+    }
+
+    function printWeek() {
+        if (!hasAthlete)
+            return
+        saveNote()
+        Store.printWeek(athleteId, monday, variant)
+    }
+
+    // Keyboard shortcuts while the week plan is shown and no dialog is open
+    readonly property bool shortcutsActive: visible && DialogStack.open === 0
+    Shortcut {
+        sequence: "Ctrl+Left"
+        enabled: page.shortcutsActive
+        onActivated: page.monday = Store.addWeeks(page.monday, -1)
+    }
+    Shortcut {
+        sequence: "Ctrl+Right"
+        enabled: page.shortcutsActive
+        onActivated: page.monday = Store.addWeeks(page.monday, 1)
+    }
+    Shortcut {
+        sequence: StandardKey.Print
+        enabled: page.shortcutsActive && page.hasAthlete
+        onActivated: page.printWeek()
+    }
+
     function openSession(day, number) {
         if (!hasAthlete || !(day >= 1 && day <= 7) || !(number >= 1 && number <= 3))
             return
@@ -155,7 +195,7 @@ Page {
                 iconName: "chevron-left"
                 onClicked: page.monday = Store.addWeeks(page.monday, -1)
                 ToolTip.visible: hovered
-                ToolTip.text: "Vorige Woche"
+                ToolTip.text: "Vorige Woche (Strg+←)"
             }
             TextField {
                 id: weekField
@@ -177,7 +217,7 @@ Page {
                 iconName: "chevron-right"
                 onClicked: page.monday = Store.addWeeks(page.monday, 1)
                 ToolTip.visible: hovered
-                ToolTip.text: "Nächste Woche"
+                ToolTip.text: "Nächste Woche (Strg+→)"
             }
             IconButton {
                 id: calendarButton
@@ -246,10 +286,8 @@ Page {
                 iconName: "printer"
                 text: "Drucken…"
                 enabled: page.hasAthlete
-                onClicked: {
-                    page.saveNote()
-                    Store.printWeek(page.athleteId, page.monday, page.variant)
-                }
+                toolTip: "Wochenplan drucken (Strg+P)"
+                onClicked: page.printWeek()
             }
             IconButton {
                 iconName: "file-down"
@@ -303,11 +341,13 @@ Page {
             }
 
             Repeater {
+                id: cells
                 model: page.threeSessions ? 21 : 14
                 SessionCell {
                     required property int index
                     readonly property int day: index % 7 + 1
                     readonly property int number: Math.floor(index / 7) + 1
+                    objectName: "cell" + day + "_" + number
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.preferredWidth: 1
@@ -319,13 +359,15 @@ Page {
                     session: page.sessionAt(day, number)
                     onClicked: page.openSession(day, number)
                     onExerciseClicked: (exercise) => page.openExercise(exercise)
+                    onDeleteRequested: page.askRemoveSession(day, number)
+                    onMoveRequested: (days, sessions) => page.focusSession(day + days, number + sessions)
                 }
             }
         }
 
         Label {
             Layout.fillWidth: true
-            text: "Je Zeile: Übung  WH  MHG  BW  Wdh/Sätze beim BW  ·  Klick auf eine Übung bearbeitet sie für die ganze Woche, Klick daneben die Trainingseinheit  ·  F1: Hilfe"
+            text: "Je Zeile: Übung  WH  MHG  BW  Wdh/Sätze beim BW  ·  Klick auf eine Übung bearbeitet sie für die ganze Woche, Klick daneben die Trainingseinheit  ·  Pfeiltasten, Enter, Entf  ·  F1: Hilfe"
             font.pixelSize: 11
             color: palette.placeholderText
             elide: Text.ElideRight
@@ -498,6 +540,21 @@ Page {
             text: "Die angezeigte Woche enthält schon Trainingseinheiten.\nSie werden durch die kopierte Woche ersetzt:\n" + Store.clipboardLabel
         }
         onAccepted: Store.pasteWeek(page.athleteId, page.monday, page.variant)
+    }
+
+    AppDialog {
+        id: removeConfirm
+        property int day: 1
+        property int number: 1
+        title: "Trainingseinheit löschen?"
+        standardButtons: Dialog.Yes | Dialog.No
+        Label {
+            text: Store.dayName(removeConfirm.day) + ", " + removeConfirm.number + ". TE ("
+                  + (page.variant === "P" ? "Plan" : "Ist") + ") wird mit allen Übungen gelöscht."
+        }
+        onAccepted: Store.removeSession(page.athleteId, page.monday, page.variant,
+                                        removeConfirm.day, removeConfirm.number)
+        onClosed: page.focusSession(day, number)
     }
 
     FileDialog {

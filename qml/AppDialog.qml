@@ -6,16 +6,22 @@ import QtQuick.Controls
 // (Fusion's own dim is barely visible). The dim layer is anchored to the
 // overlay, so it always covers the whole window, also after resizing.
 // A dialog opened from another dialog does not add a second dim layer.
+// The dialog takes the keyboard focus, so Esc closes it, and Enter answers
+// Yes/OK in a dialog that asks for that.
 Dialog {
     id: root
 
     // Set while opening: another AppDialog is already open
     property bool nested: false
     property bool counted: false
+    // Position in the stack of open dialogs; the topmost one takes Enter
+    property int level: 0
+    readonly property bool enterAccepts: (standardButtons & (Dialog.Yes | Dialog.Ok)) !== 0
 
     parent: Overlay.overlay
     anchors.centerIn: parent
     modal: true
+    focus: true
 
     onAboutToShow: {
         nested = DialogStack.open > 0
@@ -23,6 +29,13 @@ Dialog {
             DialogStack.open += 1
             counted = true
         }
+        level = DialogStack.open
+    }
+
+    Shortcut {
+        sequences: ["Return", "Enter"]
+        enabled: root.opened && root.enterAccepts && root.level === DialogStack.open
+        onActivated: root.accept()
     }
     onClosed: {
         if (counted) {

@@ -4,7 +4,8 @@ import QtQuick.Controls.impl
 import QtQuick.Layouts
 import Trainingsplaner
 
-// One training session in the week grid. Click to edit.
+// One training session in the week grid. Click or Enter to edit, Delete
+// to remove, arrow keys to move to the neighbouring session.
 Rectangle {
     id: cell
 
@@ -12,6 +13,8 @@ Rectangle {
     property int sessionNumber: 1
     property bool today: false
     signal clicked()
+    signal deleteRequested()
+    signal moveRequested(int days, int sessions)
     // A weight exercise line was clicked: edit that exercise for the week
     signal exerciseClicked(int exercise)
 
@@ -19,16 +22,30 @@ Rectangle {
 
     radius: 10
     color: mouse.containsMouse ? Theme.cellHover : Theme.cell
-    border.color: mouse.containsMouse ? Theme.cellBorderHover : today ? Theme.accent : Theme.cellBorder
-    border.width: mouse.containsMouse || today ? 2 : 1
+    border.color: activeFocus ? palette.highlight
+                  : mouse.containsMouse ? Theme.cellBorderHover : today ? Theme.accent : Theme.cellBorder
+    border.width: activeFocus || mouse.containsMouse || today ? 2 : 1
     clip: true
+
+    activeFocusOnTab: true
+    Keys.onReturnPressed: cell.clicked()
+    Keys.onEnterPressed: cell.clicked()
+    Keys.onSpacePressed: cell.clicked()
+    Keys.onDeletePressed: if (cell.filled) cell.deleteRequested()
+    Keys.onLeftPressed: (event) => { if (event.modifiers === Qt.NoModifier) cell.moveRequested(-1, 0); else event.accepted = false }
+    Keys.onRightPressed: (event) => { if (event.modifiers === Qt.NoModifier) cell.moveRequested(1, 0); else event.accepted = false }
+    Keys.onUpPressed: (event) => { if (event.modifiers === Qt.NoModifier) cell.moveRequested(0, -1); else event.accepted = false }
+    Keys.onDownPressed: (event) => { if (event.modifiers === Qt.NoModifier) cell.moveRequested(0, 1); else event.accepted = false }
 
     MouseArea {
         id: mouse
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: cell.clicked()
+        onClicked: {
+            cell.forceActiveFocus()
+            cell.clicked()
+        }
     }
 
     Label {
@@ -82,7 +99,13 @@ Rectangle {
                     hoverEnabled: true
                     cursorShape: line.weights ? Qt.PointingHandCursor : Qt.ArrowCursor
                     // Other lines pass clicks on to the cell (open the session)
-                    onClicked: line.weights ? cell.exerciseClicked(line.modelData.exercise) : cell.clicked()
+                    onClicked: {
+                        cell.forceActiveFocus()
+                        if (line.weights)
+                            cell.exerciseClicked(line.modelData.exercise)
+                        else
+                            cell.clicked()
+                    }
                     ToolTip.visible: containsMouse && line.tip !== ""
                     ToolTip.text: line.tip
                     ToolTip.delay: 500
