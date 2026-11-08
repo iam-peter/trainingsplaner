@@ -17,6 +17,8 @@ add_library(tpcore STATIC
     src/steps.cpp       src/steps.h
     src/model.h
     src/database.cpp    src/database.h
+    src/tables.cpp      src/tables.h
+    src/bakexport.cpp   src/bakexport.h
     src/exerciseweek.cpp src/exerciseweek.h
     src/bakimport.cpp   src/bakimport.h
     src/weekreport.cpp  src/weekreport.h
@@ -51,6 +53,7 @@ qt_add_qml_module(tpqml
         qml/StepsEditor.qml
         qml/ExerciseWeekDialog.qml
         qml/ExerciseRowEditor.qml
+        qml/ExportDialog.qml
     RESOURCES
         logo/trainingsplaner.svg
         ${TP_FONTS}

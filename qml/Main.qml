@@ -47,10 +47,26 @@ ApplicationWindow {
             Item { Layout.fillWidth: true }
 
             IconToolButton {
-                iconName: "import"
-                text: "Daten importieren…"
-                toolTip: "Datensicherung des alten Programms (winwotaxp.bak) einlesen"
-                onClicked: importDialog.open()
+                id: dataButton
+                iconName: "database"
+                text: "Daten"
+                onClicked: dataMenu.open()
+                Menu {
+                    id: dataMenu
+                    y: dataButton.height
+                    MenuItem {
+                        text: "Importieren…"
+                        icon.source: "qrc:/qt/qml/Trainingsplaner/icons/import.svg"
+                        icon.color: palette.text
+                        onTriggered: importDialog.open()
+                    }
+                    MenuItem {
+                        text: "Exportieren…"
+                        icon.source: "qrc:/qt/qml/Trainingsplaner/icons/file-down.svg"
+                        icon.color: palette.text
+                        onTriggered: exportDialog.open()
+                    }
+                }
             }
             IconToolButton {
                 iconName: "settings"
@@ -80,11 +96,39 @@ ApplicationWindow {
         id: importDialog
         title: "Datensicherung importieren"
         nameFilters: ["Datensicherung (*.bak)", "Alle Dateien (*)"]
+        onAccepted: importOptions.open()
+    }
+
+    Dialog {
+        id: importOptions
+        title: "Daten importieren"
+        modal: true
+        anchors.centerIn: Overlay.overlay
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        ColumnLayout {
+            Label {
+                text: decodeURIComponent(importDialog.selectedFile.toString().replace(/^.*\//, ""))
+                font.bold: true
+            }
+            Label {
+                text: "Neuere Einträge im Programm bleiben erhalten."
+                color: palette.placeholderText
+            }
+            CheckBox {
+                id: ignoreTimestamps
+                text: "Zeitstempel nicht berücksichtigen (Datei überschreibt alles)"
+            }
+        }
         onAccepted: {
-            importResult.text = Store.importBak(selectedFile)
+            importResult.text = Store.importBak(importDialog.selectedFile, ignoreTimestamps.checked)
+            ignoreTimestamps.checked = false
             importResult.open()
             weekPage.selectDefaultAthlete()
         }
+    }
+
+    ExportDialog {
+        id: exportDialog
     }
 
     Dialog {

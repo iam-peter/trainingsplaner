@@ -103,7 +103,15 @@ public:
     Q_INVOKABLE QString exerciseName(int id) const;
 
     // Import, print, export
-    Q_INVOKABLE QString importBak(const QUrl &file);
+    Q_INVOKABLE QString importBak(const QUrl &file, bool ignoreTimestamps = false);
+    // mode: "all", "since" (since = "dd.MM.yyyy" and "HH:mm"), "athlete"
+    // (athleteId, week labels from/to). Returns a summary.
+    Q_INVOKABLE QString exportBak(const QUrl &file, const QString &mode, const QString &sinceDate,
+                                  const QString &sinceTime, const QString &athleteId,
+                                  const QString &fromWeek, const QString &toWeek);
+    Q_INVOKABLE QUrl suggestedExportUrl() const;
+    // When the last export was written, "dd.MM.yyyy HH:mm", or empty
+    Q_INVOKABLE QString lastExport() const;
     Q_INVOKABLE bool printWeek(const QString &athleteId, const QString &monday,
                                const QString &variant);
     Q_INVOKABLE QUrl suggestedPdfUrl(const QString &athleteId, const QString &monday) const;

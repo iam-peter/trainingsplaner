@@ -406,7 +406,7 @@ Page {
             Layout.alignment: Qt.AlignHCenter
             visible: Store.athletes.length === 0
             horizontalAlignment: Text.AlignHCenter
-            text: "Über „Daten importieren…“ die Datensicherung des alten Programms (winwotaxp.bak) einlesen\noder unter „Sportler“ einen neuen Sportler anlegen."
+            text: "Über „Daten“ › „Importieren…“ die Datensicherung des alten Programms (winwotaxp.bak) einlesen\noder unter „Sportler“ einen neuen Sportler anlegen."
             color: palette.placeholderText
         }
     }

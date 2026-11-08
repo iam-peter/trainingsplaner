@@ -1,6 +1,7 @@
 #include "bakimport.h"
 
 #include "database.h"
+#include "tables.h"
 
 #include <QFile>
 #include <QSqlDatabase>
@@ -8,56 +9,6 @@
 #include <QSqlQuery>
 
 namespace {
-
-struct TableSpec
-{
-    const char *name;
-    QStringList columns; // column order in the old program's statements
-    QStringList keys;
-    QStringList stored; // columns kept in the new database
-};
-
-const QList<TableSpec> &tableSpecs()
-{
-    static const QList<TableSpec> specs = {
-        {"sp",
-         {"spid", "del", "korrektur", "korrektur2", "user", "name", "vorname", "sex", "geb",
-          "adresse", "telefon"},
-         {"spid"},
-         {"spid", "name", "vorname", "sex", "geb", "adresse", "telefon", "user", "korrektur"}},
-        {"te",
-         {"spid", "wodate", "tag", "te", "spi", "del", "korrektur", "korrektur2", "user", "art",
-          "von", "bis", "bem"},
-         {"spid", "wodate", "tag", "te", "spi"},
-         {"spid", "wodate", "tag", "te", "spi", "art", "von", "bis", "bem", "user", "korrektur"}},
-        {"te_ueb",
-         {"spid", "wodate", "tag", "te", "pos", "spi", "del", "korrektur", "korrektur2", "user",
-          "ueb", "lststbem", "art", "kombi"},
-         {"spid", "wodate", "tag", "te", "pos", "spi"},
-         {"spid", "wodate", "tag", "te", "pos", "spi", "ueb", "lststbem", "art", "kombi", "user",
-          "korrektur"}},
-        {"wo",
-         {"spid", "wodate", "del", "korrektur", "korrektur2", "user", "bel", "wklg", "verletzt",
-          "bem_soll", "bem_plan", "bem_ist"},
-         {"spid", "wodate"},
-         {"spid", "wodate", "bel", "wklg", "verletzt", "bem_soll", "bem_plan", "bem_ist", "user",
-          "korrektur"}},
-        {"normen",
-         {"sex", "akl", "gkl", "del", "korrektur", "korrektur2", "user", "gklbez", "zk"},
-         {"sex", "akl", "gkl"},
-         {"sex", "akl", "gkl", "gklbez", "zk", "user", "korrektur"}},
-    };
-    return specs;
-}
-
-const TableSpec *specFor(const QString &table)
-{
-    for (const TableSpec &s : tableSpecs()) {
-        if (table.compare(QLatin1String(s.name), Qt::CaseInsensitive) == 0)
-            return &s;
-    }
-    return nullptr;
-}
 
 // Minimal scanner for the statements the old program wrote.
 class Scanner
@@ -220,6 +171,12 @@ QString Result::summary() const
         {QStringLiteral("te_ueb"), QStringLiteral("Übungen")},
         {QStringLiteral("wo"), QStringLiteral("Wochen")},
         {QStringLiteral("normen"), QStringLiteral("Normen")},
+        {QStringLiteral("spinfo"), QStringLiteral("Sportlerinfos")},
+        {QStringLiteral("wk"), QStringLiteral("Wettkämpfe")},
+        {QStringLiteral("maz"), QStringLiteral("MAZ")},
+        {QStringLiteral("maz_sp"), QStringLiteral("MAZ-Sportler")},
+        {QStringLiteral("ueb"), QStringLiteral("ITP/RO-Werte")},
+        {QStringLiteral("itp_ls"), QStringLiteral("ITP-Laststufen")},
     };
     QStringList lines;
     for (auto it = tables.cbegin(); it != tables.cend(); ++it) {
@@ -324,7 +281,7 @@ QList<Row> parse(const QString &text, int *ignoredStatements, QStringList *error
     return rows;
 }
 
-Result importText(const QString &text)
+Result importText(const QString &text, bool ignoreTimestamps)
 {
     Result r;
     const QList<Row> rows = parse(text, &r.ignoredStatements, &r.errors);
@@ -332,7 +289,7 @@ Result importText(const QString &text)
     QSqlDatabase d = QSqlDatabase::database();
     d.transaction();
     for (const Row &row : rows) {
-        const TableSpec *spec = specFor(row.table);
+        const TableSpec *spec = Tables::find(row.table);
         if (!spec) {
             ++r.ignoredStatements;
             continue;
@@ -350,15 +307,14 @@ Result importText(const QString &text)
         if (v.contains(QStringLiteral("art")) && !v.value(QStringLiteral("art")).isValid())
             v.insert(QStringLiteral("art"), 0);
 
-        TableCount &count = r.tables[QString::fromLatin1(spec->name)];
+        TableCount &count = r.tables[spec->name];
         QStringList where;
         for (const QString &k : spec->keys)
             where.append(k + QStringLiteral(" = ?"));
         const QString whereSql = where.join(QStringLiteral(" AND "));
 
         QSqlQuery sel(d);
-        sel.prepare(QStringLiteral("SELECT korrektur FROM %1 WHERE %2")
-                        .arg(QLatin1String(spec->name), whereSql));
+        sel.prepare(QStringLiteral("SELECT korrektur FROM %1 WHERE %2").arg(spec->name, whereSql));
         for (const QString &k : spec->keys)
             sel.addBindValue(v.value(k));
         if (!execQuery(sel, &r.errors))
@@ -366,20 +322,20 @@ Result importText(const QString &text)
         const bool exists = sel.next();
         const QString incoming = v.value(QStringLiteral("korrektur")).toString();
         // Same or newer local row: nothing to do (also makes re-imports no-ops).
-        if (exists && sel.value(0).toString() >= incoming) {
+        if (exists && !ignoreTimestamps && sel.value(0).toString() >= incoming) {
             ++count.skipped;
             continue;
         }
 
         if (v.value(QStringLiteral("del")).toString() == QLatin1String("Y")) {
             if (exists) {
-                QSqlQuery del(d);
-                del.prepare(QStringLiteral("DELETE FROM %1 WHERE %2")
-                                .arg(QLatin1String(spec->name), whereSql));
+                QVariantList key;
                 for (const QString &k : spec->keys)
-                    del.addBindValue(v.value(k));
-                if (execQuery(del, &r.errors))
+                    key.append(v.value(k));
+                if (Database::deleteRows(spec->name, whereSql, key, incoming))
                     ++count.removed;
+                else
+                    r.errors.append(Database::lastError());
             } else {
                 ++count.skipped;
             }
@@ -391,7 +347,7 @@ Result importText(const QString &text)
             marks.append(QStringLiteral("?"));
         QSqlQuery ins(d);
         ins.prepare(QStringLiteral("INSERT OR REPLACE INTO %1 (%2) VALUES (%3)")
-                        .arg(QLatin1String(spec->name), spec->stored.join(QStringLiteral(", ")),
+                        .arg(spec->name, spec->stored.join(QStringLiteral(", ")),
                              marks.join(QStringLiteral(", "))));
         for (const QString &c : spec->stored)
             ins.addBindValue(v.value(c));
@@ -408,7 +364,7 @@ Result importText(const QString &text)
     return r;
 }
 
-Result importFile(const QString &path)
+Result importFile(const QString &path, bool ignoreTimestamps)
 {
     QFile f(path);
     if (!f.open(QIODevice::ReadOnly)) {
@@ -416,7 +372,7 @@ Result importFile(const QString &path)
         r.errors.append(QStringLiteral("Datei kann nicht gelesen werden: ") + f.errorString());
         return r;
     }
-    return importText(decode(f.readAll()));
+    return importText(decode(f.readAll()), ignoreTimestamps);
 }
 
 } // namespace BakImport

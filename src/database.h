@@ -4,6 +4,7 @@
 
 #include <QList>
 #include <QString>
+#include <QVariantList>
 
 // Storage in a single SQLite file.
 //
@@ -40,6 +41,17 @@ bool saveWeekNote(const QString &athleteId, const QDate &monday, Variant variant
 // Returns the number of sessions copied, or -1 on error.
 int copyWeek(const QString &fromAthlete, const QDate &fromMonday, Variant fromVariant,
              const QString &toAthlete, const QDate &toMonday, Variant toVariant);
+
+// Generic access for the other modules
+bool deleteRows(const QString &table, const QString &where, const QVariantList &binds,
+                const QString &stamp);
+bool recordDeletion(const QString &table, const QVariantList &key, const QString &stamp);
+struct Deletion
+{
+    QStringList key;
+    QString stamp;
+};
+QList<Deletion> deletions(const QString &table, const QString &since);
 
 QString lastError();
 

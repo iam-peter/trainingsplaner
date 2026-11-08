@@ -1,10 +1,12 @@
 #include "store.h"
 
+#include "bakexport.h"
 #include "bakimport.h"
 #include "database.h"
 #include "exerciseweek.h"
 #include "weekreport.h"
 
+#include <QDateTime>
 #include <QDesktopServices>
 #include <QDir>
 #include <QFileInfo>
@@ -686,9 +688,53 @@ QString Store::exerciseName(int id) const
     return Catalog::name(id);
 }
 
-QString Store::importBak(const QUrl &file)
+QString Store::exportBak(const QUrl &file, const QString &mode, const QString &sinceDate,
+                         const QString &sinceTime, const QString &athleteId, const QString &fromWeek,
+                         const QString &toWeek)
 {
-    const BakImport::Result r = BakImport::importFile(file.toLocalFile());
+    BakExport::Filter f;
+    if (mode == QLatin1String("since")) {
+        const QDate d = QDate::fromString(sinceDate.trimmed(), QStringLiteral("d.M.yyyy"));
+        QTime t = QTime::fromString(sinceTime.trimmed(), QStringLiteral("H:mm"));
+        if (!d.isValid())
+            return QStringLiteral("Datum ungültig: ") + sinceDate;
+        if (!t.isValid())
+            t = QTime(0, 0);
+        f.mode = BakExport::Filter::ChangedSince;
+        f.since = QDateTime(d, t).toString(QStringLiteral("yyyy-MM-dd HH:mm:ss"));
+    } else if (mode == QLatin1String("athlete")) {
+        f.mode = BakExport::Filter::AthleteWeeks;
+        f.athleteId = athleteId;
+        f.fromMonday = Weeks::fromLabel(fromWeek);
+        f.toMonday = Weeks::fromLabel(toWeek);
+        if (athleteId.isEmpty() || !f.fromMonday.isValid() || !f.toMonday.isValid())
+            return QStringLiteral("Bitte Sportler und Wochen angeben.");
+        if (f.toMonday < f.fromMonday)
+            std::swap(f.fromMonday, f.toMonday);
+    }
+    const BakExport::Result r = BakExport::exportFile(file.toLocalFile(), f);
+    if (r.ok)
+        QSettings().setValue(QStringLiteral("export/last"), Database::now());
+    return r.summary();
+}
+
+QUrl Store::suggestedExportUrl() const
+{
+    const QString dir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    return QUrl::fromLocalFile(QDir(dir).filePath(
+        QStringLiteral("trainingsplaner_%1.bak").arg(QDate::currentDate().toString(QStringLiteral("yyyy-MM-dd")))));
+}
+
+QString Store::lastExport() const
+{
+    const QDateTime t = QDateTime::fromString(QSettings().value(QStringLiteral("export/last")).toString(),
+                                              QStringLiteral("yyyy-MM-dd HH:mm:ss"));
+    return t.isValid() ? t.toString(QStringLiteral("dd.MM.yyyy HH:mm")) : QString();
+}
+
+QString Store::importBak(const QUrl &file, bool ignoreTimestamps)
+{
+    const BakImport::Result r = BakImport::importFile(file.toLocalFile(), ignoreTimestamps);
     emit athletesChanged();
     bump();
     QString text = r.summary();

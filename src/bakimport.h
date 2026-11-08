@@ -46,7 +46,8 @@ QList<Row> parse(const QString &text, int *ignoredStatements = nullptr,
 // The old program wrote Windows-1252 text.
 QString decode(const QByteArray &bytes);
 
-Result importText(const QString &text);
-Result importFile(const QString &path);
+// With ignoreTimestamps every incoming row replaces the local one.
+Result importText(const QString &text, bool ignoreTimestamps = false);
+Result importFile(const QString &path, bool ignoreTimestamps = false);
 
 } // namespace BakImport

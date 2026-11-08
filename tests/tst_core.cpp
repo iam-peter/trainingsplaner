@@ -1,3 +1,4 @@
+#include "bakexport.h"
 #include "bakimport.h"
 #include "database.h"
 #include "exerciseweek.h"
@@ -31,6 +32,7 @@ private slots:
     void exerciseWeekRows();
     void nextWeight();
     void printWithAllOptions();
+    void exportRoundTrip();
     void exerciseWeekApply();
 
 private:
@@ -382,6 +384,75 @@ void TestCore::printWithAllOptions()
     const QString path = m_dir.filePath(QStringLiteral("all.pdf"));
     QVERIFY(WeekReport::writePdf(path, w, {QStringLiteral("T"), QStringLiteral("V"), QStringLiteral("A B")}, o));
     QVERIFY(QFileInfo(path).size() > 1000);
+}
+
+void TestCore::exportRoundTrip()
+{
+    // A week with two sessions for an athlete
+    Athlete a;
+    a.lastName = QStringLiteral("Export");
+    a.firstName = QStringLiteral("Emil");
+    const QString id = Database::saveAthlete(a);
+    const QDate monday(2026, 3, 2);
+    Session s;
+    s.day = 1;
+    s.number = 2;
+    s.from = QStringLiteral("15:30");
+    s.note = QStringLiteral("mit \"Anführungszeichen\"\nund Zeilenumbruch");
+    Entry e;
+    e.exercise = 3;
+    e.steps = {{50, 3, 2, 0}};
+    Entry t;
+    t.kind = Entry::FreeText;
+    t.text = QStringLiteral("Dehnen €");
+    s.entries = {e, t};
+    QVERIFY(Database::saveSession(id, monday, Variant::Plan, s));
+    s.day = 3;
+    QVERIFY(Database::saveSession(id, monday, Variant::Plan, s));
+
+    BakExport::Result all;
+    const QString full = BakExport::exportText({BakExport::Filter::All, {}, {}, {}, {}}, &all);
+    QVERIFY(all.ok);
+    QVERIFY(all.rows.value(QStringLiteral("te_ueb")) >= 4);
+
+    BakExport::Filter weeks;
+    weeks.mode = BakExport::Filter::AthleteWeeks;
+    weeks.athleteId = id;
+    weeks.fromMonday = monday;
+    weeks.toMonday = monday;
+    BakExport::Result one;
+    BakExport::exportText(weeks, &one);
+    QCOMPARE(one.rows.value(QStringLiteral("te")), 2);
+    QCOMPARE(one.rows.value(QStringLiteral("sp")), 1);
+
+    // Remove Wednesday, then export the changes since just before
+    QTest::qWait(1100); // timestamps have whole seconds; keep earlier changes out
+    const QString since = Database::now();
+    QVERIFY(Database::removeSession(id, monday, Variant::Plan, 3, 2));
+    BakExport::Result changed;
+    const QString delta = BakExport::exportText({BakExport::Filter::ChangedSince, since, {}, {}, {}}, &changed);
+    QCOMPARE(changed.deleted.value(QStringLiteral("te")), 1);
+    QCOMPARE(changed.deleted.value(QStringLiteral("te_ueb")), 2);
+
+    // Into a second database: the full export, then the changes
+    const QString first = Database::path();
+    Database::close();
+    QVERIFY(Database::open(m_dir.filePath(QStringLiteral("other.sqlite"))));
+    BakImport::Result r = BakImport::importText(BakImport::decode(BakExport::encode(full)));
+    QVERIFY2(r.ok && r.errors.isEmpty(), qPrintable(r.summary()));
+    Week w = Database::loadWeek(id, monday, Variant::Plan);
+    QCOMPARE(w.sessions.size(), 2);
+    QCOMPARE(w.sessions[0].note, s.note);
+    QCOMPARE(w.sessions[0].entries[1].text, QStringLiteral("Dehnen €"));
+
+    r = BakImport::importText(BakImport::decode(BakExport::encode(delta)));
+    QVERIFY2(r.ok && r.errors.isEmpty(), qPrintable(r.summary()));
+    w = Database::loadWeek(id, monday, Variant::Plan);
+    QCOMPARE(w.sessions.size(), 1);
+    QCOMPARE(w.sessions[0].day, 1);
+
+    Database::close();
+    QVERIFY(Database::open(first));
 }
 
 QTEST_MAIN(TestCore)
