@@ -127,6 +127,10 @@ Page {
                     Layout.fillHeight: true
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
+                    // With the rows' 1 px inset, the selection keeps 3 px to the
+                    // border on every side
+                    topMargin: 1
+                    bottomMargin: 1
                     model: page.shown
                     delegate: ListRow {
                         required property var modelData
