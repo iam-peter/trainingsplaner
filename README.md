@@ -57,7 +57,13 @@ click and *Öffnen* the first time.
   changes since a date including deletions, or one athlete's weeks).
 - **Print / PDF** of the week plan with the old print options (notation,
   figures, notes, empty lines, fonts, margins, landscape, logo), and of
-  all analyses and charts.
+  all analyses and charts; charts also as PNG images, with the values
+  shown on hover.
+- **Everyday use**: keyboard shortcuts (arrow keys, Enter and Delete in
+  the week grid, Ctrl+←/→ for weeks, Ctrl+C/V for sessions), undo and
+  redo of every change to sessions, a right-click menu with "Ist = Plan",
+  one athlete selection for all pages, light and dark mode, help with a
+  glossary (F1), and example data to try the program on the first start.
 
 ![Planning](docs/screenshots/planning.png)
 
@@ -116,6 +122,7 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `--page sportler\|planung\|analyse\|wettkaempfe\|einstellungen` | start on that page |
 | `--open 1:2`, `ex:8`, `hist:8`, `chart:8` | open a session (day:number), an exercise's week, history or chart |
 | `--page planung --open maz\|itp\|ro\|laststufen`, `--page analyse --open individual\|group\|check\|chart` | open a tab |
+| `--farbschema hell\|dunkel` | light or dark colours regardless of the system |
 | `--grab <file.png>` | save a screenshot and exit (for testing) |
 
 ## Code layout

@@ -21,21 +21,21 @@ and the group percentages are not yet compared with WinWoTA XP.
 
 No new data, every user benefits at once.
 
-- [ ] **Colours that work in dark mode.** The day cells are hard-coded pale
+- [x] **Colours that work in dark mode.** The day cells are hard-coded pale
       yellow and glare in a dark window. Use palette-aware colours, and mark
       today.
-- [ ] **Compact week grid.** Hide an empty 1st-session row, rows sized to
+- [x] **Compact week grid.** Hide an empty 1st-session row, rows sized to
       their content, a small header naming the columns (TÜ WH MHG BW SG/ANZ),
       exercise names on hover.
-- [ ] **One athlete selection** shared by week plan, planning, analyses and
+- [x] **One athlete selection** shared by week plan, planning, analyses and
       competitions.
-- [ ] **Keyboard shortcuts:** Ctrl+←/→ weeks, Ctrl+P print, Ctrl+S save,
+- [x] **Keyboard shortcuts:** Ctrl+←/→ weeks, Ctrl+P print, Ctrl+S save,
       Enter open, Delete remove, Ctrl+Z / Ctrl+Y.
-- [ ] **Context menu** on sessions and lines: copy, paste, delete,
+- [x] **Context menu** on sessions and lines: copy, paste, delete,
       "Ist = Plan".
-- [ ] **Undo / redo** for saving, deleting and pasting.
-- [ ] **Charts:** values on hover, save as image.
-- [ ] **Help:** tooltips for WH, MHG, BW, SG/ANZ, UG, K1–K7; a short help
+- [x] **Undo / redo** for saving, deleting and pasting.
+- [x] **Charts:** values on hover, save as image.
+- [x] **Help:** tooltips for WH, MHG, BW, SG/ANZ, UG, K1–K7; a short help
       page; a first-start dialog (import old data or try demo data, trainer
       name).
 
