@@ -1,0 +1,251 @@
+# Every night: build and test on Linux, Windows and macOS and replace the
+# nightly release with the new downloads. Nights without new commits are
+# skipped, a run by hand builds anyway.
+name: Nightly
+
+on:
+  schedule:
+    - cron: "23 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+env:
+  QT_VERSION: "6.11.3"
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.check.outputs.build }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - id: check
+        name: Anything new since the last nightly?
+        run: |
+          last=$(git rev-parse -q --verify "refs/tags/nightly^{commit}" || true)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "$last" != "$GITHUB_SHA" ]; then
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Nothing new since $last"
+            echo "build=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  linux:
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
+    # The oldest runner, an AppImage runs on systems at least as new
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgl1-mesa-dev libxkbcommon-dev libxkbcommon-x11-0 \
+            libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 \
+            libxcb-shape0 libxcb-xinerama0 libfontconfig1 libfuse2 libcups2 dpkg-dev
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          host: linux
+          target: desktop
+          arch: linux_gcc_64
+          cache: true
+
+      - name: Build
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+        env:
+          QT_QPA_PLATFORM: offscreen
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-log-linux
+          path: build/Testing/Temporary/LastTest.log
+          retention-days: 7
+
+      - name: AppImage
+        run: |
+          base=https://github.com/linuxdeploy
+          wget -q $base/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          wget -q $base/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x linuxdeploy-*.AppImage
+          export APPIMAGE_EXTRACT_AND_RUN=1
+          export QMAKE="$QT_ROOT_DIR/bin/qmake"
+          export QML_SOURCES_PATHS="$GITHUB_WORKSPACE/qml"
+          # SQLite for the database, the CUPS backend for printing
+          export EXTRA_PLATFORM_PLUGINS="libqoffscreen.so"
+          export EXTRA_QT_MODULES="sql;printsupport"
+          export EXTRA_QT_PLUGINS="$EXTRA_QT_MODULES" # name in older plugin versions
+          export LD_LIBRARY_PATH="$QT_ROOT_DIR/lib:$LD_LIBRARY_PATH"
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir --executable build/trainingsplaner \
+            --desktop-file logo/trainingsplaner.desktop --icon-file logo/trainingsplaner.svg \
+            --plugin qt --output appimage
+          mv Trainingsplaner-*.AppImage trainingsplaner-linux-x64.AppImage
+          find AppDir/usr/plugins -maxdepth 2 | sort
+
+      # The AppImage has to start and import data without a display
+      - name: Smoke test
+        run: |
+          printf 'INSERT IGNORE INTO sp VALUES ("muster_erika","N","2026-01-01 00:00:00",NOW(),"ci","Muster","Erika","1",NULL,NULL,NULL)\n' > ci.bak
+          APPIMAGE_EXTRACT_AND_RUN=1 QT_QPA_PLATFORM=offscreen \
+            ./trainingsplaner-linux-x64.AppImage --db "$RUNNER_TEMP/ci.sqlite" --import ci.bak
+
+      # A version after the one in CMake, rising with the commit time, so
+      # package managers upgrade every nightly
+      - name: Debian package
+        run: |
+          base=$(sed -n 's/^CMAKE_PROJECT_VERSION:STATIC=//p' build/CMakeCache.txt)
+          stamp=$(TZ=UTC git log -1 --format=%cd --date=format-local:%Y%m%d%H%M%S)
+          packaging/deb/build-deb.sh AppDir "$base+git$stamp.${GITHUB_SHA::7}" trainingsplaner-linux-x64.deb
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trainingsplaner-linux
+          path: |
+            trainingsplaner-linux-x64.AppImage
+            trainingsplaner-linux-x64.deb
+          retention-days: 1
+
+  windows:
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v5
+
+      # Since 6.11 each Windows toolchain has its own folder in the Qt
+      # repository, aqt 3.3.0 doesn't know that yet but its master does
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          host: windows
+          target: desktop
+          arch: win64_msvc2022_64
+          aqtsource: git+https://github.com/miurahr/aqtinstall.git@076e1659807d0b362a3ed684d54c2e9c775eb9c7
+          cache: true
+
+      - name: Build
+        run: |
+          cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+          cmake --build build --config Release
+
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+        env:
+          QT_QPA_PLATFORM: offscreen
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-log-windows
+          path: build/Testing/Temporary/LastTest.log
+          retention-days: 7
+
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory Trainingsplaner | Out-Null
+          # Visual Studio adds a folder per configuration
+          Copy-Item build/Release/trainingsplaner.exe Trainingsplaner/
+          windeployqt --release --qmldir qml Trainingsplaner/trainingsplaner.exe
+          Copy-Item LICENSE Trainingsplaner/LICENSE.txt
+          Compress-Archive -Path Trainingsplaner -DestinationPath trainingsplaner-windows-x64.zip
+
+      - name: Smoke test
+        shell: pwsh
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          Set-Content ci.bak 'INSERT IGNORE INTO sp VALUES ("muster_erika","N","2026-01-01 00:00:00",NOW(),"ci","Muster","Erika","1",NULL,NULL,NULL)'
+          $p = Start-Process Trainingsplaner/trainingsplaner.exe -ArgumentList "--db", "$env:RUNNER_TEMP\ci.sqlite", "--import", "ci.bak" -Wait -PassThru -NoNewWindow
+          if ($p.ExitCode -ne 0) { throw "Import failed with $($p.ExitCode)" }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trainingsplaner-windows
+          path: trainingsplaner-windows-x64.zip
+          retention-days: 1
+
+  macos:
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          host: mac
+          target: desktop
+          arch: clang_64
+          cache: true
+
+      - name: Build
+        run: |
+          # Apple silicon and Intel in one app, like the Qt it builds on
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64"
+          cmake --build build
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+        env:
+          QT_QPA_PLATFORM: offscreen
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-log-macos
+          path: build/Testing/Temporary/LastTest.log
+          retention-days: 7
+
+      - name: Disk image
+        run: |
+          mv build/trainingsplaner.app build/Trainingsplaner.app
+          macdeployqt build/Trainingsplaner.app -qmldir="$GITHUB_WORKSPACE/qml" -dmg
+          mv build/Trainingsplaner.dmg trainingsplaner-macos.dmg
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trainingsplaner-macos
+          path: trainingsplaner-macos.dmg
+          retention-days: 1
+
+  release:
+    needs: [linux, windows, macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: trainingsplaner-*
+          path: artifacts
+          merge-multiple: true
+
+      # One rolling pre-release, its tag moves to the commit it was built from
+      - name: Replace the nightly release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release delete nightly --cleanup-tag --yes || true
+          gh release create nightly artifacts/* --prerelease --target "$GITHUB_SHA" \
+            --title "Nightly $(date -u +%Y-%m-%d)" \
+            --notes "Built from $GITHUB_SHA. Neueste Entwicklungsversion, ungetestet im Alltag. Windows: zip entpacken und trainingsplaner.exe starten; SmartScreen warnt, weil das Programm nicht signiert ist (Weitere Informationen, Trotzdem ausführen). macOS: beim ersten Start mit Rechtsklick und Öffnen starten."

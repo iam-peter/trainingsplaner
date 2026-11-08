@@ -21,3 +21,6 @@ data/
 
 # Generated week plans
 *.pdf
+
+# Local tool settings
+.claude/

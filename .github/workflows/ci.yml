@@ -1,0 +1,44 @@
+# Builds and tests every push and pull request on Linux. The nightly
+# builds all platforms.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgl1-mesa-dev libxkbcommon-dev libfontconfig1
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.11.3"
+          host: linux
+          target: desktop
+          arch: linux_gcc_64
+          cache: true
+
+      - name: Build
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+        env:
+          QT_QPA_PLATFORM: offscreen
