@@ -158,7 +158,7 @@ Page {
         onActivated: page.monday = Store.addWeeks(page.monday, 1)
     }
     Shortcut {
-        sequence: StandardKey.Print
+        sequences: [StandardKey.Print]
         enabled: page.shortcutsActive && page.hasAthlete
         onActivated: page.printWeek()
     }
@@ -406,6 +406,10 @@ Page {
             font.pixelSize: 11
             color: palette.placeholderText
             elide: Text.ElideRight
+            HoverHandler { id: legendHover }
+            ToolTip.visible: legendHover.hovered
+            ToolTip.delay: 400
+            ToolTip.text: ["WH", "MHG", "BW", "SG/ANZ"].map(t => Glossary.explain(t)).join("\n")
         }
 
         RowLayout {
@@ -472,12 +476,20 @@ Page {
                         Layout.preferredWidth: 1
                         text: page.weekData.k17 || ""
                         font.bold: true
+                        HoverHandler { id: k17Hover }
+                        ToolTip.visible: k17Hover.hovered
+                        ToolTip.delay: 400
+                        ToolTip.text: "Alle Gruppen K1–K7: WH / MHG / Tonnage\n" + Glossary.explain("MHG")
                     }
                     Label {
                         Layout.fillWidth: true
                         Layout.preferredWidth: 1
                         text: page.weekData.k15 || ""
                         font.bold: true
+                        HoverHandler { id: k15Hover }
+                        ToolTip.visible: k15Hover.hovered
+                        ToolTip.delay: 400
+                        ToolTip.text: "Gruppen K1–K5: WH / MHG / Tonnage"
                     }
                 }
                 Rectangle { Layout.fillWidth: true; height: 1; color: palette.mid }
@@ -514,6 +526,11 @@ Page {
                                     Layout.alignment: Qt.AlignHCenter
                                     text: modelData.title
                                     font.bold: true
+                                    HoverHandler { id: groupHover }
+                                    ToolTip.visible: groupHover.hovered
+                                    ToolTip.delay: 400
+                                    ToolTip.text: Glossary.group(index + 1)
+                                                  + "\nJe Zeile: Übung  WH  MHG  BW  Wdh/Sätze beim BW"
                                 }
                                 Repeater {
                                     model: modelData.lines

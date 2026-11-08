@@ -109,6 +109,14 @@ ApplicationWindow {
                         icon.color: palette.text
                         onTriggered: exportDialog.open()
                     }
+                    MenuItem {
+                        visible: Store.hasDemoData
+                        height: visible ? implicitHeight : 0
+                        text: "Beispieldaten entfernen"
+                        icon.source: "qrc:/qt/qml/Trainingsplaner/icons/trash-2.svg"
+                        icon.color: palette.text
+                        onTriggered: removeDemoConfirm.open()
+                    }
                 }
             }
             IconToolButton {
@@ -116,13 +124,18 @@ ApplicationWindow {
                 text: "Einstellungen"
                 onClicked: settingsDialog.open()
             }
+            IconToolButton {
+                iconName: "circle-help"
+                text: "Hilfe"
+                onClicked: helpDialog.open()
+            }
         }
     }
 
     // Undo and redo changes to sessions from every page; they show the week
     // that changed. Text fields keep their own Ctrl+Z.
     Shortcut {
-        sequence: StandardKey.Undo
+        sequences: [StandardKey.Undo]
         enabled: DialogStack.open === 0 && Store.undoLabel !== ""
         onActivated: window.showChange(Store.undo())
     }
@@ -251,6 +264,33 @@ ApplicationWindow {
         id: settingsDialog
     }
 
+    HelpDialog {
+        id: helpDialog
+    }
+
+    Shortcut {
+        sequences: [StandardKey.HelpContents]
+        enabled: !helpDialog.visible
+        onActivated: helpDialog.open()
+    }
+
+    WelcomeDialog {
+        id: welcomeDialog
+        onImportRequested: importDialog.open()
+        onDemoCreated: (athleteId) => {
+            window.athlete = athleteId
+            tabs.currentIndex = 0
+        }
+    }
+
+    AppDialog {
+        id: removeDemoConfirm
+        title: "Beispieldaten entfernen?"
+        standardButtons: Dialog.Yes | Dialog.No
+        Label { text: "Die erfundenen Beispiel-Sportler werden mit allen ihren Daten gelöscht." }
+        onAccepted: Store.removeDemoData()
+    }
+
     Component.onCompleted: {
         if (startAthlete !== "")
             athlete = startAthlete
@@ -272,5 +312,7 @@ ApplicationWindow {
         if (startPage === "einstellungen")
             Qt.callLater(settingsDialog.open)
         weekPage.start(startAthlete, startWeek, startPage === "" || startPage === "plan" ? startSession : "")
+        if (Store.firstStart && startPage === "")
+            Qt.callLater(welcomeDialog.open)
     }
 }

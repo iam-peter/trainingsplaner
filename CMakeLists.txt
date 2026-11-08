@@ -25,6 +25,7 @@ add_library(tpcore STATIC
     src/analysis.cpp    src/analysis.h
     src/bakimport.cpp   src/bakimport.h
     src/weekreport.cpp  src/weekreport.h
+    src/demo.cpp        src/demo.h
 )
 target_include_directories(tpcore PUBLIC src)
 target_link_libraries(tpcore PUBLIC Qt6::Core Qt6::Gui Qt6::Sql)
@@ -35,7 +36,7 @@ file(GLOB TP_ICONS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} CONFIGURE_DEPENDS icons/
 
 # The QML module (UI and the Store singleton) as a static library, so the
 # QML tests can load the same module as the application.
-set_source_files_properties(qml/DialogStack.qml qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/DialogStack.qml qml/Theme.qml qml/Glossary.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_library(tpqml STATIC)
 qt_add_qml_module(tpqml
     URI Trainingsplaner
@@ -49,6 +50,9 @@ qt_add_qml_module(tpqml
     QML_FILES
         qml/Main.qml
         qml/KeyMenuItem.qml
+        qml/Glossary.qml
+        qml/HelpDialog.qml
+        qml/WelcomeDialog.qml
         qml/WeekPage.qml
         qml/SessionCell.qml
         qml/SessionDialog.qml

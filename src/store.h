@@ -44,6 +44,9 @@ class Store : public QObject
     // What Ctrl+Z / Ctrl+Y would do, "" when there is nothing
     Q_PROPERTY(QString undoLabel READ undoLabel NOTIFY undoChanged)
     Q_PROPERTY(QString redoLabel READ redoLabel NOTIFY undoChanged)
+    // No data yet and the welcome dialog not answered
+    Q_PROPERTY(bool firstStart READ firstStart NOTIFY settingsChanged)
+    Q_PROPERTY(bool hasDemoData READ hasDemoData NOTIFY athletesChanged)
     Q_PROPERTY(int dataVersion READ dataVersion NOTIFY dataChanged)
 
 public:
@@ -76,6 +79,13 @@ public:
     QString clipboardLabel() const;
     QString sessionClipboardLabel() const { return m_sessionClipLabel; }
     QString undoLabel() const;
+    bool firstStart() const;
+    bool hasDemoData() const;
+    Q_INVOKABLE void finishFirstStart();
+    // Invented athletes with a few weeks around today, to try the program.
+    // Returns the id of the first one.
+    Q_INVOKABLE QString createDemoData();
+    Q_INVOKABLE void removeDemoData();
     QString redoLabel() const;
     int dataVersion() const { return m_dataVersion; }
 

@@ -4,6 +4,7 @@
 #include "bakimport.h"
 #include "competition.h"
 #include "database.h"
+#include "demo.h"
 #include "exerciseweek.h"
 #include "weekreport.h"
 
@@ -894,6 +895,47 @@ QVariantMap Store::redo()
     const WeekChange c = m_redo.takeLast();
     m_undo.append(c);
     return restore(c, false);
+}
+
+bool Store::firstStart() const
+{
+    return !QSettings().value(QStringLiteral("start/welcomed")).toBool() && Database::athletes().isEmpty();
+}
+
+void Store::finishFirstStart()
+{
+    QSettings().setValue(QStringLiteral("start/welcomed"), true);
+    emit settingsChanged();
+}
+
+bool Store::hasDemoData() const
+{
+    const QStringList ids = QSettings().value(QStringLiteral("demo/athletes")).toStringList();
+    for (const Athlete &a : Database::athletes()) {
+        if (ids.contains(a.id))
+            return true;
+    }
+    return false;
+}
+
+QString Store::createDemoData()
+{
+    const QStringList ids = Demo::create(QDate::currentDate());
+    QSettings s;
+    s.setValue(QStringLiteral("demo/athletes"),
+               s.value(QStringLiteral("demo/athletes")).toStringList() + ids);
+    emit athletesChanged();
+    bump();
+    return ids.value(0);
+}
+
+void Store::removeDemoData()
+{
+    QSettings s;
+    for (const QString &id : s.value(QStringLiteral("demo/athletes")).toStringList())
+        removeAthlete(id);
+    s.remove(QStringLiteral("demo/athletes"));
+    emit athletesChanged();
 }
 
 QString Store::undoLabel() const

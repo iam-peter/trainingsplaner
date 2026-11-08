@@ -70,7 +70,7 @@ Page {
     }
 
     Shortcut {
-        sequence: StandardKey.Save
+        sequences: [StandardKey.Save]
         enabled: page.visible && page.dirty && tabs.currentIndex === 0 && DialogStack.open === 0
         onActivated: page.save()
     }
