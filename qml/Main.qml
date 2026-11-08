@@ -166,45 +166,83 @@ ApplicationWindow {
         }
     }
 
-    StackLayout {
+    property bool updateBannerClosed: false
+
+    ColumnLayout {
         anchors.fill: parent
-        currentIndex: tabs.currentIndex
+        spacing: 0
 
-        WeekPage {
-            id: weekPage
-            objectName: "weekPage"
-            onAthleteIdChanged: window.athlete = athleteId
-        }
-
-        AthletesPage {
-            id: athletesPage
-            objectName: "athletesPage"
-            onSelectedIdChanged: if (selectedId !== "") window.athlete = selectedId
-            // Follows the others only when shown and without unsaved edits
-            onVisibleChanged: if (visible && !dirty && window.athlete !== "" && selectedId !== window.athlete)
-                                  select(window.athlete)
-            onOpenWeekPlan: (athleteId) => {
-                window.athlete = athleteId
-                tabs.currentIndex = 0
+        // A new version: shown until closed, the next day again
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: bannerRow.implicitHeight + 12
+            visible: Updater.state === "available" && !window.updateBannerClosed
+            color: palette.highlight
+            RowLayout {
+                id: bannerRow
+                anchors.fill: parent
+                anchors.leftMargin: 12
+                anchors.rightMargin: 6
+                Label {
+                    Layout.fillWidth: true
+                    text: "Version " + Updater.latestVersion + " des Trainingsplaners ist verfügbar."
+                    color: palette.highlightedText
+                    font.bold: true
+                }
+                Button {
+                    text: Updater.installsItself ? "Aktualisieren…" : "Ansehen…"
+                    onClicked: updateDialog.open()
+                }
+                IconToolButton {
+                    iconName: "x"
+                    icon.color: palette.highlightedText
+                    toolTip: "Später"
+                    onClicked: window.updateBannerClosed = true
+                }
             }
         }
 
-        PlanningPage {
-            id: planningPage
-            objectName: "planningPage"
-            onAthleteIdChanged: window.athlete = athleteId
-        }
+        StackLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            currentIndex: tabs.currentIndex
 
-        AnalysisPage {
-            id: analysisPage
-            objectName: "analysisPage"
-            onAthleteIdChanged: window.athlete = athleteId
-        }
+            WeekPage {
+                id: weekPage
+                objectName: "weekPage"
+                onAthleteIdChanged: window.athlete = athleteId
+            }
 
-        CompetitionsPage {
-            id: competitionsPage
-            objectName: "competitionsPage"
-            onAthleteIdChanged: window.athlete = athleteId
+            AthletesPage {
+                id: athletesPage
+                objectName: "athletesPage"
+                onSelectedIdChanged: if (selectedId !== "") window.athlete = selectedId
+                // Follows the others only when shown and without unsaved edits
+                onVisibleChanged: if (visible && !dirty && window.athlete !== "" && selectedId !== window.athlete)
+                                      select(window.athlete)
+                onOpenWeekPlan: (athleteId) => {
+                    window.athlete = athleteId
+                    tabs.currentIndex = 0
+                }
+            }
+
+            PlanningPage {
+                id: planningPage
+                objectName: "planningPage"
+                onAthleteIdChanged: window.athlete = athleteId
+            }
+
+            AnalysisPage {
+                id: analysisPage
+                objectName: "analysisPage"
+                onAthleteIdChanged: window.athlete = athleteId
+            }
+
+            CompetitionsPage {
+                id: competitionsPage
+                objectName: "competitionsPage"
+                onAthleteIdChanged: window.athlete = athleteId
+            }
         }
     }
 
@@ -262,6 +300,15 @@ ApplicationWindow {
 
     SettingsDialog {
         id: settingsDialog
+        onCheckUpdatesRequested: {
+            Updater.check()
+            updateDialog.open()
+        }
+    }
+
+    UpdateDialog {
+        id: updateDialog
+        objectName: "updateDialog"
     }
 
     HelpDialog {
@@ -292,6 +339,7 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
+        Updater.checkOnStart()
         if (startAthlete !== "")
             athlete = startAthlete
         if (startPage === "sportler")

@@ -1,5 +1,6 @@
 #include "bakimport.h"
 #include "database.h"
+#include "updater.h"
 
 #include <QApplication>
 #include <QCommandLineParser>
@@ -14,6 +15,7 @@
 #include <QStandardPaths>
 #include <QPalette>
 #include <QStyleHints>
+#include <QTextStream>
 #include <QSvgRenderer>
 #include <QTimer>
 #include <QtQml/qqmlextensionplugin.h>
@@ -90,9 +92,15 @@ int main(int argc, char *argv[])
     const QCommandLineOption schemeOption(QStringLiteral("farbschema"),
                                           QStringLiteral("Farbschema unabhängig vom System: hell oder dunkel."),
                                           QStringLiteral("schema"));
+    const QCommandLineOption checkUpdateOption(QStringLiteral("check-update"),
+                                               QStringLiteral("Neueste Version bei GitHub erfragen und beenden."));
     parser.addOptions({dbOption, importOption, grabOption, athleteOption, weekOption, pageOption, sessionOption,
-                       schemeOption});
+                       schemeOption, checkUpdateOption});
     parser.process(app);
+    if (parser.isSet(checkUpdateOption)) {
+        QTextStream out(stdout);
+        return Updater::checkFromCommandLine(out);
+    }
     if (parser.isSet(schemeOption)) {
         const QString scheme = parser.value(schemeOption);
         const bool dark = scheme == QLatin1String("dunkel");

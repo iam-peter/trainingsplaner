@@ -64,7 +64,10 @@ AppDialog {
             categoryModel.append({ name: c.name, code: c.code, unit: c.unit, decimals: c.decimals, aggregate: c.aggregate })
         step25.checked = Store.weightStep !== 1
         step10.checked = Store.weightStep === 1
+        autoUpdate.checked = Updater.autoCheck
     }
+
+    signal checkUpdatesRequested()
 
     onAccepted: {
         Store.trainer = trainerField.text.trim()
@@ -100,6 +103,7 @@ AppDialog {
         Store.infoCategories = cats
         Store.filterKader = kaderFilter.currentIndex > 0 ? kaderFilter.currentText : ""
         Store.filterSex = sexMen.checked ? 0 : sexWomen.checked ? 1 : -1
+        Updater.autoCheck = autoUpdate.checked
     }
 
     contentItem: ColumnLayout {
@@ -342,6 +346,27 @@ AppDialog {
                     font.pixelSize: 11
                     color: palette.placeholderText
                     text: "Alle Daten stehen in dieser einen Datei. Zur Sicherung das Programm schließen und die Datei kopieren, oder „Daten exportieren…“ nutzen."
+                }
+                Label { text: "Version:" }
+                RowLayout {
+                    Label { text: Updater.currentVersion }
+                    Button {
+                        text: "Nach neuer Version suchen…"
+                        onClicked: dialog.checkUpdatesRequested()
+                    }
+                }
+                Item { implicitWidth: 1 }
+                CheckBox {
+                    id: autoUpdate
+                    text: "Beim Start nach neuen Versionen suchen"
+                }
+                Label {
+                    Layout.columnSpan: 2
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                    font.pixelSize: 11
+                    color: palette.placeholderText
+                    text: "Höchstens einmal am Tag fragt das Programm bei GitHub nach der neuesten Version. GitHub erfährt dabei die Programmversion und, wie bei jedem Abruf einer Webseite, die IP-Adresse; Trainingsdaten werden nie übertragen."
                 }
             }
         }
