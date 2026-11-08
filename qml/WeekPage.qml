@@ -35,6 +35,9 @@ Page {
         }
         if (session.startsWith("ex:")) {
             Qt.callLater(openExercise, parseInt(session.slice(3)))
+        } else if (session.startsWith("hist:") || session.startsWith("chart:")) {
+            const ex = parseInt(session.split(":")[1])
+            Qt.callLater(() => historyDialog.show(athleteId, monday, variant, ex, session.startsWith("chart:")))
         } else if (session !== "") {
             const parts = session.split(":")
             Qt.callLater(openSession, parseInt(parts[0]), parseInt(parts[1] || "1"))
@@ -438,6 +441,10 @@ Page {
 
     DayInfoDialog {
         id: dayInfoDialog
+    }
+
+    ExerciseHistoryDialog {
+        id: historyDialog
     }
 
     Dialog {

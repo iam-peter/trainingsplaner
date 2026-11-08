@@ -20,6 +20,7 @@ Dialog {
     property var initial: ({})
     property int nextUid: 0
     property int pendingExercise: 0
+    property var copiedSteps: null
 
     function edit(a, m, v, ex) {
         athleteId = a
@@ -191,6 +192,18 @@ Dialog {
                 font.bold: true
                 elide: Text.ElideRight
             }
+            IconButton {
+                iconName: "list"
+                toolTip: "Info: frühere Einheiten dieser Übung"
+                enabled: dialog.valid
+                onClicked: historyDialog.show(dialog.athleteId, dialog.monday, dialog.variant, dialog.exercise, false)
+            }
+            IconButton {
+                iconName: "chart-line"
+                toolTip: "Grafik der letzten Wochen"
+                enabled: dialog.valid
+                onClicked: historyDialog.show(dialog.athleteId, dialog.monday, dialog.variant, dialog.exercise, true)
+            }
             Label {
                 text: "MHG\nWH"
                 font.pixelSize: 11
@@ -203,7 +216,7 @@ Dialog {
                 horizontalAlignment: Text.AlignHCenter
                 Layout.preferredWidth: 50
             }
-            Item { Layout.preferredWidth: 40 }
+            Item { Layout.preferredWidth: 104 }
         }
 
         Flickable {
@@ -232,6 +245,9 @@ Dialog {
                         source: dialog.initial[uid]
                         actual: dialog.variant === "I"
                         onChanged: dialog.markChanged()
+                        canPaste: dialog.copiedSteps !== null
+                        onCopyRequested: (steps) => dialog.copiedSteps = steps
+                        onPasteRequested: setSteps(dialog.copiedSteps)
                         onRemoveRequested: {
                             rowModel.remove(index)
                             dialog.markChanged()
@@ -291,6 +307,10 @@ Dialog {
         }
         onAccepted: {}
         onRejected: {}
+    }
+
+    ExerciseHistoryDialog {
+        id: historyDialog
     }
 
     Dialog {

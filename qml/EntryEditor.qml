@@ -25,6 +25,7 @@ Frame {
     signal changed()
     signal removeRequested()
     signal moveRequested(int delta)
+    signal infoRequested(int exercise, bool chart)
 
     readonly property var exerciseInfo: {
         for (const e of Store.catalog) {
@@ -220,6 +221,20 @@ Frame {
             spacing: 0
             RowLayout {
                 spacing: 0
+                IconToolButton {
+                    visible: editor.kind === 0
+                    enabled: editor.exerciseValid
+                    iconName: "list"
+                    toolTip: "Info: frühere Einheiten dieser Übung"
+                    onClicked: editor.infoRequested(editor.exercise, false)
+                }
+                IconToolButton {
+                    visible: editor.kind === 0
+                    enabled: editor.exerciseValid
+                    iconName: "chart-line"
+                    toolTip: "Grafik der letzten Wochen"
+                    onClicked: editor.infoRequested(editor.exercise, true)
+                }
                 IconToolButton {
                     iconName: "arrow-up"
                     toolTip: "Nach oben"

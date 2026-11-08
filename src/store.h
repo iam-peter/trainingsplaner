@@ -2,6 +2,7 @@
 
 #include "model.h"
 
+#include <QImage>
 #include <QObject>
 #include <QUrl>
 #include <QVariant>
@@ -92,6 +93,14 @@ public:
                                       const QString &variant, int exercise,
                                       const QVariantList &rows);
 
+    // Earlier uses of an exercise up to the given week (newest first):
+    // [{week, day, monday, bw, mhg, wh, repsSets, steps ("13/4/3  15/3/2")}]
+    Q_INVOKABLE QVariantList exerciseHistory(const QString &athleteId, const QString &monday,
+                                             const QString &variant, int exercise, int weeks) const;
+    // Per week up to the given one (oldest first): {labels, wh, mhg, bw}
+    Q_INVOKABLE QVariantMap exerciseTrend(const QString &athleteId, const QString &monday,
+                                          const QString &variant, int exercise, int weeks) const;
+
     // Live figures for the session editor
     Q_INVOKABLE QVariantMap stats(const QVariantList &steps) const;
     // Per exercise figures of the week, with the given session replaced by `entries`.
@@ -151,6 +160,8 @@ public:
     Q_INVOKABLE QUrl suggestedExportUrl() const;
     // When the last export was written, "dd.MM.yyyy HH:mm", or empty
     Q_INVOKABLE QString lastExport() const;
+    // Prints an image (a chart), fitted to the page
+    Q_INVOKABLE bool printImage(const QImage &image, const QString &title);
     Q_INVOKABLE bool printWeek(const QString &athleteId, const QString &monday,
                                const QString &variant);
     Q_INVOKABLE QUrl suggestedPdfUrl(const QString &athleteId, const QString &monday) const;

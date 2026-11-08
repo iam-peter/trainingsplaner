@@ -178,7 +178,7 @@ Dialog {
                 horizontalAlignment: Text.AlignHCenter
                 Layout.preferredWidth: 90
             }
-            Item { Layout.preferredWidth: 110 }
+            Item { Layout.preferredWidth: 170 }
         }
 
         Flickable {
@@ -214,6 +214,8 @@ Dialog {
                             entryModel.remove(index)
                             dialog.markChanged()
                         }
+                        onInfoRequested: (exercise, chart) =>
+                            historyDialog.show(dialog.athleteId, dialog.monday, dialog.variant, exercise, chart)
                         onMoveRequested: (delta) => {
                             entryModel.move(index, index + delta, 1)
                             dialog.markChanged()
@@ -301,6 +303,10 @@ Dialog {
         // The buttons handle closing themselves.
         onAccepted: {}
         onRejected: {}
+    }
+
+    ExerciseHistoryDialog {
+        id: historyDialog
     }
 
     Dialog {

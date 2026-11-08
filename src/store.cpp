@@ -11,6 +11,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QPageLayout>
+#include <QPainter>
 #include <QPrintDialog>
 #include <QPrinter>
 #include <QSettings>
@@ -864,6 +865,65 @@ bool Store::saveExerciseWeek(const QString &athleteId, const QString &monday,
     return ok;
 }
 
+namespace {
+
+QString stepsText(const QList<Step> &steps)
+{
+    QStringList parts;
+    for (const Step &s : steps)
+        parts.append(QStringLiteral("%1/%2/%3").arg(s.kg).arg(s.reps).arg(qMax(1, s.sets)));
+    return parts.join(QStringLiteral("  "));
+}
+
+} // namespace
+
+QVariantList Store::exerciseHistory(const QString &athleteId, const QString &monday,
+                                    const QString &variant, int exercise, int weeks) const
+{
+    const QDate to = toDate(monday);
+    const QDate from = to.addDays(-7 * (qMax(1, weeks) - 1));
+    QList<Database::ExerciseUse> uses = Database::exerciseUses(athleteId, toVariant(variant), exercise, from, to);
+    QVariantList list;
+    for (auto it = uses.crbegin(); it != uses.crend(); ++it) {
+        const Stats st = Steps::compute(it->steps);
+        list.append(QVariantMap{
+            {QStringLiteral("week"), Weeks::label(it->monday)},
+            {QStringLiteral("monday"), it->monday.toString(Qt::ISODate)},
+            {QStringLiteral("day"), Weeks::dayName(it->day) + QStringLiteral(" (%1. TE)").arg(it->number)},
+            {QStringLiteral("date"), it->monday.addDays(it->day - 1).toString(QStringLiteral("dd.MM.yyyy"))},
+            {QStringLiteral("bw"), st.bw},
+            {QStringLiteral("mhg"), st.mhg},
+            {QStringLiteral("wh"), st.wh},
+            {QStringLiteral("repsSets"), st.bwRepsSets()},
+            {QStringLiteral("steps"), stepsText(it->steps)},
+        });
+    }
+    return list;
+}
+
+QVariantMap Store::exerciseTrend(const QString &athleteId, const QString &monday, const QString &variant,
+                                 int exercise, int weeks) const
+{
+    const int n = qBound(1, weeks, 260);
+    const QDate to = toDate(monday);
+    const QDate from = to.addDays(-7 * (n - 1));
+    QMap<QDate, QList<Step>> perWeek;
+    for (const Database::ExerciseUse &u : Database::exerciseUses(athleteId, toVariant(variant), exercise, from, to))
+        perWeek[u.monday] += u.steps;
+    QVariantList labels, wh, mhg, bw;
+    for (int i = 0; i < n; ++i) {
+        const QDate m = from.addDays(7 * i);
+        const Stats st = Steps::compute(perWeek.value(m));
+        labels.append(Weeks::label(m));
+        wh.append(st.wh);
+        // No training that week: no point on the intensity lines
+        mhg.append(st.wh > 0 ? QVariant(st.mhg) : QVariant());
+        bw.append(st.wh > 0 ? QVariant(st.bw) : QVariant());
+    }
+    return {{QStringLiteral("labels"), labels}, {QStringLiteral("wh"), wh},
+            {QStringLiteral("mhg"), mhg}, {QStringLiteral("bw"), bw}};
+}
+
 QVariantMap Store::stats(const QVariantList &steps) const
 {
     return statsMap(Steps::compute(stepsFromList(steps)));
@@ -1043,6 +1103,29 @@ QString Store::importBak(const QUrl &file, bool ignoreTimestamps)
     if (!r.ok && r.errors.isEmpty())
         text += QStringLiteral("\nImport fehlgeschlagen.");
     return text;
+}
+
+bool Store::printImage(const QImage &image, const QString &title)
+{
+    if (image.isNull())
+        return false;
+    QPrinter printer(QPrinter::HighResolution);
+    printer.setPageLayout(QPageLayout(QPageSize(QPageSize::A4),
+                                      image.width() > image.height() ? QPageLayout::Landscape : QPageLayout::Portrait,
+                                      QMarginsF(12, 12, 12, 12), QPageLayout::Millimeter));
+    printer.setDocName(title);
+    QPrintDialog dialog(&printer);
+    if (dialog.exec() != QDialog::Accepted)
+        return false;
+    QPainter p(&printer);
+    const QRect page(0, 0, printer.width(), printer.height());
+    p.setFont(QFont(QStringLiteral("Inter"), 12, QFont::Bold));
+    const int titleH = p.fontMetrics().height() * 2;
+    p.drawText(QRect(0, 0, page.width(), titleH), Qt::AlignLeft | Qt::AlignVCenter, title);
+    const QSize fitted = image.size().scaled(page.width(), page.height() - titleH, Qt::KeepAspectRatio);
+    p.setRenderHint(QPainter::SmoothPixmapTransform);
+    p.drawImage(QRect(0, titleH, fitted.width(), fitted.height()), image);
+    return true;
 }
 
 bool Store::printWeek(const QString &athleteId, const QString &monday, const QString &variant)

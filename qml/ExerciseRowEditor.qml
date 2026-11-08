@@ -9,12 +9,19 @@ Frame {
 
     property var source: ({})   // read once
     property bool actual: false
+    property bool canPaste: false
     property int day: 1
     property int number: 1
     readonly property var rowStats: stepsEditor.stats
 
     signal changed()
     signal removeRequested()
+    signal copyRequested(var steps)
+    signal pasteRequested()
+
+    function setSteps(list) {
+        stepsEditor.setSteps(list)
+    }
 
     function value() {
         return {
@@ -114,6 +121,19 @@ Frame {
             }
         }
 
+        IconToolButton {
+            Layout.alignment: Qt.AlignTop
+            iconName: "clipboard-copy"
+            toolTip: "Laststufen kopieren"
+            onClicked: row.copyRequested(stepsEditor.value())
+        }
+        IconToolButton {
+            Layout.alignment: Qt.AlignTop
+            iconName: "clipboard-paste"
+            toolTip: "Kopierte Laststufen einfügen"
+            enabled: row.canPaste
+            onClicked: row.pasteRequested()
+        }
         IconToolButton {
             Layout.alignment: Qt.AlignTop
             iconName: "trash-2"

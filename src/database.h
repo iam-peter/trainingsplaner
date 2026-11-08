@@ -74,6 +74,27 @@ const InfoRecord *infoAt(const QList<InfoRecord> &records, const QDate &date);
 bool setAttribute(const QString &athleteId, const QString &art, const QString &value,
                   const QDate &date);
 
+// Every use of a weight exercise by an athlete between two Mondays
+struct ExerciseUse
+{
+    QDate monday;
+    int day = 1;
+    int number = 1;
+    QList<Step> steps;
+};
+QList<ExerciseUse> exerciseUses(const QString &athleteId, Variant variant, int exercise,
+                                const QDate &fromMonday, const QDate &toMonday);
+// All weight lines of an athlete between two Mondays: (monday, exercise, steps)
+struct WeightLine
+{
+    QDate monday;
+    int day = 1;
+    int exercise = 0;
+    QList<Step> steps;
+};
+QList<WeightLine> weightLines(const QString &athleteId, Variant variant, const QDate &fromMonday,
+                              const QDate &toMonday);
+
 // Generic access for the other modules
 bool deleteRows(const QString &table, const QString &where, const QVariantList &binds,
                 const QString &stamp);

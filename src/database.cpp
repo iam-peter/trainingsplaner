@@ -471,6 +471,57 @@ QStringList infoValues(const QString &art)
     return list;
 }
 
+QList<ExerciseUse> exerciseUses(const QString &athleteId, Variant variant, int exercise,
+                                const QDate &fromMonday, const QDate &toMonday)
+{
+    QList<ExerciseUse> list;
+    QSqlQuery q(db());
+    q.prepare(QStringLiteral("SELECT wodate, tag, te, lststbem FROM te_ueb WHERE spid = ? AND spi = ?"
+                             " AND ueb = ? AND art = 0 AND wodate BETWEEN ? AND ? ORDER BY wodate, tag, te, pos"));
+    q.addBindValue(athleteId);
+    q.addBindValue(variantString(variant));
+    q.addBindValue(exercise);
+    q.addBindValue(dateString(fromMonday));
+    q.addBindValue(dateString(toMonday));
+    if (!exec(q))
+        return list;
+    while (q.next()) {
+        ExerciseUse u;
+        u.monday = QDate::fromString(q.value(0).toString(), Qt::ISODate);
+        u.day = q.value(1).toInt();
+        u.number = q.value(2).toInt();
+        u.steps = Steps::parse(q.value(3).toString());
+        if (!u.steps.isEmpty())
+            list.append(u);
+    }
+    return list;
+}
+
+QList<WeightLine> weightLines(const QString &athleteId, Variant variant, const QDate &fromMonday,
+                              const QDate &toMonday)
+{
+    QList<WeightLine> list;
+    QSqlQuery q(db());
+    q.prepare(QStringLiteral("SELECT wodate, tag, ueb, lststbem FROM te_ueb WHERE spid = ? AND spi = ?"
+                             " AND art = 0 AND ueb > 0 AND wodate BETWEEN ? AND ? ORDER BY wodate, tag, te, pos"));
+    q.addBindValue(athleteId);
+    q.addBindValue(variantString(variant));
+    q.addBindValue(dateString(fromMonday));
+    q.addBindValue(dateString(toMonday));
+    if (!exec(q))
+        return list;
+    while (q.next()) {
+        WeightLine l;
+        l.monday = QDate::fromString(q.value(0).toString(), Qt::ISODate);
+        l.day = q.value(1).toInt();
+        l.exercise = q.value(2).toInt();
+        l.steps = Steps::parse(q.value(3).toString());
+        if (!l.steps.isEmpty())
+            list.append(l);
+    }
+    return list;
+}
+
 const InfoRecord *infoAt(const QList<InfoRecord> &records, const QDate &date)
 {
     const InfoRecord *found = nullptr;

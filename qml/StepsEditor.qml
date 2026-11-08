@@ -20,6 +20,16 @@ RowLayout {
         return steps.filter(s => s && (s.kg > 0 || s.reps > 0 || s.sets > 0))
     }
 
+    // Replaces all steps (pasting copied steps)
+    function setSteps(list) {
+        steps = (list || []).map(s => ({ kg: s.kg, reps: s.reps, sets: s.sets, failed: s.failed || 0 }))
+        stepModel.clear()
+        for (let i = 0; i <= steps.length; ++i)
+            stepModel.append({})
+        updateStats()
+        changed()
+    }
+
     function focusFirst() {
         if (stepRepeater.count > 0)
             stepRepeater.itemAt(0).focusKg()
