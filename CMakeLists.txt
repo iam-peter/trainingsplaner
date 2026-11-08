@@ -61,6 +61,8 @@ qt_add_qml_module(tpqml
         qml/AppTabBar.qml
         qml/AppTabButton.qml
         qml/AppToolBar.qml
+        qml/Panel.qml
+        qml/ListRow.qml
         qml/WeekPage.qml
         qml/SessionCell.qml
         qml/SessionDialog.qml

@@ -66,6 +66,8 @@ AppDialog {
             text: "Neu in dieser Version:"
         }
         ScrollView {
+            // No overshoot at the ends
+            Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds
             id: notesView
             Layout.fillWidth: true
             Layout.preferredHeight: 220

@@ -420,6 +420,8 @@ Page {
                 Layout.alignment: Qt.AlignTop
             }
             ScrollView {
+                // No overshoot at the ends
+                Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds
                 Layout.fillWidth: true
                 Layout.preferredHeight: 56
                 TextArea {

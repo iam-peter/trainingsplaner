@@ -35,6 +35,8 @@ ColumnLayout {
         padding: 0
         background: Rectangle { color: palette.base; border.color: palette.mid }
         ScrollView {
+            // No overshoot at the ends
+            Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds
             anchors.fill: parent
             TextArea {
                 objectName: "reportText"

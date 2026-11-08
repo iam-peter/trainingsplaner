@@ -45,6 +45,8 @@ AppDialog {
             currentIndex: tabs.currentIndex
 
             ScrollView {
+                // No overshoot at the ends
+                Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds
                 clip: true
                 contentWidth: availableWidth
                 GridLayout {
@@ -80,6 +82,8 @@ AppDialog {
             }
 
             ScrollView {
+                // No overshoot at the ends
+                Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds
                 clip: true
                 contentWidth: availableWidth
                 GridLayout {
@@ -114,6 +118,8 @@ AppDialog {
             }
 
             ScrollView {
+                // No overshoot at the ends
+                Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds
                 clip: true
                 contentWidth: availableWidth
                 Label {

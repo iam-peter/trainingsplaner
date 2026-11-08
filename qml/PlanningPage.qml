@@ -207,6 +207,7 @@ Page {
                 }
                 Label { id: stepsError; color: Theme.error; visible: text !== "" }
                 ListView {
+                    boundsBehavior: Flickable.StopAtBounds
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     clip: true

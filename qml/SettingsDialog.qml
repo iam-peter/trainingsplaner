@@ -262,6 +262,7 @@ AppDialog {
                     Label { text: "Woche"; Layout.preferredWidth: 100; font.pixelSize: 11 }
                 }
                 ListView {
+                    boundsBehavior: Flickable.StopAtBounds
                     id: categoryList
                     Layout.fillWidth: true
                     Layout.preferredHeight: 280

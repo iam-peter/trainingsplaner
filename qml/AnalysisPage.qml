@@ -69,6 +69,8 @@ Page {
         RowLayout {
             spacing: 12
             ScrollView {
+                // No overshoot at the ends
+                Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds
                 Layout.preferredWidth: 330
                 Layout.fillHeight: true
                 contentWidth: availableWidth

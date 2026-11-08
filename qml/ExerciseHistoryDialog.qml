@@ -90,6 +90,7 @@ AppDialog {
                     Label { text: "Laststufen"; Layout.fillWidth: true; font.bold: true }
                 }
                 ListView {
+                    boundsBehavior: Flickable.StopAtBounds
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     clip: true

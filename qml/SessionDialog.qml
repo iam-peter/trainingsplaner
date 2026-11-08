@@ -265,6 +265,8 @@ AppDialog {
                 spacing: 2
                 Label { text: "Bemerkung zur TE:" }
                 ScrollView {
+                    // No overshoot at the ends
+                    Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds
                     Layout.fillWidth: true
                     Layout.preferredHeight: 52
                     TextArea {

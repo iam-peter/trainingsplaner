@@ -49,10 +49,12 @@ RowLayout {
 
     spacing: 12
 
-    Frame {
+    Panel {
         Layout.preferredWidth: 300
         Layout.fillHeight: true
-        padding: 0
+        // Rows stay inside the border
+        padding: 1
+        filled: true
         ColumnLayout {
             anchors.fill: parent
             spacing: 0
@@ -60,12 +62,19 @@ RowLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 clip: true
+                boundsBehavior: Flickable.StopAtBounds
                 model: Plan.mazList
-                delegate: ItemDelegate {
+                ScrollBar.vertical: ScrollBar {}
+                delegate: ListRow {
                     required property var modelData
-                    width: ListView.view.width
                     highlighted: modelData.id === pane.mazId
+                    deleteToolTip: "MAZ löschen"
                     onClicked: pane.select(modelData.id)
+                    onDeleteRequested: {
+                        deleteConfirm.mazId = modelData.id
+                        deleteConfirm.name = modelData.displayName
+                        deleteConfirm.open()
+                    }
                     contentItem: ColumnLayout {
                         spacing: 0
                         Label { text: modelData.displayName; elide: Text.ElideRight; Layout.fillWidth: true }
@@ -93,7 +102,7 @@ RowLayout {
         }
     }
 
-    Frame {
+    Panel {
         Layout.fillWidth: true
         Layout.fillHeight: true
 
@@ -144,12 +153,6 @@ RowLayout {
                     onClicked: pane.save()
                 }
                 IconButton {
-                    iconName: "trash-2"
-                    text: "Löschen"
-                    enabled: pane.mazId !== ""
-                    onClicked: deleteConfirm.open()
-                }
-                IconButton {
                     iconName: "target"
                     text: "Rahmenorientierung"
                     enabled: pane.mazId !== ""
@@ -181,6 +184,7 @@ RowLayout {
                 Label { text: "WK Stoßen"; Layout.preferredWidth: 70; font.pixelSize: 11 }
             }
             ListView {
+                boundsBehavior: Flickable.StopAtBounds
                 visible: pane.mazId !== ""
                 Layout.fillWidth: true
                 Layout.fillHeight: true
@@ -268,10 +272,17 @@ RowLayout {
 
     AppDialog {
         id: deleteConfirm
+        property string mazId
+        property string name
         title: "MAZ löschen?"
         standardButtons: Dialog.Yes | Dialog.No
-        Label { text: "Der MAZ wird mit seiner Rahmenorientierung gelöscht.\nDie ITP der Sportler bleiben erhalten." }
-        onAccepted: { Plan.removeMaz(pane.mazId); pane.select("") }
+        Label { text: deleteConfirm.name + " wird mit seiner Rahmenorientierung gelöscht.\nDie ITP der Sportler bleiben erhalten." }
+        onAccepted: {
+            const wasSelected = deleteConfirm.mazId === pane.mazId
+            Plan.removeMaz(deleteConfirm.mazId)
+            if (wasSelected)
+                pane.select("")
+        }
     }
 
     FileDialog {

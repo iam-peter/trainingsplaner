@@ -140,10 +140,12 @@ Page {
         RowLayout {
             spacing: 12
 
-            Frame {
+            Panel {
                 Layout.preferredWidth: 380
                 Layout.fillHeight: true
-                padding: 0
+                // Rows stay inside the border
+                padding: 1
+                filled: true
                 ColumnLayout {
                     anchors.fill: parent
                     spacing: 0
@@ -151,14 +153,19 @@ Page {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         clip: true
+                        boundsBehavior: Flickable.StopAtBounds
                         model: page.list
                         ScrollBar.vertical: ScrollBar {}
-                        delegate: ItemDelegate {
+                        delegate: ListRow {
                             required property var modelData
-                            width: ListView.view.width
                             highlighted: page.current && page.current.date === modelData.date
                                          && page.current.time === modelData.time
+                            deleteToolTip: "Wettkampf löschen"
                             onClicked: page.edit(modelData)
+                            onDeleteRequested: {
+                                deleteConfirm.competition = modelData
+                                deleteConfirm.open()
+                            }
                             contentItem: RowLayout {
                                 Label { text: modelData.dateText; Layout.preferredWidth: 80 }
                                 Label { text: modelData.typeName; Layout.preferredWidth: 28; color: palette.placeholderText }
@@ -183,7 +190,7 @@ Page {
                 }
             }
 
-            Frame {
+            Panel {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 GridLayout {
@@ -263,16 +270,6 @@ Page {
                             highlighted: true
                             enabled: page.dirty || !page.current
                             onClicked: page.save()
-                        }
-                        IconButton {
-                            iconName: "trash-2"
-                            text: "Löschen"
-                            enabled: page.current !== null
-                            onClicked: {
-                                Store.removeCompetition(page.athleteId, page.current.date, page.current.time)
-                                page.reload()
-                                page.edit(null)
-                            }
                         }
                     }
                     Label {
@@ -354,5 +351,26 @@ Page {
         visible: page.athleteId === ""
         text: "Bitte einen Sportler wählen."
         color: palette.placeholderText
+    }
+
+    AppDialog {
+        id: deleteConfirm
+        property var competition: null
+        title: "Wettkampf löschen?"
+        standardButtons: Dialog.Yes | Dialog.No
+        Label {
+            text: deleteConfirm.competition
+                  ? deleteConfirm.competition.dateText + "  " + (deleteConfirm.competition.name || deleteConfirm.competition.place)
+                    + " wird gelöscht.\nDas kann nicht rückgängig gemacht werden."
+                  : ""
+        }
+        onAccepted: {
+            const c = deleteConfirm.competition
+            const wasSelected = page.current && page.current.date === c.date && page.current.time === c.time
+            Store.removeCompetition(page.athleteId, c.date, c.time)
+            page.reload()
+            if (wasSelected)
+                page.edit(null)
+        }
     }
 }

@@ -136,6 +136,7 @@ AppDialog {
         Rectangle { Layout.fillWidth: true; height: 1; color: palette.mid }
 
         ListView {
+            boundsBehavior: Flickable.StopAtBounds
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true

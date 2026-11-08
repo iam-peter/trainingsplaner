@@ -62,6 +62,22 @@ Page {
         onActivated: page.save()
     }
 
+    // The athletes matching the search field
+    readonly property var shown: {
+        const q = searchField.text.trim().toLowerCase()
+        return q === "" ? Store.athletes : Store.athletes.filter(a => a.displayName.toLowerCase().indexOf(q) >= 0)
+    }
+
+    function askRemove(id) {
+        const a = Store.athletes.find(x => x.id === id)
+        if (!a)
+            return
+        deleteConfirm.athleteId = id
+        deleteConfirm.name = a.displayName
+        deleteConfirm.sessions = Store.sessionCount(id)
+        deleteConfirm.open()
+    }
+
     readonly property bool bornValid: bornField.text.trim() === "" || Store.parseDate(bornField.text) !== ""
 
     // Like every page, so switching pages does not shift the content
@@ -71,14 +87,18 @@ Page {
             anchors.leftMargin: 8
             anchors.rightMargin: 8
             spacing: 6
-            IconButton {
-                iconName: "user-plus"
-                text: "Neuer Sportler"
-                onClicked: page.select("")
+            TextField {
+                id: searchField
+                objectName: "searchField"
+                Layout.preferredWidth: 220
+                placeholderText: "Sportler suchen"
+                selectByMouse: true
             }
             Label {
                 Layout.leftMargin: 8
-                text: Store.athletes.length === 1 ? "1 Sportler" : Store.athletes.length + " Sportler"
+                text: page.shown.length === Store.athletes.length
+                      ? (Store.athletes.length === 1 ? "1 Sportler" : Store.athletes.length + " Sportler")
+                      : page.shown.length + " von " + Store.athletes.length + " Sportlern"
                 color: palette.placeholderText
             }
             Item { Layout.fillWidth: true }
@@ -90,10 +110,12 @@ Page {
         anchors.margins: 12
         spacing: 12
 
-        Frame {
+        Panel {
             Layout.preferredWidth: 280
             Layout.fillHeight: true
-            padding: 0
+            // Rows stay inside the border
+            padding: 1
+            filled: true
 
             ColumnLayout {
                 anchors.fill: parent
@@ -104,20 +126,35 @@ Page {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     clip: true
-                    model: Store.athletes
-                    delegate: ItemDelegate {
+                    boundsBehavior: Flickable.StopAtBounds
+                    model: page.shown
+                    delegate: ListRow {
                         required property var modelData
-                        width: ListView.view.width
                         text: modelData.displayName
                         highlighted: modelData.id === page.selectedId
+                        deleteToolTip: "Sportler löschen"
                         onClicked: page.select(modelData.id)
+                        onDeleteRequested: page.askRemove(modelData.id)
                     }
                     ScrollBar.vertical: ScrollBar {}
+                    Label {
+                        anchors.centerIn: parent
+                        visible: page.shown.length === 0
+                        text: Store.athletes.length === 0 ? "Noch keine Sportler." : "Niemand gefunden."
+                        color: palette.placeholderText
+                    }
+                }
+                IconButton {
+                    Layout.fillWidth: true
+                    Layout.margins: 8
+                    iconName: "user-plus"
+                    text: "Neuer Sportler"
+                    onClicked: page.select("")
                 }
             }
         }
 
-        Frame {
+        Panel {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
@@ -256,15 +293,6 @@ Page {
                         onClicked: page.save()
                     }
                     IconButton {
-                        iconName: "trash-2"
-                        text: "Löschen"
-                        enabled: page.selectedId !== ""
-                        onClicked: {
-                            deleteConfirm.sessions = Store.sessionCount(page.selectedId)
-                            deleteConfirm.open()
-                        }
-                    }
-                    IconButton {
                         iconName: "calendar-days"
                         text: "Wochenplan öffnen"
                         enabled: page.selectedId !== ""
@@ -282,18 +310,22 @@ Page {
 
     AppDialog {
         id: deleteConfirm
+        property string athleteId
+        property string name
         property int sessions: 0
         title: "Sportler löschen?"
         standardButtons: Dialog.Yes | Dialog.No
         Label {
-            text: lastNameField.text + ", " + firstNameField.text + " wird gelöscht"
+            text: deleteConfirm.name + " wird gelöscht"
                   + (deleteConfirm.sessions > 0
                      ? ",\nzusammen mit " + deleteConfirm.sessions + " Trainingseinheiten." : ".")
                   + "\nDas kann nicht rückgängig gemacht werden."
         }
         onAccepted: {
-            Store.removeAthlete(page.selectedId)
-            page.select("")
+            const wasSelected = deleteConfirm.athleteId === page.selectedId
+            Store.removeAthlete(deleteConfirm.athleteId)
+            if (wasSelected)
+                page.select("")
         }
     }
 
