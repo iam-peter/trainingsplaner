@@ -14,15 +14,15 @@ ItemDelegate {
     width: ListView.view ? ListView.view.width : implicitWidth
     hoverEnabled: true
     rightPadding: deleteButton.width + 8
-    // Carbon's lists select the full width
-    leftInset: Theme.carbon ? 0 : 2
-    rightInset: Theme.carbon ? 0 : 2
+    // Carbon's lists select the full width, shadcn's leave a little room
+    leftInset: Theme.carbon ? 0 : Theme.shadcn ? 4 : 2
+    rightInset: Theme.carbon ? 0 : Theme.shadcn ? 4 : 2
     topInset: Theme.carbon ? 0 : 1
     bottomInset: Theme.carbon ? 0 : 1
 
     background: Rectangle {
         radius: Theme.radius(3)
-        color: row.highlighted ? row.palette.highlight
+        color: row.highlighted ? Theme.rowSelected
                : row.down ? Qt.tint(row.palette.base, Qt.rgba(0.5, 0.5, 0.5, 0.25))
                : row.hovered ? Qt.tint(row.palette.base, Qt.rgba(0.5, 0.5, 0.5, 0.12))
                : "transparent"
@@ -35,7 +35,7 @@ ItemDelegate {
         anchors.rightMargin: 4
         anchors.verticalCenter: parent.verticalCenter
         iconName: "trash-2"
-        icon.color: row.highlighted ? row.palette.highlightedText : row.palette.buttonText
+        icon.color: row.highlighted ? Theme.rowSelectedText : row.palette.buttonText
         toolTip: row.deleteToolTip
         opacity: row.hovered || row.highlighted ? 1 : 0
         enabled: opacity > 0

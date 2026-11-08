@@ -16,6 +16,7 @@
 
 Q_IMPORT_QML_PLUGIN(TrainingsplanerPlugin)
 Q_IMPORT_QML_PLUGIN(CarbonPlugin)
+Q_IMPORT_QML_PLUGIN(ShadcnPlugin)
 
 // Runs the QML tests against a fresh database in a temporary directory.
 class Setup : public QObject

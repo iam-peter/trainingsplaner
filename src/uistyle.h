@@ -4,7 +4,7 @@
 #include <QString>
 #include <QStringList>
 
-// The Qt Quick Controls style: Fusion by default, Carbon (our own) or one
+// The Qt Quick Controls style: Fusion by default, Carbon or Shadcn (our own) or one
 // of the styles Qt brings, as far as they are installed. It is set before
 // the QML engine starts, so a new choice takes effect after a restart.
 namespace UiStyle {

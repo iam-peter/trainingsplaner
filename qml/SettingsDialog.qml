@@ -378,7 +378,7 @@ AppDialog {
                     font.pixelSize: 11
                     color: palette.placeholderText
                     text: "Wie Schaltflächen, Felder und Listen aussehen. Carbon folgt dem IBM Carbon Design System, "
-                          + "die übrigen bringt Qt mit. Ein neuer Stil gilt nach einem Neustart des Programms."
+                          + "shadcn/ui der gleichnamigen Komponentensammlung, die übrigen bringt Qt mit. Ein neuer Stil gilt nach einem Neustart des Programms."
                 }
                 Label { text: "Farbschema:" }
                 RowLayout {

@@ -22,6 +22,7 @@ QList<Info> detect(const QStringList &importPaths)
     const QList<Info> known = {
         {QStringLiteral("Fusion"), QStringLiteral("Fusion (Standard)")},
         {QStringLiteral("Carbon"), QStringLiteral("Carbon (IBM Design System)")},
+        {QStringLiteral("Shadcn"), QStringLiteral("shadcn/ui")},
         {QStringLiteral("Material"), QStringLiteral("Material")},
         {QStringLiteral("Universal"), QStringLiteral("Universal")},
         {QStringLiteral("FluentWinUI3"), QStringLiteral("Fluent (WinUI 3)")},
@@ -33,9 +34,9 @@ QList<Info> detect(const QStringList &importPaths)
     g_available.clear();
     for (const Info &style : known) {
         bool found = false;
-        if (style.name == QLatin1String("Carbon")) {
+        if (style.name == QLatin1String("Carbon") || style.name == QLatin1String("Shadcn")) {
             // Built into the program
-            found = QFile::exists(QStringLiteral(":/qt/qml/Carbon/qmldir"));
+            found = QFile::exists(QStringLiteral(":/qt/qml/%1/qmldir").arg(style.name));
         } else {
             for (const QString &path : importPaths) {
                 const QString dir = path.startsWith(QLatin1String("qrc:")) ? path.mid(3) : path;
@@ -78,8 +79,8 @@ QString choose(const QString &requested)
 void apply(const QString &name)
 {
     QQuickStyle::setStyle(name);
-    // Our own style builds on Basic for the controls it leaves out
-    if (name == QLatin1String("Carbon"))
+    // Our own styles build on Basic for the controls they leave out
+    if (name == QLatin1String("Carbon") || name == QLatin1String("Shadcn"))
         QQuickStyle::setFallbackStyle(QStringLiteral("Basic"));
     // Material and Universal: follow the colour scheme, with the program's
     // orange as accent, unless set from outside

@@ -23,6 +23,7 @@
 
 Q_IMPORT_QML_PLUGIN(TrainingsplanerPlugin)
 Q_IMPORT_QML_PLUGIN(CarbonPlugin)
+Q_IMPORT_QML_PLUGIN(ShadcnPlugin)
 
 namespace {
 
@@ -95,7 +96,7 @@ int main(int argc, char *argv[])
                                           QStringLiteral("schema"));
     const QCommandLineOption styleOption(QStringLiteral("stil"),
                                          QStringLiteral("Stil für diesen Start, unabhängig von der Einstellung: "
-                                                        "Fusion, Carbon, Material, Universal, FluentWinUI3, Basic, Imagine …"),
+                                                        "Fusion, Carbon, Shadcn, Material, Universal, FluentWinUI3, Basic, Imagine …"),
                                          QStringLiteral("stil"));
     const QCommandLineOption checkUpdateOption(QStringLiteral("check-update"),
                                                QStringLiteral("Neueste Version bei GitHub erfragen und beenden."));

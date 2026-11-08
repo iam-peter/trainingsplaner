@@ -1,0 +1,51 @@
+import QtQuick
+import QtQuick.Controls.impl
+import QtQuick.Templates as T
+
+// shadcn ghost button
+T.ToolButton {
+    id: control
+
+    implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
+                            implicitContentWidth + leftPadding + rightPadding)
+    implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
+                             implicitContentHeight + topPadding + bottomPadding)
+
+    padding: 6
+    leftPadding: text !== "" && display !== T.AbstractButton.IconOnly ? 10 : 8
+    rightPadding: leftPadding
+    spacing: 6
+    hoverEnabled: true
+    opacity: enabled ? 1 : 0.5
+    font.weight: Font.Medium
+
+    icon.width: 16
+    icon.height: 16
+
+    contentItem: IconLabel {
+        spacing: control.spacing
+        mirrored: control.mirrored
+        display: control.display
+
+        icon.source: control.icon.source
+        icon.name: control.icon.name
+        icon.width: control.icon.width
+        icon.height: control.icon.height
+        icon.color: Tokens.foreground
+        text: control.text
+        font: control.font
+        color: Tokens.foreground
+    }
+
+    background: Rectangle {
+        implicitWidth: Tokens.controlHeight
+        implicitHeight: Tokens.controlHeight
+        radius: Tokens.radiusMd
+        color: control.down || control.checked || (control.hovered && control.enabled)
+               ? (Tokens.dark ? Tokens.alpha(Tokens.accent, 0.5) : Tokens.accent) : "transparent"
+        FocusRing {
+            baseRadius: parent.radius
+            visible: control.visualFocus
+        }
+    }
+}

@@ -117,7 +117,7 @@ jobs:
             ./trainingsplaner-linux-x64.AppImage --db "$RUNNER_TEMP/ci.sqlite" --check-update || status=$?
           [ "$status" -ne 1 ]
           # Every style the settings offer is shipped and starts
-          for style in Fusion Carbon Material Universal FluentWinUI3 Basic Imagine; do
+          for style in Fusion Carbon Shadcn Material Universal FluentWinUI3 Basic Imagine; do
             APPIMAGE_EXTRACT_AND_RUN=1 QT_QPA_PLATFORM=offscreen ./trainingsplaner-linux-x64.AppImage \
               --db "$RUNNER_TEMP/ci.sqlite" --stil "$style" --grab "$RUNNER_TEMP/$style.png"
             test -s "$RUNNER_TEMP/$style.png"
@@ -253,7 +253,7 @@ jobs:
           if ($p.ExitCode -eq 1) { throw "Update check could not reach GitHub" }
 
           # Every style the settings offer is shipped and starts
-          foreach ($style in "Fusion", "Carbon", "Material", "Universal", "FluentWinUI3", "Basic", "Imagine", "Windows") {
+          foreach ($style in "Fusion", "Carbon", "Shadcn", "Material", "Universal", "FluentWinUI3", "Basic", "Imagine", "Windows") {
             $png = "$env:RUNNER_TEMP\$style.png"
             # The native style needs the real window system
             $env:QT_QPA_PLATFORM = if ($style -eq "Windows") { "windows" } else { "offscreen" }
@@ -321,7 +321,7 @@ jobs:
             --db "$RUNNER_TEMP/ci.sqlite" --check-update || status=$?
           [ "$status" -ne 1 ]
           # Every style the settings offer is shipped and starts
-          for style in Fusion Carbon Material Universal FluentWinUI3 Basic Imagine macOS; do
+          for style in Fusion Carbon Shadcn Material Universal FluentWinUI3 Basic Imagine macOS; do
             # The native style needs the real window system
             platform=offscreen; [ "$style" = macOS ] && platform=cocoa
             QT_QPA_PLATFORM=$platform build/Trainingsplaner.app/Contents/MacOS/trainingsplaner \

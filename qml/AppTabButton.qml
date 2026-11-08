@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import Trainingsplaner
+import Shadcn as Shadcn
 
 // One tab of an AppTabBar, optionally with a Lucide icon.
 TabButton {
@@ -8,7 +9,7 @@ TabButton {
 
     property string iconName
 
-    implicitHeight: Theme.carbon ? 32 : 28
+    implicitHeight: Theme.carbon ? 32 : Theme.shadcn ? 30 : 28
     // The program's font: some styles (Universal) make tabs much larger
     font: Qt.application.font
     icon.source: iconName !== "" ? "qrc:/qt/qml/Trainingsplaner/icons/" + iconName + ".svg" : ""
@@ -21,7 +22,20 @@ TabButton {
 
     background: Rectangle {
         radius: Theme.radius(3)
-        color: control.checked ? (Theme.carbon ? Theme.tokens.background : control.palette.base)
+        // shadcn's active trigger is raised; in dark mode it has a border
+        border.width: Theme.shadcn && Theme.dark && control.checked ? 1 : 0
+        border.color: Theme.shadcn ? Theme.sh.input : "transparent"
+        Shadcn.Shadow {
+            z: -1
+            anchors.fill: parent
+            radius: parent.radius
+            depth: 1
+            visible: Theme.shadcn && control.checked
+        }
+        color: control.checked ? (Theme.carbon ? Theme.tokens.background
+                                  : Theme.shadcn ? (Theme.dark ? Theme.sh.inputBackground : Theme.sh.background)
+                                  : control.palette.base)
+               : control.hovered && Theme.shadcn ? "transparent"
                : control.hovered ? (Theme.carbon ? Theme.tokens.layerAccentHover
                                                  : Qt.tint(control.palette.button, Qt.rgba(0.5, 0.5, 0.5, 0.12)))
                : "transparent"
@@ -29,7 +43,7 @@ TabButton {
         // A divider before each unselected tab that does not follow the
         // selected one
         Rectangle {
-            visible: control.TabBar.index > 0 && !control.checked
+            visible: !Theme.shadcn && control.TabBar.index > 0 && !control.checked
                      && control.TabBar.tabBar.currentIndex !== control.TabBar.index - 1
             x: -1
             y: 6
@@ -40,7 +54,7 @@ TabButton {
         // The current tab is underlined in the accent colour; Carbon marks
         // it with a full-width line on top
         Rectangle {
-            visible: control.checked
+            visible: control.checked && !Theme.shadcn
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.bottom: Theme.carbon ? undefined : parent.bottom
