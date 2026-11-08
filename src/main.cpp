@@ -12,6 +12,8 @@
 #include <QQuickStyle>
 #include <QQuickWindow>
 #include <QStandardPaths>
+#include <QPalette>
+#include <QStyleHints>
 #include <QSvgRenderer>
 #include <QTimer>
 #include <QtQml/qqmlextensionplugin.h>
@@ -85,8 +87,40 @@ int main(int argc, char *argv[])
     const QCommandLineOption sessionOption(QStringLiteral("open"),
                                            QStringLiteral("Trainingseinheit (1:2 = Tag:TE) oder Übung (ex:8) öffnen."),
                                            QStringLiteral("tag:te"));
-    parser.addOptions({dbOption, importOption, grabOption, athleteOption, weekOption, pageOption, sessionOption});
+    const QCommandLineOption schemeOption(QStringLiteral("farbschema"),
+                                          QStringLiteral("Farbschema unabhängig vom System: hell oder dunkel."),
+                                          QStringLiteral("schema"));
+    parser.addOptions({dbOption, importOption, grabOption, athleteOption, weekOption, pageOption, sessionOption,
+                       schemeOption});
     parser.process(app);
+    if (parser.isSet(schemeOption)) {
+        const QString scheme = parser.value(schemeOption);
+        const bool dark = scheme == QLatin1String("dunkel");
+        QGuiApplication::styleHints()->setColorScheme(dark ? Qt::ColorScheme::Dark : Qt::ColorScheme::Light);
+        if (dark) {
+            // Also a dark palette, for platforms without colour schemes
+            QPalette p;
+            p.setColor(QPalette::Window, QColor(0x2b, 0x2a, 0x29));
+            p.setColor(QPalette::WindowText, QColor(0xee, 0xec, 0xea));
+            p.setColor(QPalette::Base, QColor(0x1f, 0x1e, 0x1d));
+            p.setColor(QPalette::AlternateBase, QColor(0x2f, 0x2d, 0x2b));
+            p.setColor(QPalette::Text, QColor(0xee, 0xec, 0xea));
+            p.setColor(QPalette::Button, QColor(0x35, 0x33, 0x31));
+            p.setColor(QPalette::ButtonText, QColor(0xee, 0xec, 0xea));
+            p.setColor(QPalette::Highlight, QColor(0xc2, 0x41, 0x0c));
+            p.setColor(QPalette::HighlightedText, Qt::white);
+            p.setColor(QPalette::PlaceholderText, QColor(0x9a, 0x95, 0x90));
+            p.setColor(QPalette::ToolTipBase, QColor(0x35, 0x33, 0x31));
+            p.setColor(QPalette::ToolTipText, QColor(0xee, 0xec, 0xea));
+            p.setColor(QPalette::Mid, QColor(0x55, 0x52, 0x4f));
+            p.setColor(QPalette::Dark, QColor(0x1a, 0x19, 0x18));
+            p.setColor(QPalette::Light, QColor(0x4a, 0x47, 0x44));
+            p.setColor(QPalette::Disabled, QPalette::Text, QColor(0x77, 0x73, 0x70));
+            p.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(0x77, 0x73, 0x70));
+            p.setColor(QPalette::Disabled, QPalette::WindowText, QColor(0x77, 0x73, 0x70));
+            QApplication::setPalette(p);
+        }
+    }
 
     QString dbPath = parser.value(dbOption);
     if (dbPath.isEmpty()) {

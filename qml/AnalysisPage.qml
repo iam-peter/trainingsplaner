@@ -357,16 +357,16 @@ Page {
                     const l = []
                     const two = chCompare.checked && chartTab.second.labels
                     const n1 = two ? " 1" : "", n2 = " 2"
-                    if (chMhg.checked) l.push({ name: "MHG" + n1, color: "#44403c", values: chartTab.first.mhg || [], trend: chTrend.checked })
-                    if (chBw.checked) l.push({ name: "BW" + n1, color: "#c2410c", values: chartTab.first.bw || [], trend: chTrend.checked })
-                    if (two && chMhg.checked) l.push({ name: "MHG" + n2, color: "#2563eb", values: chartTab.second.mhg || [], trend: chTrend.checked })
-                    if (two && chBw.checked) l.push({ name: "BW" + n2, color: "#16a34a", values: chartTab.second.bw || [], trend: chTrend.checked })
+                    if (chMhg.checked) l.push({ name: "MHG" + n1, color: Theme.ink, values: chartTab.first.mhg || [], trend: chTrend.checked })
+                    if (chBw.checked) l.push({ name: "BW" + n1, color: Theme.accent, values: chartTab.first.bw || [], trend: chTrend.checked })
+                    if (two && chMhg.checked) l.push({ name: "MHG" + n2, color: Theme.blue, values: chartTab.second.mhg || [], trend: chTrend.checked })
+                    if (two && chBw.checked) l.push({ name: "BW" + n2, color: Theme.green, values: chartTab.second.bw || [], trend: chTrend.checked })
                     return l
                 }
                 bars: {
                     const b = []
                     if (chVolume.currentIndex > 0) {
-                        b.push({ name: chVolume.currentText, color: "#64748b", values: chartTab.first.wh || [] })
+                        b.push({ name: chVolume.currentText, color: Theme.slate, values: chartTab.first.wh || [] })
                         if (chCompare.checked && chartTab.second.wh)
                             b.push({ name: chVolume.currentText + " 2", color: "#93c5fd", values: chartTab.second.wh })
                     }

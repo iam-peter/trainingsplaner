@@ -130,7 +130,7 @@ AppDialog {
         Label {
             visible: dialog.error !== ""
             text: dialog.error
-            color: "#c00000"
+            color: Theme.error
         }
 
         Rectangle { Layout.fillWidth: true; height: 1; color: palette.mid }

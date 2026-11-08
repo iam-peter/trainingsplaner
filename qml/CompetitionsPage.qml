@@ -273,7 +273,7 @@ Page {
                         Layout.columnSpan: 2
                         visible: page.error !== ""
                         text: page.error
-                        color: "#c00000"
+                        color: Theme.error
                     }
                 }
             }
@@ -326,12 +326,12 @@ Page {
                 showValues: showValues.checked
                 leftTitle: "kg"
                 lines: [
-                    { name: "Zweikampf", color: "#c2410c", values: page.trend.total || [], trend: showTrend.checked },
-                    { name: "Reißen", color: "#44403c", values: page.trend.snatch || [], trend: showTrend.checked },
-                    { name: "Stoßen", color: "#2563eb", values: page.trend.cleanJerk || [], trend: showTrend.checked }
+                    { name: "Zweikampf", color: Theme.accent, values: page.trend.total || [], trend: showTrend.checked },
+                    { name: "Reißen", color: Theme.ink, values: page.trend.snatch || [], trend: showTrend.checked },
+                    { name: "Stoßen", color: Theme.blue, values: page.trend.cleanJerk || [], trend: showTrend.checked }
                 ]
                 references: showNorm.checked && page.trend.norm > 0
-                            ? [{ name: "Norm " + page.trend.norm + " kg", color: "#16a34a", value: page.trend.norm }] : []
+                            ? [{ name: "Norm " + page.trend.norm + " kg", color: Theme.green, value: page.trend.norm }] : []
             }
         }
     }

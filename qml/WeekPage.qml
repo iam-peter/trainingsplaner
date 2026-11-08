@@ -69,6 +69,24 @@ Page {
         }
     }
 
+    // 1-7 when today is in the shown week, else 0
+    readonly property int todayDay: {
+        const t = Store.today()
+        return Store.mondayOf(t) === monday ? (new Date(t + "T12:00:00").getDay() + 6) % 7 + 1 : 0
+    }
+
+    // How much room a row of sessions gets: by its longest session, so an
+    // empty row of first sessions stays small
+    function rowWeight(number) {
+        let lines = 0
+        for (let d = 1; d <= 7; ++d) {
+            const s = sessionAt(d, number)
+            if (s)
+                lines = Math.max(lines, s.entries.length + 2)
+        }
+        return Math.max(lines, 2)
+    }
+
     function sessionAt(day, number) {
         if (!weekData.sessions)
             return null
@@ -272,12 +290,14 @@ Page {
                         Layout.alignment: Qt.AlignHCenter
                         text: Store.dayName(index + 1)
                         font.bold: true
+                        color: page.todayDay === index + 1 ? Theme.accent : palette.windowText
                     }
                     Label {
                         Layout.alignment: Qt.AlignHCenter
-                        text: Store.dayDate(page.monday, index + 1)
+                        text: page.todayDay === index + 1 ? "heute, " + Store.dayDate(page.monday, index + 1)
+                                                           : Store.dayDate(page.monday, index + 1)
                         font.pixelSize: 11
-                        color: palette.placeholderText
+                        color: page.todayDay === index + 1 ? Theme.accent : palette.placeholderText
                     }
                 }
             }
@@ -292,12 +312,23 @@ Page {
                     Layout.fillHeight: true
                     Layout.preferredWidth: 1
                     Layout.preferredHeight: 1
+                    Layout.minimumHeight: 44
+                    Layout.verticalStretchFactor: page.rowWeight(number)
+                    today: page.todayDay === day
                     sessionNumber: number
                     session: page.sessionAt(day, number)
                     onClicked: page.openSession(day, number)
                     onExerciseClicked: (exercise) => page.openExercise(exercise)
                 }
             }
+        }
+
+        Label {
+            Layout.fillWidth: true
+            text: "Je Zeile: Übung  WH  MHG  BW  Wdh/Sätze beim BW  ·  Klick auf eine Übung bearbeitet sie für die ganze Woche, Klick daneben die Trainingseinheit  ·  F1: Hilfe"
+            font.pixelSize: 11
+            color: palette.placeholderText
+            elide: Text.ElideRight
         }
 
         RowLayout {

@@ -121,10 +121,10 @@ AppDialog {
                 leftTitle: "Intensität [kg]"
                 rightTitle: "Umfang [Wh]"
                 lines: [
-                    { name: "MHG", color: "#44403c", values: dialog.trend.mhg || [], trend: true },
-                    { name: "BW", color: "#c2410c", values: dialog.trend.bw || [], trend: true }
+                    { name: "MHG", color: Theme.ink, values: dialog.trend.mhg || [], trend: true },
+                    { name: "BW", color: Theme.accent, values: dialog.trend.bw || [], trend: true }
                 ]
-                bars: [{ name: "WH", color: "#64748b", values: dialog.trend.wh || [] }]
+                bars: [{ name: "WH", color: Theme.slate, values: dialog.trend.wh || [] }]
             }
         }
     }

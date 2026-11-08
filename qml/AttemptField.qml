@@ -1,4 +1,5 @@
 import QtQuick
+import Trainingsplaner
 import QtQuick.Controls
 
 // One competition attempt. Space toggles valid/invalid, as in the old
@@ -21,7 +22,7 @@ TextField {
     validator: IntValidator { bottom: 0; top: 999 }
     font.bold: true
     font.strikeout: invalid
-    color: invalid ? "#c81e1e" : palette.text
+    color: invalid ? Theme.error : palette.text
 
     onTextEdited: {
         const kg = parseInt(text) || 0

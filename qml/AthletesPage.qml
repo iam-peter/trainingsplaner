@@ -148,12 +148,12 @@ Page {
                         Layout.preferredWidth: 120
                         placeholderText: "TT.MM.JJJJ"
                         onTextEdited: page.dirty = true
-                        color: page.bornValid ? palette.text : "#c00000"
+                        color: page.bornValid ? palette.text : Theme.error
                     }
                     Label {
                         visible: !page.bornValid
                         text: "Datum ungültig"
-                        color: "#c00000"
+                        color: Theme.error
                     }
                     Label {
                         id: ageLabel

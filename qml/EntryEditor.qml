@@ -95,7 +95,7 @@ Frame {
                         editor.exercise = parseInt(text) || 0
                         editor.changed()
                     }
-                    color: text === "" || editor.exerciseValid ? palette.text : "#c00000"
+                    color: text === "" || editor.exerciseValid ? palette.text : Theme.error
                 }
                 IconButton {
                     implicitWidth: 30
@@ -113,7 +113,7 @@ Frame {
                       : "unbekannte Nr."
                 elide: Text.ElideRight
                 font.pixelSize: 11
-                color: editor.exercise !== 0 && !editor.exerciseValid ? "#c00000" : palette.placeholderText
+                color: editor.exercise !== 0 && !editor.exerciseValid ? Theme.error : palette.placeholderText
             }
             ExercisePicker {
                 id: picker

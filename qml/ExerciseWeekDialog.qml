@@ -162,7 +162,7 @@ AppDialog {
                 font.bold: true
                 font.pixelSize: 15
                 validator: IntValidator { bottom: 0; top: 99 }
-                color: dialog.valid ? palette.text : "#c00000"
+                color: dialog.valid ? palette.text : Theme.error
                 onEditingFinished: dialog.switchTo(parseInt(text) || 0)
                 ToolTip.visible: activeFocus
                 ToolTip.text: "Andere Übung: Nummer eingeben und Enter"
@@ -184,7 +184,7 @@ AppDialog {
                 Layout.fillWidth: true
                 text: dialog.valid ? Store.exerciseName(dialog.exercise)
                       : dialog.exercise > 0 ? "Keine Übung mit Gewichten" : "Übung wählen"
-                color: dialog.valid ? palette.text : "#c00000"
+                color: dialog.valid ? palette.text : Theme.error
                 font.pixelSize: 15
                 font.bold: true
                 elide: Text.ElideRight
@@ -290,7 +290,7 @@ AppDialog {
                 visible: itp !== null && itp.has
                 text: itp ? "ITP:  WH " + itp.wh + "  MHG " + itp.mhg + "  BW " + itp.bw
                             + (itp.steps !== "" ? "   Laststufen ITP: " + itp.steps : "") : ""
-                color: "#c2410c"
+                color: Theme.accent
                 font.bold: true
             }
         }

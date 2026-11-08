@@ -205,7 +205,7 @@ Page {
                         color: palette.placeholderText
                     }
                 }
-                Label { id: stepsError; color: "#c00000"; visible: text !== "" }
+                Label { id: stepsError; color: Theme.error; visible: text !== "" }
                 ListView {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -289,7 +289,7 @@ Page {
             }
             Label {
                 text: "Die vorhandenen Werte im Zeitraum werden überschrieben."
-                color: "#c00000"
+                color: Theme.error
             }
         }
         onAccepted: {
@@ -345,12 +345,12 @@ Page {
                 lines: [
                     { name: "MHG ITP", color: "#a8a29e", values: chartDialog.chartData.itpMhg || [] },
                     { name: "BW ITP", color: "#fdba74", values: chartDialog.chartData.itpBw || [] },
-                    { name: "MHG " + (chartIst.checked ? "Ist" : "Plan"), color: "#44403c", values: chartDialog.chartData.actMhg || [] },
-                    { name: "BW " + (chartIst.checked ? "Ist" : "Plan"), color: "#c2410c", values: chartDialog.chartData.actBw || [] }
+                    { name: "MHG " + (chartIst.checked ? "Ist" : "Plan"), color: Theme.ink, values: chartDialog.chartData.actMhg || [] },
+                    { name: "BW " + (chartIst.checked ? "Ist" : "Plan"), color: Theme.accent, values: chartDialog.chartData.actBw || [] }
                 ]
                 bars: [
                     { name: "WH ITP", color: "#cbd5e1", values: chartDialog.chartData.itpWh || [] },
-                    { name: "WH " + (chartIst.checked ? "Ist" : "Plan"), color: "#475569", values: chartDialog.chartData.actWh || [] }
+                    { name: "WH " + (chartIst.checked ? "Ist" : "Plan"), color: Theme.slate, values: chartDialog.chartData.actWh || [] }
                 ]
             }
         }

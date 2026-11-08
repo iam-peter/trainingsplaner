@@ -97,7 +97,7 @@ AppDialog {
         Label {
             visible: dialog.error !== ""
             text: dialog.error
-            color: "#c00000"
+            color: Theme.error
         }
     }
 }

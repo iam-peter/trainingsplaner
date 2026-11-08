@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.impl
 import QtQuick.Layouts
+import Trainingsplaner
 
 // One training session in the week grid. Click to edit.
 Rectangle {
@@ -9,6 +10,7 @@ Rectangle {
 
     property var session: null
     property int sessionNumber: 1
+    property bool today: false
     signal clicked()
     // A weight exercise line was clicked: edit that exercise for the week
     signal exerciseClicked(int exercise)
@@ -16,9 +18,9 @@ Rectangle {
     readonly property bool filled: session !== null
 
     radius: 10
-    color: mouse.containsMouse ? "#fff0b0" : "#fff6cf"
-    border.color: mouse.containsMouse ? "#b08a00" : "#8c7a45"
-    border.width: mouse.containsMouse ? 2 : 1
+    color: mouse.containsMouse ? Theme.cellHover : Theme.cell
+    border.color: mouse.containsMouse ? Theme.cellBorderHover : today ? Theme.accent : Theme.cellBorder
+    border.width: mouse.containsMouse || today ? 2 : 1
     clip: true
 
     MouseArea {
@@ -35,7 +37,7 @@ Rectangle {
         anchors.margins: 5
         text: cell.sessionNumber + ". TE"
         font.pixelSize: 10
-        color: "#9a8a5a"
+        color: Theme.cellMuted
     }
 
     IconImage {
@@ -43,7 +45,7 @@ Rectangle {
         visible: !cell.filled && mouse.containsMouse
         source: "qrc:/qt/qml/Trainingsplaner/icons/plus.svg"
         sourceSize: Qt.size(28, 28)
-        color: "#b08a00"
+        color: Theme.cellBorderHover
     }
 
     ColumnLayout {
@@ -70,17 +72,34 @@ Rectangle {
                     anchors.margins: -3
                     radius: height / 2
                     color: "transparent"
-                    border.color: "#c81e1e"
+                    border.color: Theme.lineOutline
                     border.width: 2
-                    visible: lineMouse.containsMouse
+                    visible: line.weights && lineMouse.containsMouse
                 }
                 MouseArea {
                     id: lineMouse
                     anchors.fill: parent
-                    enabled: line.weights
                     hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: cell.exerciseClicked(line.modelData.exercise)
+                    cursorShape: line.weights ? Qt.PointingHandCursor : Qt.ArrowCursor
+                    // Other lines pass clicks on to the cell (open the session)
+                    onClicked: line.weights ? cell.exerciseClicked(line.modelData.exercise) : cell.clicked()
+                    ToolTip.visible: containsMouse && line.tip !== ""
+                    ToolTip.text: line.tip
+                    ToolTip.delay: 500
+                }
+                // "8 Umgruppieren breit – WH 15 · MHG 13 · BW 15 (3/2)"
+                readonly property string tip: {
+                    const m = modelData
+                    if (m.kind === 2)
+                        return ""
+                    let t = m.exercise + "  " + m.name
+                    if (m.kind === 0 && m.stats && !m.stats.empty)
+                        t += "\nWH " + m.stats.wh + " · MHG " + m.stats.mhg + " · BW " + m.stats.bw
+                             + (m.stats.repsSets ? " (" + m.stats.repsSets + ")" : "")
+                             + "\nKlicken: Übung für die ganze Woche bearbeiten"
+                    else if (m.text)
+                        t += ": " + m.text
+                    return t
                 }
 
                 RowLayout {
@@ -96,7 +115,7 @@ Rectangle {
                     text: line.modelData.exercise
                     font.bold: true
                     font.pixelSize: 13
-                    color: "black"
+                    color: Theme.cellText
                 }
                 Label {
                     Layout.fillWidth: true
@@ -104,7 +123,7 @@ Rectangle {
                     elide: Text.ElideRight
                     font.pixelSize: 12
                     font.italic: line.modelData.kind === 2
-                    color: "black"
+                    color: Theme.cellText
                 }
                 }
             }
@@ -118,7 +137,7 @@ Rectangle {
         visible: cell.filled && cell.session.from !== ""
         text: cell.filled ? cell.session.from + " Uhr" : ""
         font.pixelSize: 11
-        color: "black"
+        color: Theme.cellText
     }
 
     ToolTip.visible: mouse.containsMouse && filled && session.note !== ""

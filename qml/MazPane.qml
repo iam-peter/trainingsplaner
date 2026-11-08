@@ -164,7 +164,7 @@ RowLayout {
                         exportDialog.open()
                     }
                 }
-                Label { text: pane.error; color: "#c00000"; visible: pane.error !== "" }
+                Label { text: pane.error; color: Theme.error; visible: pane.error !== "" }
             }
 
             Rectangle { Layout.fillWidth: true; height: 1; color: palette.mid }

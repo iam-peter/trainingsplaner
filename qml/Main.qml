@@ -20,6 +20,24 @@ ApplicationWindow {
     visible: true
     title: "Trainingsplaner Gewichtheben"
 
+    // The controls take the application palette, so a palette set by the
+    // program (--farbschema) reaches them as well as the system's
+    palette.window: Theme.system.window
+    palette.windowText: Theme.system.windowText
+    palette.base: Theme.system.base
+    palette.alternateBase: Theme.system.alternateBase
+    palette.text: Theme.system.text
+    palette.button: Theme.system.button
+    palette.buttonText: Theme.system.buttonText
+    palette.highlight: Theme.system.highlight
+    palette.highlightedText: Theme.system.highlightedText
+    palette.placeholderText: Theme.system.placeholderText
+    palette.mid: Theme.system.mid
+    palette.dark: Theme.system.dark
+    palette.light: Theme.system.light
+    palette.toolTipBase: Theme.system.toolTipBase
+    palette.toolTipText: Theme.system.toolTipText
+
     header: ToolBar {
         RowLayout {
             anchors.fill: parent
