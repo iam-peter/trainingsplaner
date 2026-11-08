@@ -106,6 +106,8 @@ ApplicationWindow {
     Component.onCompleted: {
         if (startPage === "sportler")
             tabs.currentIndex = 1
+        if (startPage === "einstellungen")
+            Qt.callLater(settingsDialog.open)
         weekPage.start(startAthlete, startWeek, startSession)
     }
 }

@@ -4,6 +4,8 @@
 #include <QStringList>
 #include <QtMath>
 
+#include <cmath>
+
 QString Stats::bwRepsSets() const
 {
     if (bw == 0)
@@ -80,6 +82,24 @@ Stats compute(const QList<Step> &steps)
     if (st.wh > 0)
         st.mhg = qRound(st.tonnage / st.wh);
     return st;
+}
+
+int nextWeight(int kg, double step, int direction)
+{
+    if (step <= 0)
+        step = 1;
+    auto kgAt = [step](long m) { return int(std::floor(m * step + 1e-9)); };
+    long m;
+    if (direction > 0) {
+        m = long(std::floor(kg / step));
+        while (kgAt(m) <= kg)
+            ++m;
+    } else {
+        m = long(std::ceil(kg / step));
+        while (m > 0 && kgAt(m) >= kg)
+            --m;
+    }
+    return qBound(0, kgAt(m), 999);
 }
 
 } // namespace Steps

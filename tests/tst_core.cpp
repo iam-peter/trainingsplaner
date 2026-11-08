@@ -3,6 +3,9 @@
 #include "exerciseweek.h"
 #include "model.h"
 #include "steps.h"
+#include "weekreport.h"
+
+#include <QFileInfo>
 
 #include <QTemporaryDir>
 #include <QtTest>
@@ -26,6 +29,8 @@ private slots:
     void copyWeek();
     void weekSummary();
     void exerciseWeekRows();
+    void nextWeight();
+    void printWithAllOptions();
     void exerciseWeekApply();
 
 private:
@@ -341,5 +346,43 @@ void TestCore::exerciseWeekApply()
     QVERIFY(ExerciseWeek::apply(same, 8, ExerciseWeek::rows(same, 8)).isEmpty());
 }
 
-QTEST_GUILESS_MAIN(TestCore)
+void TestCore::nextWeight()
+{
+    QCOMPARE(Steps::nextWeight(100, 2.5, 1), 102);
+    QCOMPARE(Steps::nextWeight(102, 2.5, 1), 105);
+    QCOMPARE(Steps::nextWeight(105, 2.5, 1), 107);
+    QCOMPARE(Steps::nextWeight(105, 2.5, -1), 102);
+    QCOMPARE(Steps::nextWeight(102, 2.5, -1), 100);
+    QCOMPARE(Steps::nextWeight(100, 1.0, 1), 101);
+    QCOMPARE(Steps::nextWeight(0, 2.5, -1), 0);
+}
+
+void TestCore::printWithAllOptions()
+{
+    Week w;
+    w.monday = QDate(2026, 11, 9);
+    w.note = QStringLiteral("Bemerkung");
+    Session s;
+    s.day = 1;
+    s.number = 2;
+    s.note = QStringLiteral("TE-Bemerkung");
+    Entry e;
+    e.exercise = 8;
+    e.steps = {{13, 4, 3, 1}, {15, 3, 2, 0}};
+    s.entries = {e};
+    w.sessions = {s};
+    WeekReport::Options o;
+    o.weekNote = o.weekNoteCentered = o.figures = o.sessionNoteCentered = o.landscape = true;
+    o.notation = WeekReport::Options::Slash;
+    o.blankHeader = 2;
+    o.blankPerSession = 3;
+    o.blankAfterNote = 4;
+    o.fontNormal = 12;
+    o.sessionColor = QColor(QStringLiteral("#ffeeaa"));
+    const QString path = m_dir.filePath(QStringLiteral("all.pdf"));
+    QVERIFY(WeekReport::writePdf(path, w, {QStringLiteral("T"), QStringLiteral("V"), QStringLiteral("A B")}, o));
+    QVERIFY(QFileInfo(path).size() > 1000);
+}
+
+QTEST_MAIN(TestCore)
 #include "tst_core.moc"

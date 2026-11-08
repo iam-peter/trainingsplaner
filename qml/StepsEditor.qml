@@ -85,6 +85,14 @@ RowLayout {
                     validator: IntValidator { bottom: 0; top: 999 }
                     text: root.stepValue(stepItem.index, "kg")
                     onTextEdited: root.setStep(stepItem.index, "kg", parseInt(text) || 0)
+                    // Arrow keys: next weight by the step from the settings
+                    Keys.onUpPressed: stepBy(1)
+                    Keys.onDownPressed: stepBy(-1)
+                    function stepBy(direction) {
+                        const kg = Store.stepWeight(parseInt(text) || 0, direction)
+                        text = kg > 0 ? String(kg) : ""
+                        root.setStep(stepItem.index, "kg", kg)
+                    }
                 }
                 RowLayout {
                     spacing: 1

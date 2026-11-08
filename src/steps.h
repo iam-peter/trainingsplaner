@@ -48,4 +48,8 @@ QString format(const QList<Step> &steps);
 
 Stats compute(const QList<Step> &steps);
 
+// The next weight up (direction > 0) or down from `kg` in steps of `step`
+// kg, as whole kg: with 2.5 that is 100, 102, 105, 107, 110 ...
+int nextWeight(int kg, double step, int direction);
+
 } // namespace Steps

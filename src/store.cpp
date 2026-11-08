@@ -14,6 +14,8 @@
 #include <QSettings>
 #include <QStandardPaths>
 
+#include <cmath>
+
 namespace {
 
 Variant toVariant(const QString &v)
@@ -244,6 +246,133 @@ void Store::setOrganisation(const QString &v)
     emit settingsChanged();
 }
 
+namespace {
+
+const char *kPrintBool[] = {"weekNote", "weekNoteCentered", "figures", "sessionNoteCentered", "landscape"};
+const char *kPrintInt[] = {"blankHeader", "blankPerSession", "blankAfterNote"};
+const char *kPrintReal[] = {"fontSmall", "fontNormal", "fontLarge", "marginTop", "marginLeft",
+                            "marginRight", "marginBottom"};
+
+WeekReport::Options readPrintOptions()
+{
+    QSettings s;
+    s.beginGroup(QStringLiteral("print"));
+    WeekReport::Options o;
+    o.weekNote = s.value(QStringLiteral("weekNote"), o.weekNote).toBool();
+    o.weekNoteCentered = s.value(QStringLiteral("weekNoteCentered"), o.weekNoteCentered).toBool();
+    o.figures = s.value(QStringLiteral("figures"), o.figures).toBool();
+    o.sessionNoteCentered = s.value(QStringLiteral("sessionNoteCentered"), o.sessionNoteCentered).toBool();
+    o.landscape = s.value(QStringLiteral("landscape"), o.landscape).toBool();
+    o.notation = s.value(QStringLiteral("notation")).toString() == QLatin1String("slash")
+                     ? WeekReport::Options::Slash : WeekReport::Options::Fraction;
+    o.blankHeader = qBound(0, s.value(QStringLiteral("blankHeader"), 0).toInt(), 20);
+    o.blankPerSession = qBound(0, s.value(QStringLiteral("blankPerSession"), 0).toInt(), 20);
+    o.blankAfterNote = qBound(0, s.value(QStringLiteral("blankAfterNote"), 0).toInt(), 40);
+    o.fontSmall = qBound(5.0, s.value(QStringLiteral("fontSmall"), o.fontSmall).toDouble(), 24.0);
+    o.fontNormal = qBound(6.0, s.value(QStringLiteral("fontNormal"), o.fontNormal).toDouble(), 28.0);
+    o.fontLarge = qBound(6.0, s.value(QStringLiteral("fontLarge"), o.fontLarge).toDouble(), 36.0);
+    o.marginTop = qBound(0.0, s.value(QStringLiteral("marginTop"), o.marginTop).toDouble(), 80.0);
+    o.marginLeft = qBound(0.0, s.value(QStringLiteral("marginLeft"), o.marginLeft).toDouble(), 80.0);
+    o.marginRight = qBound(0.0, s.value(QStringLiteral("marginRight"), o.marginRight).toDouble(), 80.0);
+    o.marginBottom = qBound(0.0, s.value(QStringLiteral("marginBottom"), o.marginBottom).toDouble(), 80.0);
+    o.logoPath = s.value(QStringLiteral("logoPath")).toString();
+    const QColor c(s.value(QStringLiteral("sessionColor"), QStringLiteral("#ffffff")).toString());
+    o.sessionColor = c.isValid() ? c : QColor(Qt::white);
+    return o;
+}
+
+} // namespace
+
+QVariantMap Store::printOptions() const
+{
+    const WeekReport::Options o = readPrintOptions();
+    return {
+        {QStringLiteral("weekNote"), o.weekNote},
+        {QStringLiteral("weekNoteCentered"), o.weekNoteCentered},
+        {QStringLiteral("figures"), o.figures},
+        {QStringLiteral("sessionNoteCentered"), o.sessionNoteCentered},
+        {QStringLiteral("landscape"), o.landscape},
+        {QStringLiteral("notation"), o.notation == WeekReport::Options::Slash ? QStringLiteral("slash")
+                                                                              : QStringLiteral("fraction")},
+        {QStringLiteral("blankHeader"), o.blankHeader},
+        {QStringLiteral("blankPerSession"), o.blankPerSession},
+        {QStringLiteral("blankAfterNote"), o.blankAfterNote},
+        {QStringLiteral("fontSmall"), o.fontSmall},
+        {QStringLiteral("fontNormal"), o.fontNormal},
+        {QStringLiteral("fontLarge"), o.fontLarge},
+        {QStringLiteral("marginTop"), o.marginTop},
+        {QStringLiteral("marginLeft"), o.marginLeft},
+        {QStringLiteral("marginRight"), o.marginRight},
+        {QStringLiteral("marginBottom"), o.marginBottom},
+        {QStringLiteral("logoPath"), o.logoPath},
+        {QStringLiteral("sessionColor"), o.sessionColor.name()},
+    };
+}
+
+void Store::setPrintOptions(const QVariantMap &v)
+{
+    QSettings s;
+    s.beginGroup(QStringLiteral("print"));
+    for (const char *k : kPrintBool) {
+        if (v.contains(QLatin1String(k)))
+            s.setValue(QLatin1String(k), v.value(QLatin1String(k)).toBool());
+    }
+    for (const char *k : kPrintInt) {
+        if (v.contains(QLatin1String(k)))
+            s.setValue(QLatin1String(k), v.value(QLatin1String(k)).toInt());
+    }
+    for (const char *k : kPrintReal) {
+        if (v.contains(QLatin1String(k)))
+            s.setValue(QLatin1String(k), v.value(QLatin1String(k)).toDouble());
+    }
+    for (const char *k : {"notation", "logoPath", "sessionColor"}) {
+        if (v.contains(QLatin1String(k)))
+            s.setValue(QLatin1String(k), v.value(QLatin1String(k)).toString());
+    }
+    s.endGroup();
+    emit settingsChanged();
+}
+
+QVariantList Store::sessionTimes() const
+{
+    QSettings s;
+    QVariantList list;
+    for (int n = 1; n <= 3; ++n) {
+        list.append(QVariantMap{
+            {QStringLiteral("from"), s.value(QStringLiteral("times/%1/from").arg(n)).toString()},
+            {QStringLiteral("to"), s.value(QStringLiteral("times/%1/to").arg(n)).toString()},
+        });
+    }
+    return list;
+}
+
+void Store::setSessionTimes(const QVariantList &v)
+{
+    QSettings s;
+    for (int n = 1; n <= 3 && n <= v.size(); ++n) {
+        const QVariantMap m = v.at(n - 1).toMap();
+        s.setValue(QStringLiteral("times/%1/from").arg(n), m.value(QStringLiteral("from")).toString().trimmed());
+        s.setValue(QStringLiteral("times/%1/to").arg(n), m.value(QStringLiteral("to")).toString().trimmed());
+    }
+    emit settingsChanged();
+}
+
+double Store::weightStep() const
+{
+    return QSettings().value(QStringLiteral("general/weightStep"), 2.5).toDouble() == 1.0 ? 1.0 : 2.5;
+}
+
+void Store::setWeightStep(double v)
+{
+    QSettings().setValue(QStringLiteral("general/weightStep"), v == 1.0 ? 1.0 : 2.5);
+    emit settingsChanged();
+}
+
+int Store::stepWeight(int kg, int direction) const
+{
+    return Steps::nextWeight(kg, weightStep(), direction);
+}
+
 QString Store::databasePath() const
 {
     return QDir::toNativeSeparators(Database::path());
@@ -314,13 +443,19 @@ QVariantMap Store::session(const QString &athleteId, const QString &monday,
     Session s;
     s.day = day;
     s.number = number;
-    // Suggest the times of another session with the same number this week.
+    // The times of another session with the same number this week, else the
+    // default times from the settings.
     for (const Session &other : w.sessions) {
         if (other.number == number && !other.from.isEmpty()) {
             s.from = other.from;
             s.to = other.to;
             break;
         }
+    }
+    if (s.from.isEmpty() && number >= 1 && number <= 3) {
+        const QVariantMap t = sessionTimes().at(number - 1).toMap();
+        s.from = t.value(QStringLiteral("from")).toString();
+        s.to = t.value(QStringLiteral("to")).toString();
     }
     return sessionToMap(s, false);
 }
@@ -564,16 +699,16 @@ QString Store::importBak(const QUrl &file)
 
 bool Store::printWeek(const QString &athleteId, const QString &monday, const QString &variant)
 {
+    const WeekReport::Options options = readPrintOptions();
     QPrinter printer(QPrinter::HighResolution);
-    printer.setPageLayout(QPageLayout(QPageSize(QPageSize::A4), QPageLayout::Portrait,
-                                      QMarginsF(12, 12, 12, 12), QPageLayout::Millimeter));
+    printer.setPageLayout(options.pageLayout());
     const Athlete a = Database::athlete(athleteId);
     printer.setDocName(QStringLiteral("Wochenplan %1 %2").arg(a.fullName(), weekLabel(monday)));
     QPrintDialog dialog(&printer);
     if (dialog.exec() != QDialog::Accepted)
         return false;
     WeekReport::render(&printer, loadWeek(athleteId, monday, variant),
-                       {trainer(), organisation(), a.fullName()});
+                       {trainer(), organisation(), a.fullName()}, options);
     return true;
 }
 
@@ -596,7 +731,7 @@ QString Store::exportPdf(const QString &athleteId, const QString &monday, const 
         return QStringLiteral("Kein Dateiname angegeben.");
     const Athlete a = Database::athlete(athleteId);
     if (!WeekReport::writePdf(path, loadWeek(athleteId, monday, variant),
-                              {trainer(), organisation(), a.fullName()}))
+                              {trainer(), organisation(), a.fullName()}, readPrintOptions()))
         return QStringLiteral("PDF konnte nicht geschrieben werden.");
     if (!QFileInfo::exists(path))
         return QStringLiteral("PDF konnte nicht geschrieben werden: ") + QDir::toNativeSeparators(path);

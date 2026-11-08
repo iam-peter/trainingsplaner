@@ -22,6 +22,12 @@ class Store : public QObject
     Q_PROPERTY(QString trainer READ trainer WRITE setTrainer NOTIFY settingsChanged)
     Q_PROPERTY(QString organisation READ organisation WRITE setOrganisation NOTIFY settingsChanged)
     Q_PROPERTY(QString databasePath READ databasePath CONSTANT)
+    // Print options as in WeekReport::Options, margins in mm
+    Q_PROPERTY(QVariantMap printOptions READ printOptions WRITE setPrintOptions NOTIFY settingsChanged)
+    // Default times of the 1st-3rd session: [{from, to}, ...]
+    Q_PROPERTY(QVariantList sessionTimes READ sessionTimes WRITE setSessionTimes NOTIFY settingsChanged)
+    // Steps for the arrow keys in weight fields and for computed weights: 2.5 or 1
+    Q_PROPERTY(double weightStep READ weightStep WRITE setWeightStep NOTIFY settingsChanged)
     Q_PROPERTY(QString clipboardLabel READ clipboardLabel NOTIFY clipboardChanged)
     Q_PROPERTY(int dataVersion READ dataVersion NOTIFY dataChanged)
 
@@ -35,6 +41,14 @@ public:
     QString organisation() const;
     void setOrganisation(const QString &v);
     QString databasePath() const;
+    QVariantMap printOptions() const;
+    void setPrintOptions(const QVariantMap &v);
+    QVariantList sessionTimes() const;
+    void setSessionTimes(const QVariantList &v);
+    double weightStep() const;
+    void setWeightStep(double v);
+    // Next weight up or down by weightStep, rounded to whole kg (100, 102, 105, 107 ...)
+    Q_INVOKABLE int stepWeight(int kg, int direction) const;
     QString clipboardLabel() const;
     int dataVersion() const { return m_dataVersion; }
 
