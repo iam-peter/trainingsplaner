@@ -5,14 +5,14 @@
 ;
 ; It installs into the fixed program folder, without administrator rights
 ; for the current user (%LOCALAPPDATA%\Programs\Trainingsplaner) or, chosen
-; in a dialog, for all users (Program Files). It asks for a Start menu
-; entry and a desktop shortcut (both on) and registers an uninstaller in
-; Windows' list of apps.
+; in a dialog, for all users (Program Files). Two checkboxes (both
+; ticked) add a Start menu entry and a desktop shortcut. It registers an
+; uninstaller in Windows' list of apps.
 ;
 ; The training data lives elsewhere, in %APPDATA%\Trainingsplaner (the
 ; database) and the registry (HKCU\Software\Trainingsplaner, settings).
-; Updates never touch it; the uninstaller asks whether to delete it too
-; (default: no). Silently it keeps it, unless given /REMOVEDATA=1.
+; Updates never touch it; the uninstaller offers a checkbox to delete it
+; too (unticked). Silently it keeps it, unless given /REMOVEDATA=1.
 ;
 ; The program updates itself by running this installer with
 ; /SILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS; it keeps the
@@ -108,24 +108,76 @@ begin
   Result := ExpandConstant('{param:NOLAUNCH|0}') = '0';
 end;
 
-// Asks after the program files are gone; "Nein" is the default, so
-// pressing Enter keeps the data
-procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   RemoveData: Boolean;
+
+// A small window with an unticked checkbox; closing it keeps the data
+procedure AskAboutData;
+var
+  Form: TSetupForm;
+  Info: TNewStaticText;
+  Box: TNewCheckBox;
+  Button: TNewButton;
 begin
-  if CurUninstallStep <> usPostUninstall then
-    exit;
-  if UninstallSilent then
-    RemoveData := ExpandConstant('{param:REMOVEDATA|0}') = '1'
-  else
-    RemoveData := MsgBox('Sollen auch alle Daten des Trainingsplaners gelöscht werden?' + #13#10 + #13#10 +
-      'Das sind alle Sportler, Trainingspläne, Wettkämpfe und Einstellungen in' + #13#10 +
-      ExpandConstant('{userappdata}\Trainingsplaner') + #13#10 + #13#10 +
-      'Das kann nicht rückgängig gemacht werden. Wer die Daten behalten möchte, wählt „Nein“; ' +
-      'bei einer späteren Installation sind sie dann wieder da.',
-      mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES;
-  if RemoveData then begin
+  // The form's size moved into the call with Inno Setup 6.6.0
+#if Ver >= EncodeVer(6,6,0)
+  Form := CreateCustomForm(440, 160, False, False);
+#else
+  Form := CreateCustomForm;
+  Form.ClientWidth := ScaleX(440);
+  Form.ClientHeight := ScaleY(160);
+#endif
+  try
+    Form.Caption := 'Trainingsplaner deinstallieren';
+    Form.Position := poScreenCenter;
+
+    Info := TNewStaticText.Create(Form);
+    Info.Parent := Form;
+    Info.Left := ScaleX(16);
+    Info.Top := ScaleY(16);
+    Info.Width := Form.ClientWidth - ScaleX(32);
+    Info.WordWrap := True;
+    Info.Caption := 'Ihre Daten (Sportler, Trainingspläne, Wettkämpfe und Einstellungen) ' +
+      'liegen getrennt vom Programm. Normalerweise bleiben sie erhalten, damit eine ' +
+      'spätere Installation sie wieder vorfindet.';
+
+    Box := TNewCheckBox.Create(Form);
+    Box.Parent := Form;
+    Box.Left := ScaleX(16);
+    Box.Top := ScaleY(82);
+    Box.Width := Form.ClientWidth - ScaleX(32);
+    Box.Height := ScaleY(20);
+    Box.Caption := 'Auch alle Daten löschen (kann nicht rückgängig gemacht werden)';
+    Box.Checked := False;
+
+    Button := TNewButton.Create(Form);
+    Button.Parent := Form;
+    Button.Width := ScaleX(90);
+    Button.Height := ScaleY(25);
+    Button.Left := Form.ClientWidth - Button.Width - ScaleX(16);
+    Button.Top := Form.ClientHeight - Button.Height - ScaleY(14);
+    Button.Caption := 'Weiter';
+    Button.ModalResult := mrOk;
+    Button.Default := True;
+
+    Form.ActiveControl := Button;
+    RemoveData := (Form.ShowModal = mrOk) and Box.Checked;
+  finally
+    Form.Free;
+  end;
+end;
+
+// Asked once the user has confirmed uninstalling, deleted after the
+// program files are gone. Silently the data stays unless /REMOVEDATA=1.
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if CurUninstallStep = usUninstall then begin
+    if UninstallSilent then
+      RemoveData := ExpandConstant('{param:REMOVEDATA|0}') = '1'
+    else
+      AskAboutData;
+  end;
+  if (CurUninstallStep = usPostUninstall) and RemoveData then begin
     DelTree(ExpandConstant('{userappdata}\Trainingsplaner'), True, True, True);
     RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER, 'Software\Trainingsplaner');
   end;

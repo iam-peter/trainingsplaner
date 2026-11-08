@@ -105,6 +105,10 @@ details { border-bottom: 1px solid var(--line); padding: 14px 0; }
 details:first-of-type { border-top: 1px solid var(--line); }
 summary { cursor: pointer; font-weight: 600; }
 details p, details ol { color: var(--muted); margin: 10px 0 0; }
+.guide summary { font-size: 1.05rem; }
+.guide h3 { font-size: 0.95rem; margin: 18px 0 0; }
+.guide ol li { margin: 6px 0; }
+.guide strong { color: var(--fg); }
 details ol { padding-left: 20px; }
 
 code { font: 0.88em "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace; background: var(--soft); padding: 1px 5px; border-radius: 4px; }

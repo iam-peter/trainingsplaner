@@ -30,9 +30,11 @@ choose *Dennoch öffnen* under System Settings › Privacy & Security.
 
 **Windows installer.** It puts the program into a fixed folder
 (`%LOCALAPPDATA%\Programs\Trainingsplaner`, or Program Files when
-installed for all users), asks for a Start menu entry and a desktop
-shortcut (both on) and registers an uninstaller under Windows' *Apps*. The
-uninstaller asks whether to delete the data as well (default: no).
+installed for all users), offers two checkboxes for a Start menu entry
+and a desktop shortcut (both ticked) and registers an uninstaller under
+Windows' *Apps*. The uninstaller offers a checkbox to delete the data as
+well (unticked). Step-by-step guides for every system are on the
+[website](https://iam-peter.github.io/trainingsplaner/#installation).
 
 **Updates.** At start, at most once a day, the program asks GitHub for the
 latest release and shows a bar when there is a newer one. Installed with

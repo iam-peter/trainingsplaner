@@ -18,6 +18,7 @@
     <a class="brand" href="./"><img src="trainingsplaner.svg" alt=""> Trainingsplaner</a>
     <div class="links">
       <a href="#download">Download</a>
+      <a href="#installation">Installation</a>
       <a href="#fragen">Fragen</a>
       <a href="https://github.com/iam-peter/trainingsplaner">GitHub</a>
     </div>
@@ -161,6 +162,61 @@
       Alle Versionen stehen auf <a href="https://github.com/iam-peter/trainingsplaner/releases">GitHub</a>.</p>
   </section>
 
+  <section id="installation">
+    <h2>Installation</h2>
+    <p class="lead">Schritt für Schritt für Ihr System. Ihre Daten liegen getrennt vom Programm und bleiben bei Updates erhalten.</p>
+
+    <details class="guide" data-os="windows">
+      <summary>Windows 10 und 11</summary>
+      <h3>Installieren</h3>
+      <ol>
+        <li>Den <strong>Installer</strong> (<code>trainingsplaner-windows-x64-setup.exe</code>) oben unter Download herunterladen und mit Doppelklick starten.</li>
+        <li>Windows zeigt „Der Computer wurde durch Windows geschützt“, weil das Programm noch nicht digital signiert ist. Auf <strong>Weitere Informationen</strong> klicken, dann auf <strong>Trotzdem ausführen</strong>.</li>
+        <li>Wählen, für wen installiert wird: <strong>nur für Sie</strong> (empfohlen, ohne Administratorrechte) oder für alle Benutzer des Rechners (fragt nach einem Administrator).</li>
+        <li>Die beiden Kästchen <strong>Eintrag im Startmenü</strong> und <strong>Verknüpfung auf dem Desktop</strong> sind angehakt; abwählen, was Sie nicht möchten. Dann <strong>Installieren</strong>.</li>
+        <li>Am Ende startet der Trainingsplaner. Später finden Sie ihn im Startmenü und auf dem Desktop.</li>
+      </ol>
+      <p>Das Programm liegt immer an derselben Stelle: <code>%LOCALAPPDATA%\Programs\Trainingsplaner</code> (für alle Benutzer: <code>C:\Programme\Trainingsplaner</code>). Die Daten stehen in <code>%APPDATA%\Trainingsplaner</code>.</p>
+      <h3>Aktualisieren</h3>
+      <p>Gibt es eine neue Version, erscheint oben im Programm ein Hinweis. Ein Klick auf <strong>Jetzt aktualisieren</strong> lädt sie, prüft sie, installiert sie und startet das Programm neu.</p>
+      <h3>Entfernen</h3>
+      <p>Windows-Einstellungen › <strong>Apps</strong> › Installierte Apps › Trainingsplaner › <strong>Deinstallieren</strong>. Dabei erscheint das Kästchen <strong>Auch alle Daten löschen</strong>; es ist nicht angehakt, die Daten bleiben also erhalten, wenn Sie nichts ändern.</p>
+      <p class="note">Ohne Installation: das Zip-Archiv entpacken und <code>trainingsplaner.exe</code> starten. Dann gibt es keine Einträge im Startmenü und keine Updates mit einem Klick.</p>
+    </details>
+
+    <details class="guide" data-os="macos">
+      <summary>macOS (Apple Silicon und Intel)</summary>
+      <p>Der Trainingsplaner ist noch nicht von Apple beglaubigt („notarisiert“), das kostet eine jährliche Gebühr. macOS blockiert ihn deshalb beim ersten Start. Einmal freigegeben, startet er danach ganz normal.</p>
+      <h3>Installieren</h3>
+      <ol>
+        <li>Die Datei <code>trainingsplaner-macos.dmg</code> oben unter Download herunterladen und mit Doppelklick öffnen.</li>
+        <li><strong>Trainingsplaner</strong> aus dem Fenster in den Ordner <strong>Programme</strong> ziehen (im Finder links in der Seitenleiste). Danach das Laufwerk „Trainingsplaner“ in der Seitenleiste auswerfen.</li>
+        <li>Den Trainingsplaner im Ordner Programme mit Doppelklick starten. macOS meldet, dass er nicht geöffnet werden kann, weil Apple ihn nicht auf Schadsoftware prüfen konnte. Auf <strong>Fertig</strong> klicken, <em>nicht</em> auf „In den Papierkorb legen“.</li>
+        <li><strong>Systemeinstellungen</strong> öffnen (Apfel-Menü oben links) › <strong>Datenschutz &amp; Sicherheit</strong> und ganz nach unten zum Abschnitt <strong>Sicherheit</strong> scrollen. Dort steht, dass „Trainingsplaner“ blockiert wurde. Auf <strong>Dennoch öffnen</strong> klicken. Diese Schaltfläche erscheint nur für kurze Zeit nach dem Startversuch; fehlt sie, Schritt 3 wiederholen.</li>
+        <li>Mit dem Passwort des Mac oder Touch ID bestätigen und in der folgenden Rückfrage noch einmal <strong>Dennoch öffnen</strong> wählen. Der Trainingsplaner startet; ab jetzt genügt ein Doppelklick.</li>
+      </ol>
+      <p class="note">Für Erfahrene: Statt der Schritte 3 bis 5 hebt im Terminal <code>xattr -dr com.apple.quarantine /Applications/Trainingsplaner.app</code> die Sperre für dieses Programm auf.</p>
+      <h3>Aktualisieren</h3>
+      <p>Bei einer neuen Version erscheint oben im Programm ein Hinweis. <strong>Herunterladen</strong> lädt die neue <code>.dmg</code>-Datei. Den Trainingsplaner beenden, die neue Version wie oben in den Ordner Programme ziehen und <strong>Ersetzen</strong> wählen. Weil jede neue Version wieder blockiert wird, die Schritte 3 bis 5 noch einmal ausführen. Ihre Daten bleiben erhalten.</p>
+      <h3>Entfernen</h3>
+      <p>Den Trainingsplaner aus dem Ordner Programme in den Papierkorb ziehen. Die Daten bleiben in <code>~/Library/Application Support/Trainingsplaner</code>; wer sie auch löschen möchte, entfernt diesen Ordner (im Finder: Gehe zu › Gehe zum Ordner …).</p>
+    </details>
+
+    <details class="guide" data-os="linux">
+      <summary>Linux</summary>
+      <h3>AppImage (jede Distribution)</h3>
+      <ol>
+        <li><code>trainingsplaner-linux-x64.AppImage</code> herunterladen und an einen festen Ort legen, zum Beispiel <code>~/Programme</code>.</li>
+        <li>Ausführbar machen: im Dateimanager unter Eigenschaften › Berechtigungen „Als Programm ausführen“ anhaken, oder im Terminal <code>chmod +x trainingsplaner-linux-x64.AppImage</code>.</li>
+        <li>Mit Doppelklick starten. Meldet das System, dass FUSE fehlt, unter Ubuntu und Debian <code>sudo apt install libfuse2</code> (ab Ubuntu 24.04: <code>libfuse2t64</code>) installieren.</li>
+      </ol>
+      <h3>Debian und Ubuntu</h3>
+      <p><code>sudo apt install ./trainingsplaner-linux-x64.deb</code> installiert das Programm mit Eintrag im Anwendungsmenü; eine neue Version wird genauso installiert. Entfernen mit <code>sudo apt remove trainingsplaner</code>.</p>
+      <h3>Aktualisieren und Entfernen</h3>
+      <p>Bei einer neuen Version öffnet der Hinweis im Programm die Download-Seite; die neue AppImage ersetzt die alte. Die Daten liegen in <code>~/.local/share/Trainingsplaner</code> und bleiben erhalten, auch wenn Sie das Programm löschen.</p>
+    </details>
+  </section>
+
   <section id="fragen">
     <h2>Fragen</h2>
     <details>
@@ -169,7 +225,7 @@
     </details>
     <details>
       <summary>Wo werden meine Daten gespeichert?</summary>
-      <p>In einer einzigen Datei auf Ihrem Rechner, den Pfad zeigt „Einstellungen“. Zur Sicherung das Programm schließen und diese Datei kopieren. Es wird nichts ins Internet übertragen.</p>
+      <p>In einer einzigen Datei auf Ihrem Rechner, den Pfad zeigt „Einstellungen“. Zur Sicherung das Programm schließen und diese Datei kopieren. Trainingsdaten werden nie ins Internet übertragen.</p>
     </details>
     <details>
       <summary>Ich habe bisher WinWoTA XP genutzt. Kann ich meine Daten übernehmen?</summary>
@@ -181,12 +237,8 @@
       <p>Sportler, Trainingseinheiten und Übungen werden übernommen. Ein erneuter Import ergänzt nur, was sich geändert hat.</p>
     </details>
     <details>
-      <summary>Windows warnt beim Start. Ist das gefährlich?</summary>
-      <p>Das Programm ist (noch) nicht digital signiert, deshalb zeigt Windows SmartScreen eine Warnung. Mit „Weitere Informationen“ und „Trotzdem ausführen“ startet es. Der Quellcode ist öffentlich einsehbar.</p>
-    </details>
-    <details>
-      <summary>Wo landet das Programm, und wie entferne ich es wieder?</summary>
-      <p>Der Installer legt das Programm immer an dieselbe Stelle (für Sie allein ohne Administratorrechte, auf Wunsch für alle Benutzer des Rechners) und fragt, ob ein Eintrag im Startmenü und eine Verknüpfung auf dem Desktop angelegt werden sollen. Entfernen lässt es sich unter Windows-Einstellungen › Apps › Trainingsplaner › Deinstallieren. Dabei fragt das Programm, ob auch alle Daten gelöscht werden sollen; ohne Ihre Zustimmung bleiben sie erhalten.</p>
+      <summary>Windows oder macOS warnt beim Start. Ist das gefährlich?</summary>
+      <p>Das Programm ist (noch) nicht digital signiert, deshalb zeigt Windows SmartScreen eine Warnung und macOS blockiert den ersten Start. Wie es trotzdem startet, steht in der <a href="#installation">Installationsanleitung</a>. Der Quellcode ist öffentlich einsehbar.</p>
     </details>
     <details>
       <summary>Wie bekomme ich neue Versionen?</summary>
@@ -225,6 +277,10 @@
 
   const labels = { windows: "für Windows", macos: "für macOS", linux: "für Linux", debian: "für Debian/Ubuntu" };
   const os = detectOs();
+  // The installation guide opens at the visitor's system
+  const guideOs = os === "debian" ? "linux" : os;
+  for (const guide of document.querySelectorAll(".guide"))
+    guide.open = guide.dataset.os === guideOs;
   for (const row of document.querySelectorAll(".download")) {
     const current = row.dataset.os === os;
     row.classList.toggle("current", current);
