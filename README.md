@@ -36,6 +36,10 @@ click and *Öffnen* the first time.
   failed attempts "UG" in actual weeks), general exercises as text with total
   reps, free text lines, times and a note. Live MHG/BW/WH/SG-ANZ for the
   session and the whole week.
+- **Erfassung TÜ**: click an exercise line in the week to edit that
+  exercise across the whole week: one row per session with its weight
+  steps, move it to another day or session, add or remove it, with the
+  week's totals.
 - **Sportler**: add, edit, delete athletes.
 - **Import** of data exports from WinWoTA XP (see below).
 - **Print / PDF** of the week plan.
@@ -56,7 +60,7 @@ describe which program and data format can be imported.
 
 ## Building
 
-Requires Qt 6.5 or newer with the modules Quick, QuickControls2, Sql
+Requires Qt 6.8 or newer with the modules Quick, QuickControls2, Sql
 (SQLite driver), PrintSupport and Widgets, plus CMake 3.21+.
 
 ```bash

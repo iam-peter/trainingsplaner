@@ -1,5 +1,6 @@
 #include "bakimport.h"
 #include "database.h"
+#include "exerciseweek.h"
 #include "model.h"
 #include "steps.h"
 
@@ -24,6 +25,8 @@ private slots:
     void saveAndLoadSession();
     void copyWeek();
     void weekSummary();
+    void exerciseWeekRows();
+    void exerciseWeekApply();
 
 private:
     QTemporaryDir m_dir;
@@ -258,6 +261,84 @@ void TestCore::weekSummary()
     QCOMPARE(sum.groups1to7.wh, 42);
     QCOMPARE(sum.groups1to5.wh, 42);
     QVERIFY(sum.perExercise.contains(31));
+}
+
+static Week exerciseTestWeek()
+{
+    Week w;
+    Session mo;
+    mo.day = 1;
+    mo.number = 2;
+    mo.from = QStringLiteral("15:30");
+    mo.to = QStringLiteral("17:30");
+    Entry a;
+    a.exercise = 8;
+    a.steps = {{13, 4, 3, 0}};
+    Entry b;
+    b.exercise = 19;
+    b.steps = {{40, 3, 3, 0}};
+    Entry t;
+    t.kind = Entry::ExerciseText;
+    t.exercise = 8; // a text line with the same number is not a weight row
+    mo.entries = {a, b, t, a};
+    Session mi;
+    mi.day = 3;
+    mi.number = 2;
+    mi.entries = {b, a};
+    w.sessions = {mi, mo}; // not sorted on purpose
+    return w;
+}
+
+void TestCore::exerciseWeekRows()
+{
+    const QList<ExerciseRow> rows = ExerciseWeek::rows(exerciseTestWeek(), 8);
+    QCOMPARE(rows.size(), 3);
+    QCOMPARE(rows[0].day, 1);
+    QCOMPARE(rows[0].origIndex, 0);
+    QCOMPARE(rows[1].origIndex, 3);
+    QCOMPARE(rows[2].day, 3);
+    QCOMPARE(rows[2].origIndex, 1);
+}
+
+void TestCore::exerciseWeekApply()
+{
+    Week w = exerciseTestWeek();
+    QList<ExerciseRow> rows = ExerciseWeek::rows(w, 8);
+    rows[0].steps = {{15, 3, 2, 0}};  // changed in place
+    rows.removeAt(1);                 // Monday's second line removed
+    rows[1].day = 5;                  // Wednesday's line moved to Friday 1st session
+    rows[1].number = 1;
+    ExerciseRow added;
+    added.day = 6;
+    added.number = 2;
+    added.steps = {{20, 2, 2, 0}};
+    rows.append(added);               // new on Saturday 2nd session
+
+    const QList<QPair<int, int>> touched = ExerciseWeek::apply(w, 8, rows);
+    QCOMPARE(touched.size(), 4);
+
+    const Session *mo = w.session(1, 2);
+    QCOMPARE(mo->entries.size(), 3); // the text line with number 8 stays
+    QCOMPARE(mo->entries[0].steps, (QList<Step>{{15, 3, 2, 0}}));
+    QCOMPARE(mo->entries[1].exercise, 19);
+    QCOMPARE(mo->entries[2].kind, Entry::ExerciseText);
+
+    QCOMPARE(w.session(3, 2)->entries.size(), 1);
+    QCOMPARE(w.session(3, 2)->entries[0].exercise, 19);
+
+    const Session *fr = w.session(5, 1);
+    QVERIFY(fr);
+    QCOMPARE(fr->entries.size(), 1);
+    QCOMPARE(fr->entries[0].steps, (QList<Step>{{13, 4, 3, 0}}));
+
+    const Session *sa = w.session(6, 2);
+    QVERIFY(sa);
+    QCOMPARE(sa->from, QStringLiteral("15:30")); // times of another 2nd session
+    QCOMPARE(sa->entries[0].exercise, 8);
+
+    // Nothing changed: nothing touched
+    Week same = exerciseTestWeek();
+    QVERIFY(ExerciseWeek::apply(same, 8, ExerciseWeek::rows(same, 8)).isEmpty());
 }
 
 QTEST_GUILESS_MAIN(TestCore)

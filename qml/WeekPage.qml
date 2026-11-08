@@ -33,7 +33,9 @@ Page {
             if (m !== "")
                 monday = m
         }
-        if (session !== "") {
+        if (session.startsWith("ex:")) {
+            Qt.callLater(openExercise, parseInt(session.slice(3)))
+        } else if (session !== "") {
             const parts = session.split(":")
             Qt.callLater(openSession, parseInt(parts[0]), parseInt(parts[1] || "1"))
         }
@@ -72,6 +74,13 @@ Page {
                 return s
         }
         return null
+    }
+
+    function openExercise(exercise) {
+        if (!hasAthlete)
+            return
+        saveNote()
+        exerciseDialog.edit(athleteId, monday, variant, exercise)
     }
 
     function openSession(day, number) {
@@ -271,6 +280,7 @@ Page {
                     sessionNumber: number
                     session: page.sessionAt(day, number)
                     onClicked: page.openSession(day, number)
+                    onExerciseClicked: (exercise) => page.openExercise(exercise)
                 }
             }
         }
@@ -403,6 +413,10 @@ Page {
 
     SessionDialog {
         id: sessionDialog
+    }
+
+    ExerciseWeekDialog {
+        id: exerciseDialog
     }
 
     Dialog {

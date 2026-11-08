@@ -2,6 +2,7 @@
 
 #include "bakimport.h"
 #include "database.h"
+#include "exerciseweek.h"
 #include "weekreport.h"
 
 #include <QDesktopServices>
@@ -364,6 +365,64 @@ int Store::pasteWeek(const QString &athleteId, const QString &monday, const QStr
                                      toDate(monday), toVariant(variant));
     bump();
     return n;
+}
+
+QVariantMap Store::exerciseWeek(const QString &athleteId, const QString &monday,
+                                const QString &variant, int exercise) const
+{
+    QVariantList rows;
+    for (const ExerciseRow &r : ExerciseWeek::rows(loadWeek(athleteId, monday, variant), exercise)) {
+        rows.append(QVariantMap{
+            {QStringLiteral("origDay"), r.origDay},
+            {QStringLiteral("origNumber"), r.origNumber},
+            {QStringLiteral("origIndex"), r.origIndex},
+            {QStringLiteral("day"), r.day},
+            {QStringLiteral("number"), r.number},
+            {QStringLiteral("steps"), stepsToList(r.steps)},
+        });
+    }
+    return {
+        {QStringLiteral("exercise"), exercise},
+        {QStringLiteral("name"), Catalog::name(exercise)},
+        {QStringLiteral("valid"), Catalog::isWeightExercise(exercise)},
+        {QStringLiteral("rows"), rows},
+    };
+}
+
+bool Store::saveExerciseWeek(const QString &athleteId, const QString &monday,
+                             const QString &variant, int exercise, const QVariantList &rows)
+{
+    if (!Catalog::isWeightExercise(exercise))
+        return false;
+    QList<ExerciseRow> edited;
+    for (const QVariant &v : rows) {
+        const QVariantMap m = v.toMap();
+        ExerciseRow r;
+        r.origDay = m.value(QStringLiteral("origDay")).toInt();
+        r.origNumber = m.value(QStringLiteral("origNumber")).toInt();
+        r.origIndex = m.value(QStringLiteral("origIndex"), -1).toInt();
+        r.day = qBound(1, m.value(QStringLiteral("day")).toInt(), 7);
+        r.number = qBound(1, m.value(QStringLiteral("number")).toInt(), 3);
+        r.steps = stepsFromList(m.value(QStringLiteral("steps")).toList());
+        edited.append(r);
+    }
+
+    const QDate date = toDate(monday);
+    const Variant v = toVariant(variant);
+    Week w = Database::loadWeek(athleteId, date, v);
+    bool ok = true;
+    for (const auto &key : ExerciseWeek::apply(w, exercise, edited)) {
+        const Session *s = w.session(key.first, key.second);
+        if (!s)
+            continue;
+        // A session that lost its last line and has no note is gone.
+        if (s->entries.isEmpty() && s->note.trimmed().isEmpty())
+            ok = Database::removeSession(athleteId, date, v, s->day, s->number) && ok;
+        else
+            ok = Database::saveSession(athleteId, date, v, *s) && ok;
+    }
+    bump();
+    return ok;
 }
 
 QVariantMap Store::stats(const QVariantList &steps) const

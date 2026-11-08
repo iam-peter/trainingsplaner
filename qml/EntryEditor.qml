@@ -17,11 +17,10 @@ Frame {
 
     property int kind: 0            // 0 weights, 1 exercise text, 2 free text
     property int exercise: 0
-    property var steps: []
     property string entryText: ""
     property int totalReps: 0
     property int combination: 0
-    property var entryStats: ({})
+    readonly property var entryStats: stepsEditor.stats
 
     signal changed()
     signal removeRequested()
@@ -41,7 +40,7 @@ Frame {
         return {
             kind: kind,
             exercise: exercise,
-            steps: steps.filter(s => s && (s.kg > 0 || s.reps > 0 || s.sets > 0)),
+            steps: stepsEditor.value(),
             text: entryText,
             totalReps: totalReps,
             combination: combination
@@ -55,37 +54,12 @@ Frame {
             numberField.forceActiveFocus()
     }
 
-    function updateStats() {
-        entryStats = Store.stats(steps)
-    }
-
-    function setStep(index, key, val) {
-        while (steps.length <= index)
-            steps.push({ kg: 0, reps: 0, sets: 0, failed: 0 })
-        steps[index][key] = val
-        if (index === stepModel.count - 1 && val > 0)
-            stepModel.append({})
-        updateStats()
-        changed()
-    }
-
-    function stepValue(index, key) {
-        const s = steps[index]
-        return s && s[key] > 0 ? String(s[key]) : ""
-    }
-
-    ListModel { id: stepModel }
-
     Component.onCompleted: {
         kind = source.kind || 0
         exercise = source.exercise || 0
-        steps = (source.steps || []).map(s => ({ kg: s.kg, reps: s.reps, sets: s.sets, failed: s.failed }))
         entryText = source.text || ""
         totalReps = source.totalReps || 0
         combination = source.combination || 0
-        for (let i = 0; i <= steps.length; ++i)
-            stepModel.append({})
-        updateStats()
     }
 
     padding: 6
@@ -148,8 +122,8 @@ Frame {
                 onPicked: (id) => {
                     editor.exercise = id
                     editor.changed()
-                    if (editor.kind === 0 && stepRepeater.count > 0)
-                        stepRepeater.itemAt(0).focusKg()
+                    if (editor.kind === 0)
+                        stepsEditor.focusFirst()
                     else if (editor.kind === 1)
                         exerciseTextField.forceActiveFocus()
                 }
@@ -157,77 +131,14 @@ Frame {
         }
 
         // Weight steps
-        ColumnLayout {
-            visible: editor.kind === 0
-            spacing: 2
-            Layout.alignment: Qt.AlignTop
-            Label { text: "KG:"; font.pixelSize: 11; Layout.preferredHeight: 30; verticalAlignment: Text.AlignVCenter }
-            Label { text: editor.actual ? "SG/ANZ/UG:" : "SG/ANZ:"; font.pixelSize: 11; Layout.preferredHeight: 26; verticalAlignment: Text.AlignVCenter }
-        }
-        Flow {
+        StepsEditor {
+            id: stepsEditor
             visible: editor.kind === 0
             Layout.fillWidth: true
-            spacing: 8
-            Repeater {
-                id: stepRepeater
-                model: stepModel
-                ColumnLayout {
-                    id: stepItem
-                    required property int index
-                    spacing: 2
-                    function focusKg() { kgField.forceActiveFocus() }
-
-                    TextField {
-                        id: kgField
-                        objectName: "kg" + stepItem.index
-                        Layout.preferredWidth: editor.actual ? 82 : 57
-                        implicitHeight: 30
-                        horizontalAlignment: TextInput.AlignHCenter
-                        font.bold: true
-                        font.pixelSize: 15
-                        validator: IntValidator { bottom: 0; top: 999 }
-                        text: editor.stepValue(stepItem.index, "kg")
-                        onTextEdited: editor.setStep(stepItem.index, "kg", parseInt(text) || 0)
-                    }
-                    RowLayout {
-                        spacing: 1
-                        TextField {
-                            implicitWidth: 28
-                            implicitHeight: 26
-                            horizontalAlignment: TextInput.AlignHCenter
-                            validator: IntValidator { bottom: 0; top: 999 }
-                            objectName: "reps" + stepItem.index
-                            text: editor.stepValue(stepItem.index, "reps")
-                            onTextEdited: editor.setStep(stepItem.index, "reps", parseInt(text) || 0)
-                            ToolTip.visible: activeFocus
-                            ToolTip.text: "SG: Wiederholungen pro Satz"
-                        }
-                        TextField {
-                            implicitWidth: 28
-                            implicitHeight: 26
-                            horizontalAlignment: TextInput.AlignHCenter
-                            validator: IntValidator { bottom: 0; top: 99 }
-                            objectName: "sets" + stepItem.index
-                            text: editor.stepValue(stepItem.index, "sets")
-                            placeholderText: "1"
-                            onTextEdited: editor.setStep(stepItem.index, "sets", parseInt(text) || 0)
-                            ToolTip.visible: activeFocus
-                            ToolTip.text: "ANZ: Anzahl Sätze"
-                        }
-                        TextField {
-                            visible: editor.actual
-                            implicitWidth: 24
-                            implicitHeight: 26
-                            horizontalAlignment: TextInput.AlignHCenter
-                            validator: IntValidator { bottom: 0; top: 9 }
-                            text: editor.stepValue(stepItem.index, "failed")
-                            onTextEdited: editor.setStep(stepItem.index, "failed", parseInt(text) || 0)
-                            ToolTip.visible: activeFocus
-                            ToolTip.text: "UG: ungültige Versuche"
-                        }
-                    }
-                }
-            }
+            Layout.alignment: Qt.AlignTop
+            initialSteps: editor.source.steps || []
+            actual: editor.actual
+            onChanged: editor.changed()
         }
 
         // General exercise as text

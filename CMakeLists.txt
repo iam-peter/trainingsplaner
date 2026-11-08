@@ -5,10 +5,10 @@ project(Trainingsplaner VERSION 0.1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS
+find_package(Qt6 6.8 REQUIRED COMPONENTS
     Core Gui Widgets Sql Svg Quick QuickControls2 PrintSupport Test QuickTest)
 
-qt_standard_project_setup(REQUIRES 6.5)
+qt_standard_project_setup(REQUIRES 6.8)
 
 # Everything that is not UI lives in a static library so the tests can
 # link against it without QML.
@@ -17,6 +17,7 @@ add_library(tpcore STATIC
     src/steps.cpp       src/steps.h
     src/model.h
     src/database.cpp    src/database.h
+    src/exerciseweek.cpp src/exerciseweek.h
     src/bakimport.cpp   src/bakimport.h
     src/weekreport.cpp  src/weekreport.h
 )
@@ -33,6 +34,7 @@ qt_add_library(tpqml STATIC)
 qt_add_qml_module(tpqml
     URI Trainingsplaner
     VERSION 1.0
+    OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Trainingsplaner
     SOURCES
         src/store.cpp src/store.h
     QML_FILES
@@ -46,6 +48,9 @@ qt_add_qml_module(tpqml
         qml/SettingsDialog.qml
         qml/IconButton.qml
         qml/IconToolButton.qml
+        qml/StepsEditor.qml
+        qml/ExerciseWeekDialog.qml
+        qml/ExerciseRowEditor.qml
     RESOURCES
         logo/trainingsplaner.svg
         ${TP_FONTS}

@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     const QCommandLineOption pageOption(QStringLiteral("page"), QStringLiteral("Startseite: plan oder sportler."),
                                         QStringLiteral("seite"));
     const QCommandLineOption sessionOption(QStringLiteral("open"),
-                                           QStringLiteral("Trainingseinheit öffnen, z.B. 1:2 (Tag:TE)."),
+                                           QStringLiteral("Trainingseinheit (1:2 = Tag:TE) oder Übung (ex:8) öffnen."),
                                            QStringLiteral("tag:te"));
     parser.addOptions({dbOption, importOption, grabOption, athleteOption, weekOption, pageOption, sessionOption});
     parser.process(app);

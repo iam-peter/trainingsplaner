@@ -10,6 +10,8 @@ Rectangle {
     property var session: null
     property int sessionNumber: 1
     signal clicked()
+    // A weight exercise line was clicked: edit that exercise for the week
+    signal exerciseClicked(int exercise)
 
     readonly property bool filled: session !== null
 
@@ -55,26 +57,55 @@ Rectangle {
 
         Repeater {
             model: cell.filled ? cell.session.entries : []
-            RowLayout {
+            Item {
+                id: line
                 required property var modelData
+                readonly property bool weights: modelData.kind === 0 && modelData.exercise > 0
                 Layout.fillWidth: true
+                implicitHeight: lineRow.implicitHeight + 2
+
+                // Outline on hover, like the selected line in the old program
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.margins: -3
+                    radius: height / 2
+                    color: "transparent"
+                    border.color: "#c81e1e"
+                    border.width: 2
+                    visible: lineMouse.containsMouse
+                }
+                MouseArea {
+                    id: lineMouse
+                    anchors.fill: parent
+                    enabled: line.weights
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: cell.exerciseClicked(line.modelData.exercise)
+                }
+
+                RowLayout {
+                id: lineRow
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
                 spacing: 6
                 Label {
-                    visible: modelData.kind !== 2
+                    visible: line.modelData.kind !== 2
                     Layout.preferredWidth: 20
                     horizontalAlignment: Text.AlignRight
-                    text: modelData.exercise
+                    text: line.modelData.exercise
                     font.bold: true
                     font.pixelSize: 13
                     color: "black"
                 }
                 Label {
                     Layout.fillWidth: true
-                    text: modelData.line
+                    text: line.modelData.line
                     elide: Text.ElideRight
                     font.pixelSize: 12
-                    font.italic: modelData.kind === 2
+                    font.italic: line.modelData.kind === 2
                     color: "black"
+                }
                 }
             }
         }

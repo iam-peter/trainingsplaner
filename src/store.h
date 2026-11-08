@@ -55,6 +55,13 @@ public:
     Q_INVOKABLE int pasteWeek(const QString &athleteId, const QString &monday,
                               const QString &variant);
 
+    // One exercise across the week ("Erfassung TÜ")
+    Q_INVOKABLE QVariantMap exerciseWeek(const QString &athleteId, const QString &monday,
+                                         const QString &variant, int exercise) const;
+    Q_INVOKABLE bool saveExerciseWeek(const QString &athleteId, const QString &monday,
+                                      const QString &variant, int exercise,
+                                      const QVariantList &rows);
+
     // Live figures for the session editor
     Q_INVOKABLE QVariantMap stats(const QVariantList &steps) const;
     // Per exercise figures of the week, with the given session replaced by `entries`.
