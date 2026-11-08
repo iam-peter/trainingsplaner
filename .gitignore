@@ -1,0 +1,23 @@
+# Build output
+build/
+*.user
+CMakeLists.txt.user*
+
+# Training data must never be committed: exports and databases of the old
+# program, and the new program's database.
+*.bak
+*.BAK
+*.sql
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+*.db
+*.MYD
+*.MYI
+*.frm
+winwotaxp/
+data/
+
+# Generated week plans
+*.pdf

@@ -1,0 +1,81 @@
+cmake_minimum_required(VERSION 3.21)
+
+project(Trainingsplaner VERSION 0.1.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(Qt6 6.5 REQUIRED COMPONENTS
+    Core Gui Widgets Sql Quick QuickControls2 PrintSupport Test QuickTest)
+
+qt_standard_project_setup(REQUIRES 6.5)
+
+# Everything that is not UI lives in a static library so the tests can
+# link against it without QML.
+add_library(tpcore STATIC
+    src/catalog.cpp     src/catalog.h
+    src/steps.cpp       src/steps.h
+    src/model.h
+    src/database.cpp    src/database.h
+    src/bakimport.cpp   src/bakimport.h
+    src/weekreport.cpp  src/weekreport.h
+)
+target_include_directories(tpcore PUBLIC src)
+target_link_libraries(tpcore PUBLIC Qt6::Core Qt6::Gui Qt6::Sql)
+
+# The QML module (UI and the Store singleton) as a static library, so the
+# QML tests can load the same module as the application.
+qt_add_library(tpqml STATIC)
+qt_add_qml_module(tpqml
+    URI Trainingsplaner
+    VERSION 1.0
+    SOURCES
+        src/store.cpp src/store.h
+    QML_FILES
+        qml/Main.qml
+        qml/WeekPage.qml
+        qml/SessionCell.qml
+        qml/SessionDialog.qml
+        qml/EntryEditor.qml
+        qml/ExercisePicker.qml
+        qml/AthletesPage.qml
+        qml/SettingsDialog.qml
+)
+target_link_libraries(tpqml PUBLIC
+    tpcore
+    Qt6::Quick
+    Qt6::QuickControls2
+    Qt6::Widgets
+    Qt6::PrintSupport
+)
+
+qt_add_executable(trainingsplaner WIN32 MACOSX_BUNDLE
+    src/main.cpp
+)
+target_compile_definitions(trainingsplaner PRIVATE
+    PROJECT_VERSION_STRING="${PROJECT_VERSION}")
+target_link_libraries(trainingsplaner PRIVATE tpqml tpqmlplugin)
+
+enable_testing()
+
+qt_add_executable(tst_core tests/tst_core.cpp)
+target_link_libraries(tst_core PRIVATE tpcore Qt6::Test)
+add_test(NAME tst_core COMMAND tst_core)
+
+qt_add_executable(tst_qml tests/tst_qml.cpp)
+target_compile_definitions(tst_qml PRIVATE
+    QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests")
+target_link_libraries(tst_qml PRIVATE tpqml tpqmlplugin Qt6::QuickTest)
+add_test(NAME tst_qml COMMAND tst_qml)
+set_tests_properties(tst_qml PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+include(GNUInstallDirs)
+install(TARGETS trainingsplaner
+    BUNDLE DESTINATION .
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+qt_generate_deploy_qml_app_script(
+    TARGET trainingsplaner
+    OUTPUT_SCRIPT deploy_script
+)
+install(SCRIPT ${deploy_script})
