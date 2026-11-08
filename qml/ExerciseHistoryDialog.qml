@@ -32,9 +32,6 @@ AppDialog {
 
     title: "TÜ " + exercise + "  " + Store.exerciseName(exercise) + "  –  bis Woche " + Store.weekLabel(monday)
            + "  (" + (variant === "P" ? "Plan" : "Ist") + ")"
-    modal: true
-    parent: Overlay.overlay
-    anchors.centerIn: parent
     width: Math.min(parent ? parent.width - 60 : 900, 960)
     height: Math.min(parent ? parent.height - 60 : 640, 680)
     standardButtons: Dialog.Close

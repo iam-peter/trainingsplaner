@@ -28,9 +28,6 @@ AppDialog {
     }
 
     title: "Verlauf " + art
-    modal: true
-    parent: Overlay.overlay
-    anchors.centerIn: parent
     width: 560
     standardButtons: Dialog.Close
 

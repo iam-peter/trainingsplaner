@@ -135,8 +135,6 @@ ApplicationWindow {
     AppDialog {
         id: importOptions
         title: "Daten importieren"
-        modal: true
-        anchors.centerIn: Overlay.overlay
         standardButtons: Dialog.Ok | Dialog.Cancel
         ColumnLayout {
             Label {
@@ -168,8 +166,6 @@ ApplicationWindow {
         id: importResult
         property alias text: resultLabel.text
         title: "Import abgeschlossen"
-        modal: true
-        anchors.centerIn: Overlay.overlay
         standardButtons: Dialog.Ok
         Label {
             id: resultLabel

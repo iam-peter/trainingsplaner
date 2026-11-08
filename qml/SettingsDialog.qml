@@ -7,9 +7,6 @@ import Trainingsplaner
 AppDialog {
     id: dialog
     title: "Einstellungen"
-    modal: true
-    parent: Overlay.overlay
-    anchors.centerIn: parent
     width: Math.min(parent ? parent.width - 40 : 720, 720)
     standardButtons: Dialog.Save | Dialog.Cancel
 

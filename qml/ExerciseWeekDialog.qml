@@ -123,10 +123,7 @@ AppDialog {
 
     title: "Erfassung TÜ " + (exercise > 0 ? exercise : "") + "  –  Woche " + Store.weekLabel(monday)
            + "  (" + (variant === "P" ? "Plan" : "Ist") + ")"
-    modal: true
     closePolicy: Popup.NoAutoClose
-    parent: Overlay.overlay
-    anchors.centerIn: parent
     width: parent ? Math.max(700, Math.min(parent.width - 40, 1100)) : 1000
     height: parent ? Math.max(500, Math.min(parent.height - 40, 820)) : 760
     padding: 10
@@ -324,8 +321,6 @@ AppDialog {
     AppDialog {
         id: discardConfirm
         title: "Änderungen verwerfen?"
-        modal: true
-        anchors.centerIn: Overlay.overlay
         standardButtons: Dialog.Discard | Dialog.Cancel
         Label { text: "Die Übung wurde geändert und noch nicht gespeichert." }
         onDiscarded: {

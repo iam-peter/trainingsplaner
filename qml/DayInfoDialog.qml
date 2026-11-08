@@ -71,9 +71,6 @@ AppDialog {
     }
 
     title: "Zusatzinfo  –  Woche " + Store.weekLabel(monday)
-    modal: true
-    parent: Overlay.overlay
-    anchors.centerIn: parent
     width: 640
     height: Math.min(parent ? parent.height - 60 : 600, 620)
     standardButtons: Dialog.Close

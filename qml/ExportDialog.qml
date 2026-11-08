@@ -9,9 +9,6 @@ import Trainingsplaner
 AppDialog {
     id: dialog
     title: "Daten exportieren"
-    modal: true
-    parent: Overlay.overlay
-    anchors.centerIn: parent
     width: 560
 
     property string summary

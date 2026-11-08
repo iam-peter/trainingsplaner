@@ -252,8 +252,6 @@ Page {
     AppDialog {
         id: templateDialog
         title: "Vorlage übernehmen"
-        modal: true
-        anchors.centerIn: Overlay.overlay
         standardButtons: Dialog.Ok | Dialog.Cancel
         onAboutToShow: fromRo.checked = !page.roMode && page.maz !== null
         ColumnLayout {
@@ -311,9 +309,6 @@ Page {
     AppDialog {
         id: chartDialog
         title: "ITP und Trainingswochen"
-        modal: true
-        parent: Overlay.overlay
-        anchors.centerIn: parent
         width: Math.min(parent ? parent.width - 60 : 900, 1000)
         height: Math.min(parent ? parent.height - 60 : 640, 680)
         standardButtons: Dialog.Close

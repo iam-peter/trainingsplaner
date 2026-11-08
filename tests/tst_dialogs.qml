@@ -3,50 +3,90 @@ import QtQuick.Controls
 import QtTest
 import Trainingsplaner
 
+// What the dialogs must do, and what Fusion's plain Dialog did not: dim the
+// window clearly, dim it only once when a dialog opens another, and stay
+// centred and fully dimmed when the window is resized.
 Item {
     id: root
     width: 600
     height: 400
 
     AppDialog {
-        id: dialog
-        title: "Test"
+        id: outer
+        title: "Außen"
         width: 300
         height: 200
-        anchors.centerIn: parent
+    }
+
+    AppDialog {
+        id: inner
+        title: "Innen"
+        width: 200
+        height: 100
     }
 
     TestCase {
         name: "Dialogs"
         when: windowShown
 
-        function dimmer() {
-            const overlay = dialog.Overlay.overlay
+        function dims() {
+            const overlay = outer.Overlay.overlay
+            const list = []
             for (let i = 0; i < overlay.children.length; ++i) {
                 const c = overlay.children[i]
-                if (c.color !== undefined && c.visible && Math.abs(c.color.a - 0.45) < 0.01)
-                    return c
+                if (c.objectName === "dialogDim" && c.visible)
+                    list.push(c)
             }
-            return null
+            return list
         }
 
-        function test_dimFollowsWindowSize() {
-            dialog.open()
-            tryCompare(dialog, "opened", true)
-            const d = dimmer()
-            verify(d, "a clear dim layer behind the dialog")
-            compare(d.width, root.Window.window.width)
+        function cleanup() {
+            inner.close()
+            outer.close()
+            tryCompare(outer, "visible", false)
+            compare(DialogStack.open, 0)
+        }
 
-            // The window grows while the dialog is open
+        function test_clearDim() {
+            outer.open()
+            tryCompare(outer, "opened", true)
+            const d = dims()
+            compare(d.length, 1)
+            // Clearly visible, not Fusion's faint shade
+            verify(d[0].color.a >= 0.4, "dim alpha " + d[0].color.a)
+            compare(d[0].width, root.Window.window.width)
+        }
+
+        function test_followsResize() {
+            outer.open()
+            tryCompare(outer, "opened", true)
             root.Window.window.width = 1000
             root.Window.window.height = 700
+            const d = dims()[0]
             tryCompare(d, "width", 1000)
             tryCompare(d, "height", 700)
-            // and the dialog stays centred
-            tryCompare(dialog, "x", 350)
+            tryCompare(outer, "x", 350)   // centred in the window, not in its declaring item
+            tryCompare(outer, "y", 250)
+        }
 
-            dialog.close()
-            tryCompare(dialog, "visible", false)
+        function test_nestedDialogDimsOnce() {
+            outer.open()
+            tryCompare(outer, "opened", true)
+            inner.open()
+            tryCompare(inner, "opened", true)
+            compare(DialogStack.open, 2)
+            const visibleDims = dims().filter(d => d.color.a > 0)
+            compare(visibleDims.length, 1)
+            inner.close()
+            tryCompare(inner, "visible", false)
+            compare(DialogStack.open, 1)
+            // Reopened on its own, the inner dialog dims again
+            outer.close()
+            tryCompare(outer, "visible", false)
+            inner.open()
+            tryCompare(inner, "opened", true)
+            verify(!inner.nested)
+            compare(dims().filter(d => d.color.a > 0).length, 1)
         }
     }
 }

@@ -269,8 +269,6 @@ Page {
         id: deleteConfirm
         property int sessions: 0
         title: "Sportler löschen?"
-        modal: true
-        anchors.centerIn: Overlay.overlay
         standardButtons: Dialog.Yes | Dialog.No
         Label {
             text: lastNameField.text + ", " + firstNameField.text + " wird gelöscht"

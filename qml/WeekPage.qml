@@ -462,8 +462,6 @@ Page {
     AppDialog {
         id: pasteConfirm
         title: "Woche ersetzen?"
-        modal: true
-        anchors.centerIn: Overlay.overlay
         standardButtons: Dialog.Yes | Dialog.No
         Label {
             text: "Die angezeigte Woche enthält schon Trainingseinheiten.\nSie werden durch die kopierte Woche ersetzt:\n" + Store.clipboardLabel
@@ -490,8 +488,6 @@ Page {
         id: errorDialog
         property alias text: errorLabel.text
         title: "Fehler"
-        modal: true
-        anchors.centerIn: Overlay.overlay
         standardButtons: Dialog.Ok
         Label { id: errorLabel }
     }

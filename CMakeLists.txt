@@ -35,6 +35,7 @@ file(GLOB TP_ICONS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} CONFIGURE_DEPENDS icons/
 
 # The QML module (UI and the Store singleton) as a static library, so the
 # QML tests can load the same module as the application.
+set_source_files_properties(qml/DialogStack.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_library(tpqml STATIC)
 qt_add_qml_module(tpqml
     URI Trainingsplaner
@@ -73,6 +74,7 @@ qt_add_qml_module(tpqml
         qml/AnalysisPage.qml
         qml/WeekCalendar.qml
         qml/AppDialog.qml
+        qml/DialogStack.qml
     RESOURCES
         logo/trainingsplaner.svg
         ${TP_FONTS}

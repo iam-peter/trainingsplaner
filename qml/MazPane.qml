@@ -269,8 +269,6 @@ RowLayout {
     AppDialog {
         id: deleteConfirm
         title: "MAZ löschen?"
-        modal: true
-        anchors.centerIn: Overlay.overlay
         standardButtons: Dialog.Yes | Dialog.No
         Label { text: "Der MAZ wird mit seiner Rahmenorientierung gelöscht.\nDie ITP der Sportler bleiben erhalten." }
         onAccepted: { Plan.removeMaz(pane.mazId); pane.select("") }
