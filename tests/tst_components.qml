@@ -10,7 +10,7 @@ TestCase {
     readonly property var files: [
         "Main", "WeekPage", "SessionCell", "SessionDialog", "EntryEditor", "ExercisePicker",
         "AthletesPage", "SettingsDialog", "IconButton", "IconToolButton", "StepsEditor",
-        "ExerciseWeekDialog", "ExerciseRowEditor", "ExportDialog", "AttributeHistoryDialog", "DayInfoDialog", "TrendChart", "ExerciseHistoryDialog"
+        "ExerciseWeekDialog", "ExerciseRowEditor", "ExportDialog", "AttributeHistoryDialog", "DayInfoDialog", "TrendChart", "ExerciseHistoryDialog", "AttemptField", "CompetitionsPage"
     ]
 
     function test_load_data() {

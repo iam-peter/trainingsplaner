@@ -1,5 +1,6 @@
 #include "bakexport.h"
 #include "bakimport.h"
+#include "competition.h"
 #include "database.h"
 #include "exerciseweek.h"
 #include "model.h"
@@ -8,6 +9,7 @@
 
 #include <QFileInfo>
 
+#include <QSqlQuery>
 #include <QTemporaryDir>
 #include <QtTest>
 
@@ -34,6 +36,7 @@ private slots:
     void printWithAllOptions();
     void exportRoundTrip();
     void attributesWithHistory();
+    void competitions();
     void exerciseWeekApply();
 
 private:
@@ -483,6 +486,62 @@ void TestCore::attributesWithHistory()
     QVERIFY(!Database::infoAt(r, QDate(2026, 10, 1)));
     QCOMPARE(Database::infoValues(QStringLiteral("Kader")),
              (QStringList{QStringLiteral("NK2"), QStringLiteral("OK")}));
+}
+
+void TestCore::competitions()
+{
+    Competition c;
+    c.athleteId = QStringLiteral("muster_erika");
+    c.date = QDate(2026, 5, 9);
+    c.type = 1;
+    c.bodyWeight = 58.4;
+    c.snatch[0] = 70; c.snatch[1] = -73; c.snatch[2] = 73;
+    c.cleanJerk[0] = 88; c.cleanJerk[1] = -92; c.cleanJerk[2] = -92;
+    QCOMPARE(c.bestSnatch(), 73);
+    QCOMPARE(c.bestCleanJerk(), 88);
+    QCOMPARE(c.total(), 161);
+    Competition bombOut = c;
+    bombOut.cleanJerk[0] = -88;
+    QCOMPARE(bombOut.total(), 0);
+
+    QVERIFY(Competitions::save(c));
+    Competition d = c;
+    d.date = QDate(2026, 3, 1);
+    d.snatch[2] = 75;
+    QVERIFY(Competitions::save(d));
+    Competition e = c;
+    e.date = QDate(2026, 10, 3);
+    e.cleanJerk[1] = 95;
+    QVERIFY(Competitions::save(e));
+
+    const QList<Competition> all = Competitions::forAthlete(c.athleteId);
+    QCOMPARE(all.size(), 3);
+    QCOMPARE(all.first().date, e.date); // newest first
+    QVERIFY(Competitions::inWeek(c.athleteId, QDate(2026, 5, 4)));
+    QVERIFY(!Competitions::inWeek(c.athleteId, QDate(2026, 5, 11)));
+
+    // Per half year: March and May together (best 75 + 88), October alone
+    const QList<Competitions::Point> half = Competitions::bestResults(all, 1);
+    QCOMPARE(half.size(), 2);
+    QCOMPARE(half[0].label, QStringLiteral("1/2026"));
+    QCOMPARE(half[0].total, 163);
+    QCOMPARE(half[1].total, 168);
+    QCOMPARE(Competitions::bestResults(all, 0).size(), 3);
+    QCOMPARE(Competitions::bestResults(all, 2).size(), 1);
+
+    // Reference totals by age and weight class
+    QSqlQuery q;
+    QVERIFY(q.exec(QStringLiteral("INSERT INTO normen (sex, akl, gkl, gklbez, zk) VALUES"
+                                  " (1, 16, 55, '-55', 120), (1, 16, 59, '-59', 130), (1, 16, 60, '+59', 140),"
+                                  " (1, 18, 59, '-59', 150)")));
+    QCOMPARE(Competitions::norm(1, 16, 58.4), 130);
+    QCOMPARE(Competitions::norm(1, 17, 54.0), 120);   // age class 16 up to 17
+    QCOMPARE(Competitions::norm(1, 16, 70.0), 140);   // above the last limit: "+" class
+    QCOMPARE(Competitions::norm(1, 25, 58.0), 150);   // oldest class
+    QCOMPARE(Competitions::norm(0, 16, 58.0), 0);     // no table for men here
+
+    QVERIFY(Competitions::remove(c.athleteId, c.date, c.time));
+    QCOMPARE(Competitions::forAthlete(c.athleteId).size(), 2);
 }
 
 QTEST_MAIN(TestCore)

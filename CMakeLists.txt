@@ -20,6 +20,7 @@ add_library(tpcore STATIC
     src/tables.cpp      src/tables.h
     src/bakexport.cpp   src/bakexport.h
     src/exerciseweek.cpp src/exerciseweek.h
+    src/competition.cpp src/competition.h
     src/bakimport.cpp   src/bakimport.h
     src/weekreport.cpp  src/weekreport.h
 )
@@ -58,6 +59,8 @@ qt_add_qml_module(tpqml
         qml/DayInfoDialog.qml
         qml/TrendChart.qml
         qml/ExerciseHistoryDialog.qml
+        qml/AttemptField.qml
+        qml/CompetitionsPage.qml
     RESOURCES
         logo/trainingsplaner.svg
         ${TP_FONTS}

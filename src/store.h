@@ -24,6 +24,7 @@ class Store : public QObject
     Q_PROPERTY(QVariantList selectableAthletes READ selectableAthletes NOTIFY athletesChanged)
     // Kader, Verein, ...: attributes with a history
     Q_PROPERTY(QStringList attributeNames READ attributeNames CONSTANT)
+    Q_PROPERTY(QStringList competitionTypes READ competitionTypes CONSTANT)
     Q_PROPERTY(QString filterKader READ filterKader WRITE setFilterKader NOTIFY athletesChanged)
     Q_PROPERTY(int filterSex READ filterSex WRITE setFilterSex NOTIFY athletesChanged)
     // Categories of extra info: [{name, code, unit, decimals, aggregate (MAX/MIN/SUM)}]
@@ -47,6 +48,7 @@ public:
     QVariantList catalog() const;
     QVariantList selectableAthletes() const;
     QStringList attributeNames() const;
+    QStringList competitionTypes() const;
     QString filterKader() const;
     void setFilterKader(const QString &v);
     int filterSex() const; // -1 all, 0 men, 1 women
@@ -92,6 +94,17 @@ public:
     Q_INVOKABLE bool saveExerciseWeek(const QString &athleteId, const QString &monday,
                                       const QString &variant, int exercise,
                                       const QVariantList &rows);
+
+    // Competitions, newest first: [{date, dateText, time, type, typeName, name, place,
+    // bodyWeight, snatch: [3], cleanJerk: [3], bestSnatch, bestCleanJerk, total, note}]
+    Q_INVOKABLE QVariantList competitions(const QString &athleteId) const;
+    // Returns an error message, empty on success; oldDate/oldTime identify an edited entry
+    Q_INVOKABLE QString saveCompetition(const QVariantMap &c, const QString &oldDate, const QString &oldTime);
+    Q_INVOKABLE bool removeCompetition(const QString &athleteId, const QString &date, const QString &time);
+    // Totals over years: period 0 each, 1 half year, 2 year; types: indexes to include.
+    // {labels, total, snatch, cleanJerk, norm}
+    Q_INVOKABLE QVariantMap competitionTrend(const QString &athleteId, int fromYear, int toYear,
+                                             int period, const QVariantList &types) const;
 
     // Earlier uses of an exercise up to the given week (newest first):
     // [{week, day, monday, bw, mhg, wh, repsSets, steps ("13/4/3  15/3/2")}]

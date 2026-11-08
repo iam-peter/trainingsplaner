@@ -2,6 +2,7 @@
 
 #include "bakexport.h"
 #include "bakimport.h"
+#include "competition.h"
 #include "database.h"
 #include "exerciseweek.h"
 #include "weekreport.h"
@@ -876,6 +877,118 @@ QString stepsText(const QList<Step> &steps)
 }
 
 } // namespace
+
+QStringList Store::competitionTypes() const
+{
+    return Competitions::typeNames();
+}
+
+QVariantList Store::competitions(const QString &athleteId) const
+{
+    QVariantList list;
+    for (const Competition &c : Competitions::forAthlete(athleteId)) {
+        QVariantList sn, cj;
+        for (int i = 0; i < 3; ++i) {
+            sn.append(c.snatch[i]);
+            cj.append(c.cleanJerk[i]);
+        }
+        list.append(QVariantMap{
+            {QStringLiteral("athleteId"), c.athleteId},
+            {QStringLiteral("date"), c.date.toString(Qt::ISODate)},
+            {QStringLiteral("dateText"), c.date.toString(QStringLiteral("dd.MM.yyyy"))},
+            {QStringLiteral("time"), c.time.left(5) == QLatin1String("00:00") ? QString() : c.time.left(5)},
+            {QStringLiteral("type"), c.type},
+            {QStringLiteral("typeName"), Competitions::typeShortNames().value(c.type)},
+            {QStringLiteral("name"), c.name},
+            {QStringLiteral("place"), c.place},
+            {QStringLiteral("bodyWeight"), c.bodyWeight},
+            {QStringLiteral("snatch"), sn},
+            {QStringLiteral("cleanJerk"), cj},
+            {QStringLiteral("bestSnatch"), c.bestSnatch()},
+            {QStringLiteral("bestCleanJerk"), c.bestCleanJerk()},
+            {QStringLiteral("total"), c.total()},
+            {QStringLiteral("note"), c.note},
+        });
+    }
+    return list;
+}
+
+QString Store::saveCompetition(const QVariantMap &m, const QString &oldDate, const QString &oldTime)
+{
+    Competition c;
+    c.athleteId = m.value(QStringLiteral("athleteId")).toString();
+    c.date = QDate::fromString(m.value(QStringLiteral("date")).toString().trimmed(), QStringLiteral("d.M.yyyy"));
+    if (!c.date.isValid())
+        c.date = QDate::fromString(m.value(QStringLiteral("date")).toString(), Qt::ISODate);
+    if (c.athleteId.isEmpty())
+        return QStringLiteral("Bitte einen Sportler wählen.");
+    if (!c.date.isValid())
+        return QStringLiteral("Datum ungültig.");
+    const QString t = m.value(QStringLiteral("time")).toString().trimmed();
+    const QTime time = QTime::fromString(t, QStringLiteral("H:mm"));
+    if (!t.isEmpty() && !time.isValid())
+        return QStringLiteral("Zeit ungültig.");
+    c.time = t.isEmpty() ? QStringLiteral("00:00:00") : time.toString(QStringLiteral("HH:mm:ss"));
+    c.type = qBound(0, m.value(QStringLiteral("type")).toInt(), int(Competitions::typeNames().size()) - 1);
+    c.name = m.value(QStringLiteral("name")).toString().trimmed();
+    c.place = m.value(QStringLiteral("place")).toString().trimmed();
+    c.bodyWeight = QLocale(QLocale::German).toDouble(m.value(QStringLiteral("bodyWeight")).toString());
+    const QVariantList sn = m.value(QStringLiteral("snatch")).toList();
+    const QVariantList cj = m.value(QStringLiteral("cleanJerk")).toList();
+    for (int i = 0; i < 3; ++i) {
+        c.snatch[i] = qBound(-999, sn.value(i).toInt(), 999);
+        c.cleanJerk[i] = qBound(-999, cj.value(i).toInt(), 999);
+    }
+    c.note = m.value(QStringLiteral("note")).toString().trimmed();
+    const QDate od = QDate::fromString(oldDate, Qt::ISODate);
+    const QString ot = oldTime.isEmpty() ? QStringLiteral("00:00:00") : oldTime + QStringLiteral(":00");
+    if (od.isValid() && (od != c.date || ot != c.time))
+        Competitions::remove(c.athleteId, od, ot);
+    if (!Competitions::save(c))
+        return QStringLiteral("Speichern fehlgeschlagen.");
+    bump();
+    return QString();
+}
+
+bool Store::removeCompetition(const QString &athleteId, const QString &date, const QString &time)
+{
+    const bool ok = Competitions::remove(athleteId, QDate::fromString(date, Qt::ISODate),
+                                         time.isEmpty() ? QStringLiteral("00:00:00") : time + QStringLiteral(":00"));
+    bump();
+    return ok;
+}
+
+QVariantMap Store::competitionTrend(const QString &athleteId, int fromYear, int toYear, int period,
+                                    const QVariantList &types) const
+{
+    QList<Competition> list;
+    for (const Competition &c : Competitions::between(athleteId, QDate(fromYear, 1, 1), QDate(toYear, 12, 31))) {
+        for (const QVariant &t : types) {
+            if (t.toInt() == c.type) {
+                list.append(c);
+                break;
+            }
+        }
+    }
+    QVariantList labels, total, snatch, cleanJerk;
+    for (const Competitions::Point &p : Competitions::bestResults(list, period)) {
+        labels.append(p.label);
+        total.append(p.total > 0 ? QVariant(p.total) : QVariant());
+        snatch.append(p.snatch > 0 ? QVariant(p.snatch) : QVariant());
+        cleanJerk.append(p.cleanJerk > 0 ? QVariant(p.cleanJerk) : QVariant());
+    }
+    // The reference total for the latest competition's class
+    int normValue = 0;
+    if (!list.isEmpty()) {
+        const Competition &last = list.last();
+        const Athlete a = Database::athlete(athleteId);
+        normValue = Competitions::norm(a.sex, a.born.isValid() ? last.date.year() - a.born.year() : 0,
+                                       last.bodyWeight);
+    }
+    return {{QStringLiteral("labels"), labels}, {QStringLiteral("total"), total},
+            {QStringLiteral("snatch"), snatch}, {QStringLiteral("cleanJerk"), cleanJerk},
+            {QStringLiteral("norm"), normValue}};
+}
 
 QVariantList Store::exerciseHistory(const QString &athleteId, const QString &monday,
                                     const QString &variant, int exercise, int weeks) const

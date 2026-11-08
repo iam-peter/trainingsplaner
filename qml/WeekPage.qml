@@ -87,7 +87,7 @@ Page {
     }
 
     function openSession(day, number) {
-        if (!hasAthlete)
+        if (!hasAthlete || !(day >= 1 && day <= 7) || !(number >= 1 && number <= 3))
             return
         saveNote()
         sessionDialog.edit(athleteId, monday, variant, day, number)
