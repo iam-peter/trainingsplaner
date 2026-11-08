@@ -6,7 +6,7 @@ import Trainingsplaner
 
 // Data export in the old program's file format: everything, the changes
 // since a point in time, or one athlete's weeks.
-Dialog {
+AppDialog {
     id: dialog
     title: "Daten exportieren"
     modal: true

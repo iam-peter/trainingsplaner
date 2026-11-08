@@ -5,7 +5,7 @@ import Trainingsplaner
 
 // "Erfassung TÜ": one exercise across the whole week, one row for each
 // session it appears in.
-Dialog {
+AppDialog {
     id: dialog
 
     property string athleteId
@@ -321,7 +321,7 @@ Dialog {
         id: historyDialog
     }
 
-    Dialog {
+    AppDialog {
         id: discardConfirm
         title: "Änderungen verwerfen?"
         modal: true

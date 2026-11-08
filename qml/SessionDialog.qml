@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import Trainingsplaner
 
 // Editor for one training session ("Trainingseinheit").
-Dialog {
+AppDialog {
     id: dialog
 
     property string athleteId
@@ -309,7 +309,7 @@ Dialog {
         id: historyDialog
     }
 
-    Dialog {
+    AppDialog {
         id: discardConfirm
         title: "Änderungen verwerfen?"
         modal: true
@@ -323,7 +323,7 @@ Dialog {
         }
     }
 
-    Dialog {
+    AppDialog {
         id: deleteConfirm
         title: "Trainingseinheit löschen?"
         modal: true

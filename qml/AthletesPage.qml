@@ -265,7 +265,7 @@ Page {
         onChanged: page.select(page.selectedId)
     }
 
-    Dialog {
+    AppDialog {
         id: deleteConfirm
         property int sessions: 0
         title: "Sportler löschen?"

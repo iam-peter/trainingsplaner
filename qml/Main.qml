@@ -132,7 +132,7 @@ ApplicationWindow {
         onAccepted: importOptions.open()
     }
 
-    Dialog {
+    AppDialog {
         id: importOptions
         title: "Daten importieren"
         modal: true
@@ -164,7 +164,7 @@ ApplicationWindow {
         id: exportDialog
     }
 
-    Dialog {
+    AppDialog {
         id: importResult
         property alias text: resultLabel.text
         title: "Import abgeschlossen"

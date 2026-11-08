@@ -266,7 +266,7 @@ RowLayout {
         }
     }
 
-    Dialog {
+    AppDialog {
         id: deleteConfirm
         title: "MAZ löschen?"
         modal: true

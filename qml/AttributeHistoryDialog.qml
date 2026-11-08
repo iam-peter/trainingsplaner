@@ -5,7 +5,7 @@ import Trainingsplaner
 
 // The history of one attribute (Kader, Verein, ...) of an athlete:
 // which value applied from when to when.
-Dialog {
+AppDialog {
     id: dialog
 
     property string athleteId

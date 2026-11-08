@@ -5,7 +5,7 @@ import Trainingsplaner
 
 // Extra info per day (Zusatzinfo): body weight, body fat, supplements ...
 // for the days of one week.
-Dialog {
+AppDialog {
     id: dialog
 
     property string athleteId

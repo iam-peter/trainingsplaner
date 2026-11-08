@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Dialogs
 import Trainingsplaner
 
-Dialog {
+AppDialog {
     id: dialog
     title: "Einstellungen"
     modal: true

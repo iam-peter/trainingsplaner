@@ -5,7 +5,7 @@ import Trainingsplaner
 
 // Earlier uses of an exercise (Infofenster) and its trend over the last
 // weeks (Grafik), as the old program showed them from the session editor.
-Dialog {
+AppDialog {
     id: dialog
 
     property string athleteId

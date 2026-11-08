@@ -459,7 +459,7 @@ Page {
         id: historyDialog
     }
 
-    Dialog {
+    AppDialog {
         id: pasteConfirm
         title: "Woche ersetzen?"
         modal: true
@@ -486,7 +486,7 @@ Page {
         }
     }
 
-    Dialog {
+    AppDialog {
         id: errorDialog
         property alias text: errorLabel.text
         title: "Fehler"

@@ -249,7 +249,7 @@ Page {
     onWeeksChanged: reloadSteps()
 
     // Template: RO of the MAZ, or another athlete's / MAZ's plan
-    Dialog {
+    AppDialog {
         id: templateDialog
         title: "Vorlage übernehmen"
         modal: true
@@ -308,7 +308,7 @@ Page {
     }
 
     // ITP against the week plans
-    Dialog {
+    AppDialog {
         id: chartDialog
         title: "ITP und Trainingswochen"
         modal: true
