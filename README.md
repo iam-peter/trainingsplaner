@@ -61,6 +61,8 @@ click and *Öffnen* the first time.
 
 ![Planning](docs/screenshots/planning.png)
 
+What comes next: [docs/ROADMAP.md](docs/ROADMAP.md).
+
 ## Data from WinWoTA XP
 
 Users of the older WinWoTA XP 2.61 can bring their data along: export it
