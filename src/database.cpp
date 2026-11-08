@@ -356,6 +356,158 @@ bool removeAthlete(const QString &id)
     return d.commit();
 }
 
+namespace {
+
+QList<InfoRecord> readInfo(QSqlQuery &q)
+{
+    QList<InfoRecord> list;
+    while (q.next()) {
+        InfoRecord r;
+        r.athleteId = q.value(0).toString();
+        r.art = q.value(1).toString();
+        r.from = QDate::fromString(q.value(2).toString(), Qt::ISODate);
+        r.time = q.value(3).toString();
+        r.to = QDate::fromString(q.value(4).toString(), Qt::ISODate);
+        r.text = q.value(5).toString();
+        r.hasNumber = !q.value(6).isNull();
+        r.number = q.value(6).toDouble();
+        list.append(r);
+    }
+    return list;
+}
+
+const QString kInfoColumns = QStringLiteral("spid, art, von, zeit, bis, info_text, info_zahl");
+
+} // namespace
+
+QList<InfoRecord> infoRecords(const QString &athleteId, const QString &art)
+{
+    QSqlQuery q(db());
+    q.prepare(QStringLiteral("SELECT %1 FROM spinfo WHERE spid = ? AND art = ? ORDER BY von, zeit")
+                  .arg(kInfoColumns));
+    q.addBindValue(athleteId);
+    q.addBindValue(art);
+    if (!exec(q))
+        return {};
+    return readInfo(q);
+}
+
+QList<InfoRecord> infoRecords(const QStringList &arts)
+{
+    if (arts.isEmpty())
+        return {};
+    QStringList marks;
+    for (int i = 0; i < arts.size(); ++i)
+        marks.append(QStringLiteral("?"));
+    QSqlQuery q(db());
+    q.prepare(QStringLiteral("SELECT %1 FROM spinfo WHERE art IN (%2) ORDER BY spid, art, von, zeit")
+                  .arg(kInfoColumns, marks.join(QLatin1Char(','))));
+    for (const QString &a : arts)
+        q.addBindValue(a);
+    if (!exec(q))
+        return {};
+    return readInfo(q);
+}
+
+bool saveInfoRecord(const InfoRecord &r)
+{
+    if (r.athleteId.isEmpty() || r.art.isEmpty() || !r.from.isValid())
+        return false;
+    QSqlQuery q(db());
+    q.prepare(QStringLiteral("INSERT OR REPLACE INTO spinfo (spid, art, von, zeit, bis, info_text,"
+                             " info_zahl, user, korrektur) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"));
+    q.addBindValue(r.athleteId);
+    q.addBindValue(r.art);
+    q.addBindValue(r.from.toString(Qt::ISODate));
+    q.addBindValue(r.time.isEmpty() ? QStringLiteral("00:00:00") : r.time);
+    q.addBindValue(r.to.isValid() ? QVariant(r.to.toString(Qt::ISODate)) : QVariant());
+    q.addBindValue(r.text);
+    q.addBindValue(r.hasNumber ? QVariant(r.number) : QVariant());
+    q.addBindValue(kUser);
+    q.addBindValue(now());
+    return exec(q);
+}
+
+bool removeInfoRecord(const QString &athleteId, const QString &art, const QDate &from,
+                      const QString &time)
+{
+    return deleteRows(QStringLiteral("spinfo"), QStringLiteral("spid = ? AND art = ? AND von = ? AND zeit = ?"),
+                      {athleteId, art, from.toString(Qt::ISODate), time}, now());
+}
+
+QStringList infoValues(const QString &art)
+{
+    QSqlQuery q(db());
+    q.prepare(QStringLiteral("SELECT DISTINCT info_text FROM spinfo WHERE art = ? AND info_text <> ''"
+                             " ORDER BY info_text COLLATE NOCASE"));
+    q.addBindValue(art);
+    QStringList list;
+    if (exec(q)) {
+        while (q.next())
+            list.append(q.value(0).toString());
+    }
+    return list;
+}
+
+const InfoRecord *infoAt(const QList<InfoRecord> &records, const QDate &date)
+{
+    const InfoRecord *found = nullptr;
+    for (const InfoRecord &r : records) {
+        if (r.from <= date && (!r.to.isValid() || r.to >= date)) {
+            if (!found || r.from > found->from)
+                found = &r;
+        }
+    }
+    return found;
+}
+
+bool setAttribute(const QString &athleteId, const QString &art, const QString &value,
+                  const QDate &date)
+{
+    const QString v = value.trimmed();
+    QList<InfoRecord> records = infoRecords(athleteId, art);
+    const InfoRecord *current = infoAt(records, date);
+    if (current && current->text == v)
+        return true;
+    if (!current && v.isEmpty())
+        return true;
+
+    QSqlDatabase d = db();
+    d.transaction();
+    bool ok = true;
+    QDate end; // the new record ends where the current one ended
+    if (current) {
+        InfoRecord c = *current;
+        end = c.to;
+        if (c.from == date) {
+            ok = removeInfoRecord(athleteId, art, c.from, c.time);
+        } else {
+            c.to = date.addDays(-1);
+            ok = saveInfoRecord(c);
+        }
+    } else {
+        // Up to the next record, if one starts later
+        for (const InfoRecord &r : std::as_const(records)) {
+            if (r.from > date && (!end.isValid() || r.from.addDays(-1) < end))
+                end = r.from.addDays(-1);
+        }
+    }
+    if (ok && !v.isEmpty()) {
+        InfoRecord n;
+        n.athleteId = athleteId;
+        n.art = art;
+        n.from = date;
+        n.to = end;
+        n.text = v;
+        ok = saveInfoRecord(n);
+    }
+    if (!ok) {
+        d.rollback();
+        return false;
+    }
+    return d.commit();
+}
+
 bool deleteRows(const QString &table, const QString &where, const QVariantList &binds,
                 const QString &stamp)
 {

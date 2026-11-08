@@ -19,6 +19,12 @@ class Store : public QObject
 
     Q_PROPERTY(QVariantList athletes READ athletes NOTIFY athletesChanged)
     Q_PROPERTY(QVariantList catalog READ catalog CONSTANT)
+    // Athletes after the filter from the settings (Kader, sex)
+    Q_PROPERTY(QVariantList selectableAthletes READ selectableAthletes NOTIFY athletesChanged)
+    // Kader, Verein, ...: attributes with a history
+    Q_PROPERTY(QStringList attributeNames READ attributeNames CONSTANT)
+    Q_PROPERTY(QString filterKader READ filterKader WRITE setFilterKader NOTIFY athletesChanged)
+    Q_PROPERTY(int filterSex READ filterSex WRITE setFilterSex NOTIFY athletesChanged)
     Q_PROPERTY(QString trainer READ trainer WRITE setTrainer NOTIFY settingsChanged)
     Q_PROPERTY(QString organisation READ organisation WRITE setOrganisation NOTIFY settingsChanged)
     Q_PROPERTY(QString databasePath READ databasePath CONSTANT)
@@ -36,6 +42,12 @@ public:
 
     QVariantList athletes() const;
     QVariantList catalog() const;
+    QVariantList selectableAthletes() const;
+    QStringList attributeNames() const;
+    QString filterKader() const;
+    void setFilterKader(const QString &v);
+    int filterSex() const; // -1 all, 0 men, 1 women
+    void setFilterSex(int v);
     QString trainer() const;
     void setTrainer(const QString &v);
     QString organisation() const;
@@ -87,6 +99,17 @@ public:
     Q_INVOKABLE QString saveAthlete(const QVariantMap &athlete);
     Q_INVOKABLE bool removeAthlete(const QString &athleteId);
     Q_INVOKABLE int sessionCount(const QString &athleteId) const;
+    Q_INVOKABLE QStringList attributeValues(const QString &art) const;
+    // Sets the given attributes from today on, keeping the history
+    Q_INVOKABLE bool setAthleteAttributes(const QString &athleteId, const QVariantMap &values);
+    // [{from, to, text}] with dates as "dd.MM.yyyy"
+    Q_INVOKABLE QVariantList attributeHistory(const QString &athleteId, const QString &art) const;
+    // Replaces the record starting at oldFrom (empty: new record)
+    Q_INVOKABLE QString saveAttributeRecord(const QString &athleteId, const QString &art,
+                                            const QString &oldFrom, const QString &from,
+                                            const QString &to, const QString &text);
+    Q_INVOKABLE bool removeAttributeRecord(const QString &athleteId, const QString &art,
+                                           const QString &from);
 
     // Dates
     Q_INVOKABLE QString today() const;

@@ -21,6 +21,12 @@ Page {
         bornField.text = a ? a.born : ""
         phoneField.text = a ? a.phone : ""
         addressField.text = a ? a.address : ""
+        const attrs = a ? a.attributes : ({})
+        for (let i = 0; i < attributeRepeater.count; ++i) {
+            const item = attributeRepeater.itemAt(i)
+            item.value = attrs[item.art] || ""
+        }
+        ageLabel.text = a && a.age >= 0 ? a.age + " Jahre" : ""
         dirty = false
         lastNameField.forceActiveFocus()
     }
@@ -39,8 +45,15 @@ Page {
             phone: phoneField.text,
             address: addressField.text
         })
-        if (id !== "")
+        if (id !== "") {
+            const values = {}
+            for (let i = 0; i < attributeRepeater.count; ++i) {
+                const item = attributeRepeater.itemAt(i)
+                values[item.art] = item.value
+            }
+            Store.setAthleteAttributes(id, values)
             select(id)
+        }
     }
 
     readonly property bool bornValid: bornField.text.trim() === "" || Store.parseDate(bornField.text) !== ""
@@ -142,6 +155,11 @@ Page {
                         text: "Datum ungültig"
                         color: "#c00000"
                     }
+                    Label {
+                        id: ageLabel
+                        visible: page.bornValid
+                        color: palette.placeholderText
+                    }
                 }
 
                 Label { text: "Telefon:"; Layout.alignment: Qt.AlignTop }
@@ -160,6 +178,53 @@ Page {
                     Layout.preferredHeight: 80
                     wrapMode: TextEdit.Wrap
                     onTextChanged: if (activeFocus) page.dirty = true
+                }
+
+                Label { text: "Zugehörigkeit:"; Layout.alignment: Qt.AlignTop; Layout.topMargin: 6 }
+                GridLayout {
+                    columns: 2
+                    columnSpacing: 16
+                    rowSpacing: 4
+                    Repeater {
+                        id: attributeRepeater
+                        model: Store.attributeNames
+                        ColumnLayout {
+                            id: attribute
+                            required property string modelData
+                            readonly property string art: modelData
+                            property string value
+                            spacing: 0
+                            Label { text: attribute.art + ":"; font.pixelSize: 11; color: palette.placeholderText }
+                            RowLayout {
+                                spacing: 2
+                                ComboBox {
+                                    objectName: "attr_" + attribute.art
+                                    implicitWidth: 200
+                                    editable: true
+                                    model: Store.attributeValues(attribute.art)
+                                    editText: attribute.value
+                                    onEditTextChanged: {
+                                        if (editText !== attribute.value) {
+                                            attribute.value = editText
+                                            page.dirty = true
+                                        }
+                                    }
+                                }
+                                IconToolButton {
+                                    iconName: "history"
+                                    toolTip: "Verlauf " + attribute.art
+                                    enabled: page.selectedId !== ""
+                                    onClicked: historyDialog.edit(page.selectedId, attribute.art)
+                                }
+                            }
+                        }
+                    }
+                }
+                Label {
+                    Layout.columnSpan: 2
+                    font.pixelSize: 11
+                    color: palette.placeholderText
+                    text: "Geänderte Zugehörigkeiten gelten ab heute; der Verlauf bleibt erhalten."
                 }
 
                 Item { Layout.preferredHeight: 8; Layout.columnSpan: 2 }
@@ -193,6 +258,11 @@ Page {
                 }
             }
         }
+    }
+
+    AttributeHistoryDialog {
+        id: historyDialog
+        onChanged: page.select(page.selectedId)
     }
 
     Dialog {

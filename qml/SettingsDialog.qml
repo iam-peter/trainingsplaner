@@ -58,6 +58,10 @@ Dialog {
             timeRepeater.itemAt(i).from = times[i].from
             timeRepeater.itemAt(i).to = times[i].to
         }
+        kaderFilter.currentIndex = Math.max(0, kaderFilter.find(Store.filterKader))
+        sexAll.checked = Store.filterSex < 0
+        sexMen.checked = Store.filterSex === 0
+        sexWomen.checked = Store.filterSex === 1
         step25.checked = Store.weightStep !== 1
         step10.checked = Store.weightStep === 1
     }
@@ -90,6 +94,8 @@ Dialog {
             t.push({ from: timeRepeater.itemAt(i).from, to: timeRepeater.itemAt(i).to })
         Store.sessionTimes = t
         Store.weightStep = step10.checked ? 1 : 2.5
+        Store.filterKader = kaderFilter.currentIndex > 0 ? kaderFilter.currentText : ""
+        Store.filterSex = sexMen.checked ? 0 : sexWomen.checked ? 1 : -1
     }
 
     contentItem: ColumnLayout {
@@ -235,6 +241,25 @@ Dialog {
                 columns: 2
                 columnSpacing: 16
                 rowSpacing: 6
+                Label { text: "Sportlerauswahl:" }
+                RowLayout {
+                    ComboBox {
+                        id: kaderFilter
+                        implicitWidth: 160
+                        model: ["alle Kader"].concat(Store.attributeValues("Kader"))
+                    }
+                    RadioButton { id: sexAll; text: "alle" }
+                    RadioButton { id: sexMen; text: "Männer" }
+                    RadioButton { id: sexWomen; text: "Frauen" }
+                }
+                Label {
+                    Layout.columnSpan: 2
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                    font.pixelSize: 11
+                    color: palette.placeholderText
+                    text: "Gilt für die Auswahllisten im Wochenplan, in der Planung und in den Analysen."
+                }
                 Label { text: "Steigerung:" }
                 RowLayout {
                     RadioButton { id: step25; text: "2,5 kg" }

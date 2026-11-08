@@ -120,7 +120,7 @@ Page {
             ComboBox {
                 id: athleteBox
                 Layout.preferredWidth: 220
-                model: Store.athletes
+                model: Store.selectableAthletes
                 textRole: "displayName"
                 valueRole: "id"
                 currentIndex: indexOfValue(page.athleteId)

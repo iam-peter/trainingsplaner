@@ -14,10 +14,10 @@ Dialog {
     anchors.centerIn: parent
     width: 560
 
-    property string result
+    property string summary
 
     onAboutToShow: {
-        result = ""
+        summary = ""
         const last = Store.lastExport()
         if (last !== "") {
             sinceDate.text = last.split(" ")[0]
@@ -74,13 +74,13 @@ Dialog {
             wrapMode: Text.Wrap
             font.pixelSize: 11
             color: palette.placeholderText
-            text: "Die Datei lässt sich auf einem anderen Rechner mit „Daten importieren…“ einlesen. Gelöschte Einträge werden dabei ebenfalls entfernt."
+            text: "Die Datei lässt sich auf einem anderen Rechner über „Daten“ › „Importieren…“ einlesen. Gelöschte Einträge werden dabei ebenfalls entfernt."
         }
 
         Label {
             Layout.fillWidth: true
-            visible: dialog.result !== ""
-            text: dialog.result
+            visible: dialog.summary !== ""
+            text: dialog.summary
             wrapMode: Text.Wrap
         }
     }
@@ -111,7 +111,7 @@ Dialog {
         nameFilters: ["Datensicherung (*.bak)"]
         onAccepted: {
             const mode = modeSince.checked ? "since" : modeAthlete.checked ? "athlete" : "all"
-            dialog.result = Store.exportBak(selectedFile, mode, sinceDate.text, sinceTime.text,
+            dialog.summary = Store.exportBak(selectedFile, mode, sinceDate.text, sinceTime.text,
                                             athleteBox.currentValue || "", fromWeek.text, toWeek.text)
         }
     }

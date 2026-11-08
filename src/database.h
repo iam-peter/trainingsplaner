@@ -42,6 +42,35 @@ bool saveWeekNote(const QString &athleteId, const QDate &monday, Variant variant
 int copyWeek(const QString &fromAthlete, const QDate &fromMonday, Variant fromVariant,
              const QString &toAthlete, const QDate &toMonday, Variant toVariant);
 
+// Records of an athlete with a time range or a date (table spinfo):
+// attributes such as Kader or Verein (art = attribute name, info_text =
+// value), and extra info per day (art = category code, info_zahl = value).
+struct InfoRecord
+{
+    QString athleteId;
+    QString art;
+    QDate from;
+    QString time = QStringLiteral("00:00:00");
+    QDate to;          // invalid: open end
+    QString text;
+    double number = 0;
+    bool hasNumber = false;
+};
+QList<InfoRecord> infoRecords(const QString &athleteId, const QString &art);
+// All records of these kinds for all athletes (to show current values)
+QList<InfoRecord> infoRecords(const QStringList &arts);
+bool saveInfoRecord(const InfoRecord &r);
+bool removeInfoRecord(const QString &athleteId, const QString &art, const QDate &from,
+                      const QString &time = QStringLiteral("00:00:00"));
+QStringList infoValues(const QString &art); // distinct texts, sorted
+// The record valid on `date` (from <= date <= to), or nullptr
+const InfoRecord *infoAt(const QList<InfoRecord> &records, const QDate &date);
+// Sets an attribute from `date` on: the record valid until then ends the day
+// before, a new record starts (or the one starting on `date` changes). An
+// empty value only ends the current record.
+bool setAttribute(const QString &athleteId, const QString &art, const QString &value,
+                  const QDate &date);
+
 // Generic access for the other modules
 bool deleteRows(const QString &table, const QString &where, const QVariantList &binds,
                 const QString &stamp);

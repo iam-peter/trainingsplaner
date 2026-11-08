@@ -188,10 +188,40 @@ void Store::bump()
     emit dataChanged();
 }
 
+namespace {
+
+const QStringList kAttributes = {
+    QStringLiteral("Kader"), QStringLiteral("Verein"), QStringLiteral("BSP"),
+    QStringLiteral("Bundeswehr"), QStringLiteral("Heimtrainer"), QStringLiteral("Landestrainer"),
+    QStringLiteral("BSP-Trainer"), QStringLiteral("Bundestrainer")};
+
+int ageOn(const QDate &born, const QDate &day)
+{
+    if (!born.isValid())
+        return -1;
+    int age = day.year() - born.year();
+    if (QDate(day.year(), born.month(), qMin(born.day(), QDate(day.year(), born.month(), 1).daysInMonth())) > day)
+        --age;
+    return age;
+}
+
+} // namespace
+
 QVariantList Store::athletes() const
 {
+    const QDate today = QDate::currentDate();
+    QMap<QString, QList<Database::InfoRecord>> info;
+    for (const Database::InfoRecord &r : Database::infoRecords(kAttributes))
+        info[r.athleteId + QLatin1Char('\x1f') + r.art].append(r);
+
     QVariantList list;
     for (const Athlete &a : Database::athletes()) {
+        QVariantMap attributes;
+        for (const QString &art : kAttributes) {
+            const Database::InfoRecord *r = Database::infoAt(info.value(a.id + QLatin1Char('\x1f') + art), today);
+            attributes.insert(art, r ? r->text : QString());
+        }
+        const int age = ageOn(a.born, today);
         list.append(QVariantMap{
             {QStringLiteral("id"), a.id},
             {QStringLiteral("lastName"), a.lastName},
@@ -199,11 +229,118 @@ QVariantList Store::athletes() const
             {QStringLiteral("displayName"), a.displayName()},
             {QStringLiteral("sex"), a.sex},
             {QStringLiteral("born"), a.born.isValid() ? a.born.toString(QStringLiteral("dd.MM.yyyy")) : QString()},
+            {QStringLiteral("age"), age},
             {QStringLiteral("address"), a.address},
             {QStringLiteral("phone"), a.phone},
+            {QStringLiteral("attributes"), attributes},
         });
     }
     return list;
+}
+
+QVariantList Store::selectableAthletes() const
+{
+    const QString kader = filterKader();
+    const int sex = filterSex();
+    QVariantList list;
+    for (const QVariant &v : athletes()) {
+        const QVariantMap a = v.toMap();
+        if (sex >= 0 && a.value(QStringLiteral("sex")).toInt() != sex)
+            continue;
+        if (!kader.isEmpty()
+            && a.value(QStringLiteral("attributes")).toMap().value(QStringLiteral("Kader")).toString() != kader)
+            continue;
+        list.append(a);
+    }
+    return list;
+}
+
+QStringList Store::attributeNames() const
+{
+    return kAttributes;
+}
+
+QString Store::filterKader() const
+{
+    return QSettings().value(QStringLiteral("filter/kader")).toString();
+}
+
+void Store::setFilterKader(const QString &v)
+{
+    QSettings().setValue(QStringLiteral("filter/kader"), v);
+    emit athletesChanged();
+}
+
+int Store::filterSex() const
+{
+    return QSettings().value(QStringLiteral("filter/sex"), -1).toInt();
+}
+
+void Store::setFilterSex(int v)
+{
+    QSettings().setValue(QStringLiteral("filter/sex"), qBound(-1, v, 1));
+    emit athletesChanged();
+}
+
+QStringList Store::attributeValues(const QString &art) const
+{
+    return Database::infoValues(art);
+}
+
+bool Store::setAthleteAttributes(const QString &athleteId, const QVariantMap &values)
+{
+    bool ok = true;
+    for (auto it = values.cbegin(); it != values.cend(); ++it) {
+        if (kAttributes.contains(it.key()))
+            ok = Database::setAttribute(athleteId, it.key(), it.value().toString(), QDate::currentDate()) && ok;
+    }
+    emit athletesChanged();
+    return ok;
+}
+
+QVariantList Store::attributeHistory(const QString &athleteId, const QString &art) const
+{
+    QVariantList list;
+    for (const Database::InfoRecord &r : Database::infoRecords(athleteId, art)) {
+        list.append(QVariantMap{
+            {QStringLiteral("from"), r.from.toString(QStringLiteral("dd.MM.yyyy"))},
+            {QStringLiteral("to"), r.to.isValid() ? r.to.toString(QStringLiteral("dd.MM.yyyy")) : QString()},
+            {QStringLiteral("text"), r.text},
+        });
+    }
+    return list;
+}
+
+QString Store::saveAttributeRecord(const QString &athleteId, const QString &art, const QString &oldFrom,
+                                   const QString &from, const QString &to, const QString &text)
+{
+    Database::InfoRecord r;
+    r.athleteId = athleteId;
+    r.art = art;
+    r.from = QDate::fromString(from.trimmed(), QStringLiteral("d.M.yyyy"));
+    r.to = QDate::fromString(to.trimmed(), QStringLiteral("d.M.yyyy"));
+    r.text = text.trimmed();
+    if (!r.from.isValid())
+        return QStringLiteral("„von“ ist kein gültiges Datum.");
+    if (!to.trimmed().isEmpty() && !r.to.isValid())
+        return QStringLiteral("„bis“ ist kein gültiges Datum.");
+    if (r.to.isValid() && r.to < r.from)
+        return QStringLiteral("„bis“ liegt vor „von“.");
+    const QDate old = QDate::fromString(oldFrom.trimmed(), QStringLiteral("d.M.yyyy"));
+    if (old.isValid() && old != r.from)
+        Database::removeInfoRecord(athleteId, art, old);
+    if (!Database::saveInfoRecord(r))
+        return QStringLiteral("Speichern fehlgeschlagen: ") + Database::lastError();
+    emit athletesChanged();
+    return QString();
+}
+
+bool Store::removeAttributeRecord(const QString &athleteId, const QString &art, const QString &from)
+{
+    const bool ok = Database::removeInfoRecord(athleteId, art,
+                                               QDate::fromString(from, QStringLiteral("d.M.yyyy")));
+    emit athletesChanged();
+    return ok;
 }
 
 QVariantList Store::catalog() const

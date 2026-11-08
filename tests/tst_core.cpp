@@ -33,6 +33,7 @@ private slots:
     void nextWeight();
     void printWithAllOptions();
     void exportRoundTrip();
+    void attributesWithHistory();
     void exerciseWeekApply();
 
 private:
@@ -453,6 +454,35 @@ void TestCore::exportRoundTrip()
 
     Database::close();
     QVERIFY(Database::open(first));
+}
+
+void TestCore::attributesWithHistory()
+{
+    const QString id = QStringLiteral("muster_erika");
+    const QDate jan(2026, 1, 1), jun(2026, 6, 1);
+    QVERIFY(Database::setAttribute(id, QStringLiteral("Kader"), QStringLiteral("NK2"), jan));
+    QVERIFY(Database::setAttribute(id, QStringLiteral("Kader"), QStringLiteral("NK1"), jun));
+    QList<Database::InfoRecord> r = Database::infoRecords(id, QStringLiteral("Kader"));
+    QCOMPARE(r.size(), 2);
+    QCOMPARE(r[0].to, jun.addDays(-1));
+    QVERIFY(!r[1].to.isValid());
+    QCOMPARE(Database::infoAt(r, QDate(2026, 3, 1))->text, QStringLiteral("NK2"));
+    QCOMPARE(Database::infoAt(r, QDate(2026, 7, 1))->text, QStringLiteral("NK1"));
+
+    // Same value again: nothing changes; a change on the start day replaces it
+    QVERIFY(Database::setAttribute(id, QStringLiteral("Kader"), QStringLiteral("NK1"), jun));
+    QVERIFY(Database::setAttribute(id, QStringLiteral("Kader"), QStringLiteral("OK"), jun));
+    r = Database::infoRecords(id, QStringLiteral("Kader"));
+    QCOMPARE(r.size(), 2);
+    QCOMPARE(r[1].text, QStringLiteral("OK"));
+
+    // Empty ends the current record
+    QVERIFY(Database::setAttribute(id, QStringLiteral("Kader"), QString(), QDate(2026, 9, 1)));
+    r = Database::infoRecords(id, QStringLiteral("Kader"));
+    QCOMPARE(r[1].to, QDate(2026, 8, 31));
+    QVERIFY(!Database::infoAt(r, QDate(2026, 10, 1)));
+    QCOMPARE(Database::infoValues(QStringLiteral("Kader")),
+             (QStringList{QStringLiteral("NK2"), QStringLiteral("OK")}));
 }
 
 QTEST_MAIN(TestCore)
