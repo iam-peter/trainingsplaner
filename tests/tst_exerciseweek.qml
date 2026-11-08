@@ -29,15 +29,18 @@ Item {
         when: windowShown
 
         function test_lineOpensExercise() {
+            // Some styles fade a dialog out; its backdrop would take the clicks
+            tryCompare(dialog, "visible", false)
             cell.visible = true
             waitForRendering(cell)
-            // First line (exercise 8) at the top, the free text below it
-            mouseClick(cell, 60, 24)
+            // The first line (exercise 8), then the free text below it; by
+            // the lines themselves, whose height depends on the style
+            mouseClick(findChild(cell, "line0"))
             compare(exerciseClicks.count, 1)
             compare(exerciseClicks.signalArguments[0][0], 8)
             compare(cellClicks.count, 0)
             // Free text and empty space open the session instead
-            mouseClick(cell, 60, 42)
+            mouseClick(findChild(cell, "line1"))
             mouseClick(cell, 100, 200)
             compare(cellClicks.count, 2)
             compare(exerciseClicks.count, 1)

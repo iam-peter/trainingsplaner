@@ -34,6 +34,40 @@ Dialog {
 
     parent: Overlay.overlay
     anchors.centerIn: parent
+
+    // The natural width from the title text and the buttons themselves,
+    // not from the title label and the button row: the styles size those
+    // from the dialog's width (a lone button gets half of it), so taking
+    // their natural widths made a binding loop whenever the content grew.
+    TextMetrics {
+        id: titleMetrics
+        font: root.header ? root.header.font : root.font
+        text: root.title
+    }
+    readonly property real titleWidth: root.title === "" || !root.header ? 0
+        : titleMetrics.advanceWidth + root.header.leftPadding + root.header.rightPadding + 2
+    readonly property real buttonsWidth: {
+        const box = footer
+        if (!box || !box.visible || box.count === undefined || box.count === 0)
+            return 0
+        let w = 0
+        let n = 0
+        for (let i = 0; i < box.count; ++i) {
+            const it = box.itemAt(i)
+            if (it && it.visible) {
+                w += it.implicitWidth
+                ++n
+            }
+        }
+        // The styles give a lone button the right half of the row
+        if (n === 1)
+            w *= 2
+        return w + Math.max(0, n - 1) * box.spacing + box.leftPadding + box.rightPadding
+    }
+    implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
+                            implicitContentWidth + leftPadding + rightPadding,
+                            titleWidth,
+                            buttonsWidth)
     modal: true
     focus: true
 
@@ -46,10 +80,18 @@ Dialog {
         level = DialogStack.open
     }
 
+    // Enter and Esc work from the moment the dialog shows, also while a
+    // style (Material, Fluent) still animates it in and the dialog does not
+    // have the keyboard focus yet
     Shortcut {
         sequences: ["Return", "Enter"]
-        enabled: root.opened && root.enterAccepts && root.level === DialogStack.open
+        enabled: root.visible && root.enterAccepts && root.level === DialogStack.open
         onActivated: root.accept()
+    }
+    Shortcut {
+        sequences: [StandardKey.Cancel]
+        enabled: root.visible && (root.closePolicy & Popup.CloseOnEscape) && root.level === DialogStack.open
+        onActivated: root.reject()
     }
     onClosed: {
         if (counted) {

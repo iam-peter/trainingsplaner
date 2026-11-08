@@ -106,6 +106,8 @@ Rectangle {
             Item {
                 id: line
                 required property var modelData
+                required property int index
+                objectName: "line" + index
                 readonly property bool weights: modelData.kind === 0 && modelData.exercise > 0
                 Layout.fillWidth: true
                 implicitHeight: lineRow.implicitHeight + 3

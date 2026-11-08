@@ -25,6 +25,15 @@ Item {
         height: 100
     }
 
+    // One button and text that grows after creation: made a binding loop
+    AppDialog {
+        id: message
+        property alias text: messageLabel.text
+        title: "Hinweis"
+        standardButtons: Dialog.Ok
+        Label { id: messageLabel }
+    }
+
     AppDialog {
         id: question
         title: "Frage"
@@ -50,7 +59,8 @@ Item {
             inner.close()
             outer.close()
             tryCompare(outer, "visible", false)
-            compare(DialogStack.open, 0)
+            // Some styles let the inner dialog fade out a little longer
+            tryCompare(DialogStack, "open", 0)
         }
 
         function test_clearDim() {
@@ -73,6 +83,16 @@ Item {
             tryCompare(d, "height", 700)
             tryCompare(outer, "x", 350)   // centred in the window, not in its declaring item
             tryCompare(outer, "y", 250)
+        }
+
+        function test_singleButtonGrowsWithoutLoop() {
+            failOnWarning(/Binding loop/)
+            message.text = "Ein deutlich längerer Text, der den Dialog breiter macht als vorher"
+            message.open()
+            tryCompare(message, "opened", true)
+            verify(message.width >= messageLabel.implicitWidth)
+            message.close()
+            tryCompare(message, "visible", false)
         }
 
         function test_germanButtons() {
