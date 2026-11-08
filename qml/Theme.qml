@@ -18,6 +18,9 @@ QtObject {
     readonly property color cellMuted: dark ? "#b3a27a" : "#9a8a5a"
     readonly property color lineOutline: dark ? "#f87171" : "#c81e1e"
     readonly property color accent: dark ? "#fb923c" : "#c2410c"
+    // Selections in every scheme, also when following the system, so they
+    // match the tabs and the rest of the program; white text on it
+    readonly property color selection: "#c2410c"
     readonly property color error: dark ? "#f87171" : "#c00000"
     // Borders of panels and lists, visible in every palette
     readonly property color line: Qt.rgba(system.windowText.r, system.windowText.g, system.windowText.b, 0.22)

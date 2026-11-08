@@ -40,8 +40,8 @@ ApplicationWindow {
     palette.text: Theme.system.text
     palette.button: Theme.system.button
     palette.buttonText: Theme.system.buttonText
-    palette.highlight: Theme.system.highlight
-    palette.highlightedText: Theme.system.highlightedText
+    palette.highlight: Theme.selection
+    palette.highlightedText: "#ffffff"
     palette.placeholderText: Theme.system.placeholderText
     palette.mid: Theme.system.mid
     palette.dark: Theme.system.dark
