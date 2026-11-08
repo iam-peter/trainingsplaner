@@ -26,11 +26,17 @@ Rectangle {
     readonly property bool filled: session !== null
 
     radius: 10
-    color: mouse.containsMouse ? Theme.cellHover : Theme.cell
+    color: hover.hovered ? Theme.cellHover : Theme.cell
     border.color: activeFocus ? palette.highlight
-                  : mouse.containsMouse ? Theme.cellBorderHover : today ? Theme.accent : Theme.cellBorder
-    border.width: activeFocus || mouse.containsMouse || today ? 2 : 1
+                  : hover.hovered ? Theme.cellBorderHover : today ? Theme.accent : Theme.cellBorder
+    border.width: activeFocus || hover.hovered || today ? 2 : 1
     clip: true
+
+    // The whole cell, lines included: the cell's MouseArea loses the hover
+    // to a line's MouseArea, which made the background flicker between lines
+    HoverHandler {
+        id: hover
+    }
 
     activeFocusOnTab: true
     Keys.onReturnPressed: cell.clicked()
@@ -79,7 +85,7 @@ Rectangle {
 
     IconImage {
         anchors.centerIn: parent
-        visible: !cell.filled && mouse.containsMouse
+        visible: !cell.filled && hover.hovered
         source: "qrc:/qt/qml/Trainingsplaner/icons/plus.svg"
         sourceSize: Qt.size(28, 28)
         color: Theme.cellBorderHover
@@ -91,7 +97,8 @@ Rectangle {
         anchors.top: parent.top
         anchors.margins: 6
         anchors.topMargin: 16
-        spacing: 1
+        // No gap between the lines, so the pointer never falls between two
+        spacing: 0
         visible: cell.filled
 
         Repeater {
@@ -101,7 +108,7 @@ Rectangle {
                 required property var modelData
                 readonly property bool weights: modelData.kind === 0 && modelData.exercise > 0
                 Layout.fillWidth: true
-                implicitHeight: lineRow.implicitHeight + 2
+                implicitHeight: lineRow.implicitHeight + 3
 
                 // Outline on hover, like the selected line in the old program
                 Rectangle {
