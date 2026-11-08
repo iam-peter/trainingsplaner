@@ -319,13 +319,20 @@ Page {
                 CheckBox { id: showNorm; text: "Norm Bundeskader"; enabled: (page.trend.norm || 0) > 0 }
                 Item { Layout.fillWidth: true }
                 IconButton {
+                    iconName: "file-down"
+                    text: "Bild…"
+                    toolTip: "Grafik als PNG-Bild speichern"
+                    onClicked: competitionChart.saveImage()
+                }
+                IconButton {
                     iconName: "printer"
                     text: "Drucken…"
-                    onClicked: competitionChart.grabToImage(r => Store.printImage(r.image, "Wettkampfentwicklung"))
+                    onClicked: competitionChart.printChart()
                 }
             }
             TrendChart {
                 id: competitionChart
+                documentTitle: "Wettkampfentwicklung"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 labels: page.trend.labels || []

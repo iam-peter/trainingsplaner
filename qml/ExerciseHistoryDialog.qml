@@ -59,9 +59,16 @@ AppDialog {
             CheckBox { id: values; text: "Werte"; visible: tabs.currentIndex === 1 }
             IconButton {
                 visible: tabs.currentIndex === 1
+                iconName: "file-down"
+                text: "Bild…"
+                toolTip: "Grafik als PNG-Bild speichern"
+                onClicked: chart.saveImage()
+            }
+            IconButton {
+                visible: tabs.currentIndex === 1
                 iconName: "printer"
                 text: "Drucken…"
-                onClicked: chart.grabToImage(r => Store.printImage(r.image, dialog.title))
+                onClicked: chart.printChart()
             }
         }
 
@@ -116,6 +123,7 @@ AppDialog {
 
             TrendChart {
                 id: chart
+                documentTitle: dialog.title
                 labels: dialog.trend.labels || []
                 showValues: values.checked
                 leftTitle: "Intensität [kg]"

@@ -295,9 +295,15 @@ Page {
                 Label { text: Store.exerciseName(parseInt(chEx.text) || 0); color: palette.placeholderText }
                 Item { Layout.fillWidth: true }
                 IconButton {
+                    iconName: "file-down"
+                    text: "Bild…"
+                    toolTip: "Grafik als PNG-Bild speichern"
+                    onClicked: analysisChart.saveImage()
+                }
+                IconButton {
                     iconName: "printer"
                     text: "Drucken…"
-                    onClicked: analysisChart.grabToImage(r => Store.printImage(r.image, "Grafik TÜ " + chEx.text))
+                    onClicked: analysisChart.printChart()
                 }
             }
             RowLayout {
@@ -347,6 +353,7 @@ Page {
             }
             TrendChart {
                 id: analysisChart
+                documentTitle: "Grafik TÜ " + chEx.text
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 labels: chartTab.first.labels || []

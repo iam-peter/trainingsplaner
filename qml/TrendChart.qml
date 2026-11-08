@@ -1,5 +1,8 @@
+import QtCore
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Dialogs
+import Trainingsplaner
 
 // A simple chart over categories (weeks, dates): bars on the right axis
 // (volume), lines on the left axis (intensity), optional linear trends and
@@ -7,6 +10,8 @@ import QtQuick.Controls
 //   lines:      [{ name, color, values: [number|null], trend: bool }]
 //   bars:       [{ name, color, values: [number] }]
 //   references: [{ name, color, value }]
+// Hovering shows the values of a week; a right click prints the chart or
+// saves it as an image.
 Item {
     id: chart
 
@@ -18,6 +23,13 @@ Item {
     property string rightTitle
     property string title
     property bool showValues: false
+    // Name for printing and the suggested file name
+    property string documentTitle: title !== "" ? title : "Grafik"
+
+    // Index of the category under the pointer, -1 for none
+    property int hoverIndex: -1
+    // Where the plot area was drawn: { left, top, slot, height }
+    property var plot: null
 
     implicitWidth: 600
     implicitHeight: 320
@@ -29,6 +41,21 @@ Item {
     onShowValuesChanged: canvas.requestPaint()
     onWidthChanged: canvas.requestPaint()
     onHeightChanged: canvas.requestPaint()
+    onPaletteChanged: canvas.requestPaint()
+
+    function printChart() {
+        grabToImage(r => Store.printImage(r.image, chart.documentTitle))
+    }
+
+    function saveImage() {
+        const name = chart.documentTitle.replace(/[\\/:*?"<>|]+/g, "-").trim() || "Grafik"
+        saveDialog.selectedFile = StandardPaths.writableLocation(StandardPaths.PicturesLocation) + "/" + name + ".png"
+        saveDialog.open()
+    }
+
+    function valueText(v) {
+        return v === null || v === undefined || isNaN(v) ? "–" : String(Math.round(v * 10) / 10).replace(".", ",")
+    }
 
     // Least squares line through the defined points: [a, b] for a + b*x
     function regression(values) {
@@ -71,6 +98,7 @@ Item {
             const left = 52, right = chart.bars.length > 0 ? 52 : 16, top = 12 + titleH, bottom = 44 + legendH
             const w = width - left - right, h = height - top - bottom
             if (n === 0 || w <= 0 || h <= 0) {
+                chart.plot = null
                 ctx.fillStyle = palette.placeholderText
                 ctx.fillText("Keine Daten", width / 2 - 30, height / 2)
                 return
@@ -83,6 +111,7 @@ Item {
             }
             const slot = w / n
             const xAt = i => left + slot * (i + 0.5)
+            chart.plot = { left: left, top: top, slot: slot, height: h, count: n }
 
             // Value ranges
             let lo = Infinity, hi = -Infinity
@@ -224,6 +253,99 @@ Item {
                 ctx.fillText(it.name, lx + 20, ly)
                 lx += 28 + ctx.measureText(it.name).width
             }
+        }
+    }
+
+    MouseArea {
+        id: hover
+        anchors.fill: parent
+        hoverEnabled: true
+        acceptedButtons: Qt.RightButton
+        onPositionChanged: (mouse) => {
+            const p = chart.plot
+            const i = p ? Math.floor((mouse.x - p.left) / p.slot) : -1
+            chart.hoverIndex = p && mouse.y >= p.top && mouse.y <= p.top + p.height && i >= 0 && i < p.count ? i : -1
+        }
+        onExited: chart.hoverIndex = -1
+        onClicked: (mouse) => chartMenu.popup(mouse.x, mouse.y)
+    }
+
+    // Guide line and the values of the week under the pointer
+    Rectangle {
+        visible: chart.hoverIndex >= 0 && chart.plot !== null
+        x: chart.plot ? chart.plot.left + chart.plot.slot * (chart.hoverIndex + 0.5) : 0
+        y: chart.plot ? chart.plot.top : 0
+        width: 1
+        height: chart.plot ? chart.plot.height : 0
+        color: palette.placeholderText
+    }
+    Rectangle {
+        id: valueBox
+        objectName: "valueBox"
+        visible: chart.hoverIndex >= 0 && chart.plot !== null
+        readonly property real anchorX: chart.plot ? chart.plot.left + chart.plot.slot * (chart.hoverIndex + 0.5) : 0
+        x: anchorX + 12 + width < chart.width ? anchorX + 12 : anchorX - 12 - width
+        y: chart.plot ? chart.plot.top + 4 : 0
+        width: valueColumn.implicitWidth + 16
+        height: valueColumn.implicitHeight + 12
+        radius: 6
+        color: palette.toolTipBase
+        border.color: palette.mid
+
+        Column {
+            id: valueColumn
+            x: 8
+            y: 6
+            spacing: 2
+            Label {
+                text: chart.hoverIndex >= 0 ? chart.labels[chart.hoverIndex] || "" : ""
+                font.bold: true
+                color: palette.toolTipText
+            }
+            Repeater {
+                model: chart.hoverIndex >= 0 ? chart.lines.concat(chart.bars) : []
+                Row {
+                    required property var modelData
+                    spacing: 6
+                    Rectangle {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 10
+                        height: 10
+                        radius: 2
+                        color: modelData.color
+                    }
+                    Label {
+                        objectName: "valueLine"
+                        text: modelData.name + ": " + chart.valueText(modelData.values[chart.hoverIndex])
+                        color: palette.toolTipText
+                    }
+                }
+            }
+        }
+    }
+
+    Menu {
+        id: chartMenu
+        MenuItem {
+            text: "Als Bild speichern…"
+            onTriggered: chart.saveImage()
+        }
+        MenuItem {
+            text: "Drucken…"
+            onTriggered: chart.printChart()
+        }
+    }
+
+    FileDialog {
+        id: saveDialog
+        title: "Grafik als Bild speichern"
+        fileMode: FileDialog.SaveFile
+        defaultSuffix: "png"
+        nameFilters: ["PNG-Bild (*.png)"]
+        onAccepted: {
+            // Without the hover box
+            chart.hoverIndex = -1
+            chart.grabToImage(r => r.saveToFile(selectedFile))
         }
     }
 }

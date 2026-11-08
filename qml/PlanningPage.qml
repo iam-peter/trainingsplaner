@@ -330,13 +330,20 @@ Page {
                 RadioButton { id: chartIst; text: "Ist"; onToggled: chartDialog.reload() }
                 Item { Layout.fillWidth: true }
                 IconButton {
+                    iconName: "file-down"
+                    text: "Bild…"
+                    toolTip: "Grafik als PNG-Bild speichern"
+                    onClicked: comparisonChart.saveImage()
+                }
+                IconButton {
                     iconName: "printer"
                     text: "Drucken…"
-                    onClicked: comparisonChart.grabToImage(r => Store.printImage(r.image, chartDialog.title))
+                    onClicked: comparisonChart.printChart()
                 }
             }
             TrendChart {
                 id: comparisonChart
+                documentTitle: chartDialog.title
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 labels: chartDialog.chartData.labels || []
