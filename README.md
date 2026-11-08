@@ -28,6 +28,12 @@ The programs aren't signed: Windows SmartScreen asks once (*Weitere
 Informationen*, *Trotzdem ausführen*). macOS blocks the first start; then
 choose *Dennoch öffnen* under System Settings › Privacy & Security.
 
+**Windows installer.** It puts the program into a fixed folder
+(`%LOCALAPPDATA%\Programs\Trainingsplaner`, or Program Files when
+installed for all users), asks for a Start menu entry and a desktop
+shortcut (both on) and registers an uninstaller under Windows' *Apps*. The
+uninstaller asks whether to delete the data as well (default: no).
+
 **Updates.** At start, at most once a day, the program asks GitHub for the
 latest release and shows a bar when there is a newer one. Installed with
 the Windows installer, *Jetzt aktualisieren* downloads the new installer,

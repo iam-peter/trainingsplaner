@@ -201,20 +201,43 @@ jobs:
           $p = Start-Process Trainingsplaner/trainingsplaner.exe -ArgumentList "--db", "$env:RUNNER_TEMP\ci.sqlite", "--import", "ci.bak" -Wait -PassThru -NoNewWindow
           if ($p.ExitCode -ne 0) { throw "Import failed with $($p.ExitCode)" }
 
-          # Install silently as the program's update does, start the
-          # installed program, then uninstall; the data must stay
-          $dir = "$env:RUNNER_TEMP\tp-install"
-          $p = Start-Process ./trainingsplaner-windows-x64-setup.exe -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/NOLAUNCH=1", "/DIR=`"$dir`"" -Wait -PassThru
-          if ($p.ExitCode -ne 0) { throw "Setup failed with $($p.ExitCode)" }
-          if (-not (Test-Path "$dir\unins000.exe")) { throw "No uninstaller installed" }
-          $p = Start-Process "$dir\trainingsplaner.exe" -ArgumentList "--db", "$env:RUNNER_TEMP\ci2.sqlite", "--import", "ci.bak" -Wait -PassThru -NoNewWindow
+          # The installer as users meet it: fixed folder, Start menu entry
+          # and desktop shortcut, data in AppData that the uninstaller
+          # keeps unless told to remove it
+          function Install {
+            $p = Start-Process ./trainingsplaner-windows-x64-setup.exe -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/NOLAUNCH=1" -Wait -PassThru
+            if ($p.ExitCode -ne 0) { throw "Setup failed with $($p.ExitCode)" }
+          }
+          function Uninstall([string[]] $extra) {
+            $p = Start-Process "$dir\unins000.exe" -ArgumentList (@("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART") + $extra) -Wait -PassThru
+            if ($p.ExitCode -ne 0) { throw "Uninstall failed with $($p.ExitCode)" }
+            # The uninstaller runs on from a copy and removes itself
+            for ($i = 0; $i -lt 30 -and (Test-Path "$dir\trainingsplaner.exe"); $i++) { Start-Sleep -Seconds 1 }
+            if (Test-Path "$dir\trainingsplaner.exe") { throw "Program still there after uninstalling" }
+          }
+          $dir = "$env:LOCALAPPDATA\Programs\Trainingsplaner"
+          $menu = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Trainingsplaner.lnk"
+          $desktop = Join-Path ([Environment]::GetFolderPath("Desktop")) "Trainingsplaner.lnk"
+          $data = "$env:APPDATA\Trainingsplaner\Trainingsplaner\trainingsplaner.sqlite"
+
+          Install
+          foreach ($f in "$dir\trainingsplaner.exe", "$dir\unins000.exe", $menu, $desktop) {
+            if (-not (Test-Path $f)) { throw "Missing after installing: $f" }
+          }
+          # The installed program with its default database
+          $p = Start-Process "$dir\trainingsplaner.exe" -ArgumentList "--import", "ci.bak" -Wait -PassThru -NoNewWindow
           if ($p.ExitCode -ne 0) { throw "Installed program failed with $($p.ExitCode)" }
-          $p = Start-Process "$dir\unins000.exe" -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait -PassThru
-          if ($p.ExitCode -ne 0) { throw "Uninstall failed with $($p.ExitCode)" }
-          # The uninstaller removes itself a moment after it exits
-          Start-Sleep -Seconds 5
-          if (Test-Path "$dir\trainingsplaner.exe") { throw "Program still there after uninstalling" }
-          if (-not (Test-Path "$env:RUNNER_TEMP\ci2.sqlite")) { throw "Uninstalling removed the data" }
+          if (-not (Test-Path $data)) { throw "No database at $data" }
+
+          Uninstall @()
+          foreach ($f in $menu, $desktop) {
+            if (Test-Path $f) { throw "Still there after uninstalling: $f" }
+          }
+          if (-not (Test-Path $data)) { throw "Uninstalling removed the data without being asked" }
+
+          Install
+          Uninstall @("/REMOVEDATA=1")
+          if (Test-Path $data) { throw "Data still there after uninstalling with /REMOVEDATA=1" }
 
           # The update check reaches GitHub over TLS (2: answer, but no
           # release information, for example the API's rate limit)
