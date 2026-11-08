@@ -40,6 +40,8 @@ qt_add_qml_module(tpqml
         qml/ExercisePicker.qml
         qml/AthletesPage.qml
         qml/SettingsDialog.qml
+    RESOURCES
+        logo/trainingsplaner.png
 )
 target_link_libraries(tpqml PUBLIC
     tpcore
@@ -55,6 +57,21 @@ qt_add_executable(trainingsplaner WIN32 MACOSX_BUNDLE
 target_compile_definitions(trainingsplaner PRIVATE
     PROJECT_VERSION_STRING="${PROJECT_VERSION}")
 target_link_libraries(trainingsplaner PRIVATE tpqml tpqmlplugin)
+# The icon the file manager, taskbar and Dock show.
+set_target_properties(trainingsplaner PROPERTIES
+    MACOSX_BUNDLE_BUNDLE_NAME Trainingsplaner
+    MACOSX_BUNDLE_GUI_IDENTIFIER io.github.iam-peter.trainingsplaner
+    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
+    MACOSX_BUNDLE_ICON_FILE trainingsplaner.icns
+)
+if(WIN32)
+    target_sources(trainingsplaner PRIVATE logo/trainingsplaner.rc)
+elseif(APPLE)
+    target_sources(trainingsplaner PRIVATE logo/trainingsplaner.icns)
+    set_source_files_properties(logo/trainingsplaner.icns PROPERTIES
+        MACOSX_PACKAGE_LOCATION Resources)
+endif()
 
 enable_testing()
 
@@ -73,6 +90,13 @@ include(GNUInstallDirs)
 install(TARGETS trainingsplaner
     BUNDLE DESTINATION .
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+if(UNIX AND NOT APPLE)
+    # Desktop environments find the icon by the desktop file's Icon= name.
+    install(FILES logo/trainingsplaner.desktop
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+    install(FILES logo/trainingsplaner.svg
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps)
+endif()
 
 qt_generate_deploy_qml_app_script(
     TARGET trainingsplaner

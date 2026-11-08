@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Trainingsplaner
+GenericName=Trainingsplanung Gewichtheben
+GenericName[en]=Weightlifting Training Planner
+Comment=Wochenpläne für Gewichtheber planen, berechnen und drucken
+Comment[en]=Plan, calculate and print weekly weightlifting training
+Exec=trainingsplaner
+Icon=trainingsplaner
+Terminal=false
+Categories=Office;
+StartupWMClass=trainingsplaner

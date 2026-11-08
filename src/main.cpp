@@ -4,6 +4,7 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QDir>
+#include <QIcon>
 #include <QMessageBox>
 #include <QQmlApplicationEngine>
 #include <QQuickStyle>
@@ -23,6 +24,8 @@ int main(int argc, char *argv[])
     QApplication::setApplicationVersion(QStringLiteral(PROJECT_VERSION_STRING));
     QLocale::setDefault(QLocale(QLocale::German, QLocale::Germany));
     QQuickStyle::setStyle(QStringLiteral("Fusion"));
+    QApplication::setWindowIcon(QIcon(QStringLiteral(":/qt/qml/Trainingsplaner/logo/trainingsplaner.png")));
+    QGuiApplication::setDesktopFileName(QStringLiteral("trainingsplaner"));
 
     QCommandLineParser parser;
     parser.setApplicationDescription(QStringLiteral("Trainingsplanung Gewichtheben"));
