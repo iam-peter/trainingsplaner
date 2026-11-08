@@ -48,6 +48,7 @@ qt_add_qml_module(tpqml
         src/analysisapi.cpp src/analysisapi.h
     QML_FILES
         qml/Main.qml
+        qml/KeyMenuItem.qml
         qml/WeekPage.qml
         qml/SessionCell.qml
         qml/SessionDialog.qml

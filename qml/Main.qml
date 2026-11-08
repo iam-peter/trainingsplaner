@@ -119,6 +119,27 @@ ApplicationWindow {
         }
     }
 
+    // Undo and redo changes to sessions from every page; they show the week
+    // that changed. Text fields keep their own Ctrl+Z.
+    Shortcut {
+        sequence: StandardKey.Undo
+        enabled: DialogStack.open === 0 && Store.undoLabel !== ""
+        onActivated: window.showChange(Store.undo())
+    }
+    Shortcut {
+        sequences: [StandardKey.Redo, "Ctrl+Y"]
+        enabled: DialogStack.open === 0 && Store.redoLabel !== ""
+        onActivated: window.showChange(Store.redo())
+    }
+
+    function showChange(change) {
+        if (!change.athleteId)
+            return
+        athlete = change.athleteId
+        weekPage.show(change)
+        tabs.currentIndex = 0
+    }
+
     // Ctrl+1 … Ctrl+5 switch pages
     Repeater {
         model: 5

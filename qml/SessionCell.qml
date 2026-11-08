@@ -5,7 +5,8 @@ import QtQuick.Layouts
 import Trainingsplaner
 
 // One training session in the week grid. Click or Enter to edit, Delete
-// to remove, arrow keys to move to the neighbouring session.
+// to remove, arrow keys to move to the neighbouring session, right click
+// or the menu key for more.
 Rectangle {
     id: cell
 
@@ -15,6 +16,10 @@ Rectangle {
     signal clicked()
     signal deleteRequested()
     signal moveRequested(int days, int sessions)
+    signal copyRequested()
+    signal pasteRequested()
+    // exercise: the weight exercise under the pointer, 0 for none
+    signal menuRequested(int exercise, real x, real y)
     // A weight exercise line was clicked: edit that exercise for the week
     signal exerciseClicked(int exercise)
 
@@ -32,6 +37,17 @@ Rectangle {
     Keys.onEnterPressed: cell.clicked()
     Keys.onSpacePressed: cell.clicked()
     Keys.onDeletePressed: if (cell.filled) cell.deleteRequested()
+    Keys.onPressed: (event) => {
+        if (event.matches(StandardKey.Copy))
+            cell.copyRequested()
+        else if (event.matches(StandardKey.Paste))
+            cell.pasteRequested()
+        else if (event.key === Qt.Key_Menu || (event.key === Qt.Key_F10 && event.modifiers === Qt.ShiftModifier))
+            cell.menuRequested(0, 16, 16)
+        else
+            return
+        event.accepted = true
+    }
     Keys.onLeftPressed: (event) => { if (event.modifiers === Qt.NoModifier) cell.moveRequested(-1, 0); else event.accepted = false }
     Keys.onRightPressed: (event) => { if (event.modifiers === Qt.NoModifier) cell.moveRequested(1, 0); else event.accepted = false }
     Keys.onUpPressed: (event) => { if (event.modifiers === Qt.NoModifier) cell.moveRequested(0, -1); else event.accepted = false }
@@ -42,9 +58,13 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: {
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        onClicked: (mouseEvent) => {
             cell.forceActiveFocus()
-            cell.clicked()
+            if (mouseEvent.button === Qt.RightButton)
+                cell.menuRequested(0, mouseEvent.x, mouseEvent.y)
+            else
+                cell.clicked()
         }
     }
 
@@ -98,10 +118,14 @@ Rectangle {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: line.weights ? Qt.PointingHandCursor : Qt.ArrowCursor
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton
                     // Other lines pass clicks on to the cell (open the session)
-                    onClicked: {
+                    onClicked: (mouseEvent) => {
                         cell.forceActiveFocus()
-                        if (line.weights)
+                        if (mouseEvent.button === Qt.RightButton) {
+                            const p = mapToItem(cell, mouseEvent.x, mouseEvent.y)
+                            cell.menuRequested(line.weights ? line.modelData.exercise : 0, p.x, p.y)
+                        } else if (line.weights)
                             cell.exerciseClicked(line.modelData.exercise)
                         else
                             cell.clicked()

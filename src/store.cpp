@@ -769,18 +769,150 @@ QVariantMap Store::session(const QString &athleteId, const QString &monday,
 bool Store::saveSession(const QString &athleteId, const QString &monday, const QString &variant,
                         const QVariantMap &session)
 {
-    const bool ok = Database::saveSession(athleteId, toDate(monday), toVariant(variant),
-                                          sessionFromMap(session));
-    bump();
-    return ok;
+    const Session s = sessionFromMap(session);
+    return changeWeek(sessionTitle(s.day, s.number) + QStringLiteral(" speichern"), athleteId, monday,
+                      variant, [&] {
+        return Database::saveSession(athleteId, toDate(monday), toVariant(variant), s);
+    });
 }
 
 bool Store::removeSession(const QString &athleteId, const QString &monday,
                           const QString &variant, int day, int number)
 {
-    const bool ok = Database::removeSession(athleteId, toDate(monday), toVariant(variant), day, number);
+    return changeWeek(sessionTitle(day, number) + QStringLiteral(" löschen"), athleteId, monday,
+                      variant, [&] {
+        return Database::removeSession(athleteId, toDate(monday), toVariant(variant), day, number);
+    });
+}
+
+void Store::copySession(const QString &athleteId, const QString &monday, const QString &variant,
+                        int day, int number)
+{
+    const Week w = loadWeek(athleteId, monday, variant);
+    const Session *s = w.session(day, number);
+    if (!s)
+        return;
+    m_sessionClip = *s;
+    m_sessionClipLabel = QStringLiteral("%1, Woche %2 (%3)")
+                             .arg(sessionTitle(day, number), Weeks::label(toDate(monday)),
+                                  toVariant(variant) == Variant::Plan ? QStringLiteral("Plan") : QStringLiteral("Ist"));
+    emit clipboardChanged();
+}
+
+bool Store::pasteSession(const QString &athleteId, const QString &monday, const QString &variant,
+                         int day, int number)
+{
+    if (!m_sessionClip || day < 1 || day > 7 || number < 1 || number > 3)
+        return false;
+    Session s = *m_sessionClip;
+    s.day = day;
+    s.number = number;
+    return changeWeek(sessionTitle(day, number) + QStringLiteral(" einfügen"), athleteId, monday,
+                      variant, [&] {
+        return Database::saveSession(athleteId, toDate(monday), toVariant(variant), s);
+    });
+}
+
+bool Store::planToActual(const QString &athleteId, const QString &monday, int day, int number)
+{
+    const Week plan = loadWeek(athleteId, monday, QStringLiteral("P"));
+    const Session *s = plan.session(day, number);
+    if (!s)
+        return false;
+    const Session copy = *s;
+    return changeWeek(sessionTitle(day, number) + QStringLiteral(": Ist = Plan"), athleteId, monday,
+                      QStringLiteral("I"), [&] {
+        return Database::saveSession(athleteId, toDate(monday), Variant::Actual, copy);
+    });
+}
+
+namespace {
+
+bool sameSessions(const QList<Session> &a, const QList<Session> &b)
+{
+    if (a.size() != b.size())
+        return false;
+    for (qsizetype i = 0; i < a.size(); ++i) {
+        if (sessionToMap(a.at(i), true) != sessionToMap(b.at(i), true))
+            return false;
+    }
+    return true;
+}
+
+constexpr qsizetype kUndoLimit = 100;
+
+} // namespace
+
+bool Store::changeWeek(const QString &label, const QString &athleteId, const QString &monday,
+                       const QString &variant, const std::function<bool()> &op)
+{
+    WeekChange c;
+    c.label = label;
+    c.athleteId = athleteId;
+    c.monday = toDate(monday);
+    c.variant = toVariant(variant);
+    c.before = Database::loadWeek(athleteId, c.monday, c.variant).sessions;
+    const bool ok = op();
+    c.after = Database::loadWeek(athleteId, c.monday, c.variant).sessions;
+    if (!sameSessions(c.before, c.after)) {
+        m_undo.append(c);
+        if (m_undo.size() > kUndoLimit)
+            m_undo.removeFirst();
+        m_redo.clear();
+        emit undoChanged();
+    }
     bump();
     return ok;
+}
+
+QVariantMap Store::restore(const WeekChange &c, bool back)
+{
+    Database::replaceSessions(c.athleteId, c.monday, c.variant, back ? c.before : c.after);
+    emit undoChanged();
+    bump();
+    return {
+        {QStringLiteral("athleteId"), c.athleteId},
+        {QStringLiteral("monday"), c.monday.toString(Qt::ISODate)},
+        {QStringLiteral("variant"), c.variant == Variant::Plan ? QStringLiteral("P") : QStringLiteral("I")},
+        {QStringLiteral("label"), c.label},
+    };
+}
+
+QVariantMap Store::undo()
+{
+    if (m_undo.isEmpty())
+        return {};
+    const WeekChange c = m_undo.takeLast();
+    m_redo.append(c);
+    return restore(c, true);
+}
+
+QVariantMap Store::redo()
+{
+    if (m_redo.isEmpty())
+        return {};
+    const WeekChange c = m_redo.takeLast();
+    m_undo.append(c);
+    return restore(c, false);
+}
+
+QString Store::undoLabel() const
+{
+    return m_undo.isEmpty() ? QString() : m_undo.last().label;
+}
+
+QString Store::redoLabel() const
+{
+    return m_redo.isEmpty() ? QString() : m_redo.last().label;
+}
+
+// Forgets the changes of one athlete, or all changes
+void Store::clearUndo(const QString &athleteId)
+{
+    const auto match = [&](const WeekChange &c) { return athleteId.isEmpty() || c.athleteId == athleteId; };
+    const qsizetype n = m_undo.removeIf(match) + m_redo.removeIf(match);
+    if (n > 0)
+        emit undoChanged();
 }
 
 bool Store::saveWeekNote(const QString &athleteId, const QString &monday, const QString &variant,
@@ -802,9 +934,13 @@ int Store::pasteWeek(const QString &athleteId, const QString &monday, const QStr
 {
     if (!m_clip)
         return -1;
-    const int n = Database::copyWeek(m_clip->athleteId, m_clip->monday, m_clip->variant, athleteId,
-                                     toDate(monday), toVariant(variant));
-    bump();
+    int n = -1;
+    changeWeek(QStringLiteral("Woche %1 einfügen").arg(Weeks::label(toDate(monday))), athleteId,
+               monday, variant, [&] {
+        n = Database::copyWeek(m_clip->athleteId, m_clip->monday, m_clip->variant, athleteId,
+                               toDate(monday), toVariant(variant));
+        return n >= 0;
+    });
     return n;
 }
 
@@ -850,20 +986,21 @@ bool Store::saveExerciseWeek(const QString &athleteId, const QString &monday,
 
     const QDate date = toDate(monday);
     const Variant v = toVariant(variant);
-    Week w = Database::loadWeek(athleteId, date, v);
-    bool ok = true;
-    for (const auto &key : ExerciseWeek::apply(w, exercise, edited)) {
-        const Session *s = w.session(key.first, key.second);
-        if (!s)
-            continue;
-        // A session that lost its last line and has no note is gone.
-        if (s->entries.isEmpty() && s->note.trimmed().isEmpty())
-            ok = Database::removeSession(athleteId, date, v, s->day, s->number) && ok;
-        else
-            ok = Database::saveSession(athleteId, date, v, *s) && ok;
-    }
-    bump();
-    return ok;
+    return changeWeek(QStringLiteral("Übung %1 bearbeiten").arg(exercise), athleteId, monday, variant, [&] {
+        Week w = Database::loadWeek(athleteId, date, v);
+        bool ok = true;
+        for (const auto &key : ExerciseWeek::apply(w, exercise, edited)) {
+            const Session *s = w.session(key.first, key.second);
+            if (!s)
+                continue;
+            // A session that lost its last line and has no note is gone.
+            if (s->entries.isEmpty() && s->note.trimmed().isEmpty())
+                ok = Database::removeSession(athleteId, date, v, s->day, s->number) && ok;
+            else
+                ok = Database::saveSession(athleteId, date, v, *s) && ok;
+        }
+        return ok;
+    });
 }
 
 namespace {
@@ -1089,6 +1226,7 @@ QString Store::saveAthlete(const QVariantMap &m)
 bool Store::removeAthlete(const QString &athleteId)
 {
     const bool ok = Database::removeAthlete(athleteId);
+    clearUndo(athleteId);
     if (m_clip && m_clip->athleteId == athleteId) {
         m_clip.reset();
         emit clipboardChanged();
@@ -1210,6 +1348,7 @@ QString Store::lastExport() const
 QString Store::importBak(const QUrl &file, bool ignoreTimestamps)
 {
     const BakImport::Result r = BakImport::importFile(file.toLocalFile(), ignoreTimestamps);
+    clearUndo();
     emit athletesChanged();
     bump();
     QString text = r.summary();

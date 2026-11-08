@@ -37,6 +37,9 @@ bool removeSession(const QString &athleteId, const QDate &monday, Variant varian
                    int number);
 bool saveWeekNote(const QString &athleteId, const QDate &monday, Variant variant,
                   const QString &note, bool injured);
+// Replaces all sessions of a week with the given ones.
+bool replaceSessions(const QString &athleteId, const QDate &monday, Variant variant,
+                     const QList<Session> &sessions);
 // Replaces the sessions of the target week with copies of the source week.
 // Returns the number of sessions copied, or -1 on error.
 int copyWeek(const QString &fromAthlete, const QDate &fromMonday, Variant fromVariant,

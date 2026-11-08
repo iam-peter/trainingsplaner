@@ -742,6 +742,13 @@ int copyWeek(const QString &fromAthlete, const QDate &fromMonday, Variant fromVa
              const QString &toAthlete, const QDate &toMonday, Variant toVariant)
 {
     const Week source = loadWeek(fromAthlete, fromMonday, fromVariant);
+    return replaceSessions(toAthlete, toMonday, toVariant, source.sessions)
+               ? int(source.sessions.size()) : -1;
+}
+
+bool replaceSessions(const QString &toAthlete, const QDate &toMonday, Variant toVariant,
+                     const QList<Session> &sessions)
+{
     const Week target = loadWeek(toAthlete, toMonday, toVariant);
 
     QSqlDatabase d = db();
@@ -754,19 +761,17 @@ int copyWeek(const QString &fromAthlete, const QDate &fromMonday, Variant fromVa
                             {toAthlete, dateString(toMonday), s.day, s.number, variantString(toVariant)},
                             stamp)) {
                 d.rollback();
-                return -1;
+                return false;
             }
         }
     }
-    for (const Session &s : source.sessions) {
+    for (const Session &s : sessions) {
         if (!insertSession(toAthlete, toMonday, toVariant, s, stamp)) {
             d.rollback();
-            return -1;
+            return false;
         }
     }
-    if (!d.commit())
-        return -1;
-    return int(source.sessions.size());
+    return d.commit();
 }
 
 } // namespace Database

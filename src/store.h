@@ -8,6 +8,7 @@
 #include <QVariant>
 #include <QtQml/qqmlregistration.h>
 
+#include <functional>
 #include <optional>
 
 // The QML-facing API. Dates cross the boundary as ISO strings
@@ -39,6 +40,10 @@ class Store : public QObject
     // Steps for the arrow keys in weight fields and for computed weights: 2.5 or 1
     Q_PROPERTY(double weightStep READ weightStep WRITE setWeightStep NOTIFY settingsChanged)
     Q_PROPERTY(QString clipboardLabel READ clipboardLabel NOTIFY clipboardChanged)
+    Q_PROPERTY(QString sessionClipboardLabel READ sessionClipboardLabel NOTIFY clipboardChanged)
+    // What Ctrl+Z / Ctrl+Y would do, "" when there is nothing
+    Q_PROPERTY(QString undoLabel READ undoLabel NOTIFY undoChanged)
+    Q_PROPERTY(QString redoLabel READ redoLabel NOTIFY undoChanged)
     Q_PROPERTY(int dataVersion READ dataVersion NOTIFY dataChanged)
 
 public:
@@ -69,6 +74,9 @@ public:
     // Next weight up or down by weightStep, rounded to whole kg (100, 102, 105, 107 ...)
     Q_INVOKABLE int stepWeight(int kg, int direction) const;
     QString clipboardLabel() const;
+    QString sessionClipboardLabel() const { return m_sessionClipLabel; }
+    QString undoLabel() const;
+    QString redoLabel() const;
     int dataVersion() const { return m_dataVersion; }
 
     // Weeks and sessions
@@ -87,6 +95,20 @@ public:
     // Returns the number of sessions pasted, -1 on error.
     Q_INVOKABLE int pasteWeek(const QString &athleteId, const QString &monday,
                               const QString &variant);
+    // One session: copied as it is now, pasted in place of the target session
+    Q_INVOKABLE void copySession(const QString &athleteId, const QString &monday,
+                                 const QString &variant, int day, int number);
+    Q_INVOKABLE bool pasteSession(const QString &athleteId, const QString &monday,
+                                  const QString &variant, int day, int number);
+    // Takes the planned session over as the actual one ("Ist = Plan")
+    Q_INVOKABLE bool planToActual(const QString &athleteId, const QString &monday, int day,
+                                  int number);
+
+    // Undo and redo the changes to sessions (save, delete, paste, Ist = Plan).
+    // Return the week that changed {athleteId, monday, variant, label}, or an
+    // empty map when there was nothing to do.
+    Q_INVOKABLE QVariantMap undo();
+    Q_INVOKABLE QVariantMap redo();
 
     // One exercise across the week ("Erfassung TÜ")
     Q_INVOKABLE QVariantMap exerciseWeek(const QString &athleteId, const QString &monday,
@@ -186,10 +208,15 @@ signals:
     void athletesChanged();
     void settingsChanged();
     void clipboardChanged();
+    void undoChanged();
     void dataChanged();
 
 private:
     void bump();
+    // Runs op, which changes one week, and records the change for undo
+    bool changeWeek(const QString &label, const QString &athleteId, const QString &monday,
+                    const QString &variant, const std::function<bool()> &op);
+    void clearUndo(const QString &athleteId = QString());
     Week loadWeek(const QString &athleteId, const QString &monday, const QString &variant) const;
 
     int m_dataVersion = 0;
@@ -200,4 +227,19 @@ private:
         Variant variant = Variant::Plan;
     };
     std::optional<Clip> m_clip;
+    std::optional<Session> m_sessionClip;
+    QString m_sessionClipLabel;
+
+    struct WeekChange
+    {
+        QString label;
+        QString athleteId;
+        QDate monday;
+        Variant variant = Variant::Plan;
+        QList<Session> before;
+        QList<Session> after;
+    };
+    QList<WeekChange> m_undo;
+    QList<WeekChange> m_redo;
+    QVariantMap restore(const WeekChange &change, bool back);
 };

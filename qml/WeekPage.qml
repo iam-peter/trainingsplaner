@@ -119,6 +119,25 @@ Page {
         removeConfirm.open()
     }
 
+    function copySession(day, number) {
+        if (hasAthlete && sessionAt(day, number))
+            Store.copySession(athleteId, monday, variant, day, number)
+    }
+
+    function pasteSession(day, number) {
+        if (hasAthlete && Store.sessionClipboardLabel !== "")
+            Store.pasteSession(athleteId, monday, variant, day, number)
+    }
+
+    // Shows the week an undo or redo changed
+    function show(change) {
+        if (!change.athleteId)
+            return
+        athleteId = change.athleteId
+        monday = change.monday
+        variant = change.variant
+    }
+
     function printWeek() {
         if (!hasAthlete)
             return
@@ -264,6 +283,19 @@ Page {
             Item { Layout.fillWidth: true }
 
             IconButton {
+                iconName: "undo-2"
+                enabled: Store.undoLabel !== ""
+                toolTip: "Rückgängig: " + Store.undoLabel + " (Strg+Z)"
+                onClicked: page.show(Store.undo())
+            }
+            IconButton {
+                iconName: "redo-2"
+                enabled: Store.redoLabel !== ""
+                toolTip: "Wiederholen: " + Store.redoLabel + " (Strg+Y)"
+                onClicked: page.show(Store.redo())
+            }
+
+            IconButton {
                 iconName: "copy"
                 text: "Woche kopieren"
                 enabled: page.hasAthlete && page.weekData.empty === false
@@ -361,6 +393,9 @@ Page {
                     onExerciseClicked: (exercise) => page.openExercise(exercise)
                     onDeleteRequested: page.askRemoveSession(day, number)
                     onMoveRequested: (days, sessions) => page.focusSession(day + days, number + sessions)
+                    onCopyRequested: page.copySession(day, number)
+                    onPasteRequested: page.pasteSession(day, number)
+                    onMenuRequested: (exercise, x, y) => sessionMenu.show(this, day, number, exercise, x, y)
                 }
             }
         }
@@ -540,6 +575,93 @@ Page {
             text: "Die angezeigte Woche enthält schon Trainingseinheiten.\nSie werden durch die kopierte Woche ersetzt:\n" + Store.clipboardLabel
         }
         onAccepted: Store.pasteWeek(page.athleteId, page.monday, page.variant)
+    }
+
+    // Right click on a session or one of its lines
+    Menu {
+        id: sessionMenu
+        objectName: "sessionMenu"
+        property int day: 1
+        property int number: 1
+        property int exercise: 0
+        readonly property bool filled: page.sessionAt(day, number) !== null
+        readonly property bool hasPlan: page.hasAthlete && opened
+                                        && Store.session(page.athleteId, page.monday, "P", day, number).exists
+
+        // As wide as the longest entry (Menu's own width is fixed)
+        width: {
+            let w = 200
+            for (let i = 0; i < count; ++i) {
+                const it = itemAt(i)
+                if (it && it.visible)
+                    w = Math.max(w, it.implicitWidth)
+            }
+            return w + leftPadding + rightPadding
+        }
+
+        function show(cell, d, n, ex, x, y) {
+            day = d
+            number = n
+            exercise = ex
+            popup(cell, x, y)
+        }
+
+        KeyMenuItem {
+            text: "Bearbeiten…"
+            keys: "Enter"
+            onTriggered: page.openSession(sessionMenu.day, sessionMenu.number)
+        }
+        MenuItem {
+            visible: sessionMenu.exercise > 0
+            height: visible ? implicitHeight : 0
+            text: "Übung " + sessionMenu.exercise + " für die Woche bearbeiten…"
+            onTriggered: page.openExercise(sessionMenu.exercise)
+        }
+        MenuItem {
+            visible: sessionMenu.exercise > 0
+            height: visible ? implicitHeight : 0
+            text: "Verlauf von Übung " + sessionMenu.exercise + "…"
+            onTriggered: historyDialog.show(page.athleteId, page.monday, page.variant, sessionMenu.exercise, false)
+        }
+        MenuSeparator {}
+        KeyMenuItem {
+            text: "Kopieren"
+            enabled: sessionMenu.filled
+            onTriggered: page.copySession(sessionMenu.day, sessionMenu.number)
+            keys: "Strg+C"
+        }
+        KeyMenuItem {
+            text: Store.sessionClipboardLabel !== "" ? "Einfügen: " + Store.sessionClipboardLabel
+                                                     : "Einfügen"
+            enabled: Store.sessionClipboardLabel !== ""
+            onTriggered: page.pasteSession(sessionMenu.day, sessionMenu.number)
+            keys: "Strg+V"
+        }
+        MenuItem {
+            // Ist = Plan: the planned session becomes the actual one
+            text: page.variant === "P" ? "Als Ist übernehmen" : "Ist = Plan"
+            enabled: sessionMenu.hasPlan
+            onTriggered: Store.planToActual(page.athleteId, page.monday, sessionMenu.day, sessionMenu.number)
+        }
+        KeyMenuItem {
+            text: "Löschen…"
+            enabled: sessionMenu.filled
+            onTriggered: page.askRemoveSession(sessionMenu.day, sessionMenu.number)
+            keys: "Entf"
+        }
+        MenuSeparator {}
+        KeyMenuItem {
+            text: Store.undoLabel !== "" ? "Rückgängig: " + Store.undoLabel : "Rückgängig"
+            enabled: Store.undoLabel !== ""
+            onTriggered: page.show(Store.undo())
+            keys: "Strg+Z"
+        }
+        KeyMenuItem {
+            text: Store.redoLabel !== "" ? "Wiederholen: " + Store.redoLabel : "Wiederholen"
+            enabled: Store.redoLabel !== ""
+            onTriggered: page.show(Store.redo())
+            keys: "Strg+Y"
+        }
     }
 
     AppDialog {

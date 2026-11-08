@@ -72,6 +72,28 @@ Item {
             compare(page.sessionAt(2, 2), null)
         }
 
+        function test_copyPasteAndUndo() {
+            page.focusSession(2, 2)
+            keyClick(Qt.Key_C, Qt.ControlModifier)
+            page.focusSession(3, 1)
+            keyClick(Qt.Key_V, Qt.ControlModifier)
+            verify(page.sessionAt(3, 1) !== null)
+            page.show(Store.undo())
+            compare(page.sessionAt(3, 1), null)
+        }
+
+        function test_contextMenu() {
+            const menu = findChild(page, "sessionMenu")
+            verify(menu)
+            mouseClick(cell(2, 2), 20, 40, Qt.RightButton)
+            tryCompare(menu, "opened", true)
+            compare(menu.day, 2)
+            compare(menu.number, 2)
+            keyClick(Qt.Key_Escape)
+            tryCompare(menu, "visible", false)
+            tryVerify(() => cell(2, 2).activeFocus)   // keys work again at once
+        }
+
         function test_weeksAndDialogs() {
             page.focusSession(1, 1)
             keyClick(Qt.Key_Right, Qt.ControlModifier)
