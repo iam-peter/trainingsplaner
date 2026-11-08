@@ -333,15 +333,22 @@ Page {
                     spacing: 0
                     Repeater {
                         model: page.weekData.groups || []
-                        Rectangle {
+                        // All cells stretch to the tallest one; a line on
+                        // the left separates them.
+                        Item {
                             required property var modelData
                             required property int index
                             Layout.fillWidth: true
+                            Layout.fillHeight: true
                             Layout.preferredWidth: 1
                             Layout.preferredHeight: Math.max(54, groupColumn.implicitHeight + 10)
-                            color: "transparent"
-                            border.color: palette.mid
-                            border.width: index > 0 ? 1 : 0
+
+                            Rectangle {
+                                visible: index > 0
+                                width: 1
+                                height: parent.height
+                                color: palette.mid
+                            }
 
                             ColumnLayout {
                                 id: groupColumn
