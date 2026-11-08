@@ -114,13 +114,13 @@ AppDialog {
     contentItem: ColumnLayout {
         spacing: 10
 
-        TabBar {
+        AppTabBar {
             id: tabs
             Layout.fillWidth: true
-            TabButton { text: "Ausdruck" }
-            TabButton { text: "Trainingszeiten" }
-            TabButton { text: "Zusatzinfo" }
-            TabButton { text: "Allgemein" }
+            AppTabButton { text: "Ausdruck" }
+            AppTabButton { text: "Trainingszeiten" }
+            AppTabButton { text: "Zusatzinfo" }
+            AppTabButton { text: "Allgemein" }
         }
 
         StackLayout {

@@ -190,7 +190,7 @@ Page {
     }
     Component.onDestruction: saveNote()
 
-    header: ToolBar {
+    header: AppToolBar {
         RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 8

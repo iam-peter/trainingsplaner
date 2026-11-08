@@ -64,6 +64,27 @@ Page {
 
     readonly property bool bornValid: bornField.text.trim() === "" || Store.parseDate(bornField.text) !== ""
 
+    // Like every page, so switching pages does not shift the content
+    header: AppToolBar {
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 8
+            anchors.rightMargin: 8
+            spacing: 6
+            IconButton {
+                iconName: "user-plus"
+                text: "Neuer Sportler"
+                onClicked: page.select("")
+            }
+            Label {
+                Layout.leftMargin: 8
+                text: Store.athletes.length === 1 ? "1 Sportler" : Store.athletes.length + " Sportler"
+                color: palette.placeholderText
+            }
+            Item { Layout.fillWidth: true }
+        }
+    }
+
     RowLayout {
         anchors.fill: parent
         anchors.margins: 12
@@ -78,11 +99,6 @@ Page {
                 anchors.fill: parent
                 spacing: 0
 
-                Label {
-                    Layout.margins: 8
-                    text: Store.athletes.length + " Sportler"
-                    font.bold: true
-                }
                 ListView {
                     id: list
                     Layout.fillWidth: true
@@ -97,13 +113,6 @@ Page {
                         onClicked: page.select(modelData.id)
                     }
                     ScrollBar.vertical: ScrollBar {}
-                }
-                IconButton {
-                    Layout.fillWidth: true
-                    Layout.margins: 8
-                    iconName: "user-plus"
-                    text: "Neuer Sportler"
-                    onClicked: page.select("")
                 }
             }
         }

@@ -40,11 +40,11 @@ AppDialog {
         spacing: 8
 
         RowLayout {
-            TabBar {
+            AppTabBar {
                 id: tabs
                 Layout.preferredWidth: 260
-                TabButton { text: "Verlauf" }
-                TabButton { text: "Grafik" }
+                AppTabButton { text: "Verlauf" }
+                AppTabButton { text: "Grafik" }
             }
             Item { Layout.fillWidth: true }
             Label { text: "Wochen:" }

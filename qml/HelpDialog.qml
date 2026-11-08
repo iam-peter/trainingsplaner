@@ -23,7 +23,7 @@ AppDialog {
         ["Strg+S", "Speichern"],
         ["Esc", "Dialog schließen"],
         ["Strg+P", "Wochenplan drucken"],
-        ["Strg+1 … Strg+5", "Wochenplan, Sportler, Planung, Analyse, Wettkämpfe"],
+        ["Strg+1 … Strg+5", "Sportler, Wochenplan, Planung, Analyse, Wettkämpfe"],
         ["F1", "Diese Hilfe"]
     ]
 
@@ -31,12 +31,12 @@ AppDialog {
         anchors.fill: parent
         spacing: 8
 
-        TabBar {
+        AppTabBar {
             id: tabs
             Layout.fillWidth: true
-            TabButton { text: "Begriffe" }
-            TabButton { text: "Tastatur" }
-            TabButton { text: "Erste Schritte" }
+            AppTabButton { text: "Begriffe" }
+            AppTabButton { text: "Tastatur" }
+            AppTabButton { text: "Erste Schritte" }
         }
 
         StackLayout {

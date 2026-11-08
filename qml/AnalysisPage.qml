@@ -44,17 +44,17 @@ Page {
         }
     }
 
-    header: ToolBar {
+    header: AppToolBar {
         RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 8
-            TabBar {
+            AppTabBar {
                 id: tabs
                 Layout.preferredWidth: 560
-                TabButton { text: "Individualanalyse" }
-                TabButton { text: "Gruppenanalyse" }
-                TabButton { text: "Datenprüfung" }
-                TabButton { text: "Grafik" }
+                AppTabButton { text: "Individualanalyse" }
+                AppTabButton { text: "Gruppenanalyse" }
+                AppTabButton { text: "Datenprüfung" }
+                AppTabButton { text: "Grafik" }
             }
             Item { Layout.fillWidth: true }
         }

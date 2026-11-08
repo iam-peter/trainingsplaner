@@ -53,17 +53,17 @@ Page {
         function onChanged() { itpGrid.model.reload(); page.reloadSteps() }
     }
 
-    header: ToolBar {
+    header: AppToolBar {
         RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 8
             anchors.rightMargin: 8
-            TabBar {
+            AppTabBar {
                 id: tabs
                 Layout.preferredWidth: 420
-                TabButton { text: "MAZ" }
-                TabButton { text: "ITP / RO" }
-                TabButton { text: "Laststufen" }
+                AppTabButton { text: "MAZ" }
+                AppTabButton { text: "ITP / RO" }
+                AppTabButton { text: "Laststufen" }
             }
             Item { Layout.fillWidth: true }
         }

@@ -13,6 +13,13 @@ ApplicationWindow {
     property string startPage
     property string startSession
 
+    // The pages in the order of the tabs
+    readonly property int athletesTab: 0
+    readonly property int weekTab: 1
+    readonly property int planningTab: 2
+    readonly property int analysisTab: 3
+    readonly property int competitionsTab: 4
+
     // The athlete all pages show: choosing one on any page selects them on
     // the others too
     property string athlete
@@ -43,49 +50,22 @@ ApplicationWindow {
     palette.toolTipText: Theme.system.toolTipText
     palette.link: Theme.link
 
-    header: ToolBar {
+    header: AppToolBar {
         RowLayout {
             anchors.fill: parent
+            anchors.leftMargin: 6
+            anchors.rightMargin: 6
             spacing: 8
 
-            TabBar {
+            AppTabBar {
                 id: tabs
                 Layout.preferredWidth: 720
-                TabButton {
-                    text: "Wochenplan"
-                    icon.source: "qrc:/qt/qml/Trainingsplaner/icons/calendar-days.svg"
-                    icon.color: palette.buttonText
-                    icon.width: 16
-                    icon.height: 16
-                }
-                TabButton {
-                    text: "Sportler"
-                    icon.source: "qrc:/qt/qml/Trainingsplaner/icons/users.svg"
-                    icon.color: palette.buttonText
-                    icon.width: 16
-                    icon.height: 16
-                }
-                TabButton {
-                    text: "Planung"
-                    icon.source: "qrc:/qt/qml/Trainingsplaner/icons/target.svg"
-                    icon.color: palette.buttonText
-                    icon.width: 16
-                    icon.height: 16
-                }
-                TabButton {
-                    text: "Analyse"
-                    icon.source: "qrc:/qt/qml/Trainingsplaner/icons/chart-line.svg"
-                    icon.color: palette.buttonText
-                    icon.width: 16
-                    icon.height: 16
-                }
-                TabButton {
-                    text: "Wettkämpfe"
-                    icon.source: "qrc:/qt/qml/Trainingsplaner/icons/trophy.svg"
-                    icon.color: palette.buttonText
-                    icon.width: 16
-                    icon.height: 16
-                }
+                currentIndex: window.weekTab
+                AppTabButton { text: "Sportler"; iconName: "users" }
+                AppTabButton { text: "Wochenplan"; iconName: "calendar-days" }
+                AppTabButton { text: "Planung"; iconName: "target" }
+                AppTabButton { text: "Analyse"; iconName: "chart-line" }
+                AppTabButton { text: "Wettkämpfe"; iconName: "trophy" }
             }
 
             Item { Layout.fillWidth: true }
@@ -177,10 +157,10 @@ ApplicationWindow {
             return
         athlete = change.athleteId
         weekPage.show(change)
-        tabs.currentIndex = 0
+        tabs.currentIndex = weekTab
     }
 
-    // Ctrl+1 … Ctrl+5 switch pages
+    // Ctrl+1 … Ctrl+5 switch pages, in the order of the tabs
     Repeater {
         model: 5
         Item {
@@ -234,12 +214,6 @@ ApplicationWindow {
             Layout.fillHeight: true
             currentIndex: tabs.currentIndex
 
-            WeekPage {
-                id: weekPage
-                objectName: "weekPage"
-                onAthleteIdChanged: window.athlete = athleteId
-            }
-
             AthletesPage {
                 id: athletesPage
                 objectName: "athletesPage"
@@ -249,8 +223,14 @@ ApplicationWindow {
                                       select(window.athlete)
                 onOpenWeekPlan: (athleteId) => {
                     window.athlete = athleteId
-                    tabs.currentIndex = 0
+                    tabs.currentIndex = window.weekTab
                 }
+            }
+
+            WeekPage {
+                id: weekPage
+                objectName: "weekPage"
+                onAthleteIdChanged: window.athlete = athleteId
             }
 
             PlanningPage {
@@ -360,7 +340,7 @@ ApplicationWindow {
         onImportRequested: importDialog.open()
         onDemoCreated: (athleteId) => {
             window.athlete = athleteId
-            tabs.currentIndex = 0
+            tabs.currentIndex = window.weekTab
         }
     }
 
@@ -377,17 +357,17 @@ ApplicationWindow {
         if (startAthlete !== "")
             athlete = startAthlete
         if (startPage === "sportler")
-            tabs.currentIndex = 1
+            tabs.currentIndex = athletesTab
         if (startPage === "planung") {
-            tabs.currentIndex = 2
+            tabs.currentIndex = planningTab
             planningPage.showTab(startSession)
         }
         if (startPage === "analyse") {
-            tabs.currentIndex = 3
+            tabs.currentIndex = analysisTab
             Qt.callLater(analysisPage.show, startSession)
         }
         if (startPage === "wettkaempfe") {
-            tabs.currentIndex = 4
+            tabs.currentIndex = competitionsTab
             if (startSession === "grafik")
                 competitionsPage.showChart()
         }

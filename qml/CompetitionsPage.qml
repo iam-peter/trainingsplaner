@@ -106,7 +106,7 @@ Page {
         edit(null)
     }
 
-    header: ToolBar {
+    header: AppToolBar {
         RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 8
@@ -120,11 +120,11 @@ Page {
                 displayText: currentIndex < 0 ? "Sportler wählen" : currentText
                 onActivated: page.athleteId = currentValue
             }
-            TabBar {
+            AppTabBar {
                 id: tabs
                 Layout.preferredWidth: 260
-                TabButton { text: "Ergebnisse" }
-                TabButton { text: "Grafik" }
+                AppTabButton { text: "Ergebnisse" }
+                AppTabButton { text: "Grafik" }
             }
             Item { Layout.fillWidth: true }
         }
