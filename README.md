@@ -27,25 +27,39 @@ The programs aren't signed: Windows SmartScreen asks once (*Weitere
 Informationen*, *Trotzdem ausführen*), on macOS open the app with a right
 click and *Öffnen* the first time.
 
-## Features (version 0.1)
+## Features
 
 - **Wochenplan**: 7 days × 2 (optionally 3) sessions per athlete, plan or
   actual ("Ist"), week note and injured flag, K1–K7 weekly summary,
-  copy/paste a whole week (also to another athlete).
+  copy/paste a whole week (also to another athlete), calendar to pick a
+  week, extra info per day (body weight, body fat, supplements).
 - **Session editor**: weight exercises (kg, reps per set "SG", sets "ANZ",
   failed attempts "UG" in actual weeks), general exercises as text with total
   reps, free text lines, times and a note. Live MHG/BW/WH/SG-ANZ for the
-  session and the whole week.
+  session and the whole week. History and chart of an exercise.
 - **Erfassung TÜ**: click an exercise line in the week to edit that
   exercise across the whole week: one row per session with its weight
-  steps, move it to another day or session, add or remove it, with the
-  week's totals.
-- **Sportler**: add, edit, delete athletes.
-- **Import** of data exports from WinWoTA XP (see below).
-- **Print / PDF** of the week plan.
+  steps, move it to another day or session, add or remove it, copy weight
+  steps between rows, with the week's totals and the ITP targets.
+- **Sportler**: athletes with age, and Kader, Verein, BSP, Bundeswehr and
+  trainers with their history over time; a filter by Kader and sex.
+- **Wettkämpfe**: results with six attempts (valid/invalid), total, and a
+  chart over the years with best results per half year or year, trends
+  and the reference total of the athlete's class.
+- **Planung**: macrocycles (MAZ) with phases and athletes' targets, the
+  framework plan (RO) in percent, the individual training plan (ITP) per
+  week and exercise or group, planned weight steps, templates (RO to ITP
+  with the athlete's targets), and a chart of ITP against plan or actual.
+- **Analyse**: section analysis (WH, MHG, BW, set size with totals and
+  trends, in kg or percent of the targets, comparisons, all MAZ, reps per
+  weight), group analysis of a MAZ, data check, and charts.
+- **Data**: import and export in the old program's format (everything,
+  changes since a date including deletions, or one athlete's weeks).
+- **Print / PDF** of the week plan with the old print options (notation,
+  figures, notes, empty lines, fonts, margins, landscape, logo), and of
+  all analyses and charts.
 
-Planned: analysis and charts, macrocycles, competitions, individual
-training plans.
+![Planning](docs/screenshots/planning.png)
 
 ## Data from WinWoTA XP
 
@@ -96,7 +110,10 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 |---|---|
 | `--db <file>` | use another database file |
 | `--import <file.bak>` | import an old data export and exit |
-| `--athlete <id> --week 46/2026 --open 1:2 --page sportler` | start at a given place |
+| `--athlete <id> --week 46/2026` | start with this athlete and week |
+| `--page sportler\|planung\|analyse\|wettkaempfe\|einstellungen` | start on that page |
+| `--open 1:2`, `ex:8`, `hist:8`, `chart:8` | open a session (day:number), an exercise's week, history or chart |
+| `--page planung --open maz\|itp\|ro\|laststufen`, `--page analyse --open individual\|group\|check\|chart` | open a tab |
 | `--grab <file.png>` | save a screenshot and exit (for testing) |
 
 ## Code layout
@@ -107,9 +124,14 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `src/steps.*` | weight step encoding and the load figures |
 | `src/model.h` | athletes, sessions, entries, weeks, weekly summary |
 | `src/database.*` | SQLite storage |
-| `src/bakimport.*` | importer for the old program's export |
+| `src/tables.*` | table definitions shared by import, export and the deletion log |
+| `src/bakimport.*`, `src/bakexport.*` | import and export in the old program's format |
+| `src/exerciseweek.*` | one exercise across a week (Erfassung TÜ) |
+| `src/competition.*` | competitions, totals, best results, reference totals |
+| `src/planning.*` | MAZ, framework plan, ITP, planned weight steps |
+| `src/analysis.*` | section analysis and load tables |
 | `src/weekreport.*` | printed / PDF week plan |
-| `src/store.*` | API for the QML user interface |
+| `src/store.*`, `src/planstore.*`, `src/analysisapi.*`, `src/itpmodel.*` | APIs and models for the QML user interface |
 | `qml/` | user interface |
 | `tests/` | unit tests (`tst_core`) and UI tests (`tst_qml`) |
 | `logo/` | icon and desktop entry |

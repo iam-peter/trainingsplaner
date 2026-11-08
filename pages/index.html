@@ -40,7 +40,7 @@
 
   <section id="funktionen">
     <h2>Funktionen</h2>
-    <p class="lead">Ein Werkzeug für den Trainingsalltag: planen, nachrechnen, ausdrucken.</p>
+    <p class="lead">Für den Trainingsalltag und die lange Linie: planen, nachrechnen, auswerten, ausdrucken.</p>
     <div class="features">
       <div>
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4" /> <path d="M16 2v4" /> <rect width="18" height="18" x="3" y="4" rx="2" /> <path d="M3 10h18" /> <path d="M8 14h.01" /> <path d="M12 14h.01" /> <path d="M16 14h.01" /> <path d="M8 18h.01" /> <path d="M12 18h.01" /> <path d="M16 18h.01" /></svg>
@@ -72,6 +72,21 @@
         <h3>Daten bleiben bei Ihnen</h3>
         <p>Keine Anmeldung, keine Cloud. Alles steht in einer Datei auf Ihrem Rechner.</p>
       </div>
+      <div>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /> <circle cx="12" cy="12" r="6" /> <circle cx="12" cy="12" r="2" /></svg>
+        <h3>Langfristige Planung</h3>
+        <p>Makrozyklen mit Phasen und Zielleistungen, Rahmenorientierung und individueller Trainingsplan.</p>
+      </div>
+      <div>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /> <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /> <path d="M4 22h16" /> <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" /> <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" /> <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" /></svg>
+        <h3>Wettkämpfe</h3>
+        <p>Ergebnisse mit allen Versuchen, Zweikampf und Entwicklung über die Jahre.</p>
+      </div>
+      <div>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /> <path d="m19 9-5 5-4-4-3 3" /></svg>
+        <h3>Analysen</h3>
+        <p>Abschnitts- und Gruppenanalyse, Trends und Grafiken – auf Papier oder als PDF.</p>
+      </div>
     </div>
 
     <div class="split">
@@ -82,6 +97,27 @@
       </div>
       <img src="session.png" width="1366" height="900" loading="lazy"
            alt="Erfassung einer Trainingseinheit mit drei Übungen und ihren Laststufen">
+    </div>
+
+    <div class="split">
+      <div>
+        <h3>Vom Makrozyklus bis zur Woche</h3>
+        <p>Die Rahmenorientierung legt Umfang und Intensität in Prozent fest, der individuelle
+          Trainingsplan rechnet sie mit den Zielleistungen in Kilogramm um. Im Wochenplan stehen
+          die Vorgaben dann neben den geplanten Laststufen.</p>
+      </div>
+      <img src="planning.png" width="1366" height="900" loading="lazy"
+           alt="Individueller Trainingsplan: Wochen und Übungen mit WH, MHG und BW">
+    </div>
+
+    <div class="split">
+      <div>
+        <h3>Sehen, was das Training bewirkt</h3>
+        <p>Mittleres Hantelgewicht und Bestwert je Übung mit Trend, dazu der Umfang – für einen
+          Sportler, einen Makrozyklus oder im Vergleich.</p>
+      </div>
+      <img src="analysis.png" width="1366" height="900" loading="lazy"
+           alt="Grafik: MHG und BW einer Übung über zwölf Wochen mit Trendlinien und Umfang">
     </div>
 
     <div class="split">
@@ -139,7 +175,7 @@
       <p>Ja. Der Trainingsplaner liest die Datensicherung dieses Programms und verwendet dieselben Übungsnummern:</p>
       <ol>
         <li>Im alten Programm den Datenexport „komplett“ ausführen. Das ergibt die Datei <code>winwotaxp.bak</code>.</li>
-        <li>Im Trainingsplaner oben rechts „Daten importieren…“ wählen und diese Datei öffnen.</li>
+        <li>Im Trainingsplaner oben rechts „Daten“ › „Importieren…“ wählen und diese Datei öffnen.</li>
       </ol>
       <p>Sportler, Trainingseinheiten und Übungen werden übernommen. Ein erneuter Import ergänzt nur, was sich geändert hat.</p>
     </details>
@@ -148,8 +184,12 @@
       <p>Das Programm ist nicht digital signiert, deshalb zeigt Windows SmartScreen eine Warnung. Mit „Weitere Informationen“ und „Trotzdem ausführen“ startet es. Der Quellcode ist öffentlich einsehbar.</p>
     </details>
     <details>
-      <summary>Was ist geplant?</summary>
-      <p>Analysen und Grafiken, Makrozyklen, Wettkämpfe und die individuelle Trainingsplanung. Wünsche und Fehler gern als <a href="https://github.com/iam-peter/trainingsplaner/issues">Issue auf GitHub</a>.</p>
+      <summary>Wie kann ich Daten zwischen zwei Rechnern austauschen?</summary>
+      <p>Über „Daten“ › „Exportieren…“ alle Daten, die Änderungen seit einem Zeitpunkt oder die Wochen eines Sportlers in eine Datei schreiben und auf dem anderen Rechner mit „Importieren…“ einlesen. Neuere Einträge bleiben dabei erhalten.</p>
+    </details>
+    <details>
+      <summary>Mir fehlt etwas oder etwas funktioniert nicht.</summary>
+      <p>Wünsche und Fehler gern als <a href="https://github.com/iam-peter/trainingsplaner/issues">Issue auf GitHub</a>.</p>
     </details>
   </section>
 </main>
