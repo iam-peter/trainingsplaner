@@ -13,6 +13,10 @@ ApplicationWindow {
     property string startPage
     property string startSession
 
+    // The athlete all pages show: choosing one on any page selects them on
+    // the others too
+    property string athlete
+
     width: 1366
     height: 900
     minimumWidth: 1000
@@ -121,27 +125,46 @@ ApplicationWindow {
 
         WeekPage {
             id: weekPage
+            objectName: "weekPage"
+            onAthleteIdChanged: window.athlete = athleteId
         }
 
         AthletesPage {
+            id: athletesPage
+            objectName: "athletesPage"
+            onSelectedIdChanged: if (selectedId !== "") window.athlete = selectedId
+            // Follows the others only when shown and without unsaved edits
+            onVisibleChanged: if (visible && !dirty && window.athlete !== "" && selectedId !== window.athlete)
+                                  select(window.athlete)
             onOpenWeekPlan: (athleteId) => {
-                weekPage.athleteId = athleteId
+                window.athlete = athleteId
                 tabs.currentIndex = 0
             }
         }
 
         PlanningPage {
             id: planningPage
+            objectName: "planningPage"
+            onAthleteIdChanged: window.athlete = athleteId
         }
 
         AnalysisPage {
             id: analysisPage
+            objectName: "analysisPage"
+            onAthleteIdChanged: window.athlete = athleteId
         }
 
         CompetitionsPage {
             id: competitionsPage
+            objectName: "competitionsPage"
+            onAthleteIdChanged: window.athlete = athleteId
         }
     }
+
+    Binding { target: weekPage; property: "athleteId"; value: window.athlete }
+    Binding { target: planningPage; property: "athleteId"; value: window.athlete }
+    Binding { target: analysisPage; property: "athleteId"; value: window.athlete }
+    Binding { target: competitionsPage; property: "athleteId"; value: window.athlete }
 
     FileDialog {
         id: importDialog
@@ -195,24 +218,20 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
+        if (startAthlete !== "")
+            athlete = startAthlete
         if (startPage === "sportler")
             tabs.currentIndex = 1
         if (startPage === "planung") {
             tabs.currentIndex = 2
-            if (startAthlete !== "")
-                planningPage.athleteId = startAthlete
             planningPage.showTab(startSession)
         }
         if (startPage === "analyse") {
             tabs.currentIndex = 3
-            if (startAthlete !== "")
-                analysisPage.athleteId = startAthlete
             Qt.callLater(analysisPage.show, startSession)
         }
         if (startPage === "wettkaempfe") {
             tabs.currentIndex = 4
-            if (startAthlete !== "")
-                competitionsPage.athleteId = startAthlete
             if (startSession === "grafik")
                 competitionsPage.showChart()
         }
