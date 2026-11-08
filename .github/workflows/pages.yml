@@ -35,7 +35,7 @@ jobs:
       - name: Site
         run: |
           mkdir site
-          cp pages/index.html logo/trainingsplaner.svg logo/trainingsplaner.png site/
+          cp pages/* logo/trainingsplaner.svg logo/trainingsplaner.png site/
           cp docs/screenshots/*.png site/
 
       - uses: actions/upload-pages-artifact@v3

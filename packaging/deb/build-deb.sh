@@ -53,7 +53,7 @@ Homepage: https://iam-peter.github.io/trainingsplaner/
 Description: Weekly training planner for weightlifting
  Plans weekly training for weightlifters: sessions with weight steps,
  the load figures WH, MHG and BW per exercise and group, and printed
- week plans. Imports the data of the old WinWoTA XP program.
+ week plans.
 EOF
 
 dpkg-deb --root-owner-group -Zxz -b "$root" "$output"

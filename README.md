@@ -1,10 +1,7 @@
 # Trainingsplaner
 
 Weekly training planning for weightlifting coaches: week plans, the load
-figures WH, MHG and BW, and printed plans. A replacement for the old WinWoTA
-XP 2.61 program (IAT Leipzig / BVDG, 2009), which can no longer be
-registered on new PCs. It imports the old data, keeps the same exercise
-numbers and figures, and prints the week plan in the familiar layout.
+figures WH, MHG and BW, and printed plans.
 
 **[Website](https://iam-peter.github.io/trainingsplaner/)** ·
 **[Download](https://github.com/iam-peter/trainingsplaner/releases)** ·
@@ -14,10 +11,6 @@ numbers and figures, and prints the week plan in the familiar layout.
 
 Built with Qt 6 (C++ and Qt Quick); data lives in a single SQLite file.
 The user interface is in German.
-
-> This is an independent project. It is not affiliated with, endorsed by or
-> derived from the code of IAT Leipzig, the BVDG or the WinWoTA program. Those
-> names appear only to describe which program and data format this replaces.
 
 ## Download
 
@@ -44,21 +37,22 @@ click and *Öffnen* the first time.
   reps, free text lines, times and a note. Live MHG/BW/WH/SG-ANZ for the
   session and the whole week.
 - **Sportler**: add, edit, delete athletes.
-- **Import** of the old program's data export (`winwotaxp.bak`). Rows are
-  merged by key and timestamp, so importing again is safe.
+- **Import** of data exports from WinWoTA XP (see below).
 - **Print / PDF** of the week plan.
 
-Not yet carried over: analysis and charts, macrocycles (MAZ), competitions,
-individual training plans (ITP). The old database had no data in these.
+Planned: analysis and charts, macrocycles, competitions, individual
+training plans.
 
-## Moving the data from the old PC
+## Data from WinWoTA XP
 
-1. On the old PC, use WinWoTA's data export ("Datenexport", option
-   *komplett*) to write a current `winwotaxp.bak`.
-2. In the new program: **Daten importieren…** and pick that file.
+Users of the older WinWoTA XP 2.61 can bring their data along: export it
+there ("Datenexport", option *komplett*, gives `winwotaxp.bak`), then use
+**Daten importieren…** here. The exercise numbers are the same. Rows are
+merged by key and timestamp, so importing again is safe.
 
-The exercise names are built into the new program; the old database only
-had the numbers.
+This is an independent project. It is not affiliated with, endorsed by or
+derived from the code of IAT Leipzig, the BVDG or WinWoTA; the names only
+describe which program and data format can be imported.
 
 ## Building
 
