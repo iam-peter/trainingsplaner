@@ -121,9 +121,8 @@ Page {
 
             ToolSeparator {}
 
-            Button {
-                text: "◀"
-                implicitWidth: 34
+            IconButton {
+                iconName: "chevron-left"
                 onClicked: page.monday = Store.addWeeks(page.monday, -1)
                 ToolTip.visible: hovered
                 ToolTip.text: "Vorige Woche"
@@ -144,14 +143,14 @@ Page {
                 ToolTip.visible: activeFocus
                 ToolTip.text: "Woche/Jahr eingeben, z.B. 46/2026, dann Enter"
             }
-            Button {
-                text: "▶"
-                implicitWidth: 34
+            IconButton {
+                iconName: "chevron-right"
                 onClicked: page.monday = Store.addWeeks(page.monday, 1)
                 ToolTip.visible: hovered
                 ToolTip.text: "Nächste Woche"
             }
-            Button {
+            IconButton {
+                iconName: "calendar"
                 text: "Heute"
                 onClicked: page.monday = Store.mondayOf(Store.today())
             }
@@ -182,12 +181,14 @@ Page {
 
             Item { Layout.fillWidth: true }
 
-            Button {
+            IconButton {
+                iconName: "copy"
                 text: "Woche kopieren"
                 enabled: page.hasAthlete && page.weekData.empty === false
                 onClicked: Store.copyWeek(page.athleteId, page.monday, page.variant)
             }
-            Button {
+            IconButton {
+                iconName: "clipboard-paste"
                 text: "Einfügen"
                 enabled: page.hasAthlete && Store.clipboardLabel !== ""
                 onClicked: {
@@ -199,7 +200,8 @@ Page {
                 ToolTip.visible: hovered && enabled
                 ToolTip.text: "Kopierte Woche einfügen: " + Store.clipboardLabel
             }
-            Button {
+            IconButton {
+                iconName: "printer"
                 text: "Drucken…"
                 enabled: page.hasAthlete
                 onClicked: {
@@ -207,7 +209,8 @@ Page {
                     Store.printWeek(page.athleteId, page.monday, page.variant)
                 }
             }
-            Button {
+            IconButton {
+                iconName: "file-down"
                 text: "PDF…"
                 enabled: page.hasAthlete
                 onClicked: {
@@ -368,7 +371,7 @@ Page {
                                         required property string modelData
                                         Layout.alignment: Qt.AlignHCenter
                                         text: modelData
-                                        font.family: "monospace"
+                                        font.family: "JetBrains Mono"
                                         font.pixelSize: 12
                                     }
                                 }

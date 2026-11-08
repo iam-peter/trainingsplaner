@@ -144,20 +144,23 @@ Dialog {
         RowLayout {
             Layout.fillWidth: true
             spacing: 6
-            Button {
-                text: "+ TÜ"
+            IconButton {
+                iconName: "plus"
+                text: "TÜ"
                 onClicked: dialog.addEntry({ kind: 0 }, true)
                 ToolTip.visible: hovered
                 ToolTip.text: "Übung mit Gewichten hinzufügen"
             }
-            Button {
-                text: "+ AMKT"
+            IconButton {
+                iconName: "plus"
+                text: "AMKT"
                 onClicked: dialog.addEntry({ kind: 1 }, true)
                 ToolTip.visible: hovered
                 ToolTip.text: "Allgemeine Übung als Text hinzufügen"
             }
-            Button {
-                text: "+ Text"
+            IconButton {
+                iconName: "plus"
+                text: "Text"
                 onClicked: dialog.addEntry({ kind: 2 }, true)
                 ToolTip.visible: hovered
                 ToolTip.text: "Freien Text hinzufügen"
@@ -276,7 +279,8 @@ Dialog {
     }
 
     footer: DialogButtonBox {
-        Button {
+        IconButton {
+            iconName: "trash-2"
             text: "TE löschen"
             visible: dialog.exists
             DialogButtonBox.buttonRole: DialogButtonBox.DestructiveRole
@@ -287,7 +291,8 @@ Dialog {
             DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
             onClicked: dialog.cancel()
         }
-        Button {
+        IconButton {
+            iconName: "save"
             text: "Speichern"
             highlighted: true
             DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole

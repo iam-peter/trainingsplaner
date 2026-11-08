@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS
-    Core Gui Widgets Sql Quick QuickControls2 PrintSupport Test QuickTest)
+    Core Gui Widgets Sql Svg Quick QuickControls2 PrintSupport Test QuickTest)
 
 qt_standard_project_setup(REQUIRES 6.5)
 
@@ -22,6 +22,10 @@ add_library(tpcore STATIC
 )
 target_include_directories(tpcore PUBLIC src)
 target_link_libraries(tpcore PUBLIC Qt6::Core Qt6::Gui Qt6::Sql)
+
+# Fonts (Inter, JetBrains Mono) and Lucide icons go into the resources.
+file(GLOB TP_FONTS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} CONFIGURE_DEPENDS fonts/*.ttf)
+file(GLOB TP_ICONS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} CONFIGURE_DEPENDS icons/*.svg)
 
 # The QML module (UI and the Store singleton) as a static library, so the
 # QML tests can load the same module as the application.
@@ -40,8 +44,12 @@ qt_add_qml_module(tpqml
         qml/ExercisePicker.qml
         qml/AthletesPage.qml
         qml/SettingsDialog.qml
+        qml/IconButton.qml
+        qml/IconToolButton.qml
     RESOURCES
-        logo/trainingsplaner.png
+        logo/trainingsplaner.svg
+        ${TP_FONTS}
+        ${TP_ICONS}
 )
 target_link_libraries(tpqml PUBLIC
     tpcore
@@ -49,6 +57,9 @@ target_link_libraries(tpqml PUBLIC
     Qt6::QuickControls2
     Qt6::Widgets
     Qt6::PrintSupport
+    # Not called directly: linking it makes the deploy tools bring the SVG
+    # image plugin the icons need.
+    Qt6::Svg
 )
 
 qt_add_executable(trainingsplaner WIN32 MACOSX_BUNDLE

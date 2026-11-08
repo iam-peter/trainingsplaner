@@ -122,13 +122,12 @@ Frame {
                     }
                     color: text === "" || editor.exerciseValid ? palette.text : "#c00000"
                 }
-                Button {
-                    implicitWidth: 26
+                IconButton {
+                    implicitWidth: 30
                     implicitHeight: numberField.height
-                    text: "…"
+                    iconName: "layout-grid"
+                    toolTip: "Übung auswählen"
                     onClicked: picker.open()
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Übung auswählen"
                 }
             }
             Label {
@@ -310,25 +309,22 @@ Frame {
             spacing: 0
             RowLayout {
                 spacing: 0
-                ToolButton {
-                    text: "▲"
+                IconToolButton {
+                    iconName: "arrow-up"
+                    toolTip: "Nach oben"
                     enabled: editor.canMoveUp
                     onClicked: editor.moveRequested(-1)
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Nach oben"
                 }
-                ToolButton {
-                    text: "▼"
+                IconToolButton {
+                    iconName: "arrow-down"
+                    toolTip: "Nach unten"
                     enabled: editor.canMoveDown
                     onClicked: editor.moveRequested(1)
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Nach unten"
                 }
-                ToolButton {
-                    text: "✕"
+                IconToolButton {
+                    iconName: "trash-2"
+                    toolTip: "Zeile entfernen"
                     onClicked: editor.removeRequested()
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Zeile entfernen"
                 }
             }
         }

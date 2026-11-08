@@ -79,9 +79,10 @@ Page {
                     }
                     ScrollBar.vertical: ScrollBar {}
                 }
-                Button {
+                IconButton {
                     Layout.fillWidth: true
                     Layout.margins: 8
+                    iconName: "user-plus"
                     text: "Neuer Sportler"
                     onClicked: page.select("")
                 }
@@ -166,14 +167,16 @@ Page {
                 Item {}
                 RowLayout {
                     spacing: 8
-                    Button {
+                    IconButton {
+                        iconName: page.selectedId === "" ? "user-plus" : "save"
                         text: page.selectedId === "" ? "Hinzufügen" : "Speichern"
                         highlighted: true
                         enabled: lastNameField.text.trim() !== "" && page.bornValid
                                  && (page.dirty || page.selectedId === "")
                         onClicked: page.save()
                     }
-                    Button {
+                    IconButton {
+                        iconName: "trash-2"
                         text: "Löschen"
                         enabled: page.selectedId !== ""
                         onClicked: {
@@ -181,7 +184,8 @@ Page {
                             deleteConfirm.open()
                         }
                     }
-                    Button {
+                    IconButton {
+                        iconName: "calendar-days"
                         text: "Wochenplan öffnen"
                         enabled: page.selectedId !== ""
                         onClicked: page.openWeekPlan(page.selectedId)

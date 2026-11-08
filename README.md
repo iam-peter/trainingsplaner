@@ -109,6 +109,7 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `qml/` | user interface |
 | `tests/` | unit tests (`tst_core`) and UI tests (`tst_qml`) |
 | `logo/` | icon and desktop entry |
+| `fonts/`, `icons/` | Inter, JetBrains Mono and Lucide icons, built into the program |
 | `packaging/` | Debian package script |
 | `pages/` | website |
 | `docs/screenshots/` | screenshots with invented demo data |
@@ -130,7 +131,12 @@ do not attach a real database or export.
 
 ## Licence
 
-MIT, see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE). The bundled assets keep their own licences:
+
+- Fonts: [Inter](https://rsms.me/inter/) and
+  [JetBrains Mono](https://www.jetbrains.com/lp/mono/), SIL Open Font
+  License 1.1 (`fonts/`).
+- Icons: [Lucide](https://lucide.dev/), ISC licence (`icons/LICENSE.txt`).
 
 The program uses [Qt](https://www.qt.io/) under the LGPL v3. When handing
 out a Windows build made with `windeployqt`, Qt stays in separate DLLs as the

@@ -43,7 +43,9 @@ private:
 
 QFont font(double pt, bool bold = false, bool italic = false)
 {
-    QFont f(QStringLiteral("Arial"));
+    // Inter comes with the program (see main.cpp); Arial etc. if it is missing.
+    QFont f;
+    f.setFamilies({QStringLiteral("Inter"), QStringLiteral("Arial")});
     f.setStyleHint(QFont::SansSerif);
     f.setPointSizeF(pt);
     f.setBold(bold);

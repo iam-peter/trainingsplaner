@@ -28,19 +28,32 @@ ApplicationWindow {
             TabBar {
                 id: tabs
                 Layout.preferredWidth: 280
-                TabButton { text: "Wochenplan" }
-                TabButton { text: "Sportler" }
+                TabButton {
+                    text: "Wochenplan"
+                    icon.source: "qrc:/qt/qml/Trainingsplaner/icons/calendar-days.svg"
+                    icon.color: palette.buttonText
+                    icon.width: 16
+                    icon.height: 16
+                }
+                TabButton {
+                    text: "Sportler"
+                    icon.source: "qrc:/qt/qml/Trainingsplaner/icons/users.svg"
+                    icon.color: palette.buttonText
+                    icon.width: 16
+                    icon.height: 16
+                }
             }
 
             Item { Layout.fillWidth: true }
 
-            ToolButton {
+            IconToolButton {
+                iconName: "import"
                 text: "Daten importieren…"
+                toolTip: "Datensicherung des alten Programms (winwotaxp.bak) einlesen"
                 onClicked: importDialog.open()
-                ToolTip.visible: hovered
-                ToolTip.text: "Datensicherung des alten Programms (winwotaxp.bak) einlesen"
             }
-            ToolButton {
+            IconToolButton {
+                iconName: "settings"
                 text: "Einstellungen"
                 onClicked: settingsDialog.open()
             }

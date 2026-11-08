@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.impl
 import QtQuick.Layouts
 
 // One training session in the week grid. Click to edit.
@@ -35,11 +36,11 @@ Rectangle {
         color: "#9a8a5a"
     }
 
-    Label {
+    IconImage {
         anchors.centerIn: parent
         visible: !cell.filled && mouse.containsMouse
-        text: "+"
-        font.pixelSize: 26
+        source: "qrc:/qt/qml/Trainingsplaner/icons/plus.svg"
+        sourceSize: Qt.size(28, 28)
         color: "#b08a00"
     }
 

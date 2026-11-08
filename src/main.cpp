@@ -4,16 +4,51 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QDir>
+#include <QFontDatabase>
 #include <QIcon>
+#include <QPainter>
 #include <QMessageBox>
 #include <QQmlApplicationEngine>
 #include <QQuickStyle>
 #include <QQuickWindow>
 #include <QStandardPaths>
+#include <QSvgRenderer>
 #include <QTimer>
 #include <QtQml/qqmlextensionplugin.h>
 
 Q_IMPORT_QML_PLUGIN(TrainingsplanerPlugin)
+
+namespace {
+
+// Inter for the interface and the printout, JetBrains Mono for figures in
+// columns. Both come with the program, so it looks the same everywhere.
+void loadFonts()
+{
+    const QString dir = QStringLiteral(":/qt/qml/Trainingsplaner/fonts/");
+    for (const QString &file : QDir(dir).entryList({QStringLiteral("*.ttf")}))
+        QFontDatabase::addApplicationFont(dir + file);
+    QFont font = QApplication::font();
+    font.setFamilies({QStringLiteral("Inter")});
+    font.setHintingPreference(QFont::PreferNoHinting);
+    QApplication::setFont(font);
+}
+
+QIcon appIcon()
+{
+    QSvgRenderer svg(QStringLiteral(":/qt/qml/Trainingsplaner/logo/trainingsplaner.svg"));
+    QIcon icon;
+    for (int size : {16, 24, 32, 48, 64, 128, 256}) {
+        QPixmap pixmap(size, size);
+        pixmap.fill(Qt::transparent);
+        QPainter painter(&pixmap);
+        svg.render(&painter);
+        painter.end();
+        icon.addPixmap(pixmap);
+    }
+    return icon;
+}
+
+} // namespace
 
 int main(int argc, char *argv[])
 {
@@ -24,7 +59,8 @@ int main(int argc, char *argv[])
     QApplication::setApplicationVersion(QStringLiteral(PROJECT_VERSION_STRING));
     QLocale::setDefault(QLocale(QLocale::German, QLocale::Germany));
     QQuickStyle::setStyle(QStringLiteral("Fusion"));
-    QApplication::setWindowIcon(QIcon(QStringLiteral(":/qt/qml/Trainingsplaner/logo/trainingsplaner.png")));
+    loadFonts();
+    QApplication::setWindowIcon(appIcon());
     QGuiApplication::setDesktopFileName(QStringLiteral("trainingsplaner"));
 
     QCommandLineParser parser;
