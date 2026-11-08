@@ -1,15 +1,38 @@
-# Trainingsplaner Gewichtheben
+# Trainingsplaner
 
-Weekly training planning for weightlifting, as a replacement for the old
-WinWoTA XP 2.61 program (IAT Leipzig / BVDG, 2009). It reads the old data,
-uses the same exercise numbers, entry format and figures (WH, MHG, BW,
-K1–K7), and prints the week plan in the familiar layout.
+Weekly training planning for weightlifting coaches: week plans, the load
+figures WH, MHG and BW, and printed plans. A replacement for the old WinWoTA
+XP 2.61 program (IAT Leipzig / BVDG, 2009), which can no longer be
+registered on new PCs. It imports the old data, keeps the same exercise
+numbers and figures, and prints the week plan in the familiar layout.
 
-Built with Qt 6 (C++ and QML); data lives in a single SQLite file.
+**[Website](https://iam-peter.github.io/trainingsplaner/)** ·
+**[Download](https://github.com/iam-peter/trainingsplaner/releases)** ·
+[Nightly](https://github.com/iam-peter/trainingsplaner/releases/tag/nightly)
+
+![Week plan](docs/screenshots/week.png)
+
+Built with Qt 6 (C++ and Qt Quick); data lives in a single SQLite file.
+The user interface is in German.
 
 > This is an independent project. It is not affiliated with, endorsed by or
 > derived from the code of IAT Leipzig, the BVDG or the WinWoTA program. Those
 > names appear only to describe which program and data format this replaces.
+
+## Download
+
+Each [release](https://github.com/iam-peter/trainingsplaner/releases) has:
+
+| File | For |
+|---|---|
+| `trainingsplaner-windows-x64.zip` | Windows 10/11: unzip, start `trainingsplaner.exe` |
+| `trainingsplaner-macos.dmg` | macOS, Apple silicon and Intel |
+| `trainingsplaner-linux-x64.AppImage` | any Linux |
+| `trainingsplaner-linux-x64.deb` | Debian and Ubuntu, with its own Qt |
+
+The programs aren't signed: Windows SmartScreen asks once (*Weitere
+Informationen*, *Trotzdem ausführen*), on macOS open the app with a right
+click and *Öffnen* the first time.
 
 ## Features (version 0.1)
 
@@ -48,30 +71,26 @@ cmake --build build
 ctest --test-dir build
 ```
 
-### Windows
-
-1. Install Qt 6 with the online installer (component *MinGW 64-bit* and the
-   matching MinGW toolchain), which includes Qt Creator.
-2. Open `CMakeLists.txt` in Qt Creator, choose the *Release* configuration,
-   build.
-3. Make the program folder self-contained:
-
-   In a *Qt 6 (MinGW)* command prompt, from the project folder (adjust the
-   path to the build folder Qt Creator created):
-
-   ```bat
-   mkdir deploy
-   copy <build folder>\trainingsplaner.exe deploy\
-   windeployqt --qmldir qml deploy\trainingsplaner.exe
-   ```
-
-   Copy the `deploy` folder to the target PC; no installation or
-   registration needed.
+For Windows, install Qt with the online installer (MSVC 2022 or MinGW),
+open `CMakeLists.txt` in Qt Creator and build *Release*. `windeployqt
+--qmldir qml trainingsplaner.exe` makes the folder self-contained.
 
 The database is stored at
 `%APPDATA%\Trainingsplaner\Trainingsplaner\trainingsplaner.sqlite`
 (shown under *Einstellungen*). To back up, close the program and copy that
 file.
+
+## Releases
+
+| Workflow | What it does |
+|---|---|
+| **CI** | builds and tests every push and pull request on Linux |
+| **Nightly** | every night with new commits (or by hand): builds and tests on Linux, Windows and macOS and replaces the `nightly` pre-release |
+| **Promote Release** | run by hand with a version such as `0.2.0`: publishes the current nightly's files as release `v0.2.0` |
+| **Website** | publishes `pages/` on GitHub Pages; the page finds the newest release and nightly by itself |
+
+To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
+(or start) the nightly, then run *Promote Release*.
 
 ## Command line
 
@@ -95,6 +114,11 @@ file.
 | `src/store.*` | API for the QML user interface |
 | `qml/` | user interface |
 | `tests/` | unit tests (`tst_core`) and UI tests (`tst_qml`) |
+| `logo/` | icon and desktop entry |
+| `packaging/` | Debian package script |
+| `pages/` | website |
+| `docs/screenshots/` | screenshots with invented demo data |
+| `.github/workflows/` | CI, nightly, release and website |
 
 ### Old storage format
 
