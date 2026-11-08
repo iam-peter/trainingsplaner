@@ -55,6 +55,7 @@ qt_add_qml_module(tpqml
         qml/ExerciseRowEditor.qml
         qml/ExportDialog.qml
         qml/AttributeHistoryDialog.qml
+        qml/DayInfoDialog.qml
     RESOURCES
         logo/trainingsplaner.svg
         ${TP_FONTS}

@@ -302,12 +302,29 @@ Page {
                     onEditingFinished: page.saveNote()
                 }
             }
-            CheckBox {
-                id: injuredBox
-                text: "verletzt/krank"
+            ColumnLayout {
                 Layout.alignment: Qt.AlignTop
-                onToggled: page.saveNote()
+                spacing: 2
+                CheckBox {
+                    id: injuredBox
+                    text: "verletzt/krank"
+                    onToggled: page.saveNote()
+                }
+                IconButton {
+                    iconName: "clipboard-list"
+                    text: "Zusatzinfo"
+                    toolTip: "Körpergewicht, Körperfett, Nahrungsergänzung …"
+                    onClicked: dayInfoDialog.edit(page.athleteId, page.monday)
+                }
             }
+        }
+
+        Label {
+            Layout.fillWidth: true
+            visible: text !== ""
+            text: page.hasAthlete ? (Store.dataVersion, Store.weekInfoSummary(page.athleteId, page.monday)) : ""
+            color: palette.placeholderText
+            elide: Text.ElideRight
         }
 
         // Weekly summary K1-K7 as in the old program
@@ -417,6 +434,10 @@ Page {
 
     ExerciseWeekDialog {
         id: exerciseDialog
+    }
+
+    DayInfoDialog {
+        id: dayInfoDialog
     }
 
     Dialog {

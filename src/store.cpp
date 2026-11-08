@@ -282,6 +282,171 @@ void Store::setFilterSex(int v)
     emit athletesChanged();
 }
 
+namespace {
+
+// The categories the old program came with
+QVariantList defaultInfoCategories()
+{
+    auto c = [](const char *name, const char *code, const char *unit, int decimals, const char *agg) {
+        return QVariantMap{{QStringLiteral("name"), QString::fromUtf8(name)},
+                           {QStringLiteral("code"), QString::fromLatin1(code)},
+                           {QStringLiteral("unit"), QString::fromUtf8(unit)},
+                           {QStringLiteral("decimals"), decimals},
+                           {QStringLiteral("aggregate"), QString::fromLatin1(agg)}};
+    };
+    return {c("Körpergewicht", "KG", "kg", 1, "MAX"), c("Körperhöhe", "KH", "cm", 0, "MAX"),
+            c("Körperfett", "KF", "%", 1, "MIN"), c("Creatin", "CRE", "g", 0, "SUM"),
+            c("Glutaplast", "GPL", "g", 0, "SUM"), c("Protiplast", "PPL", "g", 0, "SUM"),
+            c("Regenaplast", "RPL", "g", 0, "SUM"), c("Energoplast", "EPL", "g", 0, "SUM"),
+            c("Protipur", "PP", "g", 0, "SUM"), c("Omega 3", "OM3", "g", 0, "SUM"),
+            c("CH alpha", "CHA", "g", 0, "SUM")};
+}
+
+QString formatNumber(double v, int decimals)
+{
+    return QLocale(QLocale::German).toString(v, 'f', qBound(0, decimals, 3));
+}
+
+} // namespace
+
+QVariantList Store::infoCategories() const
+{
+    const QVariant v = QSettings().value(QStringLiteral("info/categories"));
+    const QVariantList list = v.toList();
+    return list.isEmpty() ? defaultInfoCategories() : list;
+}
+
+void Store::setInfoCategories(const QVariantList &v)
+{
+    QVariantList clean;
+    QStringList codes;
+    for (const QVariant &item : v) {
+        QVariantMap m = item.toMap();
+        const QString code = m.value(QStringLiteral("code")).toString().trimmed().toUpper();
+        const QString name = m.value(QStringLiteral("name")).toString().trimmed();
+        // Codes must not collide with attribute names or each other
+        if (code.isEmpty() || name.isEmpty() || codes.contains(code) || kAttributes.contains(code, Qt::CaseInsensitive))
+            continue;
+        codes.append(code);
+        m.insert(QStringLiteral("code"), code);
+        m.insert(QStringLiteral("name"), name);
+        const QString agg = m.value(QStringLiteral("aggregate")).toString().toUpper();
+        m.insert(QStringLiteral("aggregate"), agg == QLatin1String("MIN") || agg == QLatin1String("SUM") ? agg : QStringLiteral("MAX"));
+        m.insert(QStringLiteral("decimals"), qBound(0, m.value(QStringLiteral("decimals")).toInt(), 3));
+        clean.append(m);
+    }
+    QSettings().setValue(QStringLiteral("info/categories"), clean);
+    emit settingsChanged();
+}
+
+QVariantList Store::dayInfo(const QString &athleteId, const QString &monday) const
+{
+    const QVariantList cats = infoCategories();
+    QMap<QString, QVariantMap> byCode;
+    QStringList codes;
+    for (const QVariant &c : cats) {
+        const QVariantMap m = c.toMap();
+        byCode.insert(m.value(QStringLiteral("code")).toString(), m);
+        codes.append(m.value(QStringLiteral("code")).toString());
+    }
+    const QDate from = QDate::fromString(monday, Qt::ISODate);
+    QVariantList list;
+    for (const Database::InfoRecord &r : Database::infoRecordsBetween(athleteId, codes, from, from.addDays(6))) {
+        const QVariantMap c = byCode.value(r.art);
+        list.append(QVariantMap{
+            {QStringLiteral("date"), r.from.toString(Qt::ISODate)},
+            {QStringLiteral("dateText"), Weeks::dayName(r.from.dayOfWeek()) + r.from.toString(QStringLiteral(", dd.MM."))},
+            {QStringLiteral("time"), r.time.left(5) == QLatin1String("00:00") ? QString() : r.time.left(5)},
+            {QStringLiteral("code"), r.art},
+            {QStringLiteral("name"), c.value(QStringLiteral("name"))},
+            {QStringLiteral("unit"), c.value(QStringLiteral("unit"))},
+            {QStringLiteral("value"), r.number},
+            {QStringLiteral("valueText"), formatNumber(r.number, c.value(QStringLiteral("decimals")).toInt())},
+        });
+    }
+    return list;
+}
+
+QString Store::saveDayInfo(const QString &athleteId, const QString &date, const QString &time,
+                           const QString &code, const QString &value, const QString &oldDate,
+                           const QString &oldTime, const QString &oldCode)
+{
+    bool ok = false;
+    const double number = QLocale(QLocale::German).toDouble(value.trimmed(), &ok);
+    const double number2 = ok ? number : value.trimmed().toDouble(&ok);
+    if (!ok)
+        return QStringLiteral("Bitte eine Zahl eingeben.");
+    const QDate d = QDate::fromString(date, Qt::ISODate);
+    if (!d.isValid() || code.isEmpty())
+        return QStringLiteral("Bitte Tag und Kategorie wählen.");
+    QString t = time.trimmed();
+    if (!t.isEmpty() && !QTime::fromString(t, QStringLiteral("H:mm")).isValid())
+        return QStringLiteral("Zeit ungültig: ") + t;
+    t = t.isEmpty() ? QStringLiteral("00:00:00") : QTime::fromString(t, QStringLiteral("H:mm")).toString(QStringLiteral("HH:mm:ss"));
+
+    if (!oldDate.isEmpty()) {
+        const QString ot = oldTime.isEmpty() ? QStringLiteral("00:00:00") : oldTime + QStringLiteral(":00");
+        if (oldDate != date || ot != t || oldCode != code)
+            Database::removeInfoRecord(athleteId, oldCode, QDate::fromString(oldDate, Qt::ISODate), ot);
+    }
+    Database::InfoRecord r;
+    r.athleteId = athleteId;
+    r.art = code;
+    r.from = d;
+    r.time = t;
+    r.number = number2;
+    r.hasNumber = true;
+    if (!Database::saveInfoRecord(r))
+        return QStringLiteral("Speichern fehlgeschlagen: ") + Database::lastError();
+    bump();
+    return QString();
+}
+
+bool Store::removeDayInfo(const QString &athleteId, const QString &code, const QString &date,
+                          const QString &time)
+{
+    const bool ok = Database::removeInfoRecord(athleteId, code, QDate::fromString(date, Qt::ISODate),
+                                               time.isEmpty() ? QStringLiteral("00:00:00") : time + QStringLiteral(":00"));
+    bump();
+    return ok;
+}
+
+QString Store::weekInfoSummary(const QString &athleteId, const QString &monday) const
+{
+    const QVariantList entries = dayInfo(athleteId, monday);
+    QStringList parts;
+    for (const QVariant &c : infoCategories()) {
+        const QVariantMap cat = c.toMap();
+        const QString code = cat.value(QStringLiteral("code")).toString();
+        const QString agg = cat.value(QStringLiteral("aggregate")).toString();
+        bool any = false;
+        double v = 0;
+        for (const QVariant &e : entries) {
+            const QVariantMap m = e.toMap();
+            if (m.value(QStringLiteral("code")).toString() != code)
+                continue;
+            const double x = m.value(QStringLiteral("value")).toDouble();
+            if (!any)
+                v = x;
+            else if (agg == QLatin1String("SUM"))
+                v += x;
+            else if (agg == QLatin1String("MIN"))
+                v = qMin(v, x);
+            else
+                v = qMax(v, x);
+            any = true;
+        }
+        if (any) {
+            parts.append(QStringLiteral("%1 %2 %3")
+                             .arg(cat.value(QStringLiteral("name")).toString(),
+                                  formatNumber(v, cat.value(QStringLiteral("decimals")).toInt()),
+                                  cat.value(QStringLiteral("unit")).toString())
+                             .trimmed());
+        }
+    }
+    return parts.join(QStringLiteral("  ·  "));
+}
+
 QStringList Store::attributeValues(const QString &art) const
 {
     return Database::infoValues(art);

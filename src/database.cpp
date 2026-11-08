@@ -409,6 +409,28 @@ QList<InfoRecord> infoRecords(const QStringList &arts)
     return readInfo(q);
 }
 
+QList<InfoRecord> infoRecordsBetween(const QString &athleteId, const QStringList &arts,
+                                     const QDate &from, const QDate &to)
+{
+    if (arts.isEmpty())
+        return {};
+    QStringList marks;
+    for (int i = 0; i < arts.size(); ++i)
+        marks.append(QStringLiteral("?"));
+    QSqlQuery q(db());
+    q.prepare(QStringLiteral("SELECT %1 FROM spinfo WHERE spid = ? AND art IN (%2) AND von BETWEEN ? AND ?"
+                             " ORDER BY von, zeit, art")
+                  .arg(kInfoColumns, marks.join(QLatin1Char(','))));
+    q.addBindValue(athleteId);
+    for (const QString &a : arts)
+        q.addBindValue(a);
+    q.addBindValue(from.toString(Qt::ISODate));
+    q.addBindValue(to.toString(Qt::ISODate));
+    if (!exec(q))
+        return {};
+    return readInfo(q);
+}
+
 bool saveInfoRecord(const InfoRecord &r)
 {
     if (r.athleteId.isEmpty() || r.art.isEmpty() || !r.from.isValid())

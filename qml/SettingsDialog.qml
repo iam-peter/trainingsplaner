@@ -62,6 +62,9 @@ Dialog {
         sexAll.checked = Store.filterSex < 0
         sexMen.checked = Store.filterSex === 0
         sexWomen.checked = Store.filterSex === 1
+        categoryModel.clear()
+        for (const c of Store.infoCategories)
+            categoryModel.append({ name: c.name, code: c.code, unit: c.unit, decimals: c.decimals, aggregate: c.aggregate })
         step25.checked = Store.weightStep !== 1
         step10.checked = Store.weightStep === 1
     }
@@ -94,6 +97,10 @@ Dialog {
             t.push({ from: timeRepeater.itemAt(i).from, to: timeRepeater.itemAt(i).to })
         Store.sessionTimes = t
         Store.weightStep = step10.checked ? 1 : 2.5
+        const cats = []
+        for (let i = 0; i < categoryModel.count; ++i)
+            cats.push(categoryModel.get(i))
+        Store.infoCategories = cats
         Store.filterKader = kaderFilter.currentIndex > 0 ? kaderFilter.currentText : ""
         Store.filterSex = sexMen.checked ? 0 : sexWomen.checked ? 1 : -1
     }
@@ -106,6 +113,7 @@ Dialog {
             Layout.fillWidth: true
             TabButton { text: "Ausdruck" }
             TabButton { text: "Trainingszeiten" }
+            TabButton { text: "Zusatzinfo" }
             TabButton { text: "Allgemein" }
         }
 
@@ -233,6 +241,61 @@ Dialog {
                             onEditTextChanged: parent.to = editText
                         }
                     }
+                }
+            }
+
+            // Categories of extra info
+            ColumnLayout {
+                spacing: 4
+                RowLayout {
+                    spacing: 6
+                    Label { text: "Bezeichnung"; Layout.preferredWidth: 180; font.pixelSize: 11 }
+                    Label { text: "Kürzel"; Layout.preferredWidth: 60; font.pixelSize: 11 }
+                    Label { text: "Einheit"; Layout.preferredWidth: 60; font.pixelSize: 11 }
+                    Label { text: "Nachkomma"; Layout.preferredWidth: 80; font.pixelSize: 11 }
+                    Label { text: "Woche"; Layout.preferredWidth: 100; font.pixelSize: 11 }
+                }
+                ListView {
+                    id: categoryList
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 280
+                    clip: true
+                    model: ListModel { id: categoryModel }
+                    ScrollBar.vertical: ScrollBar {}
+                    delegate: RowLayout {
+                        required property int index
+                        required property string name
+                        required property string code
+                        required property string unit
+                        required property int decimals
+                        required property string aggregate
+                        spacing: 6
+                        TextField { Layout.preferredWidth: 180; text: name; onTextEdited: categoryModel.setProperty(index, "name", text) }
+                        TextField { Layout.preferredWidth: 60; text: code; onTextEdited: categoryModel.setProperty(index, "code", text) }
+                        TextField { Layout.preferredWidth: 60; text: unit; onTextEdited: categoryModel.setProperty(index, "unit", text) }
+                        SpinBox { Layout.preferredWidth: 80; from: 0; to: 3; value: decimals; onValueModified: categoryModel.setProperty(index, "decimals", value) }
+                        ComboBox {
+                            Layout.preferredWidth: 100
+                            model: [{ text: "Maximum", v: "MAX" }, { text: "Minimum", v: "MIN" }, { text: "Summe", v: "SUM" }]
+                            textRole: "text"
+                            valueRole: "v"
+                            Component.onCompleted: currentIndex = indexOfValue(aggregate)
+                            onActivated: categoryModel.setProperty(index, "aggregate", currentValue)
+                        }
+                        IconToolButton { iconName: "trash-2"; toolTip: "Entfernen"; onClicked: categoryModel.remove(index) }
+                    }
+                }
+                IconButton {
+                    iconName: "plus"
+                    text: "Kategorie hinzufügen"
+                    onClicked: categoryModel.append({ name: "", code: "", unit: "", decimals: 0, aggregate: "MAX" })
+                }
+                Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                    font.pixelSize: 11
+                    color: palette.placeholderText
+                    text: "„Woche“ legt fest, welcher Wert in der Wochenübersicht steht. Das Kürzel ordnet gespeicherte Werte zu; bitte nicht ändern, wenn schon Werte erfasst sind."
                 }
             }
 

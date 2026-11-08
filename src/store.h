@@ -25,6 +25,8 @@ class Store : public QObject
     Q_PROPERTY(QStringList attributeNames READ attributeNames CONSTANT)
     Q_PROPERTY(QString filterKader READ filterKader WRITE setFilterKader NOTIFY athletesChanged)
     Q_PROPERTY(int filterSex READ filterSex WRITE setFilterSex NOTIFY athletesChanged)
+    // Categories of extra info: [{name, code, unit, decimals, aggregate (MAX/MIN/SUM)}]
+    Q_PROPERTY(QVariantList infoCategories READ infoCategories WRITE setInfoCategories NOTIFY settingsChanged)
     Q_PROPERTY(QString trainer READ trainer WRITE setTrainer NOTIFY settingsChanged)
     Q_PROPERTY(QString organisation READ organisation WRITE setOrganisation NOTIFY settingsChanged)
     Q_PROPERTY(QString databasePath READ databasePath CONSTANT)
@@ -48,6 +50,8 @@ public:
     void setFilterKader(const QString &v);
     int filterSex() const; // -1 all, 0 men, 1 women
     void setFilterSex(int v);
+    QVariantList infoCategories() const;
+    void setInfoCategories(const QVariantList &v);
     QString trainer() const;
     void setTrainer(const QString &v);
     QString organisation() const;
@@ -100,6 +104,18 @@ public:
     Q_INVOKABLE bool removeAthlete(const QString &athleteId);
     Q_INVOKABLE int sessionCount(const QString &athleteId) const;
     Q_INVOKABLE QStringList attributeValues(const QString &art) const;
+
+    // Extra info per day (Zusatzinfo)
+    // [{date ("yyyy-MM-dd"), dateText, time ("HH:mm"), code, name, unit, value (number), valueText}]
+    Q_INVOKABLE QVariantList dayInfo(const QString &athleteId, const QString &monday) const;
+    // Returns an error message, empty on success. old* identify an edited entry.
+    Q_INVOKABLE QString saveDayInfo(const QString &athleteId, const QString &date, const QString &time,
+                                    const QString &code, const QString &value, const QString &oldDate,
+                                    const QString &oldTime, const QString &oldCode);
+    Q_INVOKABLE bool removeDayInfo(const QString &athleteId, const QString &code, const QString &date,
+                                   const QString &time);
+    // "Körpergewicht 74,5 kg · Creatin 15 g" for the week (aggregated per category)
+    Q_INVOKABLE QString weekInfoSummary(const QString &athleteId, const QString &monday) const;
     // Sets the given attributes from today on, keeping the history
     Q_INVOKABLE bool setAthleteAttributes(const QString &athleteId, const QVariantMap &values);
     // [{from, to, text}] with dates as "dd.MM.yyyy"

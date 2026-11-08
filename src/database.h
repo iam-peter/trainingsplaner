@@ -63,6 +63,9 @@ bool saveInfoRecord(const InfoRecord &r);
 bool removeInfoRecord(const QString &athleteId, const QString &art, const QDate &from,
                       const QString &time = QStringLiteral("00:00:00"));
 QStringList infoValues(const QString &art); // distinct texts, sorted
+// Records of the given kinds dated from..to (inclusive)
+QList<InfoRecord> infoRecordsBetween(const QString &athleteId, const QStringList &arts,
+                                     const QDate &from, const QDate &to);
 // The record valid on `date` (from <= date <= to), or nullptr
 const InfoRecord *infoAt(const QList<InfoRecord> &records, const QDate &date);
 // Sets an attribute from `date` on: the record valid until then ends the day
