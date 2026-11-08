@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 // The dialog all screens use: modal, centred in the window, and the window
 // behind it clearly dimmed, so it is obvious that the dialog has the focus
@@ -71,7 +72,44 @@ Dialog {
     modal: true
     focus: true
 
+    // A dialog keeps its size while open: tab pages that are not shown are
+    // laid out before it opens, so the tallest one counts from the start,
+    // and it does not shrink when content goes away (a status line, a
+    // progress bar). It grows when content needs more room.
+    property real keptHeight: 0
+
+    function layoutHidden(item) {
+        // Hidden pages of a StackLayout have no width yet, so wrapped text
+        // would be measured too short: give them the layout's width
+        const stack = String(item).startsWith("QQuickStackLayout")
+        if (stack && item.width > 0) {
+            for (let i = 0; i < item.children.length; ++i) {
+                if (!item.children[i].visible)
+                    item.children[i].width = item.width
+            }
+        }
+        for (let i = 0; i < item.children.length; ++i)
+            layoutHidden(item.children[i])
+        if (typeof item.forceLayout === "function")
+            item.forceLayout()
+        // A StackLayout reports only its current page's height; it gets the
+        // tallest page's, also when a page grows later
+        if (stack) {
+            item.Layout.preferredHeight = Qt.binding(() => {
+                let tallest = 0
+                for (let i = 0; i < item.children.length; ++i)
+                    tallest = Math.max(tallest, item.children[i].implicitHeight)
+                return tallest
+            })
+        }
+    }
+
+    onImplicitHeightChanged: if (visible) keptHeight = Math.max(keptHeight, implicitHeight)
+    height: Math.min(parent ? parent.height - 40 : 100000, Math.max(implicitHeight, keptHeight))
+
     onAboutToShow: {
+        layoutHidden(contentItem)
+        keptHeight = implicitHeight
         nested = DialogStack.open > 0
         if (!counted) {
             DialogStack.open += 1
