@@ -162,6 +162,18 @@ Page {
                 ToolTip.text: "Nächste Woche"
             }
             IconButton {
+                id: calendarButton
+                iconName: "calendar-days"
+                toolTip: "Woche im Kalender wählen"
+                onClicked: calendar.open()
+                WeekCalendar {
+                    id: calendar
+                    y: calendarButton.height + 2
+                    monday: page.monday
+                    onPicked: (m) => page.monday = m
+                }
+            }
+            IconButton {
                 iconName: "calendar"
                 text: "Heute"
                 onClicked: page.monday = Store.mondayOf(Store.today())

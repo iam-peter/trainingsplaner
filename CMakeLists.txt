@@ -71,6 +71,7 @@ qt_add_qml_module(tpqml
         qml/PlanningPage.qml
         qml/ReportView.qml
         qml/AnalysisPage.qml
+        qml/WeekCalendar.qml
     RESOURCES
         logo/trainingsplaner.svg
         ${TP_FONTS}
