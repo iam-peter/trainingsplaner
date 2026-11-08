@@ -1,3 +1,16 @@
+@font-face {
+  font-family: "Inter"; font-weight: 400; font-style: normal; font-display: swap;
+  src: url("fonts/Inter-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter"; font-weight: 600; font-style: normal; font-display: swap;
+  src: url("fonts/Inter-SemiBold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono"; font-weight: 400; font-style: normal; font-display: swap;
+  src: url("fonts/JetBrainsMono-Regular.woff2") format("woff2");
+}
+
 :root {
   --bg: #ffffff;
   --fg: #1c1917;
@@ -24,7 +37,8 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--fg);
-  font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+  font: 16px/1.65 "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-feature-settings: "ss01", "tnum";
   -webkit-font-smoothing: antialiased;
 }
 a { color: var(--accent); }
@@ -33,14 +47,14 @@ img { max-width: 100%; height: auto; }
 
 nav { border-bottom: 1px solid var(--line); }
 nav .wrap { display: flex; align-items: center; gap: 20px; height: 56px; }
-nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; color: var(--fg); text-decoration: none; }
+nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--fg); text-decoration: none; }
 nav .brand img { width: 26px; height: 26px; }
 nav .links { margin-left: auto; display: flex; gap: 20px; }
 nav .links a { color: var(--muted); text-decoration: none; font-size: 0.95rem; }
 nav .links a:hover { color: var(--fg); }
 
 header.hero { padding: 64px 0 8px; }
-h1 { font-size: clamp(2rem, 5vw, 2.8rem); line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 12px; }
+h1 { font-weight: 600; font-size: clamp(2rem, 5vw, 2.8rem); line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 12px; }
 .tagline { color: var(--muted); font-size: 1.15rem; max-width: 600px; margin: 0 0 28px; }
 
 .buttons { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
@@ -56,11 +70,12 @@ h1 { font-size: clamp(2rem, 5vw, 2.8rem); line-height: 1.15; letter-spacing: -0.
 .shot { display: block; margin: 40px 0 0; border: 1px solid var(--line); border-radius: 8px; }
 
 section { padding: 64px 0 0; }
-h2 { font-size: 1.5rem; letter-spacing: -0.01em; margin: 0 0 6px; }
+h2 { font-weight: 600; font-size: 1.5rem; letter-spacing: -0.01em; margin: 0 0 6px; }
 .lead { color: var(--muted); margin: 0 0 24px; max-width: 640px; }
 
 .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 28px 32px; }
-.features h3 { font-size: 1rem; margin: 0 0 4px; }
+.features h3 { font-size: 1rem; margin: 0 0 4px; font-weight: 600; }
+.features .icon { width: 20px; height: 20px; color: var(--accent); margin-bottom: 8px; }
 .features p { margin: 0; color: var(--muted); }
 
 .split { display: grid; grid-template-columns: 1fr 1.4fr; gap: 36px; align-items: center; margin-top: 56px; }
@@ -92,7 +107,7 @@ summary { cursor: pointer; font-weight: 600; }
 details p, details ol { color: var(--muted); margin: 10px 0 0; }
 details ol { padding-left: 20px; }
 
-code { font: 0.9em ui-monospace, "SF Mono", Menlo, Consolas, monospace; background: var(--soft); padding: 1px 5px; border-radius: 4px; }
+code { font: 0.88em "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace; background: var(--soft); padding: 1px 5px; border-radius: 4px; }
 
 footer { color: var(--muted); font-size: 0.9rem; padding: 64px 0 40px; }
 footer .wrap { display: flex; gap: 16px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 20px; }
