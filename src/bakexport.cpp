@@ -67,6 +67,21 @@ bool whereFor(const TableSpec &t, const BakExport::Filter &f, QString *where, QV
         }
         return true;
     }
+    case F::Maz:
+        if (t.name == QLatin1String("maz")) {
+            *where = QStringLiteral("id = ?");
+            *binds = {f.mazId};
+        } else if (t.name == QLatin1String("maz_sp")) {
+            *where = QStringLiteral("mazid = ?");
+            *binds = {f.mazId};
+        } else if (t.name == QLatin1String("ueb") || t.name == QLatin1String("itp_ls")
+                   || t.name == QLatin1String("wo")) {
+            *where = QStringLiteral("spid = ?");
+            *binds = {QLatin1Char('#') + f.mazId};
+        } else {
+            return false;
+        }
+        return true;
     }
     return false;
 }
@@ -170,7 +185,7 @@ QString exportText(const Filter &filter, Result *result)
         }
 
         // Deletions, unless the row exists again
-        if (filter.mode == Filter::AthleteWeeks)
+        if (filter.mode == Filter::AthleteWeeks || filter.mode == Filter::Maz)
             continue;
         const QString since = filter.mode == Filter::ChangedSince ? filter.since : QString();
         for (const Database::Deletion &d : Database::deletions(t.name, since)) {

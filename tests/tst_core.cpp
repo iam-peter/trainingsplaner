@@ -1,6 +1,7 @@
 #include "bakexport.h"
 #include "bakimport.h"
 #include "competition.h"
+#include "planning.h"
 #include "database.h"
 #include "exerciseweek.h"
 #include "model.h"
@@ -37,6 +38,8 @@ private slots:
     void exportRoundTrip();
     void attributesWithHistory();
     void competitions();
+    void planningBasics();
+    void itpFromRo();
     void exerciseWeekApply();
 
 private:
@@ -542,6 +545,99 @@ void TestCore::competitions()
 
     QVERIFY(Competitions::remove(c.athleteId, c.date, c.time));
     QCOMPARE(Competitions::forAthlete(c.athleteId).size(), 2);
+}
+
+void TestCore::planningBasics()
+{
+    QCOMPARE(Planning::roundToStep(101.2, 2.5), 100);
+    QCOMPARE(Planning::roundToStep(101.3, 2.5), 102); // 102.5 as whole kg
+    QCOMPARE(Planning::roundToStep(101.4, 1.0), 101);
+
+    bool ok = false;
+    QList<Step> s = Planning::parseStepsText(QStringLiteral("80/3/2  85/3 90"), &ok);
+    QVERIFY(ok);
+    QCOMPARE(s, (QList<Step>{{80, 3, 2, 0}, {85, 3, 1, 0}, {90, 1, 1, 0}}));
+    QCOMPARE(Planning::stepsText(s), QStringLiteral("80/3/2 85/3/1 90/1/1"));
+    Planning::parseStepsText(QStringLiteral("80/x"), &ok);
+    QVERIFY(!ok);
+
+    Maz m;
+    m.name = QStringLiteral("Vorbereitung DM");
+    m.shortName = QStringLiteral("DM27");
+    m.sex = 1;
+    m.from = QDate(2027, 3, 1);
+    m.to = QDate(2027, 4, 26);
+    m.buildUp = m.from;
+    m.peakPhase = QDate(2027, 4, 5);
+    const QString id = Planning::saveMaz(m);
+    QVERIFY(!id.isEmpty());
+    QCOMPARE(Planning::maz(id).weeks(), 9);
+    QVERIFY(Planning::saveMazAthlete({id, QStringLiteral("muster_erika"), 59, 80, 100, 78, 98, {}}));
+    QCOMPARE(Planning::mazAthletes(id).size(), 1);
+    QCOMPARE(Planning::mazForAthlete(QStringLiteral("muster_erika")).size(), 1);
+
+    // Targets and meta, copied to other weeks
+    const QString owner = QStringLiteral("muster_erika");
+    QVERIFY(Planning::setTarget(owner, {QDate(2027, 3, 1), 1, 40, 60, 70, 2, 2}));
+    QVERIFY(Planning::setTarget(owner, {QDate(2027, 3, 8), -2, 80, 0, 0, 0, 0}));
+    QVERIFY(Planning::setMeta(owner, {QDate(2027, 3, 1), 3, QStringLiteral("WK"), QStringLiteral("leicht")}));
+    QVERIFY(Planning::setPlannedSteps(owner, 1, QDate(2027, 3, 1), {{60, 3, 2, 0}}));
+    QVERIFY(Planning::copyPlan(owner, QDate(2027, 3, 1), owner, QDate(2027, 6, 7), 2));
+    const QList<WeekTarget> copied = Planning::targets(owner, QDate(2027, 6, 7), QDate(2027, 6, 14));
+    QCOMPARE(copied.size(), 2);
+    QCOMPARE(copied[0].monday, QDate(2027, 6, 7));
+    QCOMPARE(copied[0].bw, 70);
+    QCOMPARE(copied[1].exercise, -2);
+    QCOMPARE(Planning::meta(owner, QDate(2027, 6, 7), QDate(2027, 6, 7)).value(0).position, QStringLiteral("WK"));
+    QCOMPARE(Planning::plannedSteps(owner, 1, QDate(2027, 6, 7), QDate(2027, 6, 7)).value(QDate(2027, 6, 7)),
+             (QList<Step>{{60, 3, 2, 0}}));
+    // An empty target removes it
+    QVERIFY(Planning::setTarget(owner, {QDate(2027, 6, 14), -2, 0, 0, 0, 0, 0}));
+    QCOMPARE(Planning::targets(owner, QDate(2027, 6, 7), QDate(2027, 6, 14)).size(), 1);
+}
+
+void TestCore::itpFromRo()
+{
+    const QString id = Planning::mazList().first().id; // from planningBasics
+    const QString ro = Planning::roOwner(id);
+    // RO: snatch WKÜ at 75/85 %, Kniebeuge vorn (clean & jerk side) at 90 %
+    QVERIFY(Planning::setTarget(ro, {QDate(2027, 3, 1), 1, 30, 75, 85, 2, 2}));
+    QVERIFY(Planning::setTarget(ro, {QDate(2027, 3, 1), 19, 20, 90, 0, 0, 0}));
+    QVERIFY(Planning::setPlannedSteps(ro, 1, QDate(2027, 3, 1), {{70, 3, 2, 0}, {80, 2, 2, 0}}));
+    QVERIFY(Planning::setMeta(ro, {QDate(2027, 3, 8), 4, QStringLiteral("WK"), {}}));
+
+    QVERIFY(Planning::itpFromRo(id, QStringLiteral("muster_erika"), 2.5));
+    const QList<WeekTarget> t = Planning::targets(QStringLiteral("muster_erika"), QDate(2027, 3, 1), QDate(2027, 3, 1));
+    QCOMPARE(t.size(), 2);
+    // Targets: snatch 80, clean & jerk 100
+    QCOMPARE(t[0].exercise, 1);
+    QCOMPARE(t[0].wh, 30);
+    QCOMPARE(t[0].mhg, 60);   // 75 % of 80
+    QCOMPARE(t[0].bw, 67);    // 85 % of 80 = 68 -> 67.5 -> 67
+    QCOMPARE(t[1].mhg, 90);   // 90 % of 100
+    const QList<Step> steps = Planning::plannedSteps(QStringLiteral("muster_erika"), 1, QDate(2027, 3, 1),
+                                                     QDate(2027, 3, 1)).value(QDate(2027, 3, 1));
+    QCOMPARE(steps, (QList<Step>{{55, 3, 2, 0}, {65, 2, 2, 0}})); // 56 -> 55, 64 -> 65
+    QCOMPARE(Planning::meta(QStringLiteral("muster_erika"), QDate(2027, 3, 8), QDate(2027, 3, 8)).value(0).load, 4);
+
+    // Actual figures of a group from the week plan
+    Session s;
+    s.day = 2;
+    Entry a;
+    a.exercise = 1; // K1
+    a.steps = {{50, 3, 2, 0}};
+    Entry b;
+    b.exercise = 3; // K1 as well
+    b.steps = {{60, 2, 2, 0}};
+    s.entries = {a, b};
+    QVERIFY(Database::saveSession(QStringLiteral("muster_erika"), QDate(2027, 3, 1), Variant::Plan, s));
+    const QMap<QDate, Stats> k1 = Planning::actualWeekly(QStringLiteral("muster_erika"), Variant::Plan, -1,
+                                                         QDate(2027, 3, 1), QDate(2027, 3, 8));
+    QCOMPARE(k1.value(QDate(2027, 3, 1)).wh, 10);
+    QVERIFY(!k1.contains(QDate(2027, 3, 8)));
+
+    QVERIFY(Planning::removeMaz(id));
+    QVERIFY(Planning::targets(ro, QDate(2027, 1, 1), QDate(2027, 12, 31)).isEmpty());
 }
 
 QTEST_MAIN(TestCore)

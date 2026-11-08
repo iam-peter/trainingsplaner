@@ -15,11 +15,13 @@ struct Filter
     enum Mode {
         All,          // everything
         ChangedSince, // rows changed (or deleted) since `since`
-        AthleteWeeks  // one athlete's data from `fromMonday` to `toMonday`
+        AthleteWeeks, // one athlete's data from `fromMonday` to `toMonday`
+        Maz           // a macrocycle with its athletes and framework plan
     };
     Mode mode = All;
     QString since; // "yyyy-MM-dd HH:mm:ss"
     QString athleteId;
+    QString mazId;
     QDate fromMonday;
     QDate toMonday;
 };

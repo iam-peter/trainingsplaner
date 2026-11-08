@@ -288,6 +288,14 @@ Dialog {
             Label { text: "BW " + (dialog.weekStats.bw || 0) + (dialog.weekStats.repsSets ? "  (" + dialog.weekStats.repsSets + ")" : "") }
             Label { text: "Tonnage " + ((dialog.weekStats.tonnage || 0) / 1000).toLocaleString(Qt.locale("de_DE"), "f", 1) + " t" }
             Item { Layout.fillWidth: true }
+            Label {
+                readonly property var itp: dialog.valid ? (Plan.changed, Plan.itpForWeek(dialog.athleteId, dialog.monday, dialog.exercise)) : null
+                visible: itp !== null && itp.has
+                text: itp ? "ITP:  WH " + itp.wh + "  MHG " + itp.mhg + "  BW " + itp.bw
+                            + (itp.steps !== "" ? "   Laststufen ITP: " + itp.steps : "") : ""
+                color: "#c2410c"
+                font.bold: true
+            }
         }
     }
 

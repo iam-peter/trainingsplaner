@@ -21,6 +21,7 @@ add_library(tpcore STATIC
     src/bakexport.cpp   src/bakexport.h
     src/exerciseweek.cpp src/exerciseweek.h
     src/competition.cpp src/competition.h
+    src/planning.cpp    src/planning.h
     src/bakimport.cpp   src/bakimport.h
     src/weekreport.cpp  src/weekreport.h
 )
@@ -40,6 +41,8 @@ qt_add_qml_module(tpqml
     OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Trainingsplaner
     SOURCES
         src/store.cpp src/store.h
+        src/planstore.cpp src/planstore.h
+        src/itpmodel.cpp src/itpmodel.h
     QML_FILES
         qml/Main.qml
         qml/WeekPage.qml
@@ -61,6 +64,9 @@ qt_add_qml_module(tpqml
         qml/ExerciseHistoryDialog.qml
         qml/AttemptField.qml
         qml/CompetitionsPage.qml
+        qml/MazPane.qml
+        qml/ItpGrid.qml
+        qml/PlanningPage.qml
     RESOURCES
         logo/trainingsplaner.svg
         ${TP_FONTS}

@@ -27,7 +27,7 @@ ApplicationWindow {
 
             TabBar {
                 id: tabs
-                Layout.preferredWidth: 440
+                Layout.preferredWidth: 580
                 TabButton {
                     text: "Wochenplan"
                     icon.source: "qrc:/qt/qml/Trainingsplaner/icons/calendar-days.svg"
@@ -38,6 +38,13 @@ ApplicationWindow {
                 TabButton {
                     text: "Sportler"
                     icon.source: "qrc:/qt/qml/Trainingsplaner/icons/users.svg"
+                    icon.color: palette.buttonText
+                    icon.width: 16
+                    icon.height: 16
+                }
+                TabButton {
+                    text: "Planung"
+                    icon.source: "qrc:/qt/qml/Trainingsplaner/icons/target.svg"
                     icon.color: palette.buttonText
                     icon.width: 16
                     icon.height: 16
@@ -96,6 +103,10 @@ ApplicationWindow {
                 weekPage.athleteId = athleteId
                 tabs.currentIndex = 0
             }
+        }
+
+        PlanningPage {
+            id: planningPage
         }
 
         CompetitionsPage {
@@ -161,8 +172,14 @@ ApplicationWindow {
     Component.onCompleted: {
         if (startPage === "sportler")
             tabs.currentIndex = 1
-        if (startPage === "wettkaempfe") {
+        if (startPage === "planung") {
             tabs.currentIndex = 2
+            if (startAthlete !== "")
+                planningPage.athleteId = startAthlete
+            planningPage.showTab(startSession)
+        }
+        if (startPage === "wettkaempfe") {
+            tabs.currentIndex = 3
             if (startAthlete !== "")
                 competitionsPage.athleteId = startAthlete
             if (startSession === "grafik")
