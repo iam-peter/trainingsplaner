@@ -39,7 +39,23 @@ Dialog {
             // No colour: the style tints the icon in its own text colour
         }
     }
-    Component.onCompleted: labelButtons()
+    Component.onCompleted: {
+        labelButtons()
+        // The content into a scroll area, which shows a bar only when the
+        // content is taller than the dialog may be
+        if (!scrollsContent || !contentItem)
+            return
+        const inner = contentItem
+        const scroller = scrollerComponent.createObject(null, { inner: inner })
+        contentItem = scroller
+        inner.parent = scroller.contentItem
+        // It kept its place as the dialog's content, inside the padding
+        inner.x = 0
+        inner.y = 0
+        inner.visible = true
+        inner.width = Qt.binding(() => scroller.width)
+        inner.height = Qt.binding(() => scroller.innerHeight)
+    }
     onStandardButtonsChanged: labelButtons()
 
     parent: Overlay.overlay
@@ -86,14 +102,53 @@ Dialog {
     closePolicy: Popup.CloseOnEscape
     focus: true
 
-    // A dialog keeps its size while open: tab pages that are not shown are
-    // laid out before it opens, so the tallest one counts from the start,
-    // and it does not shrink when content goes away (a status line, a
-    // progress bar). It grows when content needs more room. Until its
-    // first frame is drawn it follows its content, which may still be laid
-    // out for the last opening (a dialog reused for another athlete).
-    property real keptHeight: 0
-    property bool settled: false
+    // A dialog is as high as its content, growing and shrinking with it,
+    // up to the window's height less 40 px; content beyond that scrolls.
+    // Tab pages that are not shown are laid out before it opens, so the
+    // tallest one counts and switching tabs keeps the height.
+    // false: the dialog has a fixed height and scrolls its content itself
+    property bool scrollsContent: true
+
+    Component {
+        id: scrollerComponent
+        Flickable {
+            id: scroller
+            property Item inner
+            // Layouts report their size; the plain content item of a dialog
+            // without one takes its children's, as Qt's dialogs do (their
+            // natural size, not where they are: a child that fills it would
+            // otherwise depend on the height it gets from here)
+            function natural(item, vertical) {
+                if (!item)
+                    return 0
+                const own = vertical ? item.implicitHeight : item.implicitWidth
+                if (own > 0)
+                    return own
+                let n = 0
+                for (const c of item.children) {
+                    if (c.visible)
+                        n = Math.max(n, vertical ? c.implicitHeight : c.implicitWidth)
+                }
+                return n
+            }
+            readonly property real innerHeight: natural(inner, true)
+            implicitWidth: natural(inner, false)
+            implicitHeight: innerHeight
+            contentWidth: width
+            contentHeight: innerHeight
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            // In the dialog's right padding, beside the content: making room
+            // for it inside would narrow the content, which then wraps
+            // taller and decides anew whether the bar shows (a loop)
+            ScrollBar.vertical: AppScrollBar {
+                parent: scroller.parent
+                x: scroller.x + scroller.width + Math.max(0, (root.rightPadding - width) / 2)
+                y: scroller.y
+                height: scroller.height
+            }
+        }
+    }
 
     function layoutHidden(item) {
         // Hidden pages of a StackLayout have no width yet, so wrapped text
@@ -121,22 +176,10 @@ Dialog {
         }
     }
 
-    onImplicitHeightChanged: if (visible && settled) keptHeight = Math.max(keptHeight, implicitHeight)
-    height: Math.min(parent ? parent.height - 40 : 100000, Math.max(implicitHeight, keptHeight))
-    // The first frame after opening: the layouts are done, the height
-    // from now on only grows
-    Connections {
-        target: root.visible && !root.settled && root.contentItem ? root.contentItem.Window.window : null
-        function onFrameSwapped() {
-            root.keptHeight = root.implicitHeight
-            root.settled = true
-        }
-    }
+    height: Math.min(parent ? parent.height - 40 : 100000, implicitHeight)
 
     onAboutToShow: {
         layoutHidden(contentItem)
-        keptHeight = 0
-        settled = false
         nested = DialogStack.open > 0
         if (!counted) {
             DialogStack.open += 1

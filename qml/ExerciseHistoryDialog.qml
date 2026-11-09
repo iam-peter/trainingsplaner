@@ -34,6 +34,8 @@ AppDialog {
            + "  (" + (variant === "P" ? "Plan" : "Ist") + ")"
     width: Math.min(parent ? parent.width - 60 : 900, 960)
     height: Math.min(parent ? parent.height - 60 : 640, 680)
+    // Fixed height; scrolls its content itself
+    scrollsContent: false
     standardButtons: Dialog.Close
 
     contentItem: ColumnLayout {

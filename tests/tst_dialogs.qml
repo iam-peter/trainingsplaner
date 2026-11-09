@@ -133,21 +133,18 @@ Item {
             compare(dims().filter(d => d.color.a > 0).length, 1)
         }
 
-        // Content that goes away while open does not shrink the dialog,
-        // also when that is the first change after opening
-        function test_keepsHeightWhenContentGoes() {
+        // A dialog follows its content: lower when content goes away,
+        // higher when it comes back
+        function test_followsItsContent() {
             statusLine.visible = true
             status.open()
-            tryCompare(status, "settled", true)
+            tryCompare(status, "opened", true)
+            waitForRendering(status.contentItem)
             const tall = status.height
             statusLine.visible = false
-            waitForRendering(status.contentItem)
-            compare(status.height, tall)
-            status.close()
-            tryCompare(status, "visible", false)
-            // Opened again without it: as low as its content
-            status.open()
-            tryVerify(() => status.settled && status.height < tall)
+            tryVerify(() => status.height < tall)
+            statusLine.visible = true
+            tryCompare(status, "height", tall)
             status.close()
             tryCompare(status, "visible", false)
         }

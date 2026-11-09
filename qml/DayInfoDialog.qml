@@ -73,6 +73,8 @@ AppDialog {
     title: "Zusatzinfo  –  Woche " + Store.weekLabel(monday)
     width: 640
     height: Math.min(parent ? parent.height - 60 : 600, 620)
+    // Fixed height; scrolls its content itself
+    scrollsContent: false
     standardButtons: Dialog.Close
 
     contentItem: ColumnLayout {

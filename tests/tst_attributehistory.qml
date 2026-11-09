@@ -92,5 +92,25 @@ Item {
 
             compare(Store.saveAttributeHistory("test_tina", "Kader", []), "")
         }
+
+        // Many rows: the dialog stops at the window's height and scrolls,
+        // the buttons stay below the rows; fewer rows: it shrinks again
+        function test_scrollsAndShrinks() {
+            dialog.edit("test_tina", "BSP")
+            tryCompare(dialog, "opened", true)
+            for (let i = 0; i < 24; ++i)
+                dialog.addRow()
+            tryVerify(() => dialog.height === dialog.parent.height - 40)
+            const bar = dialog.contentItem.ScrollBar.vertical
+            tryVerify(() => bar.visible && bar.size < 1)
+            const full = dialog.height
+            for (let i = 0; i < 22; ++i)
+                findChild(rowsOf(dialog.contentItem, [])[0], "removeButton").clicked()
+            tryVerify(() => dialog.height < full - 300)
+            verify(bar.size >= 1 || !bar.visible)
+            dialog.dirty = false
+            dialog.close()
+            tryCompare(dialog, "visible", false)
+        }
     }
 }

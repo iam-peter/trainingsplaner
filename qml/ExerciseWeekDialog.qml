@@ -113,6 +113,8 @@ EditorDialog {
     discardText: "Die Übung wurde geändert und noch nicht gespeichert."
     width: parent ? Math.max(700, Math.min(parent.width - 40, 1100)) : 1000
     height: parent ? Math.max(500, Math.min(parent.height - 40, 820)) : 760
+    // Fixed height; scrolls its content itself
+    scrollsContent: false
     padding: 12
 
     Timer {
