@@ -68,7 +68,7 @@ Item {
             Label {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left
-                anchors.leftMargin: 6
+                anchors.leftMargin: 8
                 text: itp.rowLabel(row)
                 font.bold: row === itp.weeks
             }

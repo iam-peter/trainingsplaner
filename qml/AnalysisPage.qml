@@ -76,7 +76,7 @@ Page {
                 contentWidth: availableWidth
                 ColumnLayout {
                     width: parent.width
-                    spacing: 6
+                    spacing: 8
                     Label { text: "Sportler"; font.bold: true }
                     ComboBox {
                         Layout.fillWidth: true
@@ -135,7 +135,7 @@ Page {
                         TextField { id: iLoadEx; implicitWidth: 44; text: "1"; enabled: iLoad.checked; validator: IntValidator { bottom: 1; top: 45 } }
                     }
                     IconButton {
-                        Layout.topMargin: 6
+                        Layout.topMargin: 8
                         iconName: "list"
                         text: "Tabelle"
                         highlighted: true
@@ -157,7 +157,7 @@ Page {
             ColumnLayout {
                 Layout.preferredWidth: 330
                 Layout.alignment: Qt.AlignTop
-                spacing: 6
+                spacing: 8
                 Label { text: "MAZ"; font.bold: true }
                 ComboBox {
                     id: gMaz
@@ -184,7 +184,7 @@ Page {
                 }
                 CheckBox { id: gCompWeeks; text: "WK-Woche einschließen" }
                 IconButton {
-                    Layout.topMargin: 6
+                    Layout.topMargin: 8
                     iconName: "list"
                     text: "Tabelle"
                     highlighted: true
@@ -211,7 +211,7 @@ Page {
             ColumnLayout {
                 Layout.preferredWidth: 330
                 Layout.alignment: Qt.AlignTop
-                spacing: 6
+                spacing: 8
                 Label { text: "Zeitraum"; font.bold: true }
                 RowLayout {
                     Label { text: "ab" }
@@ -229,7 +229,7 @@ Page {
                     text: "Alle Sportler der Auswahl aus den Einstellungen (Kader, Männer/Frauen)."
                 }
                 IconButton {
-                    Layout.topMargin: 6
+                    Layout.topMargin: 8
                     iconName: "list"
                     text: "Tabelle"
                     highlighted: true
@@ -250,7 +250,7 @@ Page {
         // Charts
         ColumnLayout {
             id: chartTab
-            spacing: 6
+            spacing: 8
             property var first: ({})
             property var second: ({})
             function reload() {
@@ -267,7 +267,7 @@ Page {
                          : ({})
             }
             RowLayout {
-                spacing: 6
+                spacing: 8
                 ComboBox {
                     implicitWidth: 180
                     model: Store.selectableAthletes
@@ -309,7 +309,7 @@ Page {
                 }
             }
             RowLayout {
-                spacing: 6
+                spacing: 8
                 CheckBox { id: chMhg; text: "MHG"; checked: true }
                 CheckBox { id: chBw; text: "BW"; checked: true }
                 CheckBox { id: chTrend; text: "Trend"; checked: true }
@@ -332,7 +332,7 @@ Page {
                 RadioButton { id: chWk; text: "% WK"; enabled: chMaz.currentIndex > 0; onToggled: chartTab.reload() }
             }
             RowLayout {
-                spacing: 6
+                spacing: 8
                 CheckBox { id: chCompare; text: "Vergleich mit"; onToggled: chartTab.reload() }
                 ComboBox {
                     id: chAthlete2

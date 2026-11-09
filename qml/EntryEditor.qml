@@ -63,7 +63,7 @@ Frame {
         combination = source.combination || 0
     }
 
-    padding: 6
+    padding: 8
     background: Rectangle {
         color: palette.window
         border.color: palette.mid
@@ -73,7 +73,7 @@ Frame {
     RowLayout {
         anchors.left: parent.left
         anchors.right: parent.right
-        spacing: 10
+        spacing: 8
 
         // Exercise number with picker
         ColumnLayout {

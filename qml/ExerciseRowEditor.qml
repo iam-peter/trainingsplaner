@@ -43,7 +43,7 @@ Frame {
         number = source.number || 1
     }
 
-    padding: 6
+    padding: 8
     background: Rectangle {
         color: palette.window
         border.color: palette.mid
@@ -53,7 +53,7 @@ Frame {
     RowLayout {
         anchors.left: parent.left
         anchors.right: parent.right
-        spacing: 10
+        spacing: 8
 
         ColumnLayout {
             Layout.alignment: Qt.AlignTop

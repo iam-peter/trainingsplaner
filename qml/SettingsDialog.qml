@@ -121,7 +121,7 @@ AppDialog {
     }
 
     contentItem: ColumnLayout {
-        spacing: 10
+        spacing: 8
 
         AppTabBar {
             id: tabs
@@ -140,7 +140,7 @@ AppDialog {
             GridLayout {
                 columns: 2
                 columnSpacing: 16
-                rowSpacing: 6
+                rowSpacing: 8
 
                 Label { text: "Trainer:" }
                 TextField { id: trainerField; Layout.fillWidth: true }
@@ -166,7 +166,7 @@ AppDialog {
 
                 Label { text: "Leerzeilen:" }
                 RowLayout {
-                    spacing: 6
+                    spacing: 8
                     Label { text: "Kopf" }
                     SpinBox { id: blankHeader; from: 0; to: 20; editable: true; implicitWidth: 90 }
                     Label { text: "je TE" }
@@ -177,7 +177,7 @@ AppDialog {
 
                 Label { text: "Schriftgröße (pt):" }
                 RowLayout {
-                    spacing: 6
+                    spacing: 8
                     Label { text: "klein" }
                     SpinBox { id: fontSmall; from: 5; to: 24; editable: true; implicitWidth: 90 }
                     Label { text: "normal" }
@@ -188,7 +188,7 @@ AppDialog {
 
                 Label { text: "Seitenränder (cm):" }
                 RowLayout {
-                    spacing: 6
+                    spacing: 8
                     Label { text: "oben" }
                     TextField { id: marginTop; implicitWidth: 50; horizontalAlignment: TextInput.AlignHCenter }
                     Label { text: "links" }
@@ -263,7 +263,7 @@ AppDialog {
             ColumnLayout {
                 spacing: 4
                 RowLayout {
-                    spacing: 6
+                    spacing: 8
                     Label { text: "Bezeichnung"; Layout.preferredWidth: 180; font.pixelSize: 11 }
                     Label { text: "Kürzel"; Layout.preferredWidth: 60; font.pixelSize: 11 }
                     Label { text: "Einheit"; Layout.preferredWidth: 60; font.pixelSize: 11 }
@@ -285,7 +285,7 @@ AppDialog {
                         required property string unit
                         required property int decimals
                         required property string aggregate
-                        spacing: 6
+                        spacing: 8
                         TextField { Layout.preferredWidth: 180; text: name; onTextEdited: categoryModel.setProperty(index, "name", text) }
                         TextField { Layout.preferredWidth: 60; text: code; onTextEdited: categoryModel.setProperty(index, "code", text) }
                         TextField { Layout.preferredWidth: 60; text: unit; onTextEdited: categoryModel.setProperty(index, "unit", text) }
@@ -319,7 +319,7 @@ AppDialog {
             GridLayout {
                 columns: 2
                 columnSpacing: 16
-                rowSpacing: 6
+                rowSpacing: 8
                 Label { text: "Sportlerauswahl:" }
                 RowLayout {
                     ComboBox {

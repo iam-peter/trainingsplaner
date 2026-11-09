@@ -53,8 +53,8 @@ ApplicationWindow {
     header: AppToolBar {
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 6
-            anchors.rightMargin: 6
+            anchors.leftMargin: 8
+            anchors.rightMargin: 8
             spacing: 8
 
             AppTabBar {
@@ -189,7 +189,7 @@ ApplicationWindow {
                 id: bannerRow
                 anchors.fill: parent
                 anchors.leftMargin: 12
-                anchors.rightMargin: 6
+                anchors.rightMargin: 8
                 Label {
                     Layout.fillWidth: true
                     text: "Version " + Updater.latestVersion + " des Trainingsplaners ist verfügbar."

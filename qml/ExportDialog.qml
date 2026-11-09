@@ -37,7 +37,7 @@ AppDialog {
 
         RadioButton { id: modeSince; text: "Änderungen seit" }
         RowLayout {
-            Layout.leftMargin: 28
+            Layout.leftMargin: 24
             enabled: modeSince.checked
             TextField { id: sinceDate; implicitWidth: 110; placeholderText: "TT.MM.JJJJ" }
             TextField { id: sinceTime; implicitWidth: 70; placeholderText: "HH:MM" }
@@ -50,7 +50,7 @@ AppDialog {
 
         RadioButton { id: modeAthlete; text: "Trainingswochen eines Sportlers" }
         RowLayout {
-            Layout.leftMargin: 28
+            Layout.leftMargin: 24
             enabled: modeAthlete.checked
             ComboBox {
                 id: athleteBox
@@ -67,7 +67,7 @@ AppDialog {
 
         Label {
             Layout.fillWidth: true
-            Layout.topMargin: 6
+            Layout.topMargin: 8
             wrapMode: Text.Wrap
             font.pixelSize: 11
             color: palette.placeholderText

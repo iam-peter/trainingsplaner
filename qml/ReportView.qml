@@ -11,7 +11,7 @@ ColumnLayout {
     property string html
     property string title
 
-    spacing: 6
+    spacing: 8
 
     RowLayout {
         Label { text: view.title; font.bold: true; Layout.fillWidth: true }

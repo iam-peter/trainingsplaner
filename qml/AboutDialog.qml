@@ -21,10 +21,10 @@ AppDialog {
     ColumnLayout {
         anchors.left: parent.left
         anchors.right: parent.right
-        spacing: 14
+        spacing: 12
 
         RowLayout {
-            spacing: 14
+            spacing: 12
             Image {
                 source: "qrc:/qt/qml/Trainingsplaner/logo/trainingsplaner.svg"
                 sourceSize: Qt.size(64, 64)
@@ -120,7 +120,7 @@ AppDialog {
         GridLayout {
             columns: 2
             columnSpacing: 12
-            rowSpacing: 6
+            rowSpacing: 8
             Label { text: "Probleme, Wünsche:" }
             Label {
                 textFormat: Text.StyledText

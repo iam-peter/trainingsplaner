@@ -114,7 +114,7 @@ AppDialog {
     closePolicy: Popup.NoAutoClose
     width: parent ? Math.max(700, Math.min(parent.width - 40, 1100)) : 1000
     height: parent ? Math.max(500, Math.min(parent.height - 40, 820)) : 760
-    padding: 10
+    padding: 12
 
     Timer {
         id: recalcTimer
@@ -140,7 +140,7 @@ AppDialog {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 6
+            spacing: 8
             IconButton {
                 iconName: "plus"
                 text: "TÜ"
@@ -191,7 +191,7 @@ AppDialog {
             ColumnLayout {
                 id: entryColumn
                 width: flick.width - 14
-                spacing: 6
+                spacing: 8
 
                 Repeater {
                     id: entryRepeater
@@ -223,7 +223,7 @@ AppDialog {
                 Label {
                     visible: entryModel.count === 0
                     Layout.fillWidth: true
-                    Layout.topMargin: 30
+                    Layout.topMargin: 24
                     horizontalAlignment: Text.AlignHCenter
                     text: "Noch keine Übungen. Mit „+ TÜ“, „+ AMKT“ oder „+ Text“ hinzufügen."
                     color: palette.placeholderText

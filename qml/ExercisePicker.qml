@@ -26,7 +26,7 @@ Popup {
         return Object.keys(byGroup).map(g => ({ group: parseInt(g), items: byGroup[g] }))
     }
 
-    padding: 10
+    padding: 12
     modal: false
     focus: true
     onOpened: hoverName = ""

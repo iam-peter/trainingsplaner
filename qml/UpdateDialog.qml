@@ -18,7 +18,7 @@ AppDialog {
     ColumnLayout {
         anchors.left: parent.left
         anchors.right: parent.right
-        spacing: 10
+        spacing: 8
 
         Label {
             Layout.fillWidth: true

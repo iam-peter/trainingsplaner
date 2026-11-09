@@ -126,7 +126,7 @@ AppDialog {
     closePolicy: Popup.NoAutoClose
     width: parent ? Math.max(700, Math.min(parent.width - 40, 1100)) : 1000
     height: parent ? Math.max(500, Math.min(parent.height - 40, 820)) : 760
-    padding: 10
+    padding: 12
 
     Timer {
         id: recalcTimer
@@ -229,7 +229,7 @@ AppDialog {
             ColumnLayout {
                 id: rowColumn
                 width: flick.width - 14
-                spacing: 6
+                spacing: 8
 
                 Repeater {
                     id: rowRepeater
@@ -255,7 +255,7 @@ AppDialog {
                 Label {
                     visible: rowModel.count === 0 && dialog.valid
                     Layout.fillWidth: true
-                    Layout.topMargin: 20
+                    Layout.topMargin: 24
                     horizontalAlignment: Text.AlignHCenter
                     text: "Diese Übung ist in der Woche noch nicht geplant."
                     color: palette.placeholderText

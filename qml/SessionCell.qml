@@ -77,7 +77,7 @@ Rectangle {
     Label {
         anchors.top: parent.top
         anchors.right: parent.right
-        anchors.margins: 5
+        anchors.margins: 4
         text: cell.sessionNumber + ". TE"
         font.pixelSize: 10
         color: Theme.cellMuted
@@ -95,7 +95,7 @@ Rectangle {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        anchors.margins: 6
+        anchors.margins: 8
         anchors.topMargin: 16
         // No gap between the lines, so the pointer never falls between two
         spacing: 0
@@ -163,7 +163,7 @@ Rectangle {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 6
+                spacing: 8
                 Label {
                     visible: line.modelData.kind !== 2
                     Layout.preferredWidth: 20

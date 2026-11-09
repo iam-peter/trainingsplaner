@@ -306,7 +306,7 @@ Item {
                 model: chart.hoverIndex >= 0 ? chart.lines.concat(chart.bars) : []
                 Row {
                     required property var modelData
-                    spacing: 6
+                    spacing: 8
                     Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
                         width: 10

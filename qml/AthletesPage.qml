@@ -86,7 +86,7 @@ Page {
             anchors.fill: parent
             anchors.leftMargin: 8
             anchors.rightMargin: 8
-            spacing: 6
+            spacing: 8
             TextField {
                 id: searchField
                 objectName: "searchField"
@@ -236,7 +236,7 @@ Page {
                     onTextChanged: if (activeFocus) page.dirty = true
                 }
 
-                Label { text: "Zugehörigkeit:"; Layout.alignment: Qt.AlignTop; Layout.topMargin: 6 }
+                Label { text: "Zugehörigkeit:"; Layout.alignment: Qt.AlignTop; Layout.topMargin: 8 }
                 GridLayout {
                     columns: 2
                     columnSpacing: 16

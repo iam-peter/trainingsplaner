@@ -131,7 +131,7 @@ Page {
 
             // Week targets
             ColumnLayout {
-                spacing: 6
+                spacing: 8
                 RowLayout {
                     ComboBox {
                         implicitWidth: 340
@@ -175,7 +175,7 @@ Page {
 
             // Planned weight steps of one exercise
             ColumnLayout {
-                spacing: 6
+                spacing: 8
                 RowLayout {
                     Label { text: "Übung:" }
                     TextField {
@@ -269,7 +269,7 @@ Page {
             }
             RowLayout {
                 enabled: fromOther.checked
-                Layout.leftMargin: 28
+                Layout.leftMargin: 24
                 ComboBox {
                     id: otherAthlete
                     visible: !page.roMode

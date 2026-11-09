@@ -32,10 +32,10 @@ AppDialog {
     standardButtons: Dialog.Close
 
     contentItem: ColumnLayout {
-        spacing: 6
+        spacing: 8
 
         RowLayout {
-            spacing: 6
+            spacing: 8
             Label { text: "von"; Layout.preferredWidth: 110; font.bold: true }
             Label { text: "bis"; Layout.preferredWidth: 110; font.bold: true }
             Label { text: dialog.art; Layout.fillWidth: true; font.bold: true }
@@ -47,7 +47,7 @@ AppDialog {
             RowLayout {
                 id: row
                 required property var modelData
-                spacing: 6
+                spacing: 8
                 TextField {
                     id: fromField
                     Layout.preferredWidth: 110

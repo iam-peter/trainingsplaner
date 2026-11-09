@@ -112,12 +112,12 @@ RowLayout {
 
         ColumnLayout {
             anchors.fill: parent
-            spacing: 10
+            spacing: 8
 
             GridLayout {
                 columns: 4
                 columnSpacing: 12
-                rowSpacing: 6
+                rowSpacing: 8
 
                 Label {
                     Layout.columnSpan: 4
@@ -179,7 +179,7 @@ RowLayout {
             Label { text: "Sportler im MAZ"; font.bold: true; visible: pane.mazId !== "" }
             RowLayout {
                 visible: pane.mazId !== ""
-                spacing: 6
+                spacing: 8
                 Label { text: "Sportler"; Layout.preferredWidth: 180; font.pixelSize: 11 }
                 Label { text: "Gew.-Kl."; Layout.preferredWidth: 60; font.pixelSize: 11 }
                 Label { text: "Ziel Reißen"; Layout.preferredWidth: 70; font.pixelSize: 11 }
@@ -198,7 +198,7 @@ RowLayout {
                 delegate: RowLayout {
                     id: athleteRow
                     required property var modelData
-                    spacing: 6
+                    spacing: 8
                     function saveRow() {
                         Plan.saveMazAthlete({
                             mazId: pane.mazId, athleteId: modelData.athleteId,

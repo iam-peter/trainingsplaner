@@ -63,7 +63,7 @@ RowLayout {
         updateStats()
     }
 
-    spacing: 10
+    spacing: 8
 
     ColumnLayout {
         spacing: 2

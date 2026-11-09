@@ -195,7 +195,8 @@ Page {
             anchors.fill: parent
             anchors.leftMargin: 8
             anchors.rightMargin: 8
-            spacing: 6
+            // The fullest toolbar: tight gaps, the separators group it
+            spacing: 4
 
             ComboBox {
                 id: athleteBox
@@ -336,7 +337,7 @@ Page {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 10
+        anchors.margins: 12
         spacing: 8
         visible: page.hasAthlete
 
@@ -472,7 +473,7 @@ Page {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.margins: 6
+                    Layout.margins: 8
                     Label {
                         Layout.fillWidth: true
                         Layout.preferredWidth: 1
