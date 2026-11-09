@@ -36,8 +36,12 @@ Page {
         tabs.currentIndex = 1
     }
 
+    // Picks the first athlete while none is chosen; off in the window,
+    // which chooses for all pages
+    property bool choosesAthlete: true
+
     function selectDefaults() {
-        if (athleteId === "" && Store.selectableAthletes.length > 0)
+        if (choosesAthlete && athleteId === "" && Store.selectableAthletes.length > 0)
             athleteId = Store.selectableAthletes[0].id
         if (mazId !== "" && !mazChoices.some(m => m.id === mazId))
             mazId = ""

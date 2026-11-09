@@ -24,6 +24,21 @@ ApplicationWindow {
     // the others too
     property string athlete
 
+    // The first athlete of the selection lists while none is chosen or the
+    // chosen one is gone. Only here: pages that each picked one fought over
+    // the athlete they are bound to (a binding loop).
+    function chooseDefaultAthlete() {
+        if (athlete !== "" && Store.athletes.some(a => a.id === athlete))
+            return
+        const list = Store.selectableAthletes.length > 0 ? Store.selectableAthletes : Store.athletes
+        athlete = list.length > 0 ? list[0].id : ""
+    }
+
+    Connections {
+        target: Store
+        function onAthletesChanged() { window.chooseDefaultAthlete() }
+    }
+
     width: 1366
     height: 900
     minimumWidth: 1000
@@ -230,24 +245,28 @@ ApplicationWindow {
             WeekPage {
                 id: weekPage
                 objectName: "weekPage"
+                choosesAthlete: false
                 onAthleteIdChanged: window.athlete = athleteId
             }
 
             PlanningPage {
                 id: planningPage
                 objectName: "planningPage"
+                choosesAthlete: false
                 onAthleteIdChanged: window.athlete = athleteId
             }
 
             AnalysisPage {
                 id: analysisPage
                 objectName: "analysisPage"
+                choosesAthlete: false
                 onAthleteIdChanged: window.athlete = athleteId
             }
 
             CompetitionsPage {
                 id: competitionsPage
                 objectName: "competitionsPage"
+                choosesAthlete: false
                 onAthleteIdChanged: window.athlete = athleteId
             }
         }
@@ -287,7 +306,7 @@ ApplicationWindow {
             importResult.text = Store.importBak(importDialog.selectedFile, ignoreTimestamps.checked)
             ignoreTimestamps.checked = false
             importResult.open()
-            weekPage.selectDefaultAthlete()
+            window.chooseDefaultAthlete()
         }
     }
 
@@ -352,6 +371,7 @@ ApplicationWindow {
         Updater.checkOnStart()
         if (startAthlete !== "")
             athlete = startAthlete
+        chooseDefaultAthlete()
         if (startPage === "sportler")
             tabs.currentIndex = athletesTab
         if (startPage === "planung") {

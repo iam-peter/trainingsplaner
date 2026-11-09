@@ -14,8 +14,12 @@ Page {
     property string error
     property var trend: ({})
 
+    // Picks the first athlete while none is chosen; off in the window,
+    // which chooses for all pages
+    property bool choosesAthlete: true
+
     function selectDefaultAthlete() {
-        if (athleteId === "" && Store.selectableAthletes.length > 0)
+        if (choosesAthlete && athleteId === "" && Store.selectableAthletes.length > 0)
             athleteId = Store.selectableAthletes[0].id
     }
 

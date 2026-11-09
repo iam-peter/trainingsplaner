@@ -25,6 +25,25 @@ Item {
             Store.removeAthlete(second)
         }
 
+        // The window chooses the first athlete for all pages, also when
+        // athletes come later (example data), without the pages fighting
+        // over it (they each chose one, a binding loop)
+        function test_defaultAthleteChosenOnce() {
+            failOnWarning(/Binding loop/)
+            const w = createTemporaryObject(mainComponent, null)
+            verify(w.athlete !== "")
+            const demo = Store.createDemoData()
+            w.athlete = ""
+            Store.saveAthlete({ lastName: "Dritte", firstName: "Dora", sex: 1 })   // athletes change
+            verify(w.athlete !== "")
+            for (const name of ["weekPage", "planningPage", "analysisPage", "competitionsPage"])
+                compare(findChild(w, name).athleteId, w.athlete, name)
+            Store.removeDemoData()
+            const dora = Store.athletes.find(a => a.lastName === "Dritte")
+            if (dora)
+                Store.removeAthlete(dora.id)
+        }
+
         function test_choosingOnOnePageSelectsEverywhere() {
             const w = createTemporaryObject(mainComponent, null)
             const pages = ["weekPage", "planningPage", "analysisPage", "competitionsPage"]

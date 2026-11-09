@@ -19,8 +19,11 @@ Page {
 
     readonly property bool hasAthlete: athleteId !== ""
 
+    // Picks the first athlete while none is chosen; off in the window,
+    // which chooses for all pages
+    property bool choosesAthlete: true
     function selectDefaultAthlete() {
-        if (athleteId === "" && Store.athletes.length > 0)
+        if (choosesAthlete && athleteId === "" && Store.athletes.length > 0)
             athleteId = Store.athletes[0].id
     }
 
@@ -167,7 +170,8 @@ Page {
         function onAthletesChanged() {
             if (page.athleteId !== "" && !Store.athletes.some(a => a.id === page.athleteId)) {
                 page.noteOwner = null
-                page.athleteId = ""
+                if (page.choosesAthlete)
+                    page.athleteId = ""
             }
             page.selectDefaultAthlete()
         }
