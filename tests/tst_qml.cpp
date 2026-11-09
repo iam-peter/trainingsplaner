@@ -1,6 +1,5 @@
 #include "bakimport.h"
 #include "database.h"
-#include "uistyle.h"
 #include "update.h"
 
 #include <QCryptographicHash>
@@ -10,13 +9,13 @@
 #include <QJsonObject>
 #include <QQmlContext>
 #include <QQmlEngine>
+#include <QQuickStyle>
 #include <QTemporaryDir>
 #include <QtQml/qqmlextensionplugin.h>
 #include <QtQuickTest>
 
 Q_IMPORT_QML_PLUGIN(TrainingsplanerPlugin)
-Q_IMPORT_QML_PLUGIN(CarbonPlugin)
-Q_IMPORT_QML_PLUGIN(ShadcnPlugin)
+Q_IMPORT_QML_PLUGIN(TrainingsplanerStylePlugin)
 
 // Runs the QML tests against a fresh database in a temporary directory.
 class Setup : public QObject
@@ -27,6 +26,9 @@ public slots:
     void applicationAvailable()
     {
         QCoreApplication::setOrganizationName(QStringLiteral("TrainingsplanerTest"));
+        // As the program does at start
+        QQuickStyle::setStyle(QStringLiteral("TrainingsplanerStyle"));
+        QQuickStyle::setFallbackStyle(QStringLiteral("Basic"));
         // The update tests compare against it
         QCoreApplication::setApplicationVersion(QStringLiteral("1.0.0"));
         QVERIFY(m_dir.isValid());
@@ -43,8 +45,6 @@ public slots:
     void qmlEngineAvailable(QQmlEngine *engine)
     {
         engine->rootContext()->setContextProperty(QStringLiteral("updateFixtures"), m_fixtures);
-        // As the program does at start
-        UiStyle::detect(engine->importPathList());
     }
 
     void cleanupTestCase() { Database::close(); }

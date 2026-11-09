@@ -2,22 +2,22 @@ import QtQuick
 import QtQuick.Controls.impl
 import QtQuick.Templates as T
 
-// Carbon ghost button
+// Ghost button
 T.ToolButton {
     id: control
-
-    readonly property color foreground: enabled ? Tokens.textPrimary : Tokens.textDisabled
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
                             implicitContentWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding)
 
-    padding: 6
-    leftPadding: text !== "" && display !== T.AbstractButton.IconOnly ? 12 : 8
+    padding: Tokens.space2
+    leftPadding: text !== "" && display !== T.AbstractButton.IconOnly ? Tokens.space3 : Tokens.space2
     rightPadding: leftPadding
-    spacing: 8
+    spacing: Tokens.space2
     hoverEnabled: true
+    opacity: enabled ? 1 : 0.5
+    font.weight: Font.Medium
 
     icon.width: 16
     icon.height: 16
@@ -31,21 +31,19 @@ T.ToolButton {
         icon.name: control.icon.name
         icon.width: control.icon.width
         icon.height: control.icon.height
-        icon.color: control.foreground
+        icon.color: Tokens.foreground
         text: control.text
         font: control.font
-        color: control.foreground
+        color: Tokens.foreground
     }
 
     background: Rectangle {
         implicitWidth: Tokens.controlHeight
         implicitHeight: Tokens.controlHeight
-        color: control.down ? Tokens.layerActive
-               : control.checked ? Tokens.layerSelected
-               : control.hovered && control.enabled ? Tokens.layerHover : "transparent"
-        FocusRing {
-            anchors.fill: parent
-            visible: control.visualFocus
-        }
+        radius: Tokens.radiusMd
+        border.width: control.visualFocus ? 1 : 0
+        border.color: Tokens.ring
+        color: control.down || control.checked || (control.hovered && control.enabled)
+               ? (Tokens.dark ? Tokens.alpha(Tokens.accent, 0.5) : Tokens.accent) : "transparent"
     }
 }

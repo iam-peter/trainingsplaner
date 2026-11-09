@@ -3,8 +3,8 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 // The dialog all screens use: modal, centred in the window, and the window
-// behind it clearly dimmed, so it is obvious that the dialog has the focus
-// (Fusion's own dim is barely visible). The dim layer is anchored to the
+// behind it clearly dimmed, so it is obvious that the dialog has the focus.
+// The dim layer is anchored to the
 // overlay, so it always covers the whole window, also after resizing.
 // A dialog opened from another dialog does not add a second dim layer.
 // The dialog takes the keyboard focus, so Esc closes it, and Enter answers
@@ -36,7 +36,7 @@ Dialog {
             save.icon.source = "qrc:/qt/qml/Trainingsplaner/icons/save.svg"
             save.icon.width = 16
             save.icon.height = 16
-            // No colour: every style tints the icon in its own text colour
+            // No colour: the style tints the icon in its own text colour
         }
     }
     Component.onCompleted: labelButtons()
@@ -147,9 +147,8 @@ Dialog {
         level = DialogStack.open
     }
 
-    // Enter and Esc work from the moment the dialog shows, also while a
-    // style (Material, Fluent) still animates it in and the dialog does not
-    // have the keyboard focus yet
+    // Enter and Esc work from the moment the dialog shows, also before it
+    // has the keyboard focus
     Shortcut {
         sequences: ["Return", "Enter"]
         enabled: root.visible && root.enterAccepts && root.level === DialogStack.open

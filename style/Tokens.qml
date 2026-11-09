@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
 
-// Design tokens of shadcn/ui (the "neutral" base colour of version 4, the
+// The style's design tokens, from the "neutral" colours of shadcn/ui 4 (the
 // oklch values as sRGB), light and dark, following the program's colour
 // scheme like the rest of the program.
 QtObject {
@@ -48,7 +48,7 @@ QtObject {
     // colours: the soft shadow behind a control would show through
     readonly property color inputBackground: dark ? "#141414" : "#ffffff"
     readonly property color inputHover: dark ? "#1c1c1c" : accent
-    // The focus border; a step stronger than shadcn's ring, which was made
+    // The focus border; a step stronger than shadcn/ui's ring, which was made
     // for a glow around it and is too faint as a border alone
     readonly property color ring: dark ? "#a1a1a1" : "#737373"
     readonly property color overlay: Qt.rgba(0, 0, 0, 0.5)

@@ -3,8 +3,7 @@ import QtQuick.Controls
 import QtTest
 import Trainingsplaner
 
-// What the dialogs must do, and what Fusion's plain Dialog did not: dim the
-// window clearly, dim it only once when a dialog opens another, and stay
+// What the dialogs must do: dim the window clearly, dim it only once when a dialog opens another, and stay
 // centred and fully dimmed when the window is resized.
 Item {
     id: root
@@ -68,7 +67,7 @@ Item {
             tryCompare(outer, "opened", true)
             const d = dims()
             compare(d.length, 1)
-            // Clearly visible, not Fusion's faint shade
+            // Clearly visible
             verify(d[0].color.a >= 0.4, "dim alpha " + d[0].color.a)
             compare(d[0].width, root.Window.window.width)
         }

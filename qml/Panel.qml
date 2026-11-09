@@ -2,8 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import Trainingsplaner
 
-// A framed area. The border is drawn from the text colour, so it shows in
-// every palette; Fusion's own frame can vanish in dark system themes.
+// A framed area with the program's border colour.
 // filled: the base colour of a list instead of the window colour.
 Frame {
     id: control

@@ -31,10 +31,6 @@ Popup {
         topPadding: 0
         bottomPadding: 0
         flat: !highlighted
-        // Centred digits also in styles that align button text left
-        // (Carbon); the others centre already
-        Component.onCompleted: if (contentItem && contentItem.alignment !== undefined)
-            contentItem.alignment = Qt.AlignCenter
     }
 
     contentItem: ColumnLayout {

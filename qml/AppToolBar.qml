@@ -4,9 +4,7 @@ import Trainingsplaner
 
 // A toolbar of fixed height, so switching pages does not make the content
 // jump, and with room above and below the buttons, so their hover
-// background stays inside the toolbar's lines. It draws its own plain
-// background in every style: Material colours its toolbars in the primary
-// colour with white text, which made our tab bars unreadable.
+// background stays inside the toolbar's lines.
 Pane {
     implicitHeight: Theme.toolBarHeight
     padding: 0

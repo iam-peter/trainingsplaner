@@ -57,11 +57,7 @@ AppDialog {
         step25.checked = Store.weightStep !== 1
         step10.checked = Store.weightStep === 1
         schemeBefore = Store.colorScheme
-        styleBox.currentIndex = Math.max(0, styleBox.indexOfValue(Store.uiStyle))
     }
-
-    // A new style takes effect after a restart; the window offers one
-    signal styleChanged()
 
     // The colours change at once as a preview; Abbrechen goes back
     property string schemeBefore: "system"
@@ -101,11 +97,6 @@ AppDialog {
         Store.infoCategories = cats
         Store.filterKader = kaderFilter.currentIndex > 0 ? kaderFilter.currentText : ""
         Store.filterSex = sexMen.checked ? 0 : sexWomen.checked ? 1 : -1
-        if (styleBox.currentValue !== Store.uiStyle) {
-            Store.uiStyle = styleBox.currentValue
-            if (Store.uiStyle !== Store.activeStyle)
-                dialog.styleChanged()
-        }
     }
 
     contentItem: ColumnLayout {
@@ -252,7 +243,7 @@ AppDialog {
                 id: categoryTab
                 spacing: 4
                 // Column widths shared by the headings and the rows, wide
-                // enough in every style; the name takes the rest
+                // enough for the headings; the name takes the rest
                 readonly property int wCode: 72
                 readonly property int wUnit: 72
                 readonly property int wDecimals: 112
@@ -367,24 +358,6 @@ AppDialog {
                     font.pixelSize: 11
                     color: palette.placeholderText
                     text: "Alle Daten stehen in dieser einen Datei. Zur Sicherung das Programm schließen und die Datei kopieren, oder „Daten exportieren…“ nutzen."
-                }
-                Label { text: "Stil:" }
-                ComboBox {
-                    id: styleBox
-                    objectName: "styleBox"
-                    Layout.preferredWidth: 260
-                    model: Store.availableStyles
-                    textRole: "label"
-                    valueRole: "name"
-                }
-                Label {
-                    Layout.columnSpan: 2
-                    Layout.fillWidth: true
-                    wrapMode: Text.Wrap
-                    font.pixelSize: 11
-                    color: palette.placeholderText
-                    text: "Wie Schaltflächen, Felder und Listen aussehen. Carbon folgt dem IBM Carbon Design System, "
-                          + "shadcn/ui der gleichnamigen Komponentensammlung, die übrigen bringt Qt mit. Ein neuer Stil gilt nach einem Neustart des Programms."
                 }
                 Label { text: "Farbschema:" }
                 RowLayout {

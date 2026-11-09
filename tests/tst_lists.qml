@@ -43,9 +43,8 @@ Item {
             const button = findChild(row, "deleteButton")
             mouseMove(row, 20, row.height / 2)
             tryVerify(() => button.enabled)
-            // Near the button's right edge: there, the list's hidden scroll
-            // bar took the click under Material (seen first on Windows,
-            // where the narrower font moved the button's centre over it)
+            // Near the button's right edge, where a hidden scroll bar once
+            // took the click
             mouseClick(button, button.width - 3, button.height / 2)
             tryCompare(DialogStack, "open", 1)
             keyClick(Qt.Key_Return)   // Ja

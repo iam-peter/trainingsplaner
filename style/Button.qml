@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls.impl
 import QtQuick.Templates as T
 
-// shadcn buttons: highlighted is "default" (filled), flat is "ghost", any
+// Buttons: highlighted is "default" (filled), flat is "ghost", any
 // other "outline". Dialog buttons get "default", "outline" or
 // "destructive" from their role.
 T.Button {

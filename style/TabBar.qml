@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Templates as T
 
-// shadcn tabs list: a muted rounded bar, the active trigger raised
+// Tabs list: a muted rounded bar, the active trigger raised
 T.TabBar {
     id: control
 

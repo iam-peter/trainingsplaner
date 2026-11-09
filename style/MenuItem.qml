@@ -47,7 +47,7 @@ T.MenuItem {
         x: control.mirrored ? control.width - width - control.rightPadding : control.leftPadding
         y: control.topPadding + (control.availableHeight - height) / 2
         visible: control.checked
-        source: control.checkable ? "qrc:/qt/qml/Shadcn/images/check.svg" : ""
+        source: control.checkable ? "qrc:/qt/qml/TrainingsplanerStyle/images/check.svg" : ""
         sourceSize: Qt.size(16, 16)
         color: control.foreground
     }
@@ -57,7 +57,7 @@ T.MenuItem {
         y: control.topPadding + (control.availableHeight - height) / 2
         visible: control.subMenu
         mirror: control.mirrored
-        source: control.subMenu ? "qrc:/qt/qml/Shadcn/images/chevron-right.svg" : ""
+        source: control.subMenu ? "qrc:/qt/qml/TrainingsplanerStyle/images/chevron-right.svg" : ""
         sourceSize: Qt.size(16, 16)
         color: control.foreground
     }

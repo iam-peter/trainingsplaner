@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls.impl
 import QtQuick.Templates as T
 
-// Carbon overflow menu
+// Dropdown menu: a popover with rounded items
 T.Menu {
     id: control
 
@@ -13,7 +13,7 @@ T.Menu {
 
     margins: 0
     overlap: 1
-    padding: 0
+    padding: Tokens.space1
 
     delegate: MenuItem {}
 
@@ -29,17 +29,15 @@ T.Menu {
 
     background: Rectangle {
         implicitWidth: 200
-        implicitHeight: Tokens.controlHeight
-        color: Tokens.layer01
-        Rectangle {
+        implicitHeight: 40
+        color: Tokens.popover
+        radius: Tokens.radiusMd
+        border.color: Tokens.border
+        Shadow {
             z: -1
             anchors.fill: parent
-            anchors.topMargin: 2
-            anchors.bottomMargin: -4
-            anchors.leftMargin: -1
-            anchors.rightMargin: -1
-            color: Tokens.shadow
-            opacity: 0.35
+            radius: parent.radius
+            depth: 3
         }
     }
 

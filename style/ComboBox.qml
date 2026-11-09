@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls.impl
 import QtQuick.Templates as T
 
-// shadcn select: an input-like trigger with a faint chevron; the list is
+// Select: an input-like trigger with a faint chevron; the list is
 // a popover with rounded items and a check at the selected one
 T.ComboBox {
     id: control
@@ -46,7 +46,7 @@ T.ComboBox {
                 anchors.rightMargin: Tokens.space2
                 anchors.verticalCenter: parent.verticalCenter
                 visible: control.currentIndex === item.index
-                source: "qrc:/qt/qml/Shadcn/images/check.svg"
+                source: "qrc:/qt/qml/TrainingsplanerStyle/images/check.svg"
                 sourceSize: Qt.size(16, 16)
                 color: Tokens.foreground
             }
@@ -56,7 +56,7 @@ T.ComboBox {
     indicator: ColorImage {
         x: control.mirrored ? Tokens.space3 : control.width - width - Tokens.space3
         y: (control.height - height) / 2
-        source: "qrc:/qt/qml/Shadcn/images/chevron-down.svg"
+        source: "qrc:/qt/qml/TrainingsplanerStyle/images/chevron-down.svg"
         sourceSize: Qt.size(16, 16)
         color: Tokens.mutedForeground
         opacity: 0.8

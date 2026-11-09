@@ -80,9 +80,8 @@ updates and uninstalling.
   the week grid, Ctrl+←/→ for weeks, Ctrl+C/V for sessions), undo and
   redo of every change to sessions, a right-click menu with "Ist = Plan",
   one athlete selection for all pages, light and dark mode (following the
-  system or chosen in the settings), a choice of styles (Fusion, our own
-  styles after IBM's Carbon Design System and after shadcn/ui, and the
-  other Qt Quick Controls styles), help with a glossary (F1), an About
+  system or chosen in the settings), a style of its own (`style/`),
+  help with a glossary (F1), an About
   dialog with the version, the update check and a link for reporting
   problems, and example data to try the program on the first start.
 
@@ -145,7 +144,6 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `--page planung --open maz\|itp\|ro\|laststufen`, `--page analyse --open individual\|group\|check\|chart` | open a tab |
 | `--farbschema hell\|dunkel` | light or dark colours for this start, regardless of the setting (Einstellungen › Allgemein › Farbschema) |
 | `--grab <file.png>` | save a screenshot and exit (for testing) |
-| `--stil Carbon`, `--stil Shadcn` | this style for this start, regardless of the setting; exits with 3 if it is not installed |
 | `--check-update` | print the latest release and exit (0 found, 2 GitHub answered without one, 1 unreachable) |
 
 ## Code layout
@@ -199,12 +197,9 @@ MIT, see [LICENSE](LICENSE). The bundled assets keep their own licences:
   [JetBrains Mono](https://www.jetbrains.com/lp/mono/), SIL Open Font
   License 1.1 (`fonts/`).
 - Icons: [Lucide](https://lucide.dev/), ISC licence (`icons/LICENSE.txt`).
-- The Carbon style (`carbon/`) imitates the look of IBM's
-  [Carbon Design System](https://carbondesignsystem.com/) with its colour
-  tokens; it contains no IBM code or assets and is not affiliated with IBM.
-- The shadcn style (`shadcn/`) imitates the look of
-  [shadcn/ui](https://ui.shadcn.com/) (MIT) with its neutral theme tokens
-  and Lucide icons; it is not affiliated with the shadcn/ui project.
+- The program's style (`style/`) started out after
+  [shadcn/ui](https://ui.shadcn.com/) (MIT) and its neutral theme tokens;
+  it is not affiliated with the shadcn/ui project.
 
 The program uses [Qt](https://www.qt.io/) under the LGPL v3. When handing
 out a Windows build made with `windeployqt`, Qt stays in separate DLLs as the

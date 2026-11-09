@@ -92,8 +92,8 @@ jobs:
           chmod +x linuxdeploy-*.AppImage
           export APPIMAGE_EXTRACT_AND_RUN=1
           export QMAKE="$QT_ROOT_DIR/bin/qmake"
-          # Our QML and the styles the settings offer (packaging/qml-imports)
-          export QML_SOURCES_PATHS="$GITHUB_WORKSPACE/qml:$GITHUB_WORKSPACE/packaging/qml-imports/styles"
+          # Our QML and what our style builds on (packaging/qml-imports)
+          export QML_SOURCES_PATHS="$GITHUB_WORKSPACE/qml:$GITHUB_WORKSPACE/packaging/qml-imports"
           # SQLite for the database, the CUPS backend for printing, TLS for
           # the update check
           export EXTRA_PLATFORM_PLUGINS="libqoffscreen.so"
@@ -118,12 +118,10 @@ jobs:
           APPIMAGE_EXTRACT_AND_RUN=1 QT_QPA_PLATFORM=offscreen \
             ./trainingsplaner-linux-x64.AppImage --db "$RUNNER_TEMP/ci.sqlite" --check-update || status=$?
           [ "$status" -ne 1 ]
-          # Every style the settings offer is shipped and starts
-          for style in Fusion Carbon Shadcn Material Universal FluentWinUI3 Basic Imagine; do
-            APPIMAGE_EXTRACT_AND_RUN=1 QT_QPA_PLATFORM=offscreen ./trainingsplaner-linux-x64.AppImage \
-              --db "$RUNNER_TEMP/ci.sqlite" --stil "$style" --grab "$RUNNER_TEMP/$style.png"
-            test -s "$RUNNER_TEMP/$style.png"
-          done
+          # The window shows, in our style
+          APPIMAGE_EXTRACT_AND_RUN=1 QT_QPA_PLATFORM=offscreen ./trainingsplaner-linux-x64.AppImage \
+            --db "$RUNNER_TEMP/ci.sqlite" --grab "$RUNNER_TEMP/window.png"
+          test -s "$RUNNER_TEMP/window.png"
 
       # A version after the one in CMake, rising with the commit time, so
       # package managers upgrade every nightly
@@ -184,8 +182,8 @@ jobs:
           New-Item -ItemType Directory Trainingsplaner | Out-Null
           # Visual Studio adds a folder per configuration
           Copy-Item build/Release/trainingsplaner.exe Trainingsplaner/
-          # Our QML and the styles the settings offer (packaging/qml-imports)
-          windeployqt --release --qmldir qml --qmldir packaging/qml-imports/styles --qmldir packaging/qml-imports/windows Trainingsplaner/trainingsplaner.exe
+          # Our QML and what our style builds on (packaging/qml-imports)
+          windeployqt --release --qmldir qml --qmldir packaging/qml-imports Trainingsplaner/trainingsplaner.exe
           Copy-Item LICENSE Trainingsplaner/LICENSE.txt
           Compress-Archive -Path Trainingsplaner -DestinationPath trainingsplaner-windows-x64.zip
 
@@ -256,14 +254,11 @@ jobs:
           $p = Start-Process Trainingsplaner/trainingsplaner.exe -ArgumentList "--db", "$env:RUNNER_TEMP\ci.sqlite", "--check-update" -Wait -PassThru -NoNewWindow
           if ($p.ExitCode -eq 1) { throw "Update check could not reach GitHub" }
 
-          # Every style the settings offer is shipped and starts
-          foreach ($style in "Fusion", "Carbon", "Shadcn", "Material", "Universal", "FluentWinUI3", "Basic", "Imagine", "Windows") {
-            $png = "$env:RUNNER_TEMP\$style.png"
-            # The native style needs the real window system
-            $env:QT_QPA_PLATFORM = if ($style -eq "Windows") { "windows" } else { "offscreen" }
-            $p = Start-Process Trainingsplaner/trainingsplaner.exe -ArgumentList "--db", "$env:RUNNER_TEMP\ci.sqlite", "--stil", $style, "--grab", $png -Wait -PassThru -NoNewWindow
-            if ($p.ExitCode -ne 0 -or -not (Test-Path $png)) { throw "Style $style did not start" }
-          }
+          # The window shows, in our style
+          $png = "$env:RUNNER_TEMP\window.png"
+          $env:QT_QPA_PLATFORM = "offscreen"
+          $p = Start-Process Trainingsplaner/trainingsplaner.exe -ArgumentList "--db", "$env:RUNNER_TEMP\ci.sqlite", "--grab", $png -Wait -PassThru -NoNewWindow
+          if ($p.ExitCode -ne 0 -or -not (Test-Path $png)) { throw "The window did not show" }
 
       - uses: actions/upload-artifact@v4
         with:
@@ -312,10 +307,9 @@ jobs:
       - name: Disk image
         run: |
           mv build/trainingsplaner.app build/Trainingsplaner.app
-          # Our QML and the styles the settings offer (packaging/qml-imports)
+          # Our QML and what our style builds on (packaging/qml-imports)
           macdeployqt build/Trainingsplaner.app -qmldir="$GITHUB_WORKSPACE/qml" \
-            -qmldir="$GITHUB_WORKSPACE/packaging/qml-imports/styles" \
-            -qmldir="$GITHUB_WORKSPACE/packaging/qml-imports/macos" -dmg
+            -qmldir="$GITHUB_WORKSPACE/packaging/qml-imports" -dmg
           mv build/Trainingsplaner.dmg trainingsplaner-macos.dmg
 
       # The deployed app reaches GitHub over TLS (2: answer, but no
@@ -326,14 +320,10 @@ jobs:
           QT_QPA_PLATFORM=offscreen build/Trainingsplaner.app/Contents/MacOS/trainingsplaner \
             --db "$RUNNER_TEMP/ci.sqlite" --check-update || status=$?
           [ "$status" -ne 1 ]
-          # Every style the settings offer is shipped and starts
-          for style in Fusion Carbon Shadcn Material Universal FluentWinUI3 Basic Imagine macOS; do
-            # The native style needs the real window system
-            platform=offscreen; [ "$style" = macOS ] && platform=cocoa
-            QT_QPA_PLATFORM=$platform build/Trainingsplaner.app/Contents/MacOS/trainingsplaner \
-              --db "$RUNNER_TEMP/ci.sqlite" --stil "$style" --grab "$RUNNER_TEMP/$style.png"
-            test -s "$RUNNER_TEMP/$style.png"
-          done
+          # The window shows, in our style
+          QT_QPA_PLATFORM=offscreen build/Trainingsplaner.app/Contents/MacOS/trainingsplaner \
+            --db "$RUNNER_TEMP/ci.sqlite" --grab "$RUNNER_TEMP/window.png"
+          test -s "$RUNNER_TEMP/window.png"
 
       - uses: actions/upload-artifact@v4
         with:

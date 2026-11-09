@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Templates as T
 
-// Carbon modal: title in the heading style, buttons flush across the
-// bottom edge
+// Dialog: a rounded, bordered card with a large shadow, the title
+// in semibold, the buttons on the right
 T.Dialog {
     id: control
 
@@ -15,25 +15,33 @@ T.Dialog {
                              + (implicitHeaderHeight > 0 ? implicitHeaderHeight + spacing : 0)
                              + (implicitFooterHeight > 0 ? implicitFooterHeight + spacing : 0))
 
-    padding: 16
-    topPadding: 8
-    bottomPadding: 24
+    padding: Tokens.space4
+    topPadding: Tokens.space2
+    bottomPadding: Tokens.space4
 
     background: Rectangle {
-        // One layer above the page, so its fields stand out
-        color: Tokens.layer02
+        color: Tokens.background
+        radius: Tokens.radiusLg
+        border.color: Tokens.border
+        Shadow {
+            z: -1
+            anchors.fill: parent
+            radius: parent.radius
+            depth: 4
+        }
     }
 
     header: T.Label {
         text: control.title
         visible: parent?.parent === T.Overlay.overlay && control.title
         elide: Text.ElideRight
-        font.pixelSize: 20
-        color: Tokens.textPrimary
-        leftPadding: 16
-        rightPadding: 48
-        topPadding: 16
-        bottomPadding: 8
+        font.pixelSize: 18
+        font.weight: Font.DemiBold
+        color: Tokens.foreground
+        leftPadding: Tokens.space4
+        rightPadding: Tokens.space4
+        topPadding: Tokens.space4
+        bottomPadding: Tokens.space2
     }
 
     footer: DialogButtonBox {

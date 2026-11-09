@@ -308,23 +308,11 @@ ApplicationWindow {
     SettingsDialog {
         id: settingsDialog
         objectName: "settingsDialog"
-        onStyleChanged: restartConfirm.open()
     }
 
     UpdateDialog {
         id: updateDialog
         objectName: "updateDialog"
-    }
-
-    AppDialog {
-        id: restartConfirm
-        objectName: "restartConfirm"
-        title: "Neu starten?"
-        standardButtons: Dialog.Yes | Dialog.No
-        Label {
-            text: "Der neue Stil gilt nach einem Neustart des Programms.\nJetzt neu starten? Noch nicht gespeicherte Eingaben gehen dabei verloren."
-        }
-        onAccepted: Store.restart()
     }
 
     AboutDialog {

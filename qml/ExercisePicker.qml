@@ -61,7 +61,7 @@ Popup {
                         implicitWidth: 34
                         implicitHeight: 28
                         // Small square buttons: no style padding, so two
-                        // digits fit in every style
+                        // digits fit
                         leftPadding: 0
                         rightPadding: 0
                         topPadding: 0

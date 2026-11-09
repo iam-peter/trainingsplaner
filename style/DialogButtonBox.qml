@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Templates as T
 
-// shadcn dialog footer: the buttons on the right with a small gap, the
+// Dialog footer: the buttons on the right with a small gap, the
 // cancelling ones outlined, the confirming one filled, a destructive one
 // red. The kind follows the button's role: the box resets highlighted.
 T.DialogButtonBox {

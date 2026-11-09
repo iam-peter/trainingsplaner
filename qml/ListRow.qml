@@ -14,13 +14,13 @@ ItemDelegate {
     // Beside the list's scroll bar while it shows
     width: ListView.view ? ListView.view.width - (ListView.view.ScrollBar.vertical?.room ?? 0) : implicitWidth
     hoverEnabled: true
-    // Carbon's lists select the full width, shadcn's leave a little room;
-    // the text keeps 8 px to the selection in shadcn
+    // The selection leaves a little room to the list's border; the text
+    // keeps 8 px to the selection
     leftInset: Theme.rowInsetX
     rightInset: Theme.rowInsetX
     topInset: Theme.rowInsetY
     bottomInset: Theme.rowInsetY
-    leftPadding: Theme.shadcn ? Theme.rowInsetX + 8 : undefined
+    leftPadding: Theme.rowInsetX + 8
     rightPadding: deleteButton.width + Theme.rowInsetX + 8
     // Tall enough for the delete button (24 px) with 2 px around it
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
@@ -49,9 +49,8 @@ ItemDelegate {
         anchors.rightMargin: Theme.rowInsetX + 2
         anchors.verticalCenter: parent.verticalCenter
         // As high as the selection less 2 px above and below, at least
-        // 24 px: the icon at its normal 16 px. Every padding is set, since
-        // the styles set the sides on their own and squeezed the icon.
-        // (A fixed small size made Material ignore the clicks.)
+        // 24 px: the icon at its normal 16 px. Every padding is set, so
+        // nothing squeezes the icon.
         height: row.height - row.topInset - row.bottomInset - 4
         width: height
         padding: 0
@@ -68,8 +67,8 @@ ItemDelegate {
                    : "transparent"
         }
         toolTip: row.deleteToolTip
-        // The row's hover handler, not row.hovered: some styles (Material)
-        // give the hover to the button itself, which then hid itself
+        // The row's hover handler, not row.hovered: the button takes the
+        // row's hover while the pointer is on it, and would hide itself
         opacity: rowHover.hovered || row.highlighted ? 1 : 0
         enabled: opacity > 0
         onClicked: row.deleteRequested()
