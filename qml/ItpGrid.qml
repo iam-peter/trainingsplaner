@@ -95,9 +95,12 @@ Item {
         boundsBehavior: Flickable.StopAtBounds
         ScrollBar.horizontal: AppScrollBar { id: hbar }
         ScrollBar.vertical: AppScrollBar { id: vbar }
-        // The bars beside the cells, not over the last row and column
-        rightMargin: vbar.room
-        bottomMargin: hbar.room
+        // The bars beside the cells, not over the last row and column. A
+        // fixed room: room that follows each bar would change the other
+        // bar's size and so whether it shows (a binding loop); it only
+        // shows once the grid scrolls, at its end.
+        rightMargin: vbar.width + 4
+        bottomMargin: hbar.height + 4
         columnWidthProvider: column => itp.columnInfo(column).sub === "" ? 60 : grid.cellWidth
 
         delegate: Rectangle {

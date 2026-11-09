@@ -15,7 +15,9 @@ ColumnLayout {
 
     RowLayout {
         spacing: 8
-        Label { text: view.title; font.bold: true; Layout.fillWidth: true }
+        // On the line of the first heading beside it (Sportler, MAZ), not
+        // centred on the buttons
+        Label { text: view.title; font.bold: true; Layout.fillWidth: true; Layout.alignment: Qt.AlignTop }
         IconButton {
             iconName: "printer"
             text: "Drucken…"
@@ -30,11 +32,12 @@ ColumnLayout {
         }
     }
 
-    Frame {
+    // Framed like the program's other panels
+    Panel {
         Layout.fillWidth: true
         Layout.fillHeight: true
-        padding: 0
-        background: Rectangle { color: palette.base; border.color: palette.mid }
+        filled: true
+        padding: 1
         ScrollView {
             // No overshoot at the ends
             Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds

@@ -55,6 +55,7 @@ Page {
             anchors.leftMargin: 8
             AppTabBar {
                 id: tabs
+                objectName: "analysisTabs"
                 Layout.preferredWidth: 560
                 AppTabButton { text: "Individualanalyse" }
                 AppTabButton { text: "Gruppenanalyse" }
@@ -165,6 +166,9 @@ Page {
         RowLayout {
             spacing: 12
             ColumnLayout {
+                // As wide as the settings of the other tabs: a layout would
+                // otherwise share the width with the report
+                Layout.fillWidth: false
                 Layout.preferredWidth: 330
                 Layout.alignment: Qt.AlignTop
                 spacing: 8
@@ -221,6 +225,9 @@ Page {
         RowLayout {
             spacing: 12
             ColumnLayout {
+                // As wide as the settings of the other tabs: a layout would
+                // otherwise share the width with the report
+                Layout.fillWidth: false
                 Layout.preferredWidth: 330
                 Layout.alignment: Qt.AlignTop
                 spacing: 8
