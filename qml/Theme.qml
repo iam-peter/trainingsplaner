@@ -10,7 +10,7 @@ QtObject {
     readonly property var sh: Style.Tokens
     // The old program's colours, when chosen as colour scheme
     readonly property Binding classicColors: Binding {
-        target: Style.Tokens
+        target: Style.TokenInterface
         property: "classic"
         value: Store.classicColors
     }

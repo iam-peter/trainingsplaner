@@ -3,15 +3,17 @@
 # A QML module whose files are named after the controls; what it leaves
 # out comes from Basic.
 qt_add_library(tpstyle STATIC)
-set_source_files_properties(Tokens.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(Tokens.qml Primitives.qml TokenInterface.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(tpstyle
     URI TrainingsplanerStyle
     VERSION 1.0
     OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/TrainingsplanerStyle
     IMPORTS QtQuick.Controls.Basic
     QML_FILES
+        Primitives.qml
+        Semantics.qml
+        TokenInterface.qml
         Tokens.qml
-        SchemeColors.qml
         Shadow.qml
         ApplicationWindow.qml
         Button.qml
