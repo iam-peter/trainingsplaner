@@ -25,12 +25,6 @@ T.RadioButton {
         color: Tokens.inputBackground
         border.color: control.visualFocus ? Tokens.ring : Tokens.input
 
-        Shadow {
-            z: -1
-            anchors.fill: parent
-            radius: parent.radius
-            depth: 1
-        }
         Rectangle {
             anchors.centerIn: parent
             width: 8

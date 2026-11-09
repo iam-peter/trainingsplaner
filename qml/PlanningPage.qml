@@ -71,7 +71,8 @@ Page {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 12
+        // Lined up with the toolbar above (8 px from the window edge)
+        anchors.margins: 8
         spacing: 8
 
         // Selection for the ITP/RO tabs

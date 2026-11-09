@@ -26,12 +26,6 @@ T.CheckBox {
         border.color: control.checkState !== Qt.Unchecked ? Tokens.primary
                       : control.visualFocus ? Tokens.ring : Tokens.input
 
-        Shadow {
-            z: -1
-            anchors.fill: parent
-            radius: parent.radius
-            depth: 1
-        }
         ColorImage {
             anchors.centerIn: parent
             source: "qrc:/qt/qml/Shadcn/images/check.svg"

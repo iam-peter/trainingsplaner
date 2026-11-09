@@ -21,6 +21,10 @@ ItemDelegate {
     bottomInset: Theme.rowInsetY
     leftPadding: Theme.shadcn ? Theme.rowInsetX + 8 : undefined
     rightPadding: deleteButton.width + Theme.rowInsetX + 8
+    // Tall enough for the delete button (24 px) with 2 px around it
+    implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
+                             implicitContentHeight + topPadding + bottomPadding,
+                             28 + topInset + bottomInset)
 
     background: Rectangle {
         radius: Theme.radius(3)
@@ -28,6 +32,10 @@ ItemDelegate {
                : row.down ? Qt.tint(row.palette.base, Qt.rgba(0.5, 0.5, 0.5, 0.25))
                : row.hovered ? Qt.tint(row.palette.base, Qt.rgba(0.5, 0.5, 0.5, 0.12))
                : "transparent"
+    }
+
+    HoverHandler {
+        id: rowHover
     }
 
     // Inside the row's background, with a hover of its own that also shows
@@ -39,9 +47,17 @@ ItemDelegate {
         anchors.right: parent.right
         anchors.rightMargin: Theme.rowInsetX + 2
         anchors.verticalCenter: parent.verticalCenter
+        // As high as the selection less 2 px above and below, at least
+        // 24 px: the icon at its normal 16 px. Every padding is set, since
+        // the styles set the sides on their own and squeezed the icon.
+        // (A fixed small size made Material ignore the clicks.)
         height: row.height - row.topInset - row.bottomInset - 4
         width: height
         padding: 0
+        leftPadding: 0
+        rightPadding: 0
+        topPadding: 0
+        bottomPadding: 0
         iconName: "trash-2"
         icon.color: fg
         background: Rectangle {
@@ -51,7 +67,9 @@ ItemDelegate {
                    : "transparent"
         }
         toolTip: row.deleteToolTip
-        opacity: row.hovered || row.highlighted ? 1 : 0
+        // The row's hover handler, not row.hovered: some styles (Material)
+        // give the hover to the button itself, which then hid itself
+        opacity: rowHover.hovered || row.highlighted ? 1 : 0
         enabled: opacity > 0
         onClicked: row.deleteRequested()
     }

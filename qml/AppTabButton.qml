@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import Trainingsplaner
-import Shadcn as Shadcn
 
 // One tab of an AppTabBar, optionally with a Lucide icon.
 TabButton {
@@ -22,17 +21,10 @@ TabButton {
 
     background: Rectangle {
         radius: Theme.radius(3)
-        // shadcn's active trigger is raised; in dark mode it has a border
-        // and focus shows in the border
+        // shadcn's active trigger has a border in dark mode, and focus
+        // shows in the border
         border.width: Theme.shadcn && ((Theme.dark && control.checked) || control.visualFocus) ? 1 : 0
         border.color: Theme.shadcn ? (control.visualFocus ? Theme.sh.ring : Theme.sh.input) : "transparent"
-        Shadcn.Shadow {
-            z: -1
-            anchors.fill: parent
-            radius: parent.radius
-            depth: 1
-            visible: Theme.shadcn && control.checked
-        }
         color: control.checked ? (Theme.carbon ? Theme.tokens.background
                                   : Theme.shadcn ? (Theme.dark ? Theme.sh.inputBackground : Theme.sh.background)
                                   : control.palette.base)

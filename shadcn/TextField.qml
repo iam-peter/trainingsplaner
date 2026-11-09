@@ -49,12 +49,5 @@ T.TextField {
         radius: Tokens.radiusMd
         color: control.readOnly ? "transparent" : Tokens.inputBackground
         border.color: control.activeFocus && !control.readOnly ? Tokens.ring : Tokens.input
-        Shadow {
-            z: -1
-            anchors.fill: parent
-            radius: parent.radius
-            depth: 1
-            visible: !control.readOnly
-        }
     }
 }

@@ -65,12 +65,5 @@ T.Button {
         border.width: control.kind === "outline" || control.visualFocus ? 1 : 0
         border.color: control.visualFocus ? Tokens.ring : Tokens.dark ? Tokens.input : Tokens.border
 
-        Shadow {
-            z: -1
-            anchors.fill: parent
-            radius: parent.radius
-            depth: 1
-            visible: control.kind !== "ghost" && control.enabled
-        }
     }
 }

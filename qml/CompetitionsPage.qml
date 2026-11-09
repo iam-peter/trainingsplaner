@@ -132,7 +132,8 @@ Page {
 
     StackLayout {
         anchors.fill: parent
-        anchors.margins: 12
+        // Lined up with the toolbar above (8 px from the window edge)
+        anchors.margins: 8
         currentIndex: tabs.currentIndex
         visible: page.athleteId !== ""
 

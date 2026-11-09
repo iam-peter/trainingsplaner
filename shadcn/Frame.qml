@@ -16,11 +16,5 @@ T.Frame {
         color: Tokens.card
         radius: Tokens.radiusXl
         border.color: Tokens.border
-        Shadow {
-            z: -1
-            anchors.fill: parent
-            radius: parent.radius
-            depth: 1
-        }
     }
 }

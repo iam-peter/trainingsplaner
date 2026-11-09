@@ -44,12 +44,5 @@ T.TabButton {
         color: control.checked ? (Tokens.dark ? Tokens.inputBackground : Tokens.background) : "transparent"
         border.width: (control.checked && Tokens.dark) || control.visualFocus ? 1 : 0
         border.color: control.visualFocus ? Tokens.ring : Tokens.input
-        Shadow {
-            z: -1
-            anchors.fill: parent
-            radius: parent.radius
-            depth: 1
-            visible: control.checked
-        }
     }
 }

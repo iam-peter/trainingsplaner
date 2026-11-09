@@ -60,6 +60,12 @@ Popup {
                         required property var modelData
                         implicitWidth: 34
                         implicitHeight: 28
+                        // Small square buttons: no style padding, so two
+                        // digits fit in every style
+                        leftPadding: 0
+                        rightPadding: 0
+                        topPadding: 0
+                        bottomPadding: 0
                         text: modelData.id
                         highlighted: modelData.id === picker.current
                         hoverEnabled: true

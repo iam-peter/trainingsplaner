@@ -60,6 +60,8 @@ T.ComboBox {
         sourceSize: Qt.size(16, 16)
         color: Tokens.mutedForeground
         opacity: 0.8
+        // Points up while the list is open
+        rotation: control.popup.visible ? 180 : 0
     }
 
     contentItem: T.TextField {
@@ -89,15 +91,11 @@ T.ComboBox {
         radius: Tokens.radiusMd
         color: control.hovered && Tokens.dark ? Tokens.inputHover : Tokens.inputBackground
         border.color: control.activeFocus ? Tokens.ring : Tokens.input
-        Shadow {
-            z: -1
-            anchors.fill: parent
-            radius: parent.radius
-            depth: 1
-        }
     }
 
+    // Nothing to choose: the list does not show at all
     popup: T.Popup {
+        onOpened: if (control.count === 0) close()
         y: control.height + Tokens.space1
         width: control.width
         height: Math.min(contentItem.implicitHeight + topPadding + bottomPadding,
@@ -117,6 +115,7 @@ T.ComboBox {
         }
 
         background: Rectangle {
+            visible: control.count > 0
             color: Tokens.popover
             radius: Tokens.radiusMd
             border.color: Tokens.border

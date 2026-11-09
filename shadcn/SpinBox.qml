@@ -85,11 +85,5 @@ T.SpinBox {
         radius: Tokens.radiusMd
         color: Tokens.inputBackground
         border.color: control.activeFocus ? Tokens.ring : Tokens.input
-        Shadow {
-            z: -1
-            anchors.fill: parent
-            radius: parent.radius
-            depth: 1
-        }
     }
 }

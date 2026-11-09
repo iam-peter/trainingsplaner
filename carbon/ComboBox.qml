@@ -98,7 +98,9 @@ T.ComboBox {
         }
     }
 
+    // Nothing to choose: the list does not show at all
     popup: T.Popup {
+        onOpened: if (control.count === 0) close()
         y: control.height
         width: control.width
         height: Math.min(contentItem.implicitHeight + topPadding + bottomPadding,
@@ -118,6 +120,7 @@ T.ComboBox {
         }
 
         background: Rectangle {
+            visible: control.count > 0
             color: Tokens.layer01
             // Carbon's menus float on a soft shadow
             Rectangle {
