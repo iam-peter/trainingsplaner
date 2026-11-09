@@ -118,9 +118,8 @@ open `CMakeLists.txt` in Qt Creator and build *Release*. `windeployqt
 The database is stored at
 `%APPDATA%\Trainingsplaner\Trainingsplaner\trainingsplaner.sqlite`
 (shown under *Einstellungen*). To back up, close the program and copy that
-file. When a new version changes the tables, it updates the file on the
-first start (`sql/migrate-<n>.sql`) and keeps the old one beside it, e.g.
-`trainingsplaner.schema1.sqlite`. A file from a newer version is not opened.
+file. The program opens only a file of its own table layout
+(`sql/schema.sql`); one of another version is refused, not changed.
 
 ## Releases
 
@@ -157,8 +156,6 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `src/model.h` | athletes, sessions, entries, weeks, weekly summary |
 | `src/database.*` | SQLite storage |
 | `sql/schema.sql` | the database layout; `sqlite3 neu.sqlite < sql/schema.sql` makes an empty database |
-| `sql/migrate-<n>.sql` | brings a database of layout n - 1 to layout n |
-| `tests/layout-1.sql` | the layout of version 0.3.0, to test the migrations |
 | `src/tables.*` | the old program's table and column names for each table, for import, export and the deletion log |
 | `src/bakimport.*`, `src/bakexport.*` | import and export in the old program's format |
 | `src/exerciseweek.*` | one exercise across a week (Erfassung TÜ) |

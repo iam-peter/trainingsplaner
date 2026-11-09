@@ -3,8 +3,7 @@
 --     sqlite3 trainingsplaner.sqlite < sql/schema.sql
 --
 -- The program runs this file on every start: tables that are missing are
--- created, existing ones stay as they are. A file of an older layout is
--- then brought up to date by sql/migrate-<n>.sql.
+-- created, existing ones stay as they are.
 --
 -- Dates are ISO text ("2026-11-09"), times of day "15:30:00". Every table
 -- has changed_at, the row's last change ("2026-11-09 15:30:00"), which the
@@ -16,9 +15,10 @@
 -- P (plan), I (actual, "Ist") or S (target, "Soll"). An owner is an
 -- athlete's id, or '#' and a macrocycle's id for its framework plan.
 
--- Which layout the file has; the program refuses a file of a newer one
+-- Which layout the file has; the program opens only its own. Raise it,
+-- here and in src/database.cpp, with every change to the tables.
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
-INSERT OR IGNORE INTO meta (key, value) VALUES ('schema', '3');
+INSERT OR IGNORE INTO meta (key, value) VALUES ('schema', '2');
 
 -- sex 0 male, 1 female
 CREATE TABLE IF NOT EXISTS athletes (

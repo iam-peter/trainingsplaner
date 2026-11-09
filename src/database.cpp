@@ -46,13 +46,11 @@ bool execSql(const QString &sql)
     return true;
 }
 
-// The tables' layout; meta.schema says which one a database file has.
-// sql/schema.sql creates the current one, sql/migrate-<n>.sql turns
-// layout n - 1 into n.
-// 1: up to version 0.3.0. 2: maz_sp.auswahl (selected) is 0/1, not 'Y'/'N',
-// sessions without a time have NULL, change stamps one form. 3: English
-// names for all tables and columns.
-constexpr int kSchemaVersion = 3;
+// The tables' layout (sql/schema.sql); meta.schema says which one a
+// database file has. Layout 1 was version 0.3.0's, with German names.
+// Raise it with every change to the tables: a file of another layout is
+// not opened.
+constexpr int kSchemaVersion = 2;
 
 // The statements of an SQL file, without comments, split at the
 // semicolons outside of quotes (Qt runs one statement at a time)
@@ -108,37 +106,6 @@ int fileSchemaVersion()
     if (!q.exec(QStringLiteral("SELECT value FROM meta WHERE key = 'schema'")) || !q.next())
         return 0;
     return q.value(0).toInt();
-}
-
-// A copy of the file as the older program left it, before changing it:
-// "trainingsplaner.sqlite" -> "trainingsplaner.schema1.sqlite"
-bool keepCopy(const QString &path, int version)
-{
-    const QFileInfo info(path);
-    const QString copy = info.dir().filePath(QStringLiteral("%1.schema%2.%3")
-                                                 .arg(info.completeBaseName())
-                                                 .arg(version)
-                                                 .arg(info.suffix()));
-    if (QFileInfo::exists(copy) || QFile::copy(path, copy))
-        return true;
-    g_lastError = QStringLiteral("Sicherungskopie %1 nicht angelegt").arg(copy);
-    return false;
-}
-
-// Brings a database file from an older program up to date, one layout
-// after the other, all or nothing
-bool migrate(int from)
-{
-    QSqlDatabase d = db();
-    d.transaction();
-    bool ok = true;
-    for (int to = from + 1; ok && to <= kSchemaVersion; ++to)
-        ok = runSqlFile(QStringLiteral("migrate-%1.sql").arg(to)) && fileSchemaVersion() == to;
-    if (!ok) {
-        d.rollback();
-        return false;
-    }
-    return d.commit();
 }
 
 QString dateString(const QDate &d)
@@ -329,16 +296,12 @@ bool open(const QString &path, QString *error)
         return false;
     }
     execSql(QStringLiteral("PRAGMA foreign_keys = ON"));
-    // A file of an older layout is brought up to date first, so its rows
-    // move with their tables; one from a newer program is left alone. A
-    // new file has no layout yet (0).
+    // A file of another layout is left alone; a new one has none yet (0)
     const int version = fileSchemaVersion();
     QString failure;
-    if (version > kSchemaVersion)
-        failure = QStringLiteral("Die Datenbank stammt von einer neueren Version des Trainingsplaners.");
-    else if (version > 0 && version < kSchemaVersion && !(keepCopy(path, version) && migrate(version)))
-        failure = QStringLiteral("Die Datenbank ließ sich nicht aktualisieren: ") + g_lastError;
-    // Then missing tables are created, existing ones stay as they are
+    if (version != 0 && version != kSchemaVersion)
+        failure = QStringLiteral("Die Datenbank stammt von einer anderen Version des Trainingsplaners.");
+    // Missing tables are created, existing ones stay as they are
     else if (!runSqlFile(QStringLiteral("schema.sql")))
         failure = g_lastError;
     if (!failure.isEmpty()) {
