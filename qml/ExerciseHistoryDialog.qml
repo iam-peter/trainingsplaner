@@ -63,14 +63,14 @@ AppDialog {
             IconButton {
                 visible: tabs.currentIndex === 1
                 iconName: "file-down"
-                text: "Bild…"
+                text: "Bild"
                 toolTip: "Grafik als PNG-Bild speichern"
                 onClicked: chart.saveImage()
             }
             IconButton {
                 visible: tabs.currentIndex === 1
                 iconName: "printer"
-                text: "Drucken…"
+                text: "Drucken"
                 onClicked: chart.printChart()
             }
         }

@@ -111,13 +111,13 @@ RowLayout {
                 Item {}
                 Item {}
                 Label { text: "Woche von:" }
-                TextField { id: fromField; implicitWidth: 90; placeholderText: "10/2027"; onTextEdited: pane.dirty = true }
+                WeekField { id: fromField; onTextEdited: pane.dirty = true }
                 Label { text: "bis:" }
-                TextField { id: toField; implicitWidth: 90; placeholderText: "26/2027"; onTextEdited: pane.dirty = true }
+                WeekField { id: toField; onTextEdited: pane.dirty = true }
                 Label { text: "Aufbauphase ab:" }
-                TextField { id: buildUpField; implicitWidth: 90; onTextEdited: pane.dirty = true }
+                WeekField { id: buildUpField; onTextEdited: pane.dirty = true }
                 Label { text: "Leistungsausprägung ab:" }
-                TextField { id: peakField; implicitWidth: 90; onTextEdited: pane.dirty = true }
+                WeekField { id: peakField; onTextEdited: pane.dirty = true }
                 Label { text: "Bemerkung:" }
                 TextField { id: noteField; Layout.columnSpan: 3; Layout.fillWidth: true; onTextEdited: pane.dirty = true }
             }
@@ -139,7 +139,7 @@ RowLayout {
                 }
                 IconButton {
                     iconName: "file-down"
-                    text: "Export…"
+                    text: "Export"
                     enabled: pane.mazId !== ""
                     onClicked: {
                         exportDialog.selectedFile = Store.suggestedExportUrl().toString().replace(/\.bak$/, "_maz.bak")

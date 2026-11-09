@@ -49,7 +49,7 @@ AppDialog {
         IconButton {
             Layout.fillWidth: true
             iconName: "import"
-            text: "Daten aus dem alten Programm importieren…"
+            text: "Daten aus dem alten Programm importieren"
             onClicked: {
                 dialog.finish()
                 dialog.importRequested()

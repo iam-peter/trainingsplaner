@@ -209,19 +209,22 @@ Page {
                 ToolTip.visible: hovered
                 ToolTip.text: "Vorige Woche (Strg+←)"
             }
-            TextField {
+            // Typed (then Enter) or picked from its calendar, like a date
+            WeekField {
                 id: weekField
-                Layout.preferredWidth: 80
-                horizontalAlignment: TextInput.AlignHCenter
+                objectName: "weekField"
                 text: Store.weekLabel(page.monday)
                 font.bold: true
-                onAccepted: {
-                    const m = Store.weekFromLabel(text)
+                function show(m) {
                     if (m !== "")
                         page.monday = m
                     text = Qt.binding(() => Store.weekLabel(page.monday))
+                }
+                onAccepted: {
+                    show(monday)
                     focus = false
                 }
+                onWeekPicked: (m) => show(m)
                 ToolTip.visible: activeFocus
                 ToolTip.text: "Woche/Jahr eingeben, z.B. 46/2026, dann Enter"
             }
@@ -230,18 +233,6 @@ Page {
                 onClicked: page.monday = Store.addWeeks(page.monday, 1)
                 ToolTip.visible: hovered
                 ToolTip.text: "Nächste Woche (Strg+→)"
-            }
-            IconButton {
-                id: calendarButton
-                iconName: "calendar-days"
-                toolTip: "Woche im Kalender wählen"
-                onClicked: calendar.open()
-                WeekCalendar {
-                    id: calendar
-                    y: calendarButton.height + 2
-                    monday: page.monday
-                    onPicked: (m) => page.monday = m
-                }
             }
             IconButton {
                 iconName: "calendar"
@@ -315,14 +306,14 @@ Page {
             }
             IconButton {
                 iconName: "printer"
-                text: "Drucken…"
+                text: "Drucken"
                 enabled: page.hasAthlete
                 toolTip: "Wochenplan drucken (Strg+P)"
                 onClicked: page.printWeek()
             }
             IconButton {
                 iconName: "file-down"
-                text: "PDF…"
+                text: "PDF"
                 enabled: page.hasAthlete
                 onClicked: {
                     page.saveNote()

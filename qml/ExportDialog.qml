@@ -62,9 +62,9 @@ AppDialog {
                 valueRole: "id"
             }
             Label { text: "von" }
-            TextField { id: fromWeek; implicitWidth: 80; horizontalAlignment: TextInput.AlignHCenter }
+            WeekField { id: fromWeek }
             Label { text: "bis" }
-            TextField { id: toWeek; implicitWidth: 80; horizontalAlignment: TextInput.AlignHCenter }
+            WeekField { id: toWeek }
         }
 
         Label {
@@ -92,7 +92,7 @@ AppDialog {
         }
         IconButton {
             iconName: "file-down"
-            text: "Exportieren…"
+            text: "Exportieren"
             highlighted: true
             DialogButtonBox.buttonRole: DialogButtonBox.ApplyRole
             onClicked: {

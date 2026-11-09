@@ -309,13 +309,13 @@ Page {
                 Item { Layout.fillWidth: true }
                 IconButton {
                     iconName: "file-down"
-                    text: "Bild…"
+                    text: "Bild"
                     toolTip: "Grafik als PNG-Bild speichern"
                     onClicked: competitionChart.saveImage()
                 }
                 IconButton {
                     iconName: "printer"
-                    text: "Drucken…"
+                    text: "Drucken"
                     onClicked: competitionChart.printChart()
                 }
             }

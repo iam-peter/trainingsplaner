@@ -108,7 +108,7 @@ Page {
                         spacing: 8
                         visible: iMaz.currentIndex <= 0
                         Label { text: "ab" }
-                        TextField { id: iFrom; implicitWidth: 80; text: page.defaultFrom }
+                        WeekField { id: iFrom; text: page.defaultFrom }
                         SpinBox { id: iWeeks; from: 1; to: 104; value: 12; editable: true }
                         Label { text: "Wochen" }
                     }
@@ -238,7 +238,7 @@ Page {
                 RowLayout {
                     spacing: 8
                     Label { text: "ab" }
-                    TextField { id: cFrom; implicitWidth: 80; text: page.defaultFrom }
+                    WeekField { id: cFrom; text: page.defaultFrom }
                     SpinBox { id: cWeeks; from: 1; to: 104; value: 12; editable: true }
                     Label { text: "Wochen" }
                 }
@@ -308,7 +308,7 @@ Page {
                     valueRole: "id"
                     onActivated: chartTab.reload()
                 }
-                TextField { id: chFrom; visible: chMaz.currentIndex <= 0; implicitWidth: 80; text: page.defaultFrom; onEditingFinished: chartTab.reload() }
+                WeekField { id: chFrom; visible: chMaz.currentIndex <= 0; text: page.defaultFrom; onEditingFinished: chartTab.reload(); onWeekPicked: chartTab.reload() }
                 SpinBox { id: chWeeks; visible: chMaz.currentIndex <= 0; from: 2; to: 104; value: 12; editable: true; onValueModified: chartTab.reload() }
                 Label { text: "TÜ" }
                 TextField {
@@ -322,13 +322,13 @@ Page {
                 Item { Layout.fillWidth: true }
                 IconButton {
                     iconName: "file-down"
-                    text: "Bild…"
+                    text: "Bild"
                     toolTip: "Grafik als PNG-Bild speichern"
                     onClicked: analysisChart.saveImage()
                 }
                 IconButton {
                     iconName: "printer"
-                    text: "Drucken…"
+                    text: "Drucken"
                     onClicked: analysisChart.printChart()
                 }
             }

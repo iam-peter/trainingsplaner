@@ -242,7 +242,7 @@ ApplicationWindow {
                     font.bold: true
                 }
                 Button {
-                    text: Updater.installsItself ? "Aktualisieren…" : "Ansehen…"
+                    text: Updater.installsItself ? "Aktualisieren" : "Ansehen"
                     onClicked: updateDialog.open()
                 }
                 IconToolButton {

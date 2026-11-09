@@ -150,11 +150,11 @@ Page {
                 onActivated: page.chooseMaz(currentValue)
             }
             Label { visible: page.maz === null && !page.roMode; text: "ab" }
-            TextField {
+            WeekField {
                 visible: page.maz === null && !page.roMode
-                implicitWidth: 80
                 text: Plan.weekLabel(page.ownFrom)
-                onEditingFinished: { const m = Plan.mondayFromLabel(text); if (m !== "") page.ownFrom = m }
+                onEditingFinished: if (monday !== "") page.ownFrom = monday
+                onWeekPicked: (m) => page.ownFrom = m
             }
             SpinBox {
                 visible: page.maz === null && !page.roMode
@@ -201,14 +201,14 @@ Page {
                     }
                     IconButton {
                         iconName: "copy"
-                        text: "Vorlage…"
+                        text: "Vorlage"
                         enabled: page.owner !== "" && page.weeks > 0
                         onClicked: templateDialog.open()
                     }
                     IconButton {
                         visible: !page.roMode
                         iconName: "chart-line"
-                        text: "Grafik…"
+                        text: "Grafik"
                         enabled: page.athleteId !== "" && page.weeks > 0
                         onClicked: chartDialog.open()
                     }
@@ -393,13 +393,13 @@ Page {
                 Item { Layout.fillWidth: true }
                 IconButton {
                     iconName: "file-down"
-                    text: "Bild…"
+                    text: "Bild"
                     toolTip: "Grafik als PNG-Bild speichern"
                     onClicked: comparisonChart.saveImage()
                 }
                 IconButton {
                     iconName: "printer"
-                    text: "Drucken…"
+                    text: "Drucken"
                     onClicked: comparisonChart.printChart()
                 }
             }

@@ -20,13 +20,13 @@ ColumnLayout {
         Label { text: view.title; font.bold: true; Layout.fillWidth: true; Layout.alignment: Qt.AlignTop }
         IconButton {
             iconName: "printer"
-            text: "Drucken…"
+            text: "Drucken"
             enabled: view.html !== ""
             onClicked: Analysis.printHtml(view.html, view.title)
         }
         IconButton {
             iconName: "file-down"
-            text: "PDF…"
+            text: "PDF"
             enabled: view.html !== ""
             onClicked: pdfDialog.open()
         }
