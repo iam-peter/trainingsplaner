@@ -29,6 +29,15 @@ Dialog {
             if (button)
                 button.text = text
         }
+        // "Speichern" has the save icon everywhere, like the program's own
+        // save buttons (emphasis comes from the styles, by the button's role)
+        const save = standardButton(Dialog.Save)
+        if (save) {
+            save.icon.source = "qrc:/qt/qml/Trainingsplaner/icons/save.svg"
+            save.icon.width = 16
+            save.icon.height = 16
+            // No colour: every style tints the icon in its own text colour
+        }
     }
     Component.onCompleted: labelButtons()
     onStandardButtonsChanged: labelButtons()
