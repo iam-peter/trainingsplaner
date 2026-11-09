@@ -2,9 +2,23 @@ import QtQuick
 import QtQuick.Controls.impl
 import QtQuick.Templates as T
 
-// Input: bordered, rounded, a soft ring when focused
+// Input: bordered, rounded, the focus colour on the border when focused
 T.TextField {
     id: control
+
+    property list<Style> styles
+    readonly property alias cascade: cascade
+
+    StyleCascade {
+        id: cascade
+        base: [FieldStyle.base, FieldStyle.textField]
+        styles: control.styles
+        overrides: [control.activeFocus && !control.readOnly ? FieldStyle.focus : null,
+                    control.readOnly ? FieldStyle.readOnly : null,
+                    control.width > 0 && control.width < 64 ? FieldStyle.narrow : null]
+        state: !control.enabled ? StyleState.Disable
+               : control.hovered ? StyleState.Hover : StyleState.Idle
+    }
 
     // With the normal padding, not the actual one, which depends on the width
     implicitWidth: implicitBackgroundWidth + leftInset + rightInset
@@ -13,19 +27,18 @@ T.TextField {
                              contentHeight + topPadding + bottomPadding,
                              placeholder.implicitHeight + topPadding + bottomPadding)
 
-    // Narrow fields (a number of reps) keep room for their text
-    leftPadding: width > 0 && width < 64 ? Tokens.space1 : Tokens.space3
-    rightPadding: leftPadding
-    topPadding: Tokens.space1
-    bottomPadding: Tokens.space1
+    leftPadding: cascade.padding.left
+    rightPadding: cascade.padding.right
+    topPadding: cascade.padding.top
+    bottomPadding: cascade.padding.bottom
     verticalAlignment: TextInput.AlignVCenter
     hoverEnabled: true
-    opacity: enabled ? 1 : 0.5
+    opacity: cascade.opacity
 
-    color: Tokens.foreground
-    selectionColor: Tokens.primary
-    selectedTextColor: Tokens.primaryForeground
-    placeholderTextColor: Tokens.mutedForeground
+    color: cascade.text.color
+    selectionColor: cascade.selection
+    selectedTextColor: cascade.selectedText
+    placeholderTextColor: cascade.placeholder
 
     PlaceholderText {
         id: placeholder
@@ -44,10 +57,11 @@ T.TextField {
     }
 
     background: Rectangle {
-        implicitWidth: 160
-        implicitHeight: Tokens.controlHeight
-        radius: Tokens.radiusMd
-        color: control.readOnly ? "transparent" : Tokens.inputBackground
-        border.color: control.activeFocus && !control.readOnly ? Tokens.ring : Tokens.input
+        implicitWidth: cascade.width
+        implicitHeight: cascade.height
+        radius: cascade.radius.value
+        color: cascade.background
+        border.width: cascade.border.width
+        border.color: cascade.border.color
     }
 }

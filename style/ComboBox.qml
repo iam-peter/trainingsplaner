@@ -7,16 +7,29 @@ import QtQuick.Templates as T
 T.ComboBox {
     id: control
 
+    property list<Style> styles
+    readonly property alias cascade: cascade
+
+    StyleCascade {
+        id: cascade
+        base: [FieldStyle.base, FieldStyle.comboBox]
+        styles: control.styles
+        overrides: [control.activeFocus ? FieldStyle.focus : null,
+                    control.editable ? FieldStyle.editable : null]
+        state: !control.enabled ? StyleState.Disable
+               : control.hovered ? StyleState.Hover : StyleState.Idle
+    }
+
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
                             implicitContentWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding,
                              implicitIndicatorHeight + topPadding + bottomPadding)
 
-    leftPadding: control.editable ? 0 : Tokens.space3
-    rightPadding: Tokens.space3 + (indicator ? indicator.width + Tokens.space2 : 0)
+    leftPadding: cascade.padding.left
+    rightPadding: cascade.padding.right + (indicator ? indicator.width + cascade.spacing : 0)
     hoverEnabled: true
-    opacity: enabled ? 1 : 0.5
+    opacity: cascade.opacity
 
     delegate: T.ItemDelegate {
         id: item
@@ -54,20 +67,26 @@ T.ComboBox {
     }
 
     indicator: ColorImage {
-        x: control.mirrored ? Tokens.space3 : control.width - width - Tokens.space3
+        x: control.mirrored ? cascade.padding.right : control.width - width - cascade.padding.right
         y: (control.height - height) / 2
         source: "qrc:/qt/qml/TrainingsplanerStyle/images/chevron-down.svg"
-        sourceSize: Qt.size(16, 16)
-        color: Tokens.mutedForeground
-        opacity: 0.8
+        sourceSize: Qt.size(arrowStyle.icon.size, arrowStyle.icon.size)
+        color: arrowStyle.icon.color
+        opacity: arrowStyle.opacity
+
+        StyleCascade {
+            id: arrowStyle
+            parentCascade: cascade
+            part: StylePart.Arrow
+        }
         // Points up while the list is open
         rotation: control.popup.visible ? 180 : 0
     }
 
     contentItem: T.TextField {
-        leftPadding: control.editable ? Tokens.space3 : 0
-        topPadding: 4
-        bottomPadding: 4
+        leftPadding: control.editable ? cascade.padding.right : 0
+        topPadding: cascade.padding.top
+        bottomPadding: cascade.padding.bottom
 
         text: control.editable ? control.editText : control.displayText
 
@@ -79,18 +98,19 @@ T.ComboBox {
         selectByMouse: control.selectTextByMouse
 
         font: control.font
-        color: Tokens.foreground
-        selectionColor: Tokens.primary
-        selectedTextColor: Tokens.primaryForeground
+        color: cascade.text.color
+        selectionColor: cascade.selection
+        selectedTextColor: cascade.selectedText
         verticalAlignment: Text.AlignVCenter
     }
 
     background: Rectangle {
-        implicitWidth: 160
-        implicitHeight: Tokens.controlHeight
-        radius: Tokens.radiusMd
-        color: control.hovered ? Tokens.fieldHover : Tokens.inputBackground
-        border.color: control.activeFocus ? Tokens.ring : Tokens.input
+        implicitWidth: cascade.width
+        implicitHeight: cascade.height
+        radius: cascade.radius.value
+        color: cascade.background
+        border.width: cascade.border.width
+        border.color: cascade.border.color
     }
 
     // Nothing to choose: the list does not show at all

@@ -5,6 +5,19 @@ import QtQuick.Templates as T
 T.TextArea {
     id: control
 
+    property list<Style> styles
+    readonly property alias cascade: cascade
+
+    StyleCascade {
+        id: cascade
+        base: [FieldStyle.base, FieldStyle.textArea]
+        styles: control.styles
+        overrides: [control.activeFocus && !control.readOnly ? FieldStyle.focus : null,
+                    control.readOnly ? FieldStyle.readOnly : null]
+        state: !control.enabled ? StyleState.Disable
+               : control.hovered ? StyleState.Hover : StyleState.Idle
+    }
+
     implicitWidth: Math.max(contentWidth + leftPadding + rightPadding,
                             implicitBackgroundWidth + leftInset + rightInset,
                             placeholder.implicitWidth + leftPadding + rightPadding)
@@ -12,16 +25,17 @@ T.TextArea {
                              implicitBackgroundHeight + topInset + bottomInset,
                              placeholder.implicitHeight + topPadding + bottomPadding)
 
-    padding: Tokens.space2
-    leftPadding: Tokens.space3
-    rightPadding: Tokens.space3
+    topPadding: cascade.padding.top
+    bottomPadding: cascade.padding.bottom
+    leftPadding: cascade.padding.left
+    rightPadding: cascade.padding.right
     hoverEnabled: true
-    opacity: enabled ? 1 : 0.5
+    opacity: cascade.opacity
 
-    color: Tokens.foreground
-    selectionColor: Tokens.primary
-    selectedTextColor: Tokens.primaryForeground
-    placeholderTextColor: Tokens.mutedForeground
+    color: cascade.text.color
+    selectionColor: cascade.selection
+    selectedTextColor: cascade.selectedText
+    placeholderTextColor: cascade.placeholder
 
     PlaceholderText {
         id: placeholder
@@ -40,12 +54,13 @@ T.TextArea {
     }
 
     background: Rectangle {
-        implicitWidth: 200
+        implicitWidth: cascade.width
         // One control high: a taller minimum made a text area in a lower
         // scroll view scroll with nothing in it
-        implicitHeight: Tokens.controlHeight
-        radius: Tokens.radiusMd
-        color: control.readOnly ? "transparent" : Tokens.inputBackground
-        border.color: control.activeFocus && !control.readOnly ? Tokens.ring : Tokens.input
+        implicitHeight: cascade.height
+        radius: cascade.radius.value
+        color: cascade.background
+        border.width: cascade.border.width
+        border.color: cascade.border.color
     }
 }

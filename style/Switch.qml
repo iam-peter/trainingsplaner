@@ -5,34 +5,58 @@ import QtQuick.Templates as T
 T.Switch {
     id: control
 
+    property list<Style> styles
+    readonly property alias cascade: cascade
+
+    StyleCascade {
+        id: cascade
+        base: [ToggleStyle.base, ToggleStyle.switchControl]
+        styles: control.styles
+        overrides: [control.visualFocus ? ToggleStyle.focus : null,
+                    control.checked ? ToggleStyle.switchChecked : null]
+        state: !control.enabled ? StyleState.Disable
+               : control.hovered ? StyleState.Hover : StyleState.Idle
+    }
+
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
                             implicitContentWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding,
                              implicitIndicatorHeight + topPadding + bottomPadding)
 
-    padding: 4
-    spacing: 8
-    opacity: enabled ? 1 : 0.5
+    padding: cascade.padding.value
+    spacing: cascade.spacing
+    opacity: cascade.opacity
 
     indicator: Rectangle {
-        implicitWidth: 32
-        implicitHeight: 18
+        implicitWidth: track.width
+        implicitHeight: track.height
         x: control.text ? (control.mirrored ? control.width - width - control.rightPadding : control.leftPadding)
                         : control.leftPadding + (control.availableWidth - width) / 2
         y: control.topPadding + (control.availableHeight - height) / 2
         radius: height / 2
-        color: control.checked ? Tokens.primary : Tokens.input
-        border.width: control.visualFocus ? 1 : 0
-        border.color: Tokens.ring
+        color: track.background
+        border.width: track.border.width
+        border.color: track.border.color
+
+        StyleCascade {
+            id: track
+            parentCascade: cascade
+            part: StylePart.Indicator
+        }
+        StyleCascade {
+            id: thumb
+            parentCascade: cascade
+            part: StylePart.Handle
+        }
 
         Rectangle {
             x: Math.max(1, Math.min(parent.width - width - 1, control.visualPosition * parent.width - width / 2))
             y: 1
-            width: 16
-            height: 16
-            radius: 8
-            color: control.checked ? Tokens.switchThumbChecked : Tokens.switchThumb
+            width: thumb.width
+            height: thumb.width
+            radius: width / 2
+            color: thumb.background
             Behavior on x { enabled: !control.down; NumberAnimation { duration: 110 } }
         }
     }
@@ -42,6 +66,6 @@ T.Switch {
         rightPadding: control.indicator && control.mirrored ? control.indicator.width + control.spacing : 0
         text: control.text
         font: control.font
-        color: Tokens.foreground
+        color: cascade.text.color
     }
 }

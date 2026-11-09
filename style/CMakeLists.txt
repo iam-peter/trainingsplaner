@@ -3,7 +3,7 @@
 # A QML module whose files are named after the controls; what it leaves
 # out comes from Basic.
 qt_add_library(tpstyle STATIC)
-set_source_files_properties(Tokens.qml Primitives.qml TokenInterface.qml ButtonStyle.qml
+set_source_files_properties(Tokens.qml Primitives.qml TokenInterface.qml ButtonStyle.qml FieldStyle.qml ToggleStyle.qml
     PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(tpstyle
     URI TrainingsplanerStyle
@@ -21,6 +21,8 @@ qt_add_qml_module(tpstyle
         TokenInterface.qml
         Tokens.qml
         ButtonStyle.qml
+        FieldStyle.qml
+        ToggleStyle.qml
         Shadow.qml
         ApplicationWindow.qml
         Button.qml
