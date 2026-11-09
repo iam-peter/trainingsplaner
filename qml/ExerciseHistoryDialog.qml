@@ -95,11 +95,11 @@ AppDialog {
                     Layout.fillHeight: true
                     clip: true
                     model: dialog.history
-                    ScrollBar.vertical: ScrollBar {}
+                    ScrollBar.vertical: AppScrollBar {}
                     delegate: Rectangle {
                         required property var modelData
                         required property int index
-                        width: ListView.view.width
+                        width: ListView.view.width - (ListView.view.ScrollBar.vertical?.room ?? 0)
                         height: 26
                         color: index % 2 ? palette.alternateBase : palette.base
                         RowLayout {

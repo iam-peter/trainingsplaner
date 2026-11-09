@@ -264,7 +264,7 @@ AppDialog {
                 readonly property int wRemove: 32
                 RowLayout {
                     spacing: 8
-                    Layout.rightMargin: categoryTab.wRemove + 8
+                    Layout.rightMargin: categoryTab.wRemove + 8 + categoryBar.room
                     Label { text: "Bezeichnung"; Layout.fillWidth: true; font.pixelSize: 11 }
                     Label { text: "Kürzel"; Layout.preferredWidth: categoryTab.wCode; font.pixelSize: 11 }
                     Label { text: "Einheit"; Layout.preferredWidth: categoryTab.wUnit; font.pixelSize: 11 }
@@ -280,9 +280,9 @@ AppDialog {
                     // The normal form spacing between the rows
                     spacing: 8
                     model: ListModel { id: categoryModel }
-                    ScrollBar.vertical: ScrollBar {}
+                    ScrollBar.vertical: AppScrollBar { id: categoryBar }
                     delegate: RowLayout {
-                        width: ListView.view.width
+                        width: ListView.view.width - categoryBar.room
                         required property int index
                         required property string name
                         required property string code

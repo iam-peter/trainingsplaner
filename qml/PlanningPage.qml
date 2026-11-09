@@ -213,10 +213,10 @@ Page {
                     Layout.fillHeight: true
                     clip: true
                     model: page.stepRows
-                    ScrollBar.vertical: ScrollBar {}
+                    ScrollBar.vertical: AppScrollBar {}
                     delegate: RowLayout {
                         required property var modelData
-                        width: ListView.view.width
+                        width: ListView.view.width - (ListView.view.ScrollBar.vertical?.room ?? 0)
                         spacing: 8
                         Label { text: modelData.label; Layout.preferredWidth: 80 }
                         TextField {

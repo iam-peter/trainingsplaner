@@ -68,7 +68,7 @@ RowLayout {
                 topMargin: Theme.listMargin
                 bottomMargin: Theme.listMargin
                 model: Plan.mazList
-                ScrollBar.vertical: ScrollBar {}
+                ScrollBar.vertical: AppScrollBar {}
                 delegate: ListRow {
                     required property var modelData
                     highlighted: modelData.id === pane.mazId
@@ -195,6 +195,7 @@ RowLayout {
                 clip: true
                 spacing: 2
                 model: pane.athletes
+                ScrollBar.vertical: AppScrollBar {}
                 delegate: RowLayout {
                     id: athleteRow
                     required property var modelData

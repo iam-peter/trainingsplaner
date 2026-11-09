@@ -160,7 +160,7 @@ Page {
                         topMargin: Theme.listMargin
                         bottomMargin: Theme.listMargin
                         model: page.list
-                        ScrollBar.vertical: ScrollBar {}
+                        ScrollBar.vertical: AppScrollBar {}
                         delegate: ListRow {
                             required property var modelData
                             highlighted: page.current && page.current.date === modelData.date

@@ -141,7 +141,7 @@ Page {
                         onClicked: page.select(modelData.id)
                         onDeleteRequested: page.askRemove(modelData.id)
                     }
-                    ScrollBar.vertical: ScrollBar {}
+                    ScrollBar.vertical: AppScrollBar {}
                     Label {
                         anchors.centerIn: parent
                         visible: page.shown.length === 0

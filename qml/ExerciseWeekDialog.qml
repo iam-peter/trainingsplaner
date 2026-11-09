@@ -224,7 +224,7 @@ AppDialog {
             contentWidth: width
             contentHeight: rowColumn.implicitHeight
             boundsBehavior: Flickable.StopAtBounds
-            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+            ScrollBar.vertical: AppScrollBar {}
 
             ColumnLayout {
                 id: rowColumn

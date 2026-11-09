@@ -67,6 +67,7 @@ qt_add_qml_module(tpqml
         qml/AppToolBar.qml
         qml/Panel.qml
         qml/ListRow.qml
+        qml/AppScrollBar.qml
         qml/DateCalendar.qml
         qml/DateField.qml
         qml/TimePicker.qml

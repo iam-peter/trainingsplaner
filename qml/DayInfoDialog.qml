@@ -141,9 +141,10 @@ AppDialog {
             Layout.fillHeight: true
             clip: true
             model: dialog.entries
+            ScrollBar.vertical: AppScrollBar {}
             delegate: ItemDelegate {
                 required property var modelData
-                width: ListView.view.width
+                width: ListView.view.width - (ListView.view.ScrollBar.vertical?.room ?? 0)
                 highlighted: dialog.editing && dialog.editing.date === modelData.date
                              && dialog.editing.code === modelData.code && dialog.editing.time === modelData.time
                 onClicked: dialog.startEdit(modelData)

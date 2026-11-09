@@ -11,7 +11,8 @@ ItemDelegate {
     property string deleteToolTip: "Löschen"
     signal deleteRequested()
 
-    width: ListView.view ? ListView.view.width : implicitWidth
+    // Beside the list's scroll bar while it shows
+    width: ListView.view ? ListView.view.width - (ListView.view.ScrollBar.vertical?.room ?? 0) : implicitWidth
     hoverEnabled: true
     // Carbon's lists select the full width, shadcn's leave a little room;
     // the text keeps 8 px to the selection in shadcn
