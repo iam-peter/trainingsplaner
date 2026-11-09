@@ -44,8 +44,10 @@ AppDialog {
         logoPath.text = printOpts.logoPath
         sessionColor.color = printOpts.sessionColor
         for (let i = 0; i < 3; ++i) {
-            timeRepeater.itemAt(i).from = times[i].from
-            timeRepeater.itemAt(i).to = times[i].to
+            // Set, not bound: the field writes its text itself (a picked
+            // time, 8 written out as 08:00), which would end a binding
+            timeRepeater.itemAt(i).fromField.text = times[i].from
+            timeRepeater.itemAt(i).toField.text = times[i].to
         }
         kaderFilter.currentIndex = Math.max(0, kaderFilter.find(Store.filterKader))
         sexAll.checked = Store.filterSex < 0
@@ -214,25 +216,22 @@ AppDialog {
                     model: 3
                     RowLayout {
                         required property int index
-                        property string from
-                        property string to
-                        readonly property string fromTime: fromField.time
-                        readonly property string toTime: toField.time
+                        readonly property alias fromField: fromField
+                        readonly property alias toField: toField
+                        // What is no time is not kept
+                        readonly property string fromTime: fromField.valid ? fromField.time : ""
+                        readonly property string toTime: toField.valid ? toField.time : ""
                         spacing: 8
                         Label { text: (index + 1) + ". TE"; Layout.preferredWidth: 50 }
                         Label { text: "von:" }
                         TimeField {
                             id: fromField
                             objectName: "fromTime" + index
-                            text: parent.from
-                            onTextChanged: parent.from = text
                         }
                         Label { text: "bis:" }
                         TimeField {
                             id: toField
                             objectName: "toTime" + index
-                            text: parent.to
-                            onTextChanged: parent.to = text
                         }
                     }
                 }

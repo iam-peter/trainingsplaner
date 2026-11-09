@@ -18,6 +18,8 @@ TextField {
     // The time to save: written out even while the field still has the
     // focus (8 → 08:00); what is no time is kept, so saving can reject it
     readonly property string time: normalized(text) || text.trim()
+    // Empty or a time of day; 25 or 9:75 are not
+    readonly property bool valid: text.trim() === "" || normalized(text) !== ""
 
     // "08:15" from what was typed, "" when it is no time
     function normalized(t) {
