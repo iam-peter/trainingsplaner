@@ -226,48 +226,52 @@ AppDialog {
 
         Rectangle { Layout.fillWidth: true; height: 1; color: palette.mid }
 
-        RowLayout {
+        // Time and note as a form: labels in one column, fields beside them
+        GridLayout {
             Layout.fillWidth: true
-            spacing: 8
-            ColumnLayout {
-                spacing: 2
-                Label { text: "von:" }
+            columns: 2
+            columnSpacing: 12
+            rowSpacing: 8
+            Label { text: "Zeit:" }
+            RowLayout {
+                spacing: 8
                 TimeField {
                     id: fromBox
                     objectName: "fromBox"
                     onTextEdited: dialog.dirty = true
                 }
-            }
-            ColumnLayout {
-                spacing: 2
-                Label { text: "bis:" }
+                Label { text: "bis" }
                 TimeField {
                     id: toBox
                     objectName: "toBox"
                     onTextEdited: dialog.dirty = true
                 }
             }
-            ColumnLayout {
+            Label {
+                text: "Bemerkung:"
+                Layout.alignment: Qt.AlignTop
+                // On the line of the note's first row of text
+                topPadding: noteField.topPadding
+            }
+            ScrollView {
+                // No overshoot at the ends
+                Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds
                 Layout.fillWidth: true
-                spacing: 2
-                Label { text: "Bemerkung zur TE:" }
-                ScrollView {
-                    // No overshoot at the ends
-                    Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 52
-                    TextArea {
-                        id: noteField
-                        wrapMode: TextEdit.Wrap
-                        onTextChanged: if (activeFocus) dialog.dirty = true
-                    }
+                Layout.preferredHeight: 56
+                TextArea {
+                    id: noteField
+                    objectName: "noteField"
+                    placeholderText: "zur Trainingseinheit"
+                    wrapMode: TextEdit.Wrap
+                    onTextChanged: if (activeFocus) dialog.dirty = true
                 }
             }
         }
     }
 
     footer: DialogButtons {
-        IconButton {
+        leading: IconButton {
+            objectName: "deleteButton"
             iconName: "trash-2"
             text: "TE löschen"
             visible: dialog.exists

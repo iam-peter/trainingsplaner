@@ -774,6 +774,13 @@ bool Store::saveSession(const QString &athleteId, const QString &monday, const Q
                         const QVariantMap &session)
 {
     const Session s = sessionFromMap(session);
+    // Nothing in it: no session, which the week would not show either. One
+    // that was there goes, as with TE löschen.
+    if (s.entries.isEmpty() && s.from.isEmpty() && s.to.isEmpty() && s.note.trimmed().isEmpty()) {
+        if (!loadWeek(athleteId, monday, variant).session(s.day, s.number))
+            return true;
+        return removeSession(athleteId, monday, variant, s.day, s.number);
+    }
     return changeWeek(sessionTitle(s.day, s.number) + QStringLiteral(" speichern"), athleteId, monday,
                       variant, [&] {
         return Database::saveSession(athleteId, toDate(monday), toVariant(variant), s);

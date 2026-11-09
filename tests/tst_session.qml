@@ -134,6 +134,35 @@ Item {
             compare(s.from, "15:30")
         }
 
+        // Saving a session with nothing in it creates none, and removes
+        // the one there was; TE löschen asks on top of the open editor
+        function test_5_emptySessionAndDelete() {
+            dialog.edit(athlete, monday, "P", 1, 2)
+            tryCompare(dialog, "opened", true)
+            verify(!dialog.exists)
+            dialog.save()
+            tryCompare(dialog, "visible", false)
+            verify(!Store.session(athlete, monday, "P", 1, 2).exists)
+
+            Store.saveSession(athlete, monday, "P", { day: 1, number: 2, note: "locker", entries: [] })
+            verify(Store.session(athlete, monday, "P", 1, 2).exists)
+            dialog.edit(athlete, monday, "P", 1, 2)
+            tryCompare(dialog, "opened", true)
+            const before = DialogStack.open
+            mouseClick(findChild(dialog.footer, "deleteButton"))
+            tryCompare(DialogStack, "open", before + 1)
+            verify(dialog.visible)           // the editor stays behind the question
+            keyClick(Qt.Key_Escape)          // Nein
+            tryCompare(DialogStack, "open", before)
+            verify(dialog.visible)
+
+            // Emptied and saved: gone, like TE löschen
+            findChild(dialog.contentItem, "noteField").text = ""
+            dialog.save()
+            tryCompare(dialog, "visible", false)
+            verify(!Store.session(athlete, monday, "P", 1, 2).exists)
+        }
+
         function test_3_cancelAsksWhenChanged() {
             dialog.edit(athlete, monday, "P", 1, 2)
             tryCompare(dialog, "opened", true)

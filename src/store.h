@@ -98,6 +98,8 @@ public:
                                  const QString &variant) const;
     Q_INVOKABLE QVariantMap session(const QString &athleteId, const QString &monday,
                                     const QString &variant, int day, int number) const;
+    // A session with nothing in it (no exercise, time or note) is not
+    // kept: saving it removes the one there was
     Q_INVOKABLE bool saveSession(const QString &athleteId, const QString &monday,
                                  const QString &variant, const QVariantMap &session);
     Q_INVOKABLE bool removeSession(const QString &athleteId, const QString &monday,

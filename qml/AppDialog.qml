@@ -73,6 +73,7 @@ Dialog {
         if (n === 1)
             w *= 2
         return w + Math.max(0, n - 1) * box.spacing + box.leftPadding + box.rightPadding
+               + (box.leadingWidth || 0)
     }
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
                             implicitContentWidth + leftPadding + rightPadding,

@@ -7,22 +7,39 @@ import QtQuick.Controls
 // failed save could not keep it open and Abbrechen could not ask about
 // changes first. Wrapped, the box keeps its roles (the order and look
 // the style gives them), but the dialog does not see it.
+// leading: buttons at the left end, away from the others (TE löschen); a
+// Destructive role makes them red there too.
 Item {
     id: footer
 
     default property alias buttons: box.contentData
+    property alias leading: leadingRow.data
     // What AppDialog reads for its natural width
     readonly property alias count: box.count
     readonly property alias spacing: box.spacing
     readonly property alias leftPadding: box.leftPadding
     readonly property alias rightPadding: box.rightPadding
+    readonly property real leadingWidth: leadingRow.implicitWidth > 0 ? leadingRow.implicitWidth + 2 * box.spacing : 0
     function itemAt(i) { return box.itemAt(i) }
 
-    implicitWidth: box.implicitWidth
+    implicitWidth: box.implicitWidth + leadingWidth
     implicitHeight: box.implicitHeight
 
     DialogButtonBox {
         id: box
         anchors.fill: parent
+    }
+
+    Row {
+        id: leadingRow
+        x: box.leftPadding
+        y: box.topPadding
+        spacing: box.spacing
+        Component.onCompleted: {
+            for (const it of children) {
+                if (it.kind !== undefined && it.DialogButtonBox.buttonRole === DialogButtonBox.DestructiveRole)
+                    it.kind = "destructive"
+            }
+        }
     }
 }
