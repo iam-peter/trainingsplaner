@@ -67,6 +67,7 @@ ApplicationWindow {
 
     header: AppToolBar {
         RowLayout {
+            id: headerRow
             anchors.fill: parent
             anchors.leftMargin: 8
             anchors.rightMargin: 8
@@ -86,10 +87,23 @@ ApplicationWindow {
 
             Item { Layout.fillWidth: true }
 
+            // Daten, Einstellungen and Hilfe show only their icons (and the
+            // label as tooltip) when the window is too narrow for the tabs
+            // and the three with their labels. The full widths come from
+            // copies that are never shown.
+            IconToolButton { id: dataFull; visible: false; iconName: "database"; text: "Daten" }
+            IconToolButton { id: settingsFull; visible: false; iconName: "settings"; text: "Einstellungen" }
+            IconToolButton { id: helpFull; visible: false; iconName: "circle-help"; text: "Hilfe" }
+            readonly property bool compact: width < tabs.Layout.preferredWidth + dataFull.implicitWidth
+                                                    + settingsFull.implicitWidth + helpFull.implicitWidth + 4 * spacing + 16
+
             IconToolButton {
                 id: dataButton
+                objectName: "dataButton"
                 iconName: "database"
                 text: "Daten"
+                display: headerRow.compact ? AbstractButton.IconOnly : AbstractButton.TextBesideIcon
+                toolTip: headerRow.compact ? text : ""
                 onClicked: dataMenu.open()
                 Menu {
                     id: dataMenu
@@ -117,14 +131,20 @@ ApplicationWindow {
                 }
             }
             IconToolButton {
+                objectName: "settingsButton"
                 iconName: "settings"
                 text: "Einstellungen"
+                display: headerRow.compact ? AbstractButton.IconOnly : AbstractButton.TextBesideIcon
+                toolTip: headerRow.compact ? text : ""
                 onClicked: settingsDialog.open()
             }
             IconToolButton {
                 id: helpButton
+                objectName: "helpButton"
                 iconName: "circle-help"
                 text: "Hilfe"
+                display: headerRow.compact ? AbstractButton.IconOnly : AbstractButton.TextBesideIcon
+                toolTip: headerRow.compact ? text : ""
                 onClicked: helpMenu.open()
                 Menu {
                     id: helpMenu

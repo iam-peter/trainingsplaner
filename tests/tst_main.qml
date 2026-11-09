@@ -44,6 +44,20 @@ Item {
                 Store.removeAthlete(dora.id)
         }
 
+        // Daten, Einstellungen and Hilfe drop their labels when the window
+        // is too narrow for them, and get them back when it is wide again
+        function test_headerButtonsShrinkToIcons() {
+            const w = createTemporaryObject(mainComponent, null)
+            const buttons = ["dataButton", "settingsButton", "helpButton"].map(n => findChild(w, n))
+            w.width = 1366
+            tryVerify(() => buttons.every(b => b.display === AbstractButton.TextBesideIcon))
+            w.width = w.minimumWidth
+            tryVerify(() => buttons.every(b => b.display === AbstractButton.IconOnly))
+            verify(buttons.every(b => b.toolTip === b.text))
+            w.width = 1366
+            tryVerify(() => buttons.every(b => b.display === AbstractButton.TextBesideIcon))
+        }
+
         function test_choosingOnOnePageSelectsEverywhere() {
             const w = createTemporaryObject(mainComponent, null)
             const pages = ["weekPage", "planningPage", "analysisPage", "competitionsPage"]
