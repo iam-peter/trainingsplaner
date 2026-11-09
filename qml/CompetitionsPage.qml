@@ -79,7 +79,7 @@ Page {
         error = Store.saveCompetition({
             athleteId: athleteId,
             date: dateField.text,
-            time: timeField.text,
+            time: timeField.time,
             type: typeBox.currentIndex,
             name: nameField.text,
             place: placeField.text,
@@ -215,7 +215,7 @@ Page {
                     Label { text: "Datum / Zeit:" }
                     RowLayout {
                         DateField { id: dateField; onTextEdited: page.dirty = true }
-                        TextField { id: timeField; implicitWidth: 70; placeholderText: "HH:MM"; onTextEdited: page.dirty = true }
+                        TimeField { id: timeField; objectName: "timeField"; onTextEdited: page.dirty = true }
                     }
                     Label { text: "Art:" }
                     ComboBox {

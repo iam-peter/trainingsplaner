@@ -40,7 +40,7 @@ AppDialog {
             Layout.leftMargin: 24
             enabled: modeSince.checked
             DateField { id: sinceDate }
-            TextField { id: sinceTime; implicitWidth: 70; placeholderText: "HH:MM" }
+            TimeField { id: sinceTime; objectName: "sinceTime" }
             Label {
                 text: Store.lastExport() !== "" ? "letzter Export: " + Store.lastExport() : ""
                 color: palette.placeholderText
@@ -108,7 +108,7 @@ AppDialog {
         nameFilters: ["Datensicherung (*.bak)"]
         onAccepted: {
             const mode = modeSince.checked ? "since" : modeAthlete.checked ? "athlete" : "all"
-            dialog.summary = Store.exportBak(selectedFile, mode, sinceDate.text, sinceTime.text,
+            dialog.summary = Store.exportBak(selectedFile, mode, sinceDate.text, sinceTime.time,
                                             athleteBox.currentValue || "", fromWeek.text, toWeek.text)
         }
     }

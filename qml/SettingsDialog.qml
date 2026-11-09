@@ -13,14 +13,6 @@ AppDialog {
     property var printOpts: ({})
     property var times: []
 
-    readonly property var timeChoices: {
-        const list = [""]
-        for (let h = 6; h <= 23; ++h)
-            for (let m = 0; m < 60; m += 15)
-                list.push((h < 10 ? "0" : "") + h + ":" + (m === 0 ? "00" : m))
-        return list
-    }
-
     function cm(mm) { return (mm / 10).toLocaleString(Qt.locale("de_DE"), "f", 1) }
     function mm(text) {
         const v = Number.fromLocaleString(Qt.locale("de_DE"), text.trim() === "" ? "0" : text)
@@ -103,7 +95,7 @@ AppDialog {
         }
         const t = []
         for (let i = 0; i < 3; ++i)
-            t.push({ from: timeRepeater.itemAt(i).from, to: timeRepeater.itemAt(i).to })
+            t.push({ from: timeRepeater.itemAt(i).fromTime, to: timeRepeater.itemAt(i).toTime })
         Store.sessionTimes = t
         Store.weightStep = step10.checked ? 1 : 2.5
         const cats = []
@@ -237,23 +229,23 @@ AppDialog {
                         required property int index
                         property string from
                         property string to
+                        readonly property string fromTime: fromField.time
+                        readonly property string toTime: toField.time
                         spacing: 8
                         Label { text: (index + 1) + ". TE"; Layout.preferredWidth: 50 }
                         Label { text: "von:" }
-                        ComboBox {
-                            editable: true
-                            model: dialog.timeChoices
-                            implicitWidth: 100
-                            editText: parent.from
-                            onEditTextChanged: parent.from = editText
+                        TimeField {
+                            id: fromField
+                            objectName: "fromTime" + index
+                            text: parent.from
+                            onTextChanged: parent.from = text
                         }
                         Label { text: "bis:" }
-                        ComboBox {
-                            editable: true
-                            model: dialog.timeChoices
-                            implicitWidth: 100
-                            editText: parent.to
-                            onEditTextChanged: parent.to = editText
+                        TimeField {
+                            id: toField
+                            objectName: "toTime" + index
+                            text: parent.to
+                            onTextChanged: parent.to = text
                         }
                     }
                 }

@@ -60,7 +60,7 @@ AppDialog {
 
     function save() {
         const cat = Store.infoCategories[categoryBox.currentIndex]
-        error = Store.saveDayInfo(athleteId, dayDate(dayBox.currentIndex), timeField.text, cat ? cat.code : "",
+        error = Store.saveDayInfo(athleteId, dayDate(dayBox.currentIndex), timeField.time, cat ? cat.code : "",
                                   valueField.text,
                                   editing ? editing.date : "", editing ? editing.time : "", editing ? editing.code : "")
         if (error === "") {
@@ -92,7 +92,7 @@ AppDialog {
                 implicitWidth: 150
                 model: [1, 2, 3, 4, 5, 6, 7].map(d => Store.dayName(d) + ", " + Store.dayDate(dialog.monday, d))
             }
-            TextField { id: timeField; implicitWidth: 70; placeholderText: "HH:MM" }
+            TimeField { id: timeField; objectName: "timeField" }
             ComboBox {
                 id: categoryBox
                 implicitWidth: 170

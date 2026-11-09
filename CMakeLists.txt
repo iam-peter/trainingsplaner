@@ -69,6 +69,8 @@ qt_add_qml_module(tpqml
         qml/ListRow.qml
         qml/DateCalendar.qml
         qml/DateField.qml
+        qml/TimePicker.qml
+        qml/TimeField.qml
         qml/WeekPage.qml
         qml/SessionCell.qml
         qml/SessionDialog.qml

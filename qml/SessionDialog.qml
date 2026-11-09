@@ -21,14 +21,6 @@ AppDialog {
     property var initial: ({})
     property int nextUid: 0
 
-    readonly property var times: {
-        const list = []
-        for (let h = 6; h <= 21; ++h) {
-            for (let m = 0; m < 60; m += 15)
-                list.push((h < 10 ? "0" : "") + h + ":" + (m === 0 ? "00" : m))
-        }
-        return list
-    }
 
     function edit(a, m, v, d, n) {
         athleteId = a
@@ -42,8 +34,8 @@ AppDialog {
         initial = {}
         for (const e of s.entries)
             addEntry(e, false)
-        fromBox.editText = s.from
-        toBox.editText = s.to
+        fromBox.text = s.from
+        toBox.text = s.to
         noteField.text = s.note
         dirty = false
         open()
@@ -93,8 +85,8 @@ AppDialog {
         Store.saveSession(athleteId, monday, variant, {
             day: day,
             number: number,
-            from: validTime(fromBox.editText),
-            to: validTime(toBox.editText),
+            from: validTime(fromBox.time),
+            to: validTime(toBox.time),
             note: noteField.text,
             entries: collect()
         })
@@ -239,25 +231,19 @@ AppDialog {
             ColumnLayout {
                 spacing: 2
                 Label { text: "von:" }
-                ComboBox {
+                TimeField {
                     id: fromBox
-                    editable: true
-                    model: dialog.times
-                    implicitWidth: 90
-                    onEditTextChanged: if (activeFocus) dialog.dirty = true
-                    onActivated: dialog.dirty = true
+                    objectName: "fromBox"
+                    onTextEdited: dialog.dirty = true
                 }
             }
             ColumnLayout {
                 spacing: 2
                 Label { text: "bis:" }
-                ComboBox {
+                TimeField {
                     id: toBox
-                    editable: true
-                    model: dialog.times
-                    implicitWidth: 90
-                    onEditTextChanged: if (activeFocus) dialog.dirty = true
-                    onActivated: dialog.dirty = true
+                    objectName: "toBox"
+                    onTextEdited: dialog.dirty = true
                 }
             }
             ColumnLayout {
