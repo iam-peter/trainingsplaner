@@ -45,6 +45,16 @@ Item {
             tryCompare(calendar, "visible", false)
         }
 
+        // A date the field accepts is the date saved, also without
+        // leading zeros
+        function test_shortDateSaved() {
+            verify(Store.parseDate("1.3.2001") !== "")
+            const id = Store.saveAthlete({ lastName: "Kurz", firstName: "Karl", sex: 0, born: "1.3.2001" })
+            const a = Store.athletes.find(x => x.id === id)
+            compare(a.born, "01.03.2001")
+            Store.removeAthlete(id)
+        }
+
         function test_rightClickMarksAttemptInvalid() {
             attempt.setValue(73)
             mouseClick(attempt, 10, 10, Qt.RightButton)

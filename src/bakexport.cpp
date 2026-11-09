@@ -45,7 +45,7 @@ bool whereFor(const TableSpec &t, const BakExport::Filter &f, QString *where, QV
         return true;
     case F::ChangedSince:
         *where = QStringLiteral("korrektur >= ?");
-        binds->append(Database::stamp(f.since));
+        binds->append(Database::stampText(f.since));
         return true;
     case F::AthleteWeeks: {
         const QString from = f.fromMonday.toString(Qt::ISODate);
@@ -175,7 +175,7 @@ QString exportText(const Filter &filter, Result *result)
                 else if (c == QLatin1String("korrektur2"))
                     values.append(QStringLiteral("NOW()"));
                 else
-                    values.append(quote(row.value(c)));
+                    values.append(quote(t.toFile(c, row.value(c))));
             }
             lines.append(QStringLiteral("DELETE FROM %1 WHERE %2 AND korrektur<%3")
                              .arg(t.name, keyCond.join(QStringLiteral(" AND ")), quote(stamp)));
@@ -201,14 +201,14 @@ QString exportText(const Filter &filter, Result *result)
                 else if (c == QLatin1String("del"))
                     values.append(QStringLiteral("\"Y\""));
                 else if (c == QLatin1String("korrektur"))
-                    values.append(quote(d.stamp));
+                    values.append(quote(Database::stampText(d.stamp)));
                 else if (c == QLatin1String("korrektur2"))
                     values.append(QStringLiteral("NOW()"));
                 else
                     values.append(QStringLiteral("NULL"));
             }
             lines.append(QStringLiteral("DELETE FROM %1 WHERE %2 AND korrektur<%3")
-                             .arg(t.name, keyCond.join(QStringLiteral(" AND ")), quote(d.stamp)));
+                             .arg(t.name, keyCond.join(QStringLiteral(" AND ")), quote(Database::stampText(d.stamp))));
             lines.append(QStringLiteral("INSERT IGNORE INTO %1 VALUES (%2)")
                              .arg(t.name, values.join(QLatin1Char(','))));
             ++r.rows[t.name];

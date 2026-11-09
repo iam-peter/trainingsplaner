@@ -31,6 +31,7 @@ private slots:
     void weekLabels();
     void bakParser();
     void importAndMerge();
+    void oldFormatColumns();
     void saveAndLoadSession();
     void copyWeek();
     void weekSummary();
@@ -188,12 +189,76 @@ void TestCore::importAndMerge()
     QCOMPARE(w.sessions[0].entries[0].steps.value(0), (Step{62, 4, 1, 0}));
 }
 
+// Columns stored differently from the old program's files: they read in
+// as the stored type and go out again as the old program wrote them
+void TestCore::oldFormatColumns()
+{
+    const QString file = QStringLiteral(
+        "INSERT IGNORE INTO sp VALUES (\"alt_otto\",\"N\",\"2024-05-01 10:00:00\",NOW(),"
+        "\"trainer\",\"Alt\",\"Otto\",\"0\",NULL,NULL,NULL)\n"
+        "INSERT IGNORE INTO te VALUES (\"alt_otto\",\"2024-05-06\",\"2\",\"1\",\"P\",\"N\","
+        "\"2024-05-02 10:00:00\",NOW(),\"trainer\",\"0\",\"00:00:00\",\"00:00:00\",\"ohne Zeit\")\n"
+        "INSERT IGNORE INTO maz VALUES (\"m_alt\",\"N\",\"2024-05-01 10:00:00\",NOW(),\"trainer\","
+        "\"0\",\"Alt-MAZ\",\"AM\",\"2024-05-06\",\"2024-06-24\",NULL,NULL,NULL)\n"
+        "INSERT IGNORE INTO maz_sp VALUES (\"m_alt\",\"alt_otto\",\"N\",\"2024-05-01 10:00:00\",NOW(),"
+        "\"trainer\",\"73\",\"80\",\"100\",NULL,NULL,\"N\",NULL)\n");
+    BakImport::Result r = BakImport::importText(file);
+    QVERIFY2(r.ok && r.errors.isEmpty(), qPrintable(r.summary()));
+
+    // Stored: no time as NULL, the choice as 0
+    QSqlQuery q;
+    QVERIFY(q.exec(QStringLiteral("SELECT von, bis FROM te WHERE spid = 'alt_otto'")) && q.next());
+    QVERIFY(q.value(0).isNull() && q.value(1).isNull());
+    QVERIFY(q.exec(QStringLiteral("SELECT auswahl FROM maz_sp WHERE spid = 'alt_otto'")) && q.next());
+    QCOMPARE(q.value(0).toInt(), 0);
+    const Week w = Database::loadWeek(QStringLiteral("alt_otto"), QDate(2024, 5, 6), Variant::Plan);
+    QVERIFY(!w.sessions.value(0).from.isValid());
+
+    // Saving the athlete's MAZ data keeps the imported choice
+    MazAthlete ma = Planning::mazAthletes(QStringLiteral("m_alt")).value(0);
+    QVERIFY(!ma.selected);
+    ma.targetSnatch = 82;
+    QVERIFY(Planning::saveMazAthlete(ma));
+    QVERIFY(!Planning::mazAthletes(QStringLiteral("m_alt")).value(0).selected);
+
+    // Out again in the old program's form
+    BakExport::Filter f;
+    f.mode = BakExport::Filter::Maz;
+    f.mazId = QStringLiteral("m_alt");
+    const QString maz = BakExport::exportText(f);
+    QVERIFY2(maz.contains(QStringLiteral("\"82\",\"100\",NULL,NULL,\"N\"")), qPrintable(maz));
+    f = {};
+    f.mode = BakExport::Filter::AthleteWeeks;
+    f.athleteId = QStringLiteral("alt_otto");
+    f.fromMonday = f.toMonday = QDate(2024, 5, 6);
+    const QString week = BakExport::exportText(f);
+    QVERIFY2(week.contains(QStringLiteral("\"00:00:00\",\"00:00:00\",\"ohne Zeit\"")), qPrintable(week));
+
+    // Change stamps compare as times, not as text: "T" sorts after " ",
+    // yet this row is older than the stored one and must not replace it
+    r = BakImport::importText(QStringLiteral(
+        "INSERT IGNORE INTO te VALUES (\"alt_otto\",\"2024-05-06\",\"2\",\"1\",\"P\",\"N\","
+        "\"2024-05-02T09:00:00\",NOW(),\"trainer\",\"0\",\"16:00:00\",\"18:00:00\",\"älter\")\n"));
+    QCOMPARE(r.tables.value(QStringLiteral("te")).skipped, 1);
+    // A newer one does, and its stamp is stored in the usual form
+    r = BakImport::importText(QStringLiteral(
+        "INSERT IGNORE INTO te VALUES (\"alt_otto\",\"2024-05-06\",\"2\",\"1\",\"P\",\"N\","
+        "\"2024-05-02T11:00:00\",NOW(),\"trainer\",\"0\",\"16:00:00\",\"18:00:00\",\"neuer\")\n"));
+    QCOMPARE(r.tables.value(QStringLiteral("te")).updated, 1);
+    QVERIFY(q.exec(QStringLiteral("SELECT korrektur, von FROM te WHERE spid = 'alt_otto'")) && q.next());
+    QCOMPARE(q.value(0).toString(), QStringLiteral("2024-05-02 11:00:00"));
+    QCOMPARE(q.value(1).toString(), QStringLiteral("16:00:00"));
+
+    QVERIFY(Planning::removeMaz(QStringLiteral("m_alt")));
+    QVERIFY(Database::removeAthlete(QStringLiteral("alt_otto")));
+}
+
 void TestCore::saveAndLoadSession()
 {
     Athlete a;
     a.lastName = QStringLiteral("Muster");
     a.firstName = QStringLiteral("Erika");
-    a.sex = 1;
+    a.sex = Sex::Female;
     const QString id = Database::saveAthlete(a);
     QCOMPARE(id, QStringLiteral("muster_erika"));
     QCOMPARE(Database::saveAthlete(a), QStringLiteral("muster_erika_2"));
@@ -568,11 +633,11 @@ void TestCore::competitions()
     QVERIFY(q.exec(QStringLiteral("INSERT INTO normen (sex, akl, gkl, gklbez, zk) VALUES"
                                   " (1, 16, 55, '-55', 120), (1, 16, 59, '-59', 130), (1, 16, 60, '+59', 140),"
                                   " (1, 18, 59, '-59', 150)")));
-    QCOMPARE(Competitions::norm(1, 16, 58.4), 130);
-    QCOMPARE(Competitions::norm(1, 17, 54.0), 120);   // age class 16 up to 17
-    QCOMPARE(Competitions::norm(1, 16, 70.0), 140);   // above the last limit: "+" class
-    QCOMPARE(Competitions::norm(1, 25, 58.0), 150);   // oldest class
-    QCOMPARE(Competitions::norm(0, 16, 58.0), 0);     // no table for men here
+    QCOMPARE(Competitions::norm(Sex::Female, 16, 58.4), 130);
+    QCOMPARE(Competitions::norm(Sex::Female, 17, 54.0), 120);   // age class 16 up to 17
+    QCOMPARE(Competitions::norm(Sex::Female, 16, 70.0), 140);   // above the last limit: "+" class
+    QCOMPARE(Competitions::norm(Sex::Female, 25, 58.0), 150);   // oldest class
+    QCOMPARE(Competitions::norm(Sex::Male, 16, 58.0), 0);     // no table for men here
 
     QVERIFY(Competitions::remove(c.athleteId, c.date, c.time));
     QCOMPARE(Competitions::forAthlete(c.athleteId).size(), 2);
@@ -595,7 +660,7 @@ void TestCore::planningBasics()
     Maz m;
     m.name = QStringLiteral("Vorbereitung DM");
     m.shortName = QStringLiteral("DM27");
-    m.sex = 1;
+    m.sex = Sex::Female;
     m.from = QDate(2027, 3, 1);
     m.to = QDate(2027, 4, 26);
     m.buildUp = m.from;

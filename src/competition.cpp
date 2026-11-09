@@ -132,7 +132,7 @@ bool save(const Competition &c)
     q.addBindValue(c.note);
     q.addBindValue(c.total());
     q.addBindValue(QStringLiteral("local"));
-    q.addBindValue(Database::now());
+    q.addBindValue(Database::stampText(Database::now()));
     return q.exec();
 }
 
@@ -188,14 +188,14 @@ QList<Point> bestResults(const QList<Competition> &list, int period)
     return points;
 }
 
-int norm(int sex, int age, double bodyWeight)
+int norm(Sex sex, int age, double bodyWeight)
 {
     if (bodyWeight <= 0 || age <= 0)
         return 0;
     // The IAT table starts at age class 14 and ends with the oldest class
     QSqlQuery q;
     q.prepare(QStringLiteral("SELECT akl FROM normen WHERE sex = ? ORDER BY akl"));
-    q.addBindValue(sex);
+    q.addBindValue(int(sex));
     if (!q.exec())
         return 0;
     QList<int> classes;
@@ -213,7 +213,7 @@ int norm(int sex, int age, double bodyWeight)
     // Weight class: the lightest class the body weight fits in; "+" classes last
     QSqlQuery w;
     w.prepare(QStringLiteral("SELECT gkl, gklbez, zk FROM normen WHERE sex = ? AND akl = ? ORDER BY gkl"));
-    w.addBindValue(sex);
+    w.addBindValue(int(sex));
     w.addBindValue(akl);
     if (!w.exec())
         return 0;

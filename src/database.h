@@ -19,9 +19,11 @@ bool open(const QString &path, QString *error = nullptr);
 void close();
 QString path();
 
-// The last-change stamp of rows, "yyyy-MM-dd HH:mm:ss"
-QString stamp(const QDateTime &time);
-QString now(); // stamp() of the current time
+// Every row's last change (`korrektur`), in whole seconds. Stored and
+// exported as "yyyy-MM-dd HH:mm:ss".
+QDateTime now();
+QString stampText(const QDateTime &time);
+QDateTime stampTime(const QString &text); // invalid for unreadable text
 
 // Athletes
 QList<Athlete> athletes();
@@ -107,12 +109,12 @@ QList<WeightLine> weightLines(const QString &athleteId, Variant variant, const Q
 
 // Generic access for the other modules
 bool deleteRows(const QString &table, const QString &where, const QVariantList &binds,
-                const QString &stamp);
-bool recordDeletion(const QString &table, const QVariantList &key, const QString &stamp);
+                const QDateTime &stamp);
+bool recordDeletion(const QString &table, const QVariantList &key, const QDateTime &stamp);
 struct Deletion
 {
     QStringList key;
-    QString stamp;
+    QDateTime stamp;
 };
 // Deletions logged from `since` on; all of them for an invalid time
 QList<Deletion> deletions(const QString &table, const QDateTime &since = {});

@@ -68,7 +68,7 @@ QList<Maz> mazList()
     while (q.next()) {
         Maz m;
         m.id = q.value(0).toString();
-        m.sex = q.value(1).toInt();
+        m.sex = sexFromInt(q.value(1).toInt());
         m.name = q.value(2).toString();
         m.shortName = q.value(3).toString();
         m.from = date(q.value(4));
@@ -99,7 +99,7 @@ QString saveMaz(const Maz &m)
     q.prepare(QStringLiteral("INSERT OR REPLACE INTO maz (id, sex, bez, kbez, von, bis, abp_von, lap_von, bem,"
                              " user, korrektur) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
     q.addBindValue(id);
-    q.addBindValue(m.sex);
+    q.addBindValue(int(m.sex));
     q.addBindValue(m.name);
     q.addBindValue(m.shortName);
     q.addBindValue(isoOrNull(m.from));
@@ -108,7 +108,7 @@ QString saveMaz(const Maz &m)
     q.addBindValue(isoOrNull(m.peakPhase));
     q.addBindValue(m.note);
     q.addBindValue(kUser);
-    q.addBindValue(Database::now());
+    q.addBindValue(Database::stampText(Database::now()));
     return exec(q) ? id : QString();
 }
 
@@ -116,7 +116,7 @@ bool removeMaz(const QString &id)
 {
     QSqlDatabase d = QSqlDatabase::database();
     d.transaction();
-    const QString stamp = Database::now();
+    const QDateTime stamp = Database::now();
     const bool ok = Database::deleteRows(QStringLiteral("maz_sp"), QStringLiteral("mazid = ?"), {id}, stamp)
                     && Database::deleteRows(QStringLiteral("ueb"), QStringLiteral("spid = ?"), {roOwner(id)}, stamp)
                     && Database::deleteRows(QStringLiteral("itp_ls"), QStringLiteral("spid = ?"), {roOwner(id)}, stamp)
@@ -133,7 +133,8 @@ QList<MazAthlete> mazAthletes(const QString &mazId)
 {
     QList<MazAthlete> list;
     QSqlQuery q;
-    q.prepare(QStringLiteral("SELECT m.mazid, m.spid, m.gew, m.ziel_rei, m.ziel_sto, m.wk_rei, m.wk_sto, m.bem"
+    q.prepare(QStringLiteral("SELECT m.mazid, m.spid, m.gew, m.ziel_rei, m.ziel_sto, m.wk_rei, m.wk_sto, m.bem,"
+                             " m.auswahl"
                              " FROM maz_sp m LEFT JOIN sp s ON s.spid = m.spid WHERE m.mazid = ?"
                              " ORDER BY s.name COLLATE NOCASE, s.vorname COLLATE NOCASE"));
     q.addBindValue(mazId);
@@ -149,6 +150,7 @@ QList<MazAthlete> mazAthletes(const QString &mazId)
         a.compSnatch = q.value(5).toInt();
         a.compCleanJerk = q.value(6).toInt();
         a.note = q.value(7).toString();
+        a.selected = q.value(8).isNull() || q.value(8).toBool();
         list.append(a);
     }
     return list;
@@ -158,7 +160,7 @@ bool saveMazAthlete(const MazAthlete &a)
 {
     QSqlQuery q;
     q.prepare(QStringLiteral("INSERT OR REPLACE INTO maz_sp (mazid, spid, gew, ziel_rei, ziel_sto, wk_rei, wk_sto,"
-                             " auswahl, bem, user, korrektur) VALUES (?, ?, ?, ?, ?, ?, ?, 'Y', ?, ?, ?)"));
+                             " auswahl, bem, user, korrektur) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
     q.addBindValue(a.mazId);
     q.addBindValue(a.athleteId);
     q.addBindValue(intOrNull(a.weightClass));
@@ -166,9 +168,10 @@ bool saveMazAthlete(const MazAthlete &a)
     q.addBindValue(intOrNull(a.targetCleanJerk));
     q.addBindValue(intOrNull(a.compSnatch));
     q.addBindValue(intOrNull(a.compCleanJerk));
+    q.addBindValue(a.selected ? 1 : 0);
     q.addBindValue(a.note);
     q.addBindValue(kUser);
-    q.addBindValue(Database::now());
+    q.addBindValue(Database::stampText(Database::now()));
     return exec(q);
 }
 
@@ -236,7 +239,7 @@ bool setTarget(const QString &owner, const WeekTarget &t)
     q.addBindValue(intOrNull(t.bwReps));
     q.addBindValue(intOrNull(t.bwSets));
     q.addBindValue(kUser);
-    q.addBindValue(Database::now());
+    q.addBindValue(Database::stampText(Database::now()));
     return exec(q);
 }
 
@@ -269,7 +272,7 @@ bool setMeta(const QString &owner, const WeekMeta &m)
     upd.addBindValue(m.position);
     upd.addBindValue(m.note);
     upd.addBindValue(kUser);
-    upd.addBindValue(Database::now());
+    upd.addBindValue(Database::stampText(Database::now()));
     upd.addBindValue(owner);
     upd.addBindValue(iso(m.monday));
     return exec(ins) && exec(upd);
@@ -307,7 +310,7 @@ bool setPlannedSteps(const QString &owner, int exercise, const QDate &monday, co
     q.addBindValue(exercise);
     q.addBindValue(Steps::format(steps));
     q.addBindValue(kUser);
-    q.addBindValue(Database::now());
+    q.addBindValue(Database::stampText(Database::now()));
     return exec(q);
 }
 
@@ -321,7 +324,7 @@ bool copyPlan(const QString &fromOwner, const QDate &fromMonday, const QString &
     const qint64 offset = fromMonday.daysTo(toMonday);
     QSqlDatabase d = QSqlDatabase::database();
     d.transaction();
-    const QString stamp = Database::now();
+    const QDateTime stamp = Database::now();
     bool ok = Database::deleteRows(QStringLiteral("ueb"), QStringLiteral("spid = ? AND spi = 'S' AND wodate BETWEEN ? AND ?"),
                                    {toOwner, iso(toMonday), iso(toEnd)}, stamp)
               && Database::deleteRows(QStringLiteral("itp_ls"), QStringLiteral("spid = ? AND wodate BETWEEN ? AND ?"),

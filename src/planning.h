@@ -20,7 +20,7 @@
 struct Maz
 {
     QString id;
-    int sex = 0;
+    Sex sex = Sex::Male;
     QString name;
     QString shortName;
     QDate from;       // Monday
@@ -41,6 +41,7 @@ struct MazAthlete
     int targetCleanJerk = 0;
     int compSnatch = 0;    // result at the MAZ's main competition
     int compCleanJerk = 0;
+    bool selected = true; // auswahl; kept from imported data, not shown yet
     QString note;
 };
 

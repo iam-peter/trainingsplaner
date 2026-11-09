@@ -33,7 +33,7 @@ QVariantMap mazMap(const Maz &m)
     return {{QStringLiteral("id"), m.id},
             {QStringLiteral("name"), m.name},
             {QStringLiteral("shortName"), m.shortName},
-            {QStringLiteral("sex"), m.sex},
+            {QStringLiteral("sex"), int(m.sex)},
             {QStringLiteral("from"), label(m.from)},
             {QStringLiteral("to"), label(m.to)},
             {QStringLiteral("fromMonday"), m.from.toString(Qt::ISODate)},
@@ -84,7 +84,7 @@ QVariantMap Plan::saveMaz(const QVariantMap &v)
     m.id = v.value(QStringLiteral("id")).toString();
     m.name = v.value(QStringLiteral("name")).toString().trimmed();
     m.shortName = v.value(QStringLiteral("shortName")).toString().trimmed();
-    m.sex = v.value(QStringLiteral("sex")).toInt();
+    m.sex = sexFromInt(v.value(QStringLiteral("sex")).toInt());
     m.from = fromLabel(v.value(QStringLiteral("from")).toString());
     m.to = fromLabel(v.value(QStringLiteral("to")).toString());
     m.buildUp = fromLabel(v.value(QStringLiteral("buildUp")).toString());
@@ -127,6 +127,7 @@ QVariantList Plan::mazAthletes(const QString &mazId) const
             {QStringLiteral("targetCleanJerk"), a.targetCleanJerk},
             {QStringLiteral("compSnatch"), a.compSnatch},
             {QStringLiteral("compCleanJerk"), a.compCleanJerk},
+            {QStringLiteral("selected"), a.selected},
             {QStringLiteral("note"), a.note},
         });
     }
@@ -146,6 +147,15 @@ bool Plan::saveMazAthlete(const QVariantMap &v)
     a.note = v.value(QStringLiteral("note")).toString();
     if (a.mazId.isEmpty() || a.athleteId.isEmpty())
         return false;
+    // Without a choice in the map the stored one stays
+    if (v.contains(QStringLiteral("selected"))) {
+        a.selected = v.value(QStringLiteral("selected")).toBool();
+    } else {
+        for (const MazAthlete &old : Planning::mazAthletes(a.mazId)) {
+            if (old.athleteId == a.athleteId)
+                a.selected = old.selected;
+        }
+    }
     const bool ok = Planning::saveMazAthlete(a);
     emit changed();
     return ok;

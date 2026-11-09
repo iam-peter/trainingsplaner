@@ -36,7 +36,7 @@ public slots:
         Athlete a;
         a.lastName = QStringLiteral("Test");
         a.firstName = QStringLiteral("Tina");
-        a.sex = 1;
+        a.sex = Sex::Female;
         Database::saveAthlete(a); // id "test_tina"
         writeUpdateFixtures();
     }

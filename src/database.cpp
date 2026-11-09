@@ -62,7 +62,7 @@ const char *kSchema[] = {
     " abp_von TEXT, lap_von TEXT, bem TEXT, user TEXT, korrektur TEXT)",
     "CREATE TABLE IF NOT EXISTS maz_sp ("
     " mazid TEXT NOT NULL, spid TEXT NOT NULL, gew INTEGER, ziel_rei INTEGER, ziel_sto INTEGER,"
-    " wk_rei INTEGER, wk_sto INTEGER, auswahl TEXT DEFAULT 'Y', bem TEXT, user TEXT, korrektur TEXT,"
+    " wk_rei INTEGER, wk_sto INTEGER, auswahl INTEGER NOT NULL DEFAULT 1, bem TEXT, user TEXT, korrektur TEXT,"
     " PRIMARY KEY (mazid, spid))",
     // Week targets per exercise: ITP (spid = athlete) or framework plan (spid = '#' + MAZ id);
     // ueb -1..-7 stand for the groups K1..K7
@@ -154,7 +154,7 @@ QString makeAthleteId(const QString &last, const QString &first)
 
 // Deletes rows and notes their keys in the deletion log.
 bool deleteLogged(const QString &table, const QString &where, const QVariantList &binds,
-                const QString &stamp)
+                const QDateTime &stamp)
 {
     const TableSpec *spec = Tables::find(table);
     if (spec) {
@@ -181,7 +181,7 @@ bool deleteLogged(const QString &table, const QString &where, const QVariantList
 }
 
 bool insertSession(const QString &athleteId, const QDate &monday, Variant variant,
-                   const Session &s, const QString &stamp)
+                   const Session &s, const QDateTime &stamp)
 {
     QSqlQuery q(db());
     q.prepare(QStringLiteral(
@@ -196,7 +196,7 @@ bool insertSession(const QString &athleteId, const QDate &monday, Variant varian
     q.addBindValue(timeToStorage(s.to));
     q.addBindValue(s.note);
     q.addBindValue(kUser);
-    q.addBindValue(stamp);
+    q.addBindValue(Database::stampText(stamp));
     if (!exec(q))
         return false;
 
@@ -235,7 +235,7 @@ bool insertSession(const QString &athleteId, const QDate &monday, Variant varian
         ins.addBindValue(int(e.kind));
         ins.addBindValue(e.combination);
         ins.addBindValue(kUser);
-        ins.addBindValue(stamp);
+        ins.addBindValue(Database::stampText(stamp));
         if (!exec(ins))
             return false;
     }
@@ -251,14 +251,25 @@ QString lastError()
     return g_lastError;
 }
 
-QString stamp(const QDateTime &time)
+QDateTime now()
+{
+    QDateTime t = QDateTime::currentDateTime();
+    t.setTime(QTime(t.time().hour(), t.time().minute(), t.time().second()));
+    return t;
+}
+
+QString stampText(const QDateTime &time)
 {
     return time.toString(QStringLiteral("yyyy-MM-dd HH:mm:ss"));
 }
 
-QString now()
+QDateTime stampTime(const QString &text)
 {
-    return stamp(QDateTime::currentDateTime());
+    const QString t = text.trimmed();
+    QDateTime time = QDateTime::fromString(t, QStringLiteral("yyyy-MM-dd HH:mm:ss"));
+    if (!time.isValid())
+        time = QDateTime::fromString(t, Qt::ISODate);
+    return time;
 }
 
 bool open(const QString &path, QString *error)
@@ -309,7 +320,7 @@ QList<Athlete> athletes()
         a.id = q.value(0).toString();
         a.lastName = q.value(1).toString();
         a.firstName = q.value(2).toString();
-        a.sex = q.value(3).toInt();
+        a.sex = sexFromInt(q.value(3).toInt());
         a.born = QDate::fromString(q.value(4).toString(), Qt::ISODate);
         a.address = q.value(5).toString();
         a.phone = q.value(6).toString();
@@ -337,12 +348,12 @@ QString saveAthlete(const Athlete &a)
     q.addBindValue(id);
     q.addBindValue(a.lastName.trimmed());
     q.addBindValue(a.firstName.trimmed());
-    q.addBindValue(a.sex);
+    q.addBindValue(int(a.sex));
     q.addBindValue(a.born.isValid() ? dateString(a.born) : QVariant());
     q.addBindValue(a.address);
     q.addBindValue(a.phone);
     q.addBindValue(kUser);
-    q.addBindValue(now());
+    q.addBindValue(stampText(now()));
     return exec(q) ? id : QString();
 }
 
@@ -350,7 +361,7 @@ bool removeAthlete(const QString &id)
 {
     QSqlDatabase d = db();
     d.transaction();
-    const QString stamp = now();
+    const QDateTime stamp = now();
     for (const char *table : {"te_ueb", "te", "wo", "spinfo", "wk", "maz_sp", "ueb", "itp_ls", "sp"}) {
         if (!deleteRows(QLatin1String(table), QStringLiteral("spid = ?"), {id}, stamp)) {
             d.rollback();
@@ -450,7 +461,7 @@ bool saveInfoRecord(const InfoRecord &r)
     q.addBindValue(r.text);
     q.addBindValue(r.hasNumber ? QVariant(r.number) : QVariant());
     q.addBindValue(kUser);
-    q.addBindValue(now());
+    q.addBindValue(stampText(now()));
     return exec(q);
 }
 
@@ -466,7 +477,7 @@ bool replaceInfoRecords(const QString &athleteId, const QString &art,
 {
     QSqlDatabase d = db();
     d.transaction();
-    const QString stamp = now();
+    const QDateTime stamp = now();
     const QList<InfoRecord> before = infoRecords(athleteId, art);
     // A record is the same one when it starts on the same day; it keeps
     // its stored time of day and number (imported records can have both)
@@ -628,12 +639,12 @@ bool setAttribute(const QString &athleteId, const QString &art, const QString &v
 }
 
 bool deleteRows(const QString &table, const QString &where, const QVariantList &binds,
-                const QString &stamp)
+                const QDateTime &stamp)
 {
     return deleteLogged(table, where, binds, stamp);
 }
 
-bool recordDeletion(const QString &table, const QVariantList &key, const QString &stamp)
+bool recordDeletion(const QString &table, const QVariantList &key, const QDateTime &stamp)
 {
     QStringList parts;
     for (const QVariant &v : key)
@@ -643,7 +654,7 @@ bool recordDeletion(const QString &table, const QVariantList &key, const QString
                              " VALUES (?, ?, ?)"));
     q.addBindValue(table);
     q.addBindValue(parts.join(QChar(0x1f)));
-    q.addBindValue(stamp);
+    q.addBindValue(stampText(stamp));
     return exec(q);
 }
 
@@ -656,11 +667,11 @@ QList<Deletion> deletions(const QString &table, const QDateTime &since)
                   .arg(since.isValid() ? QStringLiteral(" AND korrektur >= ?") : QString()));
     q.addBindValue(table);
     if (since.isValid())
-        q.addBindValue(stamp(since));
+        q.addBindValue(stampText(since));
     if (!exec(q))
         return list;
     while (q.next())
-        list.append({q.value(0).toString().split(QChar(0x1f)), q.value(1).toString()});
+        list.append({q.value(0).toString().split(QChar(0x1f)), stampTime(q.value(1).toString())});
     return list;
 }
 
@@ -748,7 +759,7 @@ bool removeSession(const QString &athleteId, const QDate &monday, Variant varian
 {
     QSqlDatabase d = db();
     d.transaction();
-    const QString stamp = now();
+    const QDateTime stamp = now();
     for (const char *table : {"te_ueb", "te"}) {
         if (!deleteRows(QLatin1String(table),
                         QStringLiteral("spid = ? AND wodate = ? AND tag = ? AND te = ? AND spi = ?"),
@@ -776,7 +787,7 @@ bool saveWeekNote(const QString &athleteId, const QDate &monday, Variant variant
     upd.addBindValue(note);
     upd.addBindValue(injured ? 1 : 0);
     upd.addBindValue(kUser);
-    upd.addBindValue(now());
+    upd.addBindValue(stampText(now()));
     upd.addBindValue(athleteId);
     upd.addBindValue(dateString(monday));
     if (!exec(ins) || !exec(upd)) {
@@ -801,7 +812,7 @@ bool replaceSessions(const QString &toAthlete, const QDate &toMonday, Variant to
 
     QSqlDatabase d = db();
     d.transaction();
-    const QString stamp = now();
+    const QDateTime stamp = now();
     for (const Session &s : target.sessions) {
         for (const char *table : {"te_ueb", "te"}) {
             if (!deleteRows(QLatin1String(table),

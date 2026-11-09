@@ -10,12 +10,20 @@
 #include <QStringList>
 #include <QTime>
 
+// Stored, exported and passed to QML as 0 and 1, as in the old program
+enum class Sex { Male = 0, Female = 1 };
+
+inline Sex sexFromInt(int value)
+{
+    return value == 1 ? Sex::Female : Sex::Male;
+}
+
 struct Athlete
 {
     QString id; // stable key, e.g. "muster_erika"
     QString lastName;
     QString firstName;
-    int sex = 0; // 0 = male, 1 = female
+    Sex sex = Sex::Male;
     QDate born;
     QString address;
     QString phone;
@@ -110,6 +118,14 @@ QDate fromLabel(const QString &label);
 QString dayName(int day);
 
 } // namespace Weeks
+
+// Dates as people type and read them: "24.03.2001", also typed "24.3.2001"
+namespace Dates {
+
+QDate parse(const QString &text); // invalid for empty or unreadable text
+QString text(const QDate &date);  // empty for an invalid date
+
+} // namespace Dates
 
 // Times of day as text: "15:30" for people and QML, "15:30:00" in the
 // database and the old program's files
@@ -263,6 +279,20 @@ inline QString dayName(int day)
 }
 
 } // namespace Weeks
+
+namespace Dates {
+
+inline QDate parse(const QString &text)
+{
+    return QDate::fromString(text.trimmed(), QStringLiteral("d.M.yyyy"));
+}
+
+inline QString text(const QDate &date)
+{
+    return date.isValid() ? date.toString(QStringLiteral("dd.MM.yyyy")) : QString();
+}
+
+} // namespace Dates
 
 namespace Times {
 

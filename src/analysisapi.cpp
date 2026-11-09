@@ -484,7 +484,7 @@ QString AnalysisApi::dataCheck(const QVariantMap &p) const
         for (const Competition &c : Competitions::between(a.value(QStringLiteral("id")).toString(), from,
                                                           from.addDays(7 * weeks - 1))) {
             rows.append(cells({esc(a.value(QStringLiteral("displayName")).toString()),
-                               c.date.toString(QStringLiteral("dd.MM.yyyy")),
+                               Dates::text(c.date),
                                Competitions::typeShortNames().value(c.type), esc(c.name), fmt(c.bodyWeight, 1),
                                QString::number(c.bestSnatch()), QString::number(c.bestCleanJerk()),
                                QStringLiteral("<b>%1</b>").arg(c.total())},

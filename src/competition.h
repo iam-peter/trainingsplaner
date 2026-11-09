@@ -1,5 +1,7 @@
 #pragma once
 
+#include "model.h"
+
 #include <QDate>
 #include <QList>
 #include <QString>
@@ -51,6 +53,6 @@ struct Point
 QList<Point> bestResults(const QList<Competition> &list, int period);
 
 // Reference total (IAT "normen") for sex, age and body weight; 0 if unknown
-int norm(int sex, int age, double bodyWeight);
+int norm(Sex sex, int age, double bodyWeight);
 
 } // namespace Competitions

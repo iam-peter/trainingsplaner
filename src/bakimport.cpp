@@ -219,7 +219,7 @@ QList<Row> parse(const QString &text, int *ignoredStatements, QStringList *error
     QList<Row> rows;
     int ignored = 0;
     QStringList errs;
-    const QString nowStamp = Database::now();
+    const QString nowStamp = Database::stampText(Database::now());
 
     Scanner sc(text);
     while (true) {
@@ -320,9 +320,13 @@ Result importText(const QString &text, bool ignoreTimestamps)
         if (!execQuery(sel, &r.errors))
             continue;
         const bool exists = sel.next();
-        const QString incoming = v.value(QStringLiteral("korrektur")).toString();
-        // Same or newer local row: nothing to do (also makes re-imports no-ops).
-        if (exists && !ignoreTimestamps && sel.value(0).toString() >= incoming) {
+        const QDateTime incoming = Database::stampTime(v.value(QStringLiteral("korrektur")).toString());
+        if (incoming.isValid())
+            v.insert(QStringLiteral("korrektur"), Database::stampText(incoming));
+        // Same or newer local row: nothing to do (also makes re-imports
+        // no-ops). A row without a readable stamp is older than any.
+        const QDateTime local = exists ? Database::stampTime(sel.value(0).toString()) : QDateTime();
+        if (exists && !ignoreTimestamps && (!incoming.isValid() || (local.isValid() && local >= incoming))) {
             ++count.skipped;
             continue;
         }
@@ -350,7 +354,7 @@ Result importText(const QString &text, bool ignoreTimestamps)
                         .arg(spec->name, spec->stored.join(QStringLiteral(", ")),
                              marks.join(QStringLiteral(", "))));
         for (const QString &c : spec->stored)
-            ins.addBindValue(v.value(c));
+            ins.addBindValue(spec->toStored(c, v.value(c)));
         if (execQuery(ins, &r.errors)) {
             if (exists)
                 ++count.updated;

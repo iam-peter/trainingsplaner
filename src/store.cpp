@@ -239,8 +239,8 @@ QVariantList Store::athletes() const
             {QStringLiteral("lastName"), a.lastName},
             {QStringLiteral("firstName"), a.firstName},
             {QStringLiteral("displayName"), a.displayName()},
-            {QStringLiteral("sex"), a.sex},
-            {QStringLiteral("born"), a.born.isValid() ? a.born.toString(QStringLiteral("dd.MM.yyyy")) : QString()},
+            {QStringLiteral("sex"), int(a.sex)},
+            {QStringLiteral("born"), Dates::text(a.born)},
             {QStringLiteral("age"), age},
             {QStringLiteral("address"), a.address},
             {QStringLiteral("phone"), a.phone},
@@ -479,8 +479,8 @@ QVariantList Store::attributeHistory(const QString &athleteId, const QString &ar
     QVariantList list;
     for (const Database::InfoRecord &r : Database::infoRecords(athleteId, art)) {
         list.append(QVariantMap{
-            {QStringLiteral("from"), r.from.toString(QStringLiteral("dd.MM.yyyy"))},
-            {QStringLiteral("to"), r.to.isValid() ? r.to.toString(QStringLiteral("dd.MM.yyyy")) : QString()},
+            {QStringLiteral("from"), Dates::text(r.from)},
+            {QStringLiteral("to"), Dates::text(r.to)},
             {QStringLiteral("text"), r.text},
         });
     }
@@ -500,8 +500,8 @@ QString Store::saveAttributeHistory(const QString &athleteId, const QString &art
         if (from.isEmpty() && to.isEmpty() && r.text.isEmpty())
             continue;
         const QString line = QStringLiteral("Zeile %1: ").arg(i + 1);
-        r.from = QDate::fromString(from, QStringLiteral("d.M.yyyy"));
-        r.to = QDate::fromString(to, QStringLiteral("d.M.yyyy"));
+        r.from = Dates::parse(from);
+        r.to = Dates::parse(to);
         if (!r.from.isValid())
             return line + QStringLiteral("„von“ ist kein gültiges Datum.");
         if (!to.isEmpty() && !r.to.isValid())
@@ -649,14 +649,37 @@ void Store::setPrintOptions(const QVariantMap &v)
     emit settingsChanged();
 }
 
+namespace {
+
+// The default start ("from") or end ("to") of the 1st to 3rd session of a
+// day; invalid if none is set
+QString timeKey(int number, const char *which)
+{
+    return QStringLiteral("times/%1/%2").arg(number).arg(QLatin1String(which));
+}
+
+QTime defaultTime(int number, const char *which)
+{
+    return QSettings().value(timeKey(number, which)).toTime();
+}
+
+void setDefaultTime(QSettings &s, int number, const char *which, const QTime &time)
+{
+    if (time.isValid())
+        s.setValue(timeKey(number, which), time);
+    else
+        s.remove(timeKey(number, which));
+}
+
+} // namespace
+
 QVariantList Store::sessionTimes() const
 {
-    QSettings s;
     QVariantList list;
     for (int n = 1; n <= 3; ++n) {
         list.append(QVariantMap{
-            {QStringLiteral("from"), s.value(QStringLiteral("times/%1/from").arg(n)).toString()},
-            {QStringLiteral("to"), s.value(QStringLiteral("times/%1/to").arg(n)).toString()},
+            {QStringLiteral("from"), Times::text(defaultTime(n, "from"))},
+            {QStringLiteral("to"), Times::text(defaultTime(n, "to"))},
         });
     }
     return list;
@@ -667,8 +690,8 @@ void Store::setSessionTimes(const QVariantList &v)
     QSettings s;
     for (int n = 1; n <= 3 && n <= v.size(); ++n) {
         const QVariantMap m = v.at(n - 1).toMap();
-        s.setValue(QStringLiteral("times/%1/from").arg(n), m.value(QStringLiteral("from")).toString().trimmed());
-        s.setValue(QStringLiteral("times/%1/to").arg(n), m.value(QStringLiteral("to")).toString().trimmed());
+        setDefaultTime(s, n, "from", Times::parse(m.value(QStringLiteral("from")).toString()));
+        setDefaultTime(s, n, "to", Times::parse(m.value(QStringLiteral("to")).toString()));
     }
     emit settingsChanged();
 }
@@ -769,9 +792,8 @@ QVariantMap Store::session(const QString &athleteId, const QString &monday,
         }
     }
     if (!s.from.isValid() && number >= 1 && number <= 3) {
-        const QVariantMap t = sessionTimes().at(number - 1).toMap();
-        s.from = Times::parse(t.value(QStringLiteral("from")).toString());
-        s.to = Times::parse(t.value(QStringLiteral("to")).toString());
+        s.from = defaultTime(number, "from");
+        s.to = defaultTime(number, "to");
     }
     return sessionToMap(s, false);
 }
@@ -1109,7 +1131,7 @@ QVariantList Store::competitions(const QString &athleteId) const
         list.append(QVariantMap{
             {QStringLiteral("athleteId"), c.athleteId},
             {QStringLiteral("date"), c.date.toString(Qt::ISODate)},
-            {QStringLiteral("dateText"), c.date.toString(QStringLiteral("dd.MM.yyyy"))},
+            {QStringLiteral("dateText"), Dates::text(c.date)},
             {QStringLiteral("time"), Times::optional(c.time)},
             {QStringLiteral("type"), c.type},
             {QStringLiteral("typeName"), Competitions::typeShortNames().value(c.type)},
@@ -1131,7 +1153,7 @@ QString Store::saveCompetition(const QVariantMap &m, const QString &oldDate, con
 {
     Competition c;
     c.athleteId = m.value(QStringLiteral("athleteId")).toString();
-    c.date = QDate::fromString(m.value(QStringLiteral("date")).toString().trimmed(), QStringLiteral("d.M.yyyy"));
+    c.date = Dates::parse(m.value(QStringLiteral("date")).toString());
     if (!c.date.isValid())
         c.date = QDate::fromString(m.value(QStringLiteral("date")).toString(), Qt::ISODate);
     if (c.athleteId.isEmpty())
@@ -1214,7 +1236,7 @@ QVariantList Store::exerciseHistory(const QString &athleteId, const QString &mon
             {QStringLiteral("week"), Weeks::label(it->monday)},
             {QStringLiteral("monday"), it->monday.toString(Qt::ISODate)},
             {QStringLiteral("day"), Weeks::dayName(it->day) + QStringLiteral(" (%1. TE)").arg(it->number)},
-            {QStringLiteral("date"), it->monday.addDays(it->day - 1).toString(QStringLiteral("dd.MM.yyyy"))},
+            {QStringLiteral("date"), Dates::text(it->monday.addDays(it->day - 1))},
             {QStringLiteral("bw"), st.bw},
             {QStringLiteral("mhg"), st.mhg},
             {QStringLiteral("wh"), st.wh},
@@ -1286,8 +1308,8 @@ QString Store::saveAthlete(const QVariantMap &m)
     a.id = m.value(QStringLiteral("id")).toString();
     a.lastName = m.value(QStringLiteral("lastName")).toString().trimmed();
     a.firstName = m.value(QStringLiteral("firstName")).toString().trimmed();
-    a.sex = m.value(QStringLiteral("sex")).toInt();
-    a.born = QDate::fromString(m.value(QStringLiteral("born")).toString(), QStringLiteral("dd.MM.yyyy"));
+    a.sex = sexFromInt(m.value(QStringLiteral("sex")).toInt());
+    a.born = Dates::parse(m.value(QStringLiteral("born")).toString());
     a.address = m.value(QStringLiteral("address")).toString();
     a.phone = m.value(QStringLiteral("phone")).toString();
     if (a.lastName.isEmpty())
@@ -1360,13 +1382,12 @@ QString Store::dayDate(const QString &monday, int day) const
 
 QString Store::formatDate(const QString &isoDate) const
 {
-    const QDate d = toDate(isoDate);
-    return d.isValid() ? d.toString(QStringLiteral("dd.MM.yyyy")) : QString();
+    return Dates::text(toDate(isoDate));
 }
 
 QString Store::parseDate(const QString &text) const
 {
-    QDate d = QDate::fromString(text.trimmed(), QStringLiteral("d.M.yyyy"));
+    const QDate d = Dates::parse(text);
     return d.isValid() ? d.toString(Qt::ISODate) : QString();
 }
 
@@ -1381,7 +1402,7 @@ QString Store::exportBak(const QUrl &file, const QString &mode, const QString &s
 {
     BakExport::Filter f;
     if (mode == QLatin1String("since")) {
-        const QDate d = QDate::fromString(sinceDate.trimmed(), QStringLiteral("d.M.yyyy"));
+        const QDate d = Dates::parse(sinceDate);
         QTime t = Times::parse(sinceTime);
         if (!d.isValid())
             return QStringLiteral("Datum ungültig: ") + sinceDate;
@@ -1414,8 +1435,7 @@ QUrl Store::suggestedExportUrl() const
 
 QString Store::lastExport() const
 {
-    const QDateTime t = QDateTime::fromString(QSettings().value(QStringLiteral("export/last")).toString(),
-                                              QStringLiteral("yyyy-MM-dd HH:mm:ss"));
+    const QDateTime t = QSettings().value(QStringLiteral("export/last")).toDateTime();
     return t.isValid() ? t.toString(QStringLiteral("dd.MM.yyyy HH:mm")) : QString();
 }
 
