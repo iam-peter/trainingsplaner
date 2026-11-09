@@ -94,9 +94,13 @@ EditorDialog {
             objectName: "rowList"
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.preferredHeight: contentHeight
             Layout.minimumHeight: Math.min(contentHeight, 80)
             clip: true
+            // The fields' borders sit on the edge: without a pixel around,
+            // the clip cut the first row's top line
+            topMargin: 1
+            bottomMargin: 1
+            Layout.preferredHeight: contentHeight + topMargin + bottomMargin
             boundsBehavior: Flickable.StopAtBounds
             spacing: 8
             model: rows
@@ -164,14 +168,6 @@ EditorDialog {
             color: palette.placeholderText
         }
 
-        // Below the list, not part of it: it stays in view while the rows
-        // scroll
-        IconButton {
-            objectName: "addButton"
-            iconName: "plus"
-            text: dialog.art
-            onClicked: dialog.addRow()
-        }
 
         Label {
             Layout.fillWidth: true
@@ -183,6 +179,14 @@ EditorDialog {
     }
 
     footer: DialogButtons {
+        // On the line of the dialog's buttons, at the left; never part of
+        // the scrolled rows
+        leading: IconButton {
+            objectName: "addButton"
+            iconName: "plus"
+            text: dialog.art
+            onClicked: dialog.addRow()
+        }
         Button {
             objectName: "cancelButton"
             text: "Abbrechen"

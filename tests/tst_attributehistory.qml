@@ -50,7 +50,7 @@ Item {
 
             // Remove the last row, add one, fill it in
             mouseClick(findChild(rowsOf(dialog.contentItem, [])[2], "removeButton"))
-            mouseClick(findChild(dialog.contentItem, "addButton"))
+            mouseClick(findChild(dialog.footer, "addButton"))
             tryVerify(() => rowsOf(dialog.contentItem, []).length === 3)
             const row = rowsOf(dialog.contentItem, [])[2]
             setText(findChild(row, "fromField"), "1.1.2031")
@@ -108,9 +108,7 @@ Item {
             tryVerify(() => bar.visible && bar.size < 1)
             // The add button stays in view below the scrolled rows, and the
             // rows are scrolled to the newest
-            const add = findChild(dialog.contentItem, "addButton")
-            const addBottom = add.mapToItem(dialog.contentItem, 0, add.height).y
-            verify(addBottom <= dialog.contentItem.height, addBottom + " > " + dialog.contentItem.height)
+            verify(findChild(dialog.footer, "addButton").visible)
             tryVerify(() => list.atYEnd)
             const full = dialog.height
             for (let i = 0; i < 22; ++i) {
