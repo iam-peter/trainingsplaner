@@ -2,48 +2,42 @@ import QtQuick
 import QtQuick.Controls.impl
 import QtQuick.Templates as T
 
-// Buttons: highlighted is "default" (filled), flat is "ghost", any
-// other "outline". Dialog buttons get "default", "outline" or
-// "destructive" from their role.
+// A button: ButtonStyle.base with a variant. Pages pick one with styles,
+// e.g. [ButtonStyle.ghost]; otherwise highlighted is primary, flat ghost
+// and any other outline.
 T.Button {
     id: control
 
-    property string kind: highlighted ? "default" : flat ? "ghost" : "outline"
-    readonly property bool hot: hovered && enabled
+    property list<Style> styles
+    readonly property alias cascade: cascade
 
-    readonly property color fill: {
-        switch (kind) {
-        case "default": return hot || down ? Tokens.alpha(Tokens.primary, 0.9) : Tokens.primary
-        case "destructive": return hot || down ? Tokens.alpha(Tokens.destructiveFill, 0.9 * Tokens.destructiveFill.a) : Tokens.destructiveFill
-        case "secondary": return hot || down ? Tokens.alpha(Tokens.secondary, 0.8) : Tokens.secondary
-        case "outline": return hot || down || checked ? Tokens.outlineHover : Tokens.outlineBackground
-        }
-        return hot || down || checked ? Tokens.ghostHover : "transparent"
+    StyleCascade {
+        id: cascade
+        base: [ButtonStyle.base, ButtonStyle.variant(control.highlighted, control.flat)]
+        styles: control.styles
+        overrides: [control.visualFocus ? ButtonStyle.focus : null,
+                    control.text === "" ? ButtonStyle.iconOnly : null]
+        state: !control.enabled ? StyleState.Disable
+               : control.down || control.checked ? StyleState.Active
+               : control.hovered ? StyleState.Hover : StyleState.Idle
     }
-    readonly property color foreground: kind === "default" ? Tokens.primaryForeground
-                                        : kind === "destructive" ? "#ffffff"
-                                        : kind === "secondary" ? Tokens.secondaryForeground
-                                        : hot ? Tokens.accentForeground : Tokens.foreground
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
                             implicitContentWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding)
 
-    padding: Tokens.space2
-    // Text and icons fit in one control height (32 px) like the fields:
-    // 8 px above and below made a button with text 33 px high
-    topPadding: 6
-    bottomPadding: 6
-    leftPadding: text !== "" ? Tokens.space3 : Tokens.space2
-    rightPadding: leftPadding
-    spacing: Tokens.space2
+    topPadding: cascade.padding.top
+    bottomPadding: cascade.padding.bottom
+    leftPadding: cascade.padding.left
+    rightPadding: cascade.padding.right
+    spacing: cascade.spacing
     hoverEnabled: true
-    opacity: enabled ? 1 : 0.5
-    font.weight: Font.Medium
+    opacity: cascade.opacity
+    font.weight: cascade.text.weight
 
-    icon.width: 16
-    icon.height: 16
+    icon.width: cascade.icon.size
+    icon.height: cascade.icon.size
 
     contentItem: IconLabel {
         spacing: control.spacing
@@ -54,20 +48,18 @@ T.Button {
         icon.name: control.icon.name
         icon.width: control.icon.width
         icon.height: control.icon.height
-        icon.color: control.foreground
+        icon.color: cascade.icon.color
         text: control.text
         font: control.font
-        color: control.foreground
+        color: cascade.text.color
     }
 
     background: Rectangle {
-        implicitWidth: control.text !== "" ? 64 : Tokens.controlHeight
-        implicitHeight: Tokens.controlHeight
-        radius: Tokens.radiusMd
-        color: control.fill
-        // Focus shows in the border, without a glow
-        border.width: control.kind === "outline" || control.visualFocus ? 1 : 0
-        border.color: control.visualFocus ? Tokens.ring : Tokens.outlineBorder
-
+        implicitWidth: cascade.width
+        implicitHeight: cascade.height
+        radius: cascade.radius.value
+        color: cascade.background
+        border.width: cascade.border.width
+        border.color: cascade.border.color
     }
 }

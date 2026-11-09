@@ -7,7 +7,6 @@ Button {
     property string toolTip
 
     icon.source: iconName !== "" ? "qrc:/qt/qml/Trainingsplaner/icons/" + iconName + ".svg" : ""
-    icon.color: highlighted ? palette.highlightedText : palette.buttonText
     icon.width: 16
     icon.height: 16
     display: text === "" ? AbstractButton.IconOnly : AbstractButton.TextBesideIcon

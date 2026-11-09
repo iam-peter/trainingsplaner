@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import TrainingsplanerStyle as Styles
 
 // A dialog footer whose buttons alone decide what happens. A Dialog
 // closes itself as soon as a button with the Accept or Reject role in its
@@ -37,8 +38,8 @@ Item {
         spacing: box.spacing
         Component.onCompleted: {
             for (const it of children) {
-                if (it.kind !== undefined && it.DialogButtonBox.buttonRole === DialogButtonBox.DestructiveRole)
-                    it.kind = "destructive"
+                if (it.styles !== undefined && it.DialogButtonBox.buttonRole === DialogButtonBox.DestructiveRole)
+                    it.styles = [Styles.ButtonStyle.destructive]
             }
         }
     }

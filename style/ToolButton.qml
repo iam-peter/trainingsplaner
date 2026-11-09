@@ -2,28 +2,42 @@ import QtQuick
 import QtQuick.Controls.impl
 import QtQuick.Templates as T
 
-// Ghost button
+// A tool button: ButtonStyle.tool, a ghost button that is square without
+// text; styles can choose another variant.
 T.ToolButton {
     id: control
+
+    property list<Style> styles
+    readonly property alias cascade: cascade
+
+    StyleCascade {
+        id: cascade
+        base: [ButtonStyle.base, ButtonStyle.tool]
+        styles: control.styles
+        overrides: [control.visualFocus ? ButtonStyle.focus : null,
+                    control.text === "" || control.display === T.AbstractButton.IconOnly
+                    ? ButtonStyle.iconOnly : null]
+        state: !control.enabled ? StyleState.Disable
+               : control.down || control.checked ? StyleState.Active
+               : control.hovered ? StyleState.Hover : StyleState.Idle
+    }
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
                             implicitContentWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding)
 
-    padding: Tokens.space2
-    // One control height with text, like the fields
-    topPadding: 6
-    bottomPadding: 6
-    leftPadding: text !== "" && display !== T.AbstractButton.IconOnly ? Tokens.space3 : Tokens.space2
-    rightPadding: leftPadding
-    spacing: Tokens.space2
+    topPadding: cascade.padding.top
+    bottomPadding: cascade.padding.bottom
+    leftPadding: cascade.padding.left
+    rightPadding: cascade.padding.right
+    spacing: cascade.spacing
     hoverEnabled: true
-    opacity: enabled ? 1 : 0.5
-    font.weight: Font.Medium
+    opacity: cascade.opacity
+    font.weight: cascade.text.weight
 
-    icon.width: 16
-    icon.height: 16
+    icon.width: cascade.icon.size
+    icon.height: cascade.icon.size
 
     contentItem: IconLabel {
         spacing: control.spacing
@@ -34,19 +48,18 @@ T.ToolButton {
         icon.name: control.icon.name
         icon.width: control.icon.width
         icon.height: control.icon.height
-        icon.color: Tokens.foreground
+        icon.color: cascade.icon.color
         text: control.text
         font: control.font
-        color: Tokens.foreground
+        color: cascade.text.color
     }
 
     background: Rectangle {
-        implicitWidth: Tokens.controlHeight
-        implicitHeight: Tokens.controlHeight
-        radius: Tokens.radiusMd
-        border.width: control.visualFocus ? 1 : 0
-        border.color: Tokens.ring
-        color: control.down || control.checked || (control.hovered && control.enabled)
-               ? Tokens.ghostHover : "transparent"
+        implicitWidth: cascade.width
+        implicitHeight: cascade.height
+        radius: cascade.radius.value
+        color: cascade.background
+        border.width: cascade.border.width
+        border.color: cascade.border.color
     }
 }

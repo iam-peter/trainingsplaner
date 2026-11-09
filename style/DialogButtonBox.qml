@@ -3,7 +3,7 @@ import QtQuick.Templates as T
 
 // Dialog footer: the buttons on the right with a small gap, the
 // cancelling ones outlined, the confirming one filled, a destructive one
-// red. The kind follows the button's role: the box resets highlighted.
+// red: the button's style follows its role.
 T.DialogButtonBox {
     id: control
 
@@ -20,16 +20,16 @@ T.DialogButtonBox {
     // Cancel on the left, confirm on the right, on every system
     buttonLayout: T.DialogButtonBox.GnomeLayout
 
-    // The buttons already given their kind
+    // The buttons already given their style
     property var arranged: []
 
-    function kindFor(role) {
+    function styleFor(role: int): Style {
         if (role === T.DialogButtonBox.AcceptRole || role === T.DialogButtonBox.YesRole
                 || role === T.DialogButtonBox.ApplyRole)
-            return "default"
+            return ButtonStyle.primary
         if (role === T.DialogButtonBox.DestructiveRole)
-            return "destructive"
-        return "outline"
+            return ButtonStyle.destructive
+        return ButtonStyle.outline
     }
 
     function arrange() {
@@ -39,8 +39,8 @@ T.DialogButtonBox {
                 continue
             arranged.push(it)
             // Buttons the program adds itself, by their role
-            if (it.kind !== undefined && it.standard !== true)
-                it.kind = Qt.binding(() => control.kindFor(it.DialogButtonBox.buttonRole))
+            if (it.styles !== undefined && it.standard !== true)
+                it.styles = Qt.binding(() => [control.styleFor(it.DialogButtonBox.buttonRole)])
         }
     }
 
@@ -49,7 +49,7 @@ T.DialogButtonBox {
 
     delegate: Button {
         readonly property bool standard: true
-        kind: control.kindFor(T.DialogButtonBox.buttonRole)
+        styles: [control.styleFor(T.DialogButtonBox.buttonRole)]
     }
 
     contentItem: ListView {
