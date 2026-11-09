@@ -73,7 +73,7 @@ AppDialog {
             wrapMode: Text.Wrap
             font.pixelSize: 11
             color: palette.placeholderText
-            text: "Die Datei lässt sich auf einem anderen Rechner über „Daten“ › „Importieren…“ einlesen. Gelöschte Einträge werden dabei ebenfalls entfernt."
+            text: "Die Datei lässt sich auf einem anderen Rechner über „Daten“ › „Importieren“ einlesen. Gelöschte Einträge werden dabei ebenfalls entfernt."
         }
 
         Label {

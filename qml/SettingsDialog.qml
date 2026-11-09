@@ -371,7 +371,7 @@ AppDialog {
                     wrapMode: Text.Wrap
                     font.pixelSize: 11
                     color: palette.placeholderText
-                    text: "Alle Daten stehen in dieser einen Datei. Zur Sicherung das Programm schließen und die Datei kopieren, oder „Daten exportieren…“ nutzen."
+                    text: "Alle Daten stehen in dieser einen Datei. Zur Sicherung das Programm schließen und die Datei kopieren, oder Daten › Exportieren nutzen."
                 }
                 Label { text: "Farbschema:" }
                 RowLayout {

@@ -113,13 +113,13 @@ ApplicationWindow {
                     x: dataButton.width - dataMenu.width
                     y: dataButton.height
                     MenuItem {
-                        text: "Importieren…"
+                        text: "Importieren"
                         icon.source: "qrc:/qt/qml/Trainingsplaner/icons/import.svg"
                         icon.color: palette.text
                         onTriggered: importDialog.open()
                     }
                     MenuItem {
-                        text: "Exportieren…"
+                        text: "Exportieren"
                         icon.source: "qrc:/qt/qml/Trainingsplaner/icons/file-down.svg"
                         icon.color: palette.text
                         onTriggered: exportDialog.open()
@@ -170,7 +170,7 @@ ApplicationWindow {
                         onTriggered: helpDialog.open()
                     }
                     MenuItem {
-                        text: "Problem melden oder Wunsch äußern…"
+                        text: "Problem melden oder Wunsch äußern"
                         onTriggered: Qt.openUrlExternally(Updater.issueUrl)
                     }
                     MenuSeparator {}

@@ -327,11 +327,11 @@ Item {
     Menu {
         id: chartMenu
         MenuItem {
-            text: "Als Bild speichern…"
+            text: "Als Bild speichern"
             onTriggered: chart.saveImage()
         }
         MenuItem {
-            text: "Drucken…"
+            text: "Drucken"
             onTriggered: chart.printChart()
         }
     }

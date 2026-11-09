@@ -587,7 +587,7 @@ Page {
             Layout.alignment: Qt.AlignHCenter
             visible: Store.athletes.length === 0
             horizontalAlignment: Text.AlignHCenter
-            text: "Über „Daten“ › „Importieren…“ die Datensicherung des alten Programms (winwotaxp.bak) einlesen\noder unter „Sportler“ einen neuen Sportler anlegen."
+            text: "Über „Daten“ › „Importieren“ die Datensicherung des alten Programms (winwotaxp.bak) einlesen\noder unter „Sportler“ einen neuen Sportler anlegen."
             color: palette.placeholderText
         }
     }
@@ -650,20 +650,20 @@ Page {
         }
 
         KeyMenuItem {
-            text: "Bearbeiten…"
+            text: "Bearbeiten"
             keys: "Enter"
             onTriggered: page.openSession(sessionMenu.day, sessionMenu.number)
         }
         MenuItem {
             visible: sessionMenu.exercise > 0
             height: visible ? implicitHeight : 0
-            text: "Übung " + sessionMenu.exercise + " für die Woche bearbeiten…"
+            text: "Übung " + sessionMenu.exercise + " für die Woche bearbeiten"
             onTriggered: page.openExercise(sessionMenu.exercise)
         }
         MenuItem {
             visible: sessionMenu.exercise > 0
             height: visible ? implicitHeight : 0
-            text: "Verlauf von Übung " + sessionMenu.exercise + "…"
+            text: "Verlauf von Übung " + sessionMenu.exercise
             onTriggered: historyDialog.show(page.athleteId, page.monday, page.variant, sessionMenu.exercise, false)
         }
         MenuSeparator {}
@@ -687,7 +687,7 @@ Page {
             onTriggered: Store.planToActual(page.athleteId, page.monday, sessionMenu.day, sessionMenu.number)
         }
         KeyMenuItem {
-            text: "Löschen…"
+            text: "Löschen"
             enabled: sessionMenu.filled
             onTriggered: page.askRemoveSession(sessionMenu.day, sessionMenu.number)
             keys: "Entf"

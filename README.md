@@ -93,7 +93,7 @@ What comes next: [docs/ROADMAP.md](docs/ROADMAP.md).
 
 Users of the older WinWoTA XP 2.61 can bring their data along: export it
 there ("Datenexport", option *komplett*, gives `winwotaxp.bak`), then use
-**Daten importieren…** here. The exercise numbers are the same. Rows are
+**Daten › Importieren** here. The exercise numbers are the same. Rows are
 merged by key and timestamp, so importing again is safe.
 
 This is an independent project. It is not affiliated with, endorsed by or
