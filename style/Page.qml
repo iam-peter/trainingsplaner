@@ -14,6 +14,6 @@ T.Page {
                              + (implicitFooterHeight > 0 ? implicitFooterHeight + spacing : 0))
 
     background: Rectangle {
-        color: Tokens.background
+        color: TokenInterface.semantics.background_default
     }
 }

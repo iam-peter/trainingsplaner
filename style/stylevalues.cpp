@@ -75,6 +75,7 @@ void StyleValues::overlay(const StyleValues &later)
     take(selection, later.selection);
     take(selectedText, later.selectedText);
     take(accent, later.accent);
+    take(dim, later.dim);
     border.overlay(later.border);
     radius.overlay(later.radius);
     padding.overlay(later.padding);

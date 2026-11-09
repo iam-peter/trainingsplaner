@@ -10,11 +10,11 @@ T.Frame {
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              contentHeight + topPadding + bottomPadding)
 
-    padding: Tokens.space4
+    padding: Primitives.spacing.sp200
 
     background: Rectangle {
-        color: Tokens.card
-        radius: Tokens.radiusXl
-        border.color: Tokens.border
+        color: TokenInterface.semantics.background_elevated
+        radius: Primitives.radius.r4
+        border.color: TokenInterface.semantics.stroke_subtle
     }
 }

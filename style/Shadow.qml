@@ -19,7 +19,7 @@ Item {
             anchors.topMargin: -index + shadow.depth * 0.5
             anchors.bottomMargin: -index - shadow.depth
             radius: shadow.radius + index
-            color: Qt.rgba(0, 0, 0, Tokens.shadowStrength / (index + 1))
+            color: Primitives.alpha(Primitives.neutrals.neutral_000, TokenInterface.semantics.shadow_strength / (index + 1))
         }
     }
 }

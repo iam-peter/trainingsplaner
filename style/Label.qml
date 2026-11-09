@@ -5,5 +5,5 @@ T.Label {
     id: control
 
     color: control.palette.windowText
-    linkColor: Tokens.foreground
+    linkColor: TokenInterface.semantics.text_default
 }

@@ -5,6 +5,15 @@ import QtQuick.Templates as T
 T.ToolTip {
     id: control
 
+    property list<Style> styles
+    readonly property alias styleCascade: cascade
+
+    StyleCascade {
+        id: cascade
+        base: [PopupStyle.toolTip]
+        styles: control.styles
+    }
+
     x: parent ? (parent.width - implicitWidth) / 2 : 0
     y: -implicitHeight - 4
 
@@ -13,12 +22,12 @@ T.ToolTip {
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding)
 
-    margins: Tokens.space2
-    topPadding: Tokens.space1
-    bottomPadding: Tokens.space1
-    leftPadding: Tokens.space2
-    rightPadding: Tokens.space2
-    font.pixelSize: 12
+    margins: cascade.spacing
+    topPadding: cascade.padding.top
+    bottomPadding: cascade.padding.bottom
+    leftPadding: cascade.padding.left
+    rightPadding: cascade.padding.right
+    font.pixelSize: cascade.text.size
 
     closePolicy: T.Popup.CloseOnEscape | T.Popup.CloseOnPressOutsideParent | T.Popup.CloseOnReleaseOutsideParent
 
@@ -26,11 +35,11 @@ T.ToolTip {
         text: control.text
         font: control.font
         wrapMode: Text.Wrap
-        color: Tokens.primaryForeground
+        color: cascade.text.color
     }
 
     background: Rectangle {
-        color: Tokens.primary
-        radius: Tokens.radiusMd
+        color: cascade.background
+        radius: cascade.radius.value
     }
 }

@@ -6,6 +6,15 @@ import QtQuick.Templates as T
 T.Menu {
     id: control
 
+    property list<Style> styles
+    readonly property alias styleCascade: cascade
+
+    StyleCascade {
+        id: cascade
+        base: [PopupStyle.menu]
+        styles: control.styles
+    }
+
     // Blocks the window behind it, without dimming it: a click outside
     // only closes it, and does not also press what lies below
     modal: true
@@ -18,7 +27,7 @@ T.Menu {
 
     margins: 0
     overlap: 1
-    padding: Tokens.space1
+    padding: cascade.padding.value
 
     delegate: MenuItem {}
 
@@ -33,11 +42,12 @@ T.Menu {
     }
 
     background: Rectangle {
-        implicitWidth: 128
-        implicitHeight: 40
-        color: Tokens.popover
-        radius: Tokens.radiusMd
-        border.color: Tokens.border
+        implicitWidth: cascade.width
+        implicitHeight: cascade.height
+        color: cascade.background
+        radius: cascade.radius.value
+        border.width: cascade.border.width
+        border.color: cascade.border.color
         Shadow {
             z: -1
             anchors.fill: parent
@@ -47,6 +57,6 @@ T.Menu {
     }
 
     T.Overlay.modal: Rectangle {
-        color: Tokens.overlay
+        color: cascade.dim
     }
 }

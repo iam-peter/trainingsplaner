@@ -190,7 +190,8 @@ struct StyleValues
     std::optional<QColor> placeholder;   // placeholder text
     std::optional<QColor> selection;     // selected text's background
     std::optional<QColor> selectedText;
-    std::optional<QColor> accent;        // indicators: a check box's box, a switch's track
+    std::optional<QColor> accent;        // the mark in an indicator: a tick, a dot
+    std::optional<QColor> dim;           // behind a popup, over the window
     StyleBorder border;
     StyleRadius radius;
     StylePadding padding;

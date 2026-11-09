@@ -5,21 +5,35 @@ import QtQuick.Templates as T
 T.ItemDelegate {
     id: control
 
+    property list<Style> styles
+    readonly property alias styleCascade: cascade
+
+    StyleCascade {
+        id: cascade
+        base: [ItemStyle.base, ItemStyle.delegate]
+        styles: control.styles
+        overrides: [control.highlighted ? ItemStyle.highlighted : null]
+        state: !control.enabled ? StyleState.Disable
+               : control.down ? StyleState.Active
+               : control.hovered ? StyleState.Hover : StyleState.Idle
+    }
+
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
                             implicitContentWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding,
                              implicitIndicatorHeight + topPadding + bottomPadding)
 
-    padding: Tokens.space2
-    leftPadding: Tokens.space2
-    rightPadding: Tokens.space2
-    spacing: Tokens.space2
+    topPadding: cascade.padding.top
+    bottomPadding: cascade.padding.bottom
+    leftPadding: cascade.padding.left
+    rightPadding: cascade.padding.right
+    spacing: cascade.spacing
     hoverEnabled: true
-    opacity: enabled ? 1 : 0.5
+    opacity: cascade.opacity
 
-    icon.width: 16
-    icon.height: 16
+    icon.width: cascade.icon.size
+    icon.height: cascade.icon.size
 
     contentItem: IconLabel {
         spacing: control.spacing
@@ -31,16 +45,16 @@ T.ItemDelegate {
         icon.source: control.icon.source
         icon.width: control.icon.width
         icon.height: control.icon.height
-        icon.color: Tokens.foreground
+        icon.color: cascade.icon.color
         text: control.text
         font: control.font
-        color: Tokens.foreground
+        color: cascade.text.color
     }
 
     background: Rectangle {
-        implicitWidth: 100
-        implicitHeight: Tokens.controlHeight
-        radius: Tokens.radiusSm
-        color: control.highlighted || control.down || control.hovered ? Tokens.accent : "transparent"
+        implicitWidth: cascade.width
+        implicitHeight: cascade.height
+        radius: cascade.radius.value
+        color: cascade.background
     }
 }

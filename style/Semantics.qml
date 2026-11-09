@@ -58,5 +58,6 @@ QtObject {
     property color chart_muted
 
     property color dim                  // behind a modal dialog
+    property color dim_subtle           // behind a dialog that leaves the window usable
     property real shadow_strength
 }

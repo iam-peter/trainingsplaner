@@ -64,6 +64,7 @@ class Style : public QObject
     Q_PROPERTY(QColor selection READ selection WRITE setSelection RESET resetSelection NOTIFY changed FINAL)
     Q_PROPERTY(QColor selectedText READ selectedText WRITE setSelectedText RESET resetSelectedText NOTIFY changed FINAL)
     Q_PROPERTY(QColor accent READ accent WRITE setAccent RESET resetAccent NOTIFY changed FINAL)
+    Q_PROPERTY(QColor dim READ dim WRITE setDim RESET resetDim NOTIFY changed FINAL)
     Q_PROPERTY(StyleBorder border READ border WRITE setBorder NOTIFY changed FINAL)
     Q_PROPERTY(StyleRadius radius READ radius WRITE setRadius NOTIFY changed FINAL)
     Q_PROPERTY(StylePadding padding READ padding WRITE setPadding NOTIFY changed FINAL)
@@ -118,6 +119,10 @@ public:
     QColor accent() const { return m_values.accent.value_or(QColor()); }
     void setAccent(const QColor &value) { set(m_values.accent, value); }
     void resetAccent() { reset(m_values.accent); }
+
+    QColor dim() const { return m_values.dim.value_or(QColor()); }
+    void setDim(const QColor &value) { set(m_values.dim, value); }
+    void resetDim() { reset(m_values.dim); }
 
     StyleBorder border() const { return m_values.border; }
     void setBorder(const StyleBorder &value) { set(m_values.border, value); }

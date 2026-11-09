@@ -8,7 +8,7 @@ T.ToolButton {
     id: control
 
     property list<Style> styles
-    readonly property alias cascade: cascade
+    readonly property alias styleCascade: cascade
 
     StyleCascade {
         id: cascade

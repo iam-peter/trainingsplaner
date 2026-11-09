@@ -8,7 +8,7 @@ T.ComboBox {
     id: control
 
     property list<Style> styles
-    readonly property alias cascade: cascade
+    readonly property alias styleCascade: cascade
 
     StyleCascade {
         id: cascade
@@ -36,10 +36,19 @@ T.ComboBox {
         required property var model
         required property int index
 
+        // Lights up only as the list's highlighted row, which follows
+        // the pointer and the keys
+        StyleCascade {
+            id: itemStyle
+            base: [ItemStyle.base, ItemStyle.comboItem]
+            overrides: [item.highlighted ? ItemStyle.highlighted : null]
+            state: !item.enabled ? StyleState.Disable : StyleState.Idle
+        }
+
         width: ListView.view.width
-        implicitHeight: Tokens.controlHeight
-        leftPadding: Tokens.space2
-        rightPadding: Tokens.space2 + 16 + Tokens.space2
+        implicitHeight: itemStyle.height
+        leftPadding: itemStyle.padding.left
+        rightPadding: itemStyle.padding.right
         hoverEnabled: control.hoverEnabled
         highlighted: control.highlightedIndex === index
         text: model[control.textRole] ?? ""
@@ -49,19 +58,19 @@ T.ComboBox {
             font: item.font
             elide: Text.ElideRight
             verticalAlignment: Text.AlignVCenter
-            color: item.highlighted ? Tokens.accentForeground : Tokens.foreground
+            color: itemStyle.text.color
         }
         background: Rectangle {
-            radius: Tokens.radiusSm
-            color: item.highlighted ? Tokens.accent : "transparent"
+            radius: itemStyle.radius.value
+            color: itemStyle.background
             ColorImage {
                 anchors.right: parent.right
-                anchors.rightMargin: Tokens.space2
+                anchors.rightMargin: itemStyle.spacing
                 anchors.verticalCenter: parent.verticalCenter
                 visible: control.currentIndex === item.index
                 source: "qrc:/qt/qml/TrainingsplanerStyle/images/check.svg"
-                sourceSize: Qt.size(16, 16)
-                color: Tokens.foreground
+                sourceSize: Qt.size(itemStyle.icon.size, itemStyle.icon.size)
+                color: itemStyle.icon.color
             }
         }
     }
@@ -119,13 +128,18 @@ T.ComboBox {
         modal: true
         dim: false
         onOpened: if (control.count === 0) close()
-        y: control.height + Tokens.space1
+        y: control.height + listStyle.spacing
         width: control.width
         height: Math.min(contentItem.implicitHeight + topPadding + bottomPadding,
                          control.Window.height - topMargin - bottomMargin)
-        topMargin: Tokens.space2
-        bottomMargin: Tokens.space2
-        padding: Tokens.space1
+        topMargin: 2 * listStyle.spacing
+        bottomMargin: 2 * listStyle.spacing
+        padding: listStyle.padding.value
+
+        StyleCascade {
+            id: listStyle
+            base: [PopupStyle.list]
+        }
 
         contentItem: ListView {
             clip: true
@@ -139,9 +153,10 @@ T.ComboBox {
 
         background: Rectangle {
             visible: control.count > 0
-            color: Tokens.popover
-            radius: Tokens.radiusMd
-            border.color: Tokens.border
+            color: listStyle.background
+            radius: listStyle.radius.value
+            border.width: listStyle.border.width
+            border.color: listStyle.border.color
             Shadow {
                 z: -1
                 anchors.fill: parent

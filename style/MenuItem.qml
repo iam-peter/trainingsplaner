@@ -5,23 +5,35 @@ import QtQuick.Templates as T
 T.MenuItem {
     id: control
 
+    property list<Style> styles
+    readonly property alias styleCascade: cascade
+
+    StyleCascade {
+        id: cascade
+        base: [ItemStyle.base, ItemStyle.menuItem]
+        styles: control.styles
+        overrides: [control.highlighted ? ItemStyle.highlighted : null]
+        state: !control.enabled ? StyleState.Disable
+               : control.down ? StyleState.Active
+               : control.hovered ? StyleState.Hover : StyleState.Idle
+    }
+
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
                             implicitContentWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding,
                              implicitIndicatorHeight + topPadding + bottomPadding)
 
-    padding: Tokens.space2
-    leftPadding: Tokens.space2
-    rightPadding: Tokens.space2
-    spacing: Tokens.space2
+    topPadding: cascade.padding.top
+    bottomPadding: cascade.padding.bottom
+    leftPadding: cascade.padding.left
+    rightPadding: cascade.padding.right
+    spacing: cascade.spacing
     hoverEnabled: true
-    opacity: enabled ? 1 : 0.5
+    opacity: cascade.opacity
 
-    icon.width: 16
-    icon.height: 16
-
-    readonly property color foreground: highlighted ? Tokens.accentForeground : Tokens.foreground
+    icon.width: cascade.icon.size
+    icon.height: cascade.icon.size
 
     contentItem: IconLabel {
         readonly property real arrowPadding: control.subMenu && control.arrow ? control.arrow.width + control.spacing : 0
@@ -37,10 +49,10 @@ T.MenuItem {
         icon.source: control.icon.source
         icon.width: control.icon.width
         icon.height: control.icon.height
-        icon.color: Tokens.mutedForeground
+        icon.color: cascade.icon.color
         text: control.text
         font: control.font
-        color: control.foreground
+        color: cascade.text.color
     }
 
     indicator: ColorImage {
@@ -49,7 +61,7 @@ T.MenuItem {
         visible: control.checked
         source: control.checkable ? "qrc:/qt/qml/TrainingsplanerStyle/images/check.svg" : ""
         sourceSize: Qt.size(16, 16)
-        color: control.foreground
+        color: cascade.text.color
     }
 
     arrow: ColorImage {
@@ -59,15 +71,15 @@ T.MenuItem {
         mirror: control.mirrored
         source: control.subMenu ? "qrc:/qt/qml/TrainingsplanerStyle/images/chevron-right.svg" : ""
         sourceSize: Qt.size(16, 16)
-        color: control.foreground
+        color: cascade.text.color
     }
 
     background: Rectangle {
         // A minimum only: entries are as wide as their text needs, and a
         // menu as wide as its longest entry
-        implicitWidth: 120
-        implicitHeight: Tokens.controlHeight
-        radius: Tokens.radiusSm
-        color: control.highlighted || control.down ? Tokens.accent : "transparent"
+        implicitWidth: cascade.width
+        implicitHeight: cascade.height
+        radius: cascade.radius.value
+        color: cascade.background
     }
 }

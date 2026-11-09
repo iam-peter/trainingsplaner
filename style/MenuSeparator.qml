@@ -9,13 +9,13 @@ T.MenuSeparator {
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding)
 
-    leftPadding: -Tokens.space1
-    rightPadding: -Tokens.space1
-    verticalPadding: Tokens.space1
+    leftPadding: -Primitives.spacing.sp050
+    rightPadding: -Primitives.spacing.sp050
+    verticalPadding: Primitives.spacing.sp050
 
     contentItem: Rectangle {
         implicitWidth: 192
         implicitHeight: 1
-        color: Tokens.border
+        color: TokenInterface.semantics.stroke_subtle
     }
 }

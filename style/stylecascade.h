@@ -49,6 +49,7 @@ class StyleCascade : public QObject, public QQmlParserStatus
     Q_PROPERTY(QColor selection READ selection NOTIFY changed FINAL)
     Q_PROPERTY(QColor selectedText READ selectedText NOTIFY changed FINAL)
     Q_PROPERTY(QColor accent READ accent NOTIFY changed FINAL)
+    Q_PROPERTY(QColor dim READ dim NOTIFY changed FINAL)
     Q_PROPERTY(StyleBorder border READ border NOTIFY changed FINAL)
     Q_PROPERTY(StyleRadius radius READ radius NOTIFY changed FINAL)
     Q_PROPERTY(StylePadding padding READ padding NOTIFY changed FINAL)
@@ -83,6 +84,7 @@ public:
     QColor selection() const { return read(values().selection, "selection", QColor()); }
     QColor selectedText() const { return read(values().selectedText, "selectedText", QColor()); }
     QColor accent() const { return read(values().accent, "accent", QColor()); }
+    QColor dim() const { return read(values().dim, "dim", QColor(Qt::transparent)); }
     StyleBorder border() const { return values().border; }
     StyleRadius radius() const { return values().radius; }
     StylePadding padding() const { return values().padding; }

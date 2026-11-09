@@ -9,9 +9,9 @@ T.Pane {
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              contentHeight + topPadding + bottomPadding)
 
-    padding: Tokens.space4
+    padding: Primitives.spacing.sp200
 
     background: Rectangle {
-        color: Tokens.background
+        color: TokenInterface.semantics.background_default
     }
 }

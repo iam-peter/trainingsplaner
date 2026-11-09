@@ -6,6 +6,21 @@ import QtQuick.Templates as T
 T.Dialog {
     id: control
 
+    property list<Style> styles
+    readonly property alias styleCascade: cascade
+
+    StyleCascade {
+        id: cascade
+        base: [PopupStyle.dialog]
+        styles: control.styles
+        overrides: [control.modal ? null : PopupStyle.modeless]
+    }
+    StyleCascade {
+        id: titleStyle
+        parentCascade: cascade
+        part: StylePart.Label
+    }
+
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
                             implicitContentWidth + leftPadding + rightPadding,
                             implicitHeaderWidth,
@@ -15,14 +30,16 @@ T.Dialog {
                              + (implicitHeaderHeight > 0 ? implicitHeaderHeight + spacing : 0)
                              + (implicitFooterHeight > 0 ? implicitFooterHeight + spacing : 0))
 
-    padding: Tokens.space4
-    topPadding: Tokens.space2
-    bottomPadding: Tokens.space4
+    leftPadding: cascade.padding.left
+    rightPadding: cascade.padding.right
+    topPadding: cascade.padding.top
+    bottomPadding: cascade.padding.bottom
 
     background: Rectangle {
-        color: Tokens.background
-        radius: Tokens.radiusLg
-        border.color: Tokens.border
+        color: cascade.background
+        radius: cascade.radius.value
+        border.width: cascade.border.width
+        border.color: cascade.border.color
         Shadow {
             z: -1
             anchors.fill: parent
@@ -35,13 +52,13 @@ T.Dialog {
         text: control.title
         visible: parent?.parent === T.Overlay.overlay && control.title
         elide: Text.ElideRight
-        font.pixelSize: 18
-        font.weight: Font.DemiBold
-        color: Tokens.foreground
-        leftPadding: Tokens.space4
-        rightPadding: Tokens.space4
-        topPadding: Tokens.space4
-        bottomPadding: Tokens.space2
+        font.pixelSize: titleStyle.text.size
+        font.weight: titleStyle.text.weight
+        color: titleStyle.text.color
+        leftPadding: titleStyle.padding.left
+        rightPadding: titleStyle.padding.right
+        topPadding: titleStyle.padding.top
+        bottomPadding: titleStyle.padding.bottom
     }
 
     footer: DialogButtonBox {
@@ -49,10 +66,10 @@ T.Dialog {
     }
 
     T.Overlay.modal: Rectangle {
-        color: Tokens.overlay
+        color: cascade.dim
     }
 
     T.Overlay.modeless: Rectangle {
-        color: Qt.rgba(0, 0, 0, 0.12)
+        color: cascade.dim
     }
 }

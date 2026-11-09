@@ -2,5 +2,5 @@ import QtQuick
 import QtQuick.Templates as T
 
 T.ApplicationWindow {
-    color: Tokens.background
+    color: TokenInterface.semantics.background_default
 }

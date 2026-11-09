@@ -8,7 +8,7 @@ T.SpinBox {
     id: control
 
     property list<Style> styles
-    readonly property alias cascade: cascade
+    readonly property alias styleCascade: cascade
     readonly property int stepWidth: upStyle.width
 
     StyleCascade {

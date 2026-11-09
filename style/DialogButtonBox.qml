@@ -13,8 +13,8 @@ T.DialogButtonBox {
                              implicitContentHeight + topPadding + bottomPadding)
     contentWidth: (contentItem as ListView)?.contentWidth
 
-    spacing: Tokens.space2
-    padding: Tokens.space4
+    spacing: Primitives.spacing.sp100
+    padding: Primitives.spacing.sp200
     topPadding: 0
     alignment: Qt.AlignRight
     // Cancel on the left, confirm on the right, on every system

@@ -70,6 +70,7 @@ QtObject {
         chart_muted: n.neutral_831
 
         dim: Primitives.alpha(n.neutral_000, 0.5)
+        dim_subtle: Primitives.alpha(n.neutral_000, 0.12)
         shadow_strength: 0.06
     }
 
@@ -121,6 +122,7 @@ QtObject {
         chart_muted: n.neutral_322
 
         dim: Primitives.alpha(n.neutral_000, 0.5)
+        dim_subtle: Primitives.alpha(n.neutral_000, 0.12)
         shadow_strength: 0.3
     }
 
@@ -174,6 +176,7 @@ QtObject {
         chart_muted: a.beige_637
 
         dim: Primitives.alpha(n.neutral_000, 0.5)
+        dim_subtle: Primitives.alpha(n.neutral_000, 0.12)
         shadow_strength: 0.06
     }
 }
