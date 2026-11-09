@@ -18,13 +18,15 @@ Item {
         name: "AttributeHistory"
         when: windowShown
 
+        // The rows the list shows, top to bottom; a removed row lingers
+        // with index -1 until it is destroyed
         function rowsOf(item, out) {
             for (const c of item.children) {
-                if (c.objectName === "historyRow")
+                if (c.objectName === "historyRow" && c.index >= 0)
                     out.push(c)
                 rowsOf(c, out)
             }
-            return out
+            return out.sort((a, b) => a.index - b.index)
         }
 
         function setText(field, text) {
@@ -40,7 +42,7 @@ Item {
             ]), "")
             dialog.edit("test_tina", "Kader")
             tryCompare(dialog, "opened", true)
-            compare(rowsOf(dialog.contentItem, []).length, 3)
+            tryVerify(() => rowsOf(dialog.contentItem, []).length === 3)
             compare(rowsOf(dialog.contentItem, []).map(r => findChild(r, "valueBox").editText).join(" "), "NK2 NK1 OK")
             verify(!dialog.dirty)
             waitForRendering(dialog.contentItem)
@@ -48,7 +50,7 @@ Item {
 
             // Remove the last row, add one, fill it in
             mouseClick(findChild(rowsOf(dialog.contentItem, [])[2], "removeButton"))
-            mouseClick(findChild(dialog.footer, "addButton"))
+            mouseClick(findChild(dialog.contentItem, "addButton"))
             tryVerify(() => rowsOf(dialog.contentItem, []).length === 3)
             const row = rowsOf(dialog.contentItem, [])[2]
             setText(findChild(row, "fromField"), "1.1.2031")
@@ -73,7 +75,7 @@ Item {
             // Another attribute without records: one empty row, a lower dialog
             dialog.edit("test_tina", "Bundeswehr")
             tryCompare(dialog, "opened", true)
-            compare(rowsOf(dialog.contentItem, []).length, 1)
+            tryVerify(() => rowsOf(dialog.contentItem, []).length === 1)
             tryVerify(() => dialog.height < tall - 40)
             // Changed, Abbrechen asks first
             setText(findChild(rowsOf(dialog.contentItem, [])[0], "fromField"), "01.02.2031")
@@ -101,15 +103,22 @@ Item {
             for (let i = 0; i < 24; ++i)
                 dialog.addRow()
             tryVerify(() => dialog.height === dialog.parent.height - 40)
-            const bar = dialog.contentItem.ScrollBar.vertical
+            const list = findChild(dialog.contentItem, "rowList")
+            const bar = list.ScrollBar.vertical
             tryVerify(() => bar.visible && bar.size < 1)
-            // The add button stays in view, below the scrolled rows, and the
+            // The add button stays in view below the scrolled rows, and the
             // rows are scrolled to the newest
-            verify(findChild(dialog.footer, "addButton").visible)
-            tryVerify(() => dialog.contentItem.atYEnd)
+            const add = findChild(dialog.contentItem, "addButton")
+            const addBottom = add.mapToItem(dialog.contentItem, 0, add.height).y
+            verify(addBottom <= dialog.contentItem.height, addBottom + " > " + dialog.contentItem.height)
+            tryVerify(() => list.atYEnd)
             const full = dialog.height
-            for (let i = 0; i < 22; ++i)
+            for (let i = 0; i < 22; ++i) {
+                const n = list.count
+                tryVerify(() => rowsOf(dialog.contentItem, []).length > 0)
                 findChild(rowsOf(dialog.contentItem, [])[0], "removeButton").clicked()
+                tryCompare(list, "count", n - 1)
+            }
             tryVerify(() => dialog.height < full - 300)
             verify(bar.size >= 1 || !bar.visible)
             dialog.dirty = false

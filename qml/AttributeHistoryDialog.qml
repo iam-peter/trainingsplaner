@@ -41,22 +41,8 @@ EditorDialog {
     function addRow() {
         rows.append({ from: "", to: "", text: "" })
         dirty = true
-        toNewRow = true
-    }
-
-    // The new row into view, at the end of the scrolled rows, once the
-    // rows are laid out with it
-    property bool toNewRow: false
-    Connections {
-        target: dialog.contentItem
-        ignoreUnknownSignals: true
-        function onContentHeightChanged() {
-            if (!dialog.toNewRow)
-                return
-            dialog.toNewRow = false
-            const scroller = dialog.contentItem
-            scroller.contentY = Math.max(0, scroller.contentHeight - scroller.height)
-        }
+        // The new row into view, once the list has it
+        Qt.callLater(() => { rowList.forceLayout(); rowList.positionViewAtEnd() })
     }
 
     function save() {
@@ -77,6 +63,9 @@ EditorDialog {
     // The old program's title for this window
     title: "Erfassung " + art
     width: parent ? Math.min(parent.width - 40, 640) : 640
+    // The rows scroll in their own list, below headings that stay, as in
+    // Einstellungen › Zusatzinfo
+    scrollsContent: false
     discardText: "Die Änderungen an „" + art + "“ gehen verloren."
 
     Shortcut {
@@ -92,22 +81,34 @@ EditorDialog {
 
         RowLayout {
             spacing: 8
-            Layout.rightMargin: dialog.wRemove + 8
+            Layout.rightMargin: dialog.wRemove + 8 + rowBar.room
             Label { text: "von"; Layout.preferredWidth: dialog.wDate; font.bold: true }
             Label { text: "bis"; Layout.preferredWidth: dialog.wDate; font.bold: true }
             Label { text: dialog.art; Layout.fillWidth: true; font.bold: true }
         }
 
-        Repeater {
+        // As high as its rows, until the dialog reaches the window's height;
+        // then it scrolls
+        ListView {
+            id: rowList
+            objectName: "rowList"
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.preferredHeight: contentHeight
+            Layout.minimumHeight: Math.min(contentHeight, 80)
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            spacing: 8
             model: rows
-            RowLayout {
+            ScrollBar.vertical: AppScrollBar { id: rowBar }
+            delegate: RowLayout {
                 id: row
                 objectName: "historyRow"
                 required property int index
                 required property string from
                 required property string to
                 required property string text
-                Layout.fillWidth: true
+                width: ListView.view.width - rowBar.room
                 spacing: 8
                 DateField {
                     objectName: "fromField"
@@ -163,6 +164,15 @@ EditorDialog {
             color: palette.placeholderText
         }
 
+        // Below the list, not part of it: it stays in view while the rows
+        // scroll
+        IconButton {
+            objectName: "addButton"
+            iconName: "plus"
+            text: dialog.art
+            onClicked: dialog.addRow()
+        }
+
         Label {
             Layout.fillWidth: true
             visible: dialog.error !== ""
@@ -173,13 +183,6 @@ EditorDialog {
     }
 
     footer: DialogButtons {
-        // In the footer, not below the rows: there it scrolled out of view
-        leading: IconButton {
-            objectName: "addButton"
-            iconName: "plus"
-            text: dialog.art
-            onClicked: dialog.addRow()
-        }
         Button {
             objectName: "cancelButton"
             text: "Abbrechen"
