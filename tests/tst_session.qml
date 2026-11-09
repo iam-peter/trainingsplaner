@@ -139,8 +139,10 @@ Item {
             tryCompare(dialog, "opened", true)
             dialog.addEntry({ kind: 2 }, true)
             verify(dialog.dirty)
-            dialog.cancel()
+            // The real button: its role closed the dialog before it asked
+            mouseClick(findChild(dialog.footer, "cancelButton"))
             // Still open, a confirmation is shown instead.
+            tryCompare(DialogStack, "open", 2)
             compare(dialog.visible, true)
         }
 

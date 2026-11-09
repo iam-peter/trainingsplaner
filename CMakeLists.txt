@@ -98,6 +98,7 @@ qt_add_qml_module(tpqml
         qml/AnalysisPage.qml
         qml/WeekCalendar.qml
         qml/AppDialog.qml
+        qml/DialogButtons.qml
         qml/DialogStack.qml
         qml/Theme.qml
     RESOURCES

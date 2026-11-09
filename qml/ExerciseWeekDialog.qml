@@ -245,9 +245,10 @@ AppDialog {
                         canPaste: dialog.copiedSteps !== null
                         onCopyRequested: (steps) => dialog.copiedSteps = steps
                         onPasteRequested: setSteps(dialog.copiedSteps)
+                        // Removing destroys this row, so it comes last
                         onRemoveRequested: {
-                            rowModel.remove(index)
                             dialog.markChanged()
+                            rowModel.remove(index)
                         }
                     }
                 }
@@ -296,8 +297,9 @@ AppDialog {
         }
     }
 
-    footer: DialogButtonBox {
+    footer: DialogButtons {
         Button {
+            objectName: "cancelButton"
             text: "Abbrechen"
             DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
             onClicked: dialog.cancel()
@@ -310,8 +312,6 @@ AppDialog {
             DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
             onClicked: dialog.save()
         }
-        onAccepted: {}
-        onRejected: {}
     }
 
     ExerciseHistoryDialog {

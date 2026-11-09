@@ -199,9 +199,10 @@ AppDialog {
                         canMoveUp: index > 0
                         canMoveDown: index < entryRepeater.count - 1
                         onChanged: dialog.markChanged()
+                        // Removing destroys this row, so it comes last
                         onRemoveRequested: {
-                            entryModel.remove(index)
                             dialog.markChanged()
+                            entryModel.remove(index)
                         }
                         onInfoRequested: (exercise, chart) =>
                             historyDialog.show(dialog.athleteId, dialog.monday, dialog.variant, exercise, chart)
@@ -265,7 +266,7 @@ AppDialog {
         }
     }
 
-    footer: DialogButtonBox {
+    footer: DialogButtons {
         IconButton {
             iconName: "trash-2"
             text: "TE löschen"
@@ -274,6 +275,7 @@ AppDialog {
             onClicked: deleteConfirm.open()
         }
         Button {
+            objectName: "cancelButton"
             text: "Abbrechen"
             DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
             onClicked: dialog.cancel()
@@ -285,9 +287,6 @@ AppDialog {
             DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
             onClicked: dialog.save()
         }
-        // The buttons handle closing themselves.
-        onAccepted: {}
-        onRejected: {}
     }
 
     ExerciseHistoryDialog {
