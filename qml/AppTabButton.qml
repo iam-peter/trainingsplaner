@@ -1,28 +1,15 @@
 import QtQuick
 import QtQuick.Controls
 import Trainingsplaner
+import TrainingsplanerStyle as Styles
 
-// One tab of an AppTabBar, optionally with a Lucide icon.
+// One tab of an AppTabBar, optionally with a Lucide icon: the style's tab
+// as a segment of the bar (TabStyle.segment)
 TabButton {
     id: control
 
     property string iconName
 
-    implicitHeight: 28
-    font: Qt.application.font
+    styles: [Styles.TabStyle.segment]
     icon.source: iconName !== "" ? "qrc:/qt/qml/Trainingsplaner/icons/" + iconName + ".svg" : ""
-    icon.color: palette.buttonText
-    icon.width: 16
-    icon.height: 16
-    topPadding: 4
-    bottomPadding: 4
-
-    background: Rectangle {
-        radius: Theme.radius(3)
-        // The current tab is raised (with a border where the scheme has
-        // one), and focus shows in the border
-        border.width: control.checked || control.visualFocus ? 1 : 0
-        border.color: control.visualFocus ? Theme.sh.ring : Theme.sh.tabActiveBorder
-        color: control.checked ? Theme.sh.tabActive : "transparent"
-    }
 }

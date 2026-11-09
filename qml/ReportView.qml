@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
@@ -57,7 +58,7 @@ ColumnLayout {
             anchors.centerIn: parent
             visible: view.html === ""
             text: "Einstellungen wählen und „Tabelle“ drücken."
-            color: palette.placeholderText
+            color: Styles.TokenInterface.semantics.text_muted
         }
     }
 

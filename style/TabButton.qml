@@ -44,7 +44,7 @@ T.TabButton {
         icon.source: control.icon.source
         icon.width: control.icon.width
         icon.height: control.icon.height
-        icon.color: cascade.text.color
+        icon.color: cascade.icon.color
         text: control.text
         font: control.font
         color: cascade.text.color

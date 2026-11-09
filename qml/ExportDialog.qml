@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
@@ -44,7 +45,7 @@ AppDialog {
             TimeField { id: sinceTime; objectName: "sinceTime" }
             Label {
                 text: Store.lastExport() !== "" ? "letzter Export: " + Store.lastExport() : ""
-                color: palette.placeholderText
+                color: Styles.TokenInterface.semantics.text_muted
                 font.pixelSize: 11
             }
         }
@@ -72,7 +73,7 @@ AppDialog {
             Layout.topMargin: 8
             wrapMode: Text.Wrap
             font.pixelSize: 11
-            color: palette.placeholderText
+            color: Styles.TokenInterface.semantics.text_muted
             text: "Die Datei lässt sich auf einem anderen Rechner über „Daten“ › „Importieren“ einlesen. Gelöschte Einträge werden dabei ebenfalls entfernt."
         }
 

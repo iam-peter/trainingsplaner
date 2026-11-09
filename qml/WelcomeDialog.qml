@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -76,7 +77,7 @@ AppDialog {
             Layout.fillWidth: true
             wrapMode: Text.Wrap
             font.pixelSize: 11
-            color: palette.placeholderText
+            color: Styles.TokenInterface.semantics.text_muted
             text: "Beispieldaten sind frei erfunden und lassen sich über Daten › Beispieldaten entfernen wieder löschen. "
                   + "F1 öffnet jederzeit die Hilfe."
         }

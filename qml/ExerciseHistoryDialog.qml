@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -105,7 +106,7 @@ AppDialog {
                         required property int index
                         width: ListView.view.width - (ListView.view.ScrollBar.vertical?.room ?? 0)
                         height: 26
-                        color: index % 2 ? palette.alternateBase : palette.base
+                        color: index % 2 ? Styles.TokenInterface.semantics.background_muted : Styles.TokenInterface.semantics.background_elevated
                         RowLayout {
                             spacing: 8
                             anchors.fill: parent
@@ -122,7 +123,7 @@ AppDialog {
                         anchors.centerIn: parent
                         visible: dialog.history.length === 0
                         text: "Die Übung kam in diesem Zeitraum nicht vor."
-                        color: palette.placeholderText
+                        color: Styles.TokenInterface.semantics.text_muted
                     }
                 }
             }
@@ -135,10 +136,10 @@ AppDialog {
                 leftTitle: "Intensität [kg]"
                 rightTitle: "Umfang [Wh]"
                 lines: [
-                    { name: "MHG", color: Theme.ink, values: dialog.trend.mhg || [], trend: true },
-                    { name: "BW", color: Theme.accent, values: dialog.trend.bw || [], trend: true }
+                    { name: "MHG", color: Styles.TokenInterface.semantics.chart_series[1], values: dialog.trend.mhg || [], trend: true },
+                    { name: "BW", color: Styles.TokenInterface.semantics.primary_default, values: dialog.trend.bw || [], trend: true }
                 ]
-                bars: [{ name: "WH", color: Theme.slate, values: dialog.trend.wh || [] }]
+                bars: [{ name: "WH", color: Styles.TokenInterface.semantics.chart_muted, values: dialog.trend.wh || [] }]
             }
         }
     }

@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -41,7 +42,7 @@ AppDialog {
             Layout.fillWidth: true
             visible: dialog.state === "error"
             wrapMode: Text.Wrap
-            color: Theme.error
+            color: Styles.TokenInterface.semantics.danger_default
             text: Updater.error
         }
 
@@ -49,7 +50,7 @@ AppDialog {
             Layout.fillWidth: true
             visible: dialog.state === "available" && !Updater.installsItself
             wrapMode: Text.Wrap
-            color: palette.placeholderText
+            color: Styles.TokenInterface.semantics.text_muted
             text: Qt.platform.os === "osx"
                   ? "„Herunterladen“ lädt das neue Programm. Danach das Programm beenden und die neue Version aus dem Fenster in den Programme-Ordner ziehen."
                   : "„Herunterladen“ öffnet die Download-Seite. Ihre Daten bleiben beim Wechsel der Version erhalten."
@@ -79,7 +80,7 @@ AppDialog {
                 wrapMode: Text.Wrap
                 textFormat: Text.MarkdownText
                 text: Updater.notes
-                linkColor: Theme.link
+                linkColor: Styles.TokenInterface.semantics.text_default
                 onLinkActivated: (link) => Qt.openUrlExternally(link)
             }
         }

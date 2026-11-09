@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -165,7 +166,7 @@ EditorDialog {
         Label {
             visible: rows.count === 0
             text: "Keine Einträge."
-            color: palette.placeholderText
+            color: Styles.TokenInterface.semantics.text_muted
         }
 
 
@@ -174,7 +175,7 @@ EditorDialog {
             visible: dialog.error !== ""
             wrapMode: Text.Wrap
             text: dialog.error
-            color: Theme.error
+            color: Styles.TokenInterface.semantics.danger_default
         }
     }
 

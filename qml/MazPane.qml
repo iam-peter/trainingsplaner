@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
@@ -73,7 +74,7 @@ RowLayout {
                 Label {
                     text: modelData.from + " – " + modelData.to + "  ·  " + (modelData.sex === 0 ? "Männer" : "Frauen")
                     font.pixelSize: 11
-                    color: palette.placeholderText
+                    color: Styles.TokenInterface.semantics.text_muted
                 }
             }
         }
@@ -146,10 +147,10 @@ RowLayout {
                         exportDialog.open()
                     }
                 }
-                Label { text: pane.error; color: Theme.error; visible: pane.error !== "" }
+                Label { text: pane.error; color: Styles.TokenInterface.semantics.danger_default; visible: pane.error !== "" }
             }
 
-            Rectangle { Layout.fillWidth: true; height: 1; color: palette.mid }
+            Rectangle { Layout.fillWidth: true; height: 1; color: Styles.TokenInterface.semantics.stroke_subtle }
 
             Label { text: "Sportler im MAZ"; font.bold: true; visible: pane.mazId !== "" }
             RowLayout {

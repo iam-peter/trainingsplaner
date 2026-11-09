@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -165,7 +166,7 @@ Page {
                     contentItem: RowLayout {
                         spacing: 8
                         Label { text: modelData.dateText; Layout.preferredWidth: 80 }
-                        Label { text: modelData.typeName; Layout.preferredWidth: 28; color: palette.placeholderText }
+                        Label { text: modelData.typeName; Layout.preferredWidth: 28; color: Styles.TokenInterface.semantics.text_muted }
                         Label { text: modelData.name || modelData.place; Layout.fillWidth: true; elide: Text.ElideRight }
                         Label { text: modelData.total > 0 ? modelData.total : "–"; font.bold: true }
                     }
@@ -242,7 +243,7 @@ Page {
                         Label {
                             text: "Fehlversuch: Leertaste oder Rechtsklick im Feld (rot, durchgestrichen)"
                             font.pixelSize: 11
-                            color: palette.placeholderText
+                            color: Styles.TokenInterface.semantics.text_muted
                         }
                     }
                     Label { text: "Zweikampf:" }
@@ -265,7 +266,7 @@ Page {
                         Layout.columnSpan: 2
                         visible: page.error !== ""
                         text: page.error
-                        color: Theme.error
+                        color: Styles.TokenInterface.semantics.danger_default
                     }
                 }
             }
@@ -325,12 +326,12 @@ Page {
                 showValues: showValues.checked
                 leftTitle: "kg"
                 lines: [
-                    { name: "Zweikampf", color: Theme.accent, values: page.trend.total || [], trend: showTrend.checked },
-                    { name: "Reißen", color: Theme.ink, values: page.trend.snatch || [], trend: showTrend.checked },
-                    { name: "Stoßen", color: Theme.blue, values: page.trend.cleanJerk || [], trend: showTrend.checked }
+                    { name: "Zweikampf", color: Styles.TokenInterface.semantics.primary_default, values: page.trend.total || [], trend: showTrend.checked },
+                    { name: "Reißen", color: Styles.TokenInterface.semantics.chart_series[1], values: page.trend.snatch || [], trend: showTrend.checked },
+                    { name: "Stoßen", color: Styles.TokenInterface.semantics.chart_series[2], values: page.trend.cleanJerk || [], trend: showTrend.checked }
                 ]
                 references: showNorm.checked && page.trend.norm > 0
-                            ? [{ name: "Norm " + page.trend.norm + " kg", color: Theme.green, value: page.trend.norm }] : []
+                            ? [{ name: "Norm " + page.trend.norm + " kg", color: Styles.TokenInterface.semantics.chart_series[3], value: page.trend.norm }] : []
             }
         }
     }
@@ -339,7 +340,7 @@ Page {
         anchors.centerIn: parent
         visible: page.athleteId === ""
         text: "Bitte einen Sportler wählen."
-        color: palette.placeholderText
+        color: Styles.TokenInterface.semantics.text_muted
     }
 
     AppDialog {

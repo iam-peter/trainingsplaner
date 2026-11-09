@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
@@ -239,7 +240,7 @@ Page {
             }
             Label {
                 text: Store.weekRange(page.monday)
-                color: palette.placeholderText
+                color: Styles.TokenInterface.semantics.text_muted
             }
 
             ToolSeparator {}
@@ -366,14 +367,14 @@ Page {
                             Layout.alignment: Qt.AlignHCenter
                             text: Store.dayName(index + 1)
                             font.bold: true
-                            color: page.todayDay === index + 1 ? Theme.accent : palette.windowText
+                            color: page.todayDay === index + 1 ? Styles.TokenInterface.semantics.primary_default : Styles.TokenInterface.semantics.text_default
                         }
                         Label {
                             Layout.alignment: Qt.AlignHCenter
                             text: page.todayDay === index + 1 ? "heute, " + Store.dayDate(page.monday, index + 1)
                                                                : Store.dayDate(page.monday, index + 1)
                             font.pixelSize: 11
-                            color: page.todayDay === index + 1 ? Theme.accent : palette.placeholderText
+                            color: page.todayDay === index + 1 ? Styles.TokenInterface.semantics.primary_default : Styles.TokenInterface.semantics.text_muted
                         }
                     }
                 }
@@ -413,7 +414,7 @@ Page {
             Layout.fillWidth: true
             text: "Je Zeile: Übung  WH  MHG  BW  Wdh/Sätze beim BW  ·  Klick auf eine Übung bearbeitet sie für die ganze Woche, Klick daneben die Trainingseinheit  ·  Pfeiltasten, Enter, Entf  ·  F1: Hilfe"
             font.pixelSize: 11
-            color: palette.placeholderText
+            color: Styles.TokenInterface.semantics.text_muted
             elide: Text.ElideRight
             HoverHandler { id: legendHover }
             ToolTip.visible: legendHover.hovered
@@ -471,7 +472,7 @@ Page {
             Layout.fillWidth: true
             visible: text !== ""
             text: page.hasAthlete ? (Store.dataVersion, Store.weekInfoSummary(page.athleteId, page.monday)) : ""
-            color: palette.placeholderText
+            color: Styles.TokenInterface.semantics.text_muted
             elide: Text.ElideRight
         }
 
@@ -480,8 +481,8 @@ Page {
             Layout.fillWidth: true
             padding: 0
             background: Rectangle {
-                color: palette.base
-                border.color: palette.mid
+                color: Styles.TokenInterface.semantics.background_elevated
+                border.color: Styles.TokenInterface.semantics.stroke_subtle
             }
 
             ColumnLayout {
@@ -514,7 +515,7 @@ Page {
                         ToolTip.text: "Gruppen K1–K5: WH / MHG / Tonnage"
                     }
                 }
-                Rectangle { Layout.fillWidth: true; height: 1; color: palette.mid }
+                Rectangle { Layout.fillWidth: true; height: 1; color: Styles.TokenInterface.semantics.stroke_subtle }
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 0
@@ -534,7 +535,7 @@ Page {
                                 visible: index > 0
                                 width: 1
                                 height: parent.height
-                                color: palette.mid
+                                color: Styles.TokenInterface.semantics.stroke_subtle
                             }
 
                             ColumnLayout {
@@ -586,7 +587,7 @@ Page {
             visible: Store.athletes.length === 0
             horizontalAlignment: Text.AlignHCenter
             text: "Über „Daten“ › „Importieren“ die Datensicherung des alten Programms (winwotaxp.bak) einlesen\noder unter „Sportler“ einen neuen Sportler anlegen."
-            color: palette.placeholderText
+            color: Styles.TokenInterface.semantics.text_muted
         }
     }
 

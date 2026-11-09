@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
@@ -200,7 +201,7 @@ AppDialog {
                         implicitWidth: 40
                         implicitHeight: 24
                         radius: 4
-                        border.color: palette.mid
+                        border.color: Styles.TokenInterface.semantics.stroke_subtle
                         MouseArea { anchors.fill: parent; onClicked: colorDialog.open() }
                     }
                     Button { text: "Weiß"; onClicked: sessionColor.color = "#ffffff" }
@@ -221,7 +222,7 @@ AppDialog {
                 Label {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
-                    color: palette.placeholderText
+                    color: Styles.TokenInterface.semantics.text_muted
                     text: "Neue Trainingseinheiten übernehmen die Zeiten einer anderen Einheit mit derselben Nummer in der Woche, sonst diese:"
                 }
                 Repeater {
@@ -319,7 +320,7 @@ AppDialog {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                     font.pixelSize: 11
-                    color: palette.placeholderText
+                    color: Styles.TokenInterface.semantics.text_muted
                     text: "„Woche“ legt fest, welcher Wert in der Wochenübersicht steht. Das Kürzel ordnet gespeicherte Werte zu; bitte nicht ändern, wenn schon Werte erfasst sind."
                 }
             }
@@ -346,7 +347,7 @@ AppDialog {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                     font.pixelSize: 11
-                    color: palette.placeholderText
+                    color: Styles.TokenInterface.semantics.text_muted
                     text: "Gilt für die Auswahllisten im Wochenplan, in der Planung und in den Analysen."
                 }
                 Label { text: "Steigerung:" }
@@ -360,7 +361,7 @@ AppDialog {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                     font.pixelSize: 11
-                    color: palette.placeholderText
+                    color: Styles.TokenInterface.semantics.text_muted
                     text: "Pfeiltasten in Gewichtsfeldern und berechnete Gewichte springen in diesen Schritten."
                 }
                 Label { text: "Datenbank:" }
@@ -370,7 +371,7 @@ AppDialog {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                     font.pixelSize: 11
-                    color: palette.placeholderText
+                    color: Styles.TokenInterface.semantics.text_muted
                     text: "Alle Daten stehen in dieser einen Datei. Zur Sicherung das Programm schließen und die Datei kopieren, oder Daten › Exportieren nutzen."
                 }
                 Label { text: "Farbschema:" }
@@ -393,7 +394,7 @@ AppDialog {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                     font.pixelSize: 11
-                    color: palette.placeholderText
+                    color: Styles.TokenInterface.semantics.text_muted
                     text: "Klassisch: die Farben des alten Programms, mit den gelben Kästen im Wochenplan."
                 }
                 Label {
@@ -401,7 +402,7 @@ AppDialog {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                     font.pixelSize: 11
-                    color: palette.placeholderText
+                    color: Styles.TokenInterface.semantics.text_muted
                     text: "Version und Updates: Hilfe › Über den Trainingsplaner."
                 }
             }

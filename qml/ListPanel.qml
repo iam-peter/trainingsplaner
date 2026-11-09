@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -44,7 +45,7 @@ Panel {
                 anchors.centerIn: parent
                 visible: list.count === 0
                 text: panel.emptyText
-                color: palette.placeholderText
+                color: Styles.TokenInterface.semantics.text_muted
             }
         }
 

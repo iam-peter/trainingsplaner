@@ -118,6 +118,25 @@ QtObject {
         }
     }
 
+    // A ghost button inside a row: its hover is a tint of the text
+    // colour, so it also shows on a chosen row
+    readonly property Style inline: Style {
+        background: TokenInterface.transparent
+        border.width: 0
+        radius.value: Primitives.radius.r3
+        text.color: root.s.text_default
+        icon.color: root.s.text_default
+
+        Style {
+            state: StyleState.Hover
+            background: Primitives.alpha(root.s.text_default, 0.14)
+        }
+        Style {
+            state: StyleState.Active
+            background: Primitives.alpha(root.s.text_default, 0.24)
+        }
+    }
+
     // Tool buttons: ghost, square without text
     readonly property Style tool: Style {
         includes: [root.ghost]

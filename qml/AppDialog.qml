@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 
@@ -214,6 +215,6 @@ Dialog {
     Overlay.modal: Rectangle {
         objectName: "dialogDim"
         anchors.fill: parent
-        color: root.nested ? "transparent" : Theme.dim
+        color: root.nested ? "transparent" : Styles.TokenInterface.semantics.dim
     }
 }

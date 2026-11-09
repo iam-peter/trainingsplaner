@@ -22,7 +22,10 @@ QtObject {
             color: root.s.text_inactive
             weight: Primitives.fontWeight.medium
         }
-        icon.size: Primitives.size.s16
+        icon {
+            size: Primitives.size.s16
+            color: root.s.text_inactive
+        }
         radius.value: Primitives.radius.r4
         padding {
             horizontal: Primitives.spacing.sp150
@@ -38,6 +41,12 @@ QtObject {
         }
     }
 
+    // The program's page tabs: regular weight, a little less rounded
+    readonly property Style segment: Style {
+        text.weight: Primitives.fontWeight.regular
+        radius.value: Primitives.radius.r3
+    }
+
     // What a tab adds itself: chosen, then keyboard focus
     readonly property Style checked: Style {
         background: root.s.field_default
@@ -46,6 +55,7 @@ QtObject {
             color: root.s.stroke_tab
         }
         text.color: root.s.text_default
+        icon.color: root.s.text_default
     }
     readonly property Style focus: Style {
         border {

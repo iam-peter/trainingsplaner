@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -48,8 +49,8 @@ Frame {
     // end 12 px from the border like the fields on the left
     padding: 12
     background: Rectangle {
-        color: palette.window
-        border.color: palette.mid
+        color: Styles.TokenInterface.semantics.background_default
+        border.color: Styles.TokenInterface.semantics.stroke_subtle
         radius: Theme.radius(4)
     }
 

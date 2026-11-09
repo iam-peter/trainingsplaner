@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Controls.impl
 import QtQuick.Layouts
 import Trainingsplaner
+import TrainingsplanerStyle as Styles
 
 // One training session in the week grid. Click or Enter to edit, Delete
 // to remove, arrow keys to move to the neighbouring session, right click
@@ -25,11 +26,32 @@ Rectangle {
 
     readonly property bool filled: session !== null
 
-    radius: Theme.radius(10)
-    color: hover.hovered ? Theme.cellHover : Theme.cell
-    border.color: activeFocus ? palette.highlight
-                  : hover.hovered ? Theme.cellBorderHover : today ? Theme.accent : Theme.cellBorder
-    border.width: activeFocus || hover.hovered || today ? 2 : 1
+    Styles.StyleCascade {
+        id: cellStyle
+        base: [CellStyle.base]
+        overrides: [cell.today ? CellStyle.today : null, cell.activeFocus ? CellStyle.focus : null]
+        state: hover.hovered ? Styles.StyleState.Hover : Styles.StyleState.Idle
+    }
+    Styles.StyleCascade {
+        id: numberStyle
+        parentCascade: cellStyle
+        part: Styles.StylePart.Label
+    }
+    Styles.StyleCascade {
+        id: plusStyle
+        parentCascade: cellStyle
+        part: Styles.StylePart.Icon
+    }
+    Styles.StyleCascade {
+        id: lineStyle
+        parentCascade: cellStyle
+        part: Styles.StylePart.Indicator
+    }
+
+    radius: cellStyle.radius.value
+    color: cellStyle.background
+    border.color: cellStyle.border.color
+    border.width: cellStyle.border.width
     clip: true
 
     // The whole cell, lines included: the cell's MouseArea loses the hover
@@ -80,7 +102,7 @@ Rectangle {
         anchors.margins: 4
         text: cell.sessionNumber + ". TE"
         font.pixelSize: 10
-        color: Theme.cellMuted
+        color: numberStyle.text.color
     }
 
     IconImage {
@@ -88,7 +110,7 @@ Rectangle {
         visible: !cell.filled && hover.hovered
         source: "qrc:/qt/qml/Trainingsplaner/icons/plus.svg"
         sourceSize: Qt.size(28, 28)
-        color: Theme.cellBorderHover
+        color: plusStyle.icon.color
     }
 
     ColumnLayout {
@@ -118,8 +140,8 @@ Rectangle {
                     anchors.margins: -3
                     radius: height / 2
                     color: "transparent"
-                    border.color: Theme.lineOutline
-                    border.width: 2
+                    border.color: lineStyle.border.color
+                    border.width: lineStyle.border.width
                     visible: line.weights && lineMouse.containsMouse
                 }
                 MouseArea {
@@ -171,7 +193,7 @@ Rectangle {
                     text: line.modelData.exercise
                     font.bold: true
                     font.pixelSize: 13
-                    color: Theme.cellText
+                    color: cellStyle.text.color
                 }
                 Label {
                     Layout.fillWidth: true
@@ -179,7 +201,7 @@ Rectangle {
                     elide: Text.ElideRight
                     font.pixelSize: 12
                     font.italic: line.modelData.kind === 2
-                    color: Theme.cellText
+                    color: cellStyle.text.color
                 }
                 }
             }
@@ -193,7 +215,7 @@ Rectangle {
         visible: cell.filled && cell.session.from !== ""
         text: cell.filled ? cell.session.from + " Uhr" : ""
         font.pixelSize: 11
-        color: Theme.cellText
+        color: cellStyle.text.color
     }
 
     ToolTip.visible: mouse.containsMouse && filled && session.note !== ""

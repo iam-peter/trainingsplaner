@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -68,8 +69,8 @@ Frame {
     // end 12 px from the border like the fields on the left
     padding: 12
     background: Rectangle {
-        color: palette.window
-        border.color: palette.mid
+        color: Styles.TokenInterface.semantics.background_default
+        border.color: Styles.TokenInterface.semantics.stroke_subtle
         radius: Theme.radius(4)
     }
 
@@ -98,7 +99,7 @@ Frame {
                         editor.exercise = parseInt(text) || 0
                         editor.changed()
                     }
-                    color: text === "" || editor.exerciseValid ? palette.text : Theme.error
+                    color: text === "" || editor.exerciseValid ? Styles.TokenInterface.semantics.text_default : Styles.TokenInterface.semantics.danger_default
                 }
                 IconButton {
                     implicitWidth: 30
@@ -116,7 +117,7 @@ Frame {
                       : "unbekannte Nr."
                 elide: Text.ElideRight
                 font.pixelSize: 11
-                color: editor.exercise !== 0 && !editor.exerciseValid ? Theme.error : palette.placeholderText
+                color: editor.exercise !== 0 && !editor.exerciseValid ? Styles.TokenInterface.semantics.danger_default : Styles.TokenInterface.semantics.text_muted
             }
             ExercisePicker {
                 id: picker

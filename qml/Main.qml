@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
@@ -58,24 +59,31 @@ ApplicationWindow {
     visible: true
     title: "Trainingsplaner Gewichtheben"
 
+    // The old program's colours, when chosen as colour scheme
+    Binding {
+        target: Styles.TokenInterface
+        property: "classic"
+        value: Store.classicColors
+    }
+
     // The controls take the application palette, so a palette set by the
     // program (Einstellungen › Farbschema) reaches them as well as the system's
-    palette.window: Theme.window
-    palette.windowText: Theme.windowText
-    palette.base: Theme.base
-    palette.alternateBase: Theme.alternateBase
-    palette.text: Theme.text
-    palette.button: Theme.button
-    palette.buttonText: Theme.buttonText
-    palette.highlight: Theme.selection
-    palette.highlightedText: Theme.selectedText
-    palette.placeholderText: Theme.placeholderText
-    palette.mid: Theme.mid
-    palette.dark: Theme.darkShade
-    palette.light: Theme.lightShade
-    palette.toolTipBase: Theme.toolTipBase
-    palette.toolTipText: Theme.toolTipText
-    palette.link: Theme.link
+    palette.window: Styles.TokenInterface.semantics.background_default
+    palette.windowText: Styles.TokenInterface.semantics.text_default
+    palette.base: Styles.TokenInterface.semantics.background_elevated
+    palette.alternateBase: Styles.TokenInterface.semantics.background_muted
+    palette.text: Styles.TokenInterface.semantics.text_default
+    palette.button: Styles.TokenInterface.semantics.background_secondary
+    palette.buttonText: Styles.TokenInterface.semantics.text_default
+    palette.highlight: Styles.TokenInterface.semantics.primary_default
+    palette.highlightedText: Styles.TokenInterface.semantics.text_on_primary
+    palette.placeholderText: Styles.TokenInterface.semantics.text_muted
+    palette.mid: Styles.TokenInterface.semantics.stroke_subtle
+    palette.dark: Styles.TokenInterface.semantics.stroke_focus
+    palette.light: Styles.TokenInterface.semantics.background_default
+    palette.toolTipBase: Styles.TokenInterface.semantics.primary_default
+    palette.toolTipText: Styles.TokenInterface.semantics.text_on_primary
+    palette.link: Styles.TokenInterface.semantics.text_default
 
     header: AppToolBar {
         RowLayout {
@@ -128,13 +136,13 @@ ApplicationWindow {
                     MenuItem {
                         text: "Importieren"
                         icon.source: "qrc:/qt/qml/Trainingsplaner/icons/import.svg"
-                        icon.color: palette.text
+                        icon.color: Styles.TokenInterface.semantics.text_default
                         onTriggered: importDialog.open()
                     }
                     MenuItem {
                         text: "Exportieren"
                         icon.source: "qrc:/qt/qml/Trainingsplaner/icons/file-down.svg"
-                        icon.color: palette.text
+                        icon.color: Styles.TokenInterface.semantics.text_default
                         onTriggered: exportDialog.open()
                     }
                     MenuItem {
@@ -142,7 +150,7 @@ ApplicationWindow {
                         height: visible ? implicitHeight : 0
                         text: "Beispieldaten entfernen"
                         icon.source: "qrc:/qt/qml/Trainingsplaner/icons/trash-2.svg"
-                        icon.color: palette.text
+                        icon.color: Styles.TokenInterface.semantics.text_default
                         onTriggered: removeDemoConfirm.open()
                     }
                 }
@@ -236,7 +244,7 @@ ApplicationWindow {
             Layout.fillWidth: true
             implicitHeight: bannerRow.implicitHeight + 12
             visible: Updater.state === "available" && !window.updateBannerClosed
-            color: palette.highlight
+            color: Styles.TokenInterface.semantics.primary_default
             RowLayout {
                 id: bannerRow
                 spacing: 8
@@ -246,7 +254,7 @@ ApplicationWindow {
                 Label {
                     Layout.fillWidth: true
                     text: "Version " + Updater.latestVersion + " des Trainingsplaners ist verfügbar."
-                    color: palette.highlightedText
+                    color: Styles.TokenInterface.semantics.text_on_primary
                     font.bold: true
                 }
                 Button {
@@ -255,7 +263,7 @@ ApplicationWindow {
                 }
                 IconToolButton {
                     iconName: "x"
-                    icon.color: palette.highlightedText
+                    icon.color: Styles.TokenInterface.semantics.text_on_primary
                     toolTip: "Später"
                     onClicked: window.updateBannerClosed = true
                 }
@@ -334,7 +342,7 @@ ApplicationWindow {
             }
             Label {
                 text: "Neuere Einträge im Programm bleiben erhalten."
-                color: palette.placeholderText
+                color: Styles.TokenInterface.semantics.text_muted
             }
             CheckBox {
                 id: ignoreTimestamps

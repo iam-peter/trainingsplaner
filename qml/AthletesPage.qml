@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -98,7 +99,7 @@ Page {
                 text: page.shown.length === Store.athletes.length
                       ? (Store.athletes.length === 1 ? "1 Sportler" : Store.athletes.length + " Sportler")
                       : page.shown.length + " von " + Store.athletes.length + " Sportlern"
-                color: palette.placeholderText
+                color: Styles.TokenInterface.semantics.text_muted
             }
             Item { Layout.fillWidth: true }
         }
@@ -176,17 +177,17 @@ Page {
                         id: bornField
                         Layout.preferredWidth: 136
                         onTextEdited: page.dirty = true
-                        color: page.bornValid ? palette.text : Theme.error
+                        color: page.bornValid ? Styles.TokenInterface.semantics.text_default : Styles.TokenInterface.semantics.danger_default
                     }
                     Label {
                         visible: !page.bornValid
                         text: "Datum ungültig"
-                        color: Theme.error
+                        color: Styles.TokenInterface.semantics.danger_default
                     }
                     Label {
                         id: ageLabel
                         visible: page.bornValid
-                        color: palette.placeholderText
+                        color: Styles.TokenInterface.semantics.text_muted
                     }
                 }
 
@@ -222,7 +223,7 @@ Page {
                             readonly property string art: modelData
                             property string value
                             spacing: 0
-                            Label { text: attribute.art + ":"; font.pixelSize: 11; color: palette.placeholderText }
+                            Label { text: attribute.art + ":"; font.pixelSize: 11; color: Styles.TokenInterface.semantics.text_muted }
                             RowLayout {
                                 spacing: 4
                                 ComboBox {
@@ -253,7 +254,7 @@ Page {
                 Label {
                     Layout.columnSpan: 2
                     font.pixelSize: 11
-                    color: palette.placeholderText
+                    color: Styles.TokenInterface.semantics.text_muted
                     text: "Geänderte Zugehörigkeiten gelten ab heute; der Verlauf bleibt erhalten."
                 }
 

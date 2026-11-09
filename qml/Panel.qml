@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import Trainingsplaner
 
@@ -14,8 +15,8 @@ Frame {
     padding: 9
 
     background: Rectangle {
-        color: control.filled ? control.palette.base : "transparent"
-        border.color: Theme.line
+        color: control.filled ? Styles.TokenInterface.semantics.background_elevated : "transparent"
+        border.color: Styles.TokenInterface.semantics.stroke_subtle
         radius: Theme.radius(4)
     }
 }

@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -213,12 +214,12 @@ EditorDialog {
                     Layout.topMargin: 24
                     horizontalAlignment: Text.AlignHCenter
                     text: "Noch keine Übungen. Mit „+ TÜ“, „+ AMKT“ oder „+ Text“ hinzufügen."
-                    color: palette.placeholderText
+                    color: Styles.TokenInterface.semantics.text_muted
                 }
             }
         }
 
-        Rectangle { Layout.fillWidth: true; height: 1; color: palette.mid }
+        Rectangle { Layout.fillWidth: true; height: 1; color: Styles.TokenInterface.semantics.stroke_subtle }
 
         // Time and note as a form: labels in one column, fields beside them
         GridLayout {
@@ -244,7 +245,7 @@ EditorDialog {
                     objectName: "errorLabel"
                     visible: dialog.error !== ""
                     text: dialog.error
-                    color: Theme.error
+                    color: Styles.TokenInterface.semantics.danger_default
                 }
             }
             Label {

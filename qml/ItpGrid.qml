@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -31,8 +32,8 @@ Item {
             readonly property var info: itp.columnInfo(column)
             implicitWidth: grid.cellWidth
             implicitHeight: 40
-            color: palette.window
-            border.color: palette.mid
+            color: Styles.TokenInterface.semantics.background_default
+            border.color: Styles.TokenInterface.semantics.stroke_subtle
             border.width: info.first ? 1 : 0
             ToolTip.visible: headerMouse.containsMouse
             ToolTip.text: info.tip
@@ -48,7 +49,7 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: info.sub
                     font.pixelSize: 11
-                    color: palette.placeholderText
+                    color: Styles.TokenInterface.semantics.text_muted
                 }
             }
         }
@@ -64,12 +65,12 @@ Item {
             required property int row
             implicitWidth: 90
             implicitHeight: grid.rowHeight
-            color: palette.window
+            color: Styles.TokenInterface.semantics.background_default
             Rectangle { // row line, continued by the cells
                 anchors.bottom: parent.bottom
                 width: parent.width
                 height: 1
-                color: Theme.line
+                color: Styles.TokenInterface.semantics.stroke_subtle
             }
             Label {
                 anchors.verticalCenter: parent.verticalCenter
@@ -112,26 +113,26 @@ Item {
             required property bool average
             readonly property alias editor: editor
             implicitHeight: grid.rowHeight
-            color: average ? palette.alternateBase : palette.base
+            color: average ? Styles.TokenInterface.semantics.background_muted : Styles.TokenInterface.semantics.background_elevated
             // The grid: a line below and to the right of every cell, a
             // stronger one before each exercise
             Rectangle {
                 anchors.bottom: parent.bottom
                 width: parent.width
                 height: 1
-                color: Theme.line
+                color: Styles.TokenInterface.semantics.stroke_subtle
             }
             Rectangle {
                 anchors.right: parent.right
                 width: 1
                 height: parent.height
-                color: Theme.line
+                color: Styles.TokenInterface.semantics.stroke_subtle
             }
             Rectangle {
                 visible: itp.columnInfo(cell.column).first
                 width: 1
                 height: parent.height
-                color: palette.mid
+                color: Styles.TokenInterface.semantics.stroke_subtle
             }
             Label {
                 anchors.centerIn: parent
@@ -146,7 +147,7 @@ Item {
                 visible: !cell.average
                 text: cell.display
                 horizontalAlignment: TextInput.AlignHCenter
-                background: Rectangle { color: parent.activeFocus ? palette.base : "transparent"; border.color: parent.activeFocus ? palette.highlight : "transparent" }
+                background: Rectangle { color: parent.activeFocus ? Styles.TokenInterface.semantics.background_elevated : "transparent"; border.color: parent.activeFocus ? Styles.TokenInterface.semantics.primary_default : "transparent" }
                 validator: itp.columnInfo(cell.column).title === "WK" ? null : intValidator
                 onEditingFinished: if (text !== cell.display) cell.model.edit = text
                 Keys.onUpPressed: table.focusCell(cell.row - 1, cell.column)
@@ -189,6 +190,6 @@ Item {
         anchors.centerIn: parent
         visible: itp.weeks === 0 || itp.owner === ""
         text: "Bitte Sportler und Zeitraum wählen."
-        color: palette.placeholderText
+        color: Styles.TokenInterface.semantics.text_muted
     }
 }

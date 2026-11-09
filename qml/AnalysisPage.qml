@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -189,7 +190,7 @@ Page {
                     enabled: gIntensity.checked
                     Label { text: "TÜ" }
                     TextField { id: gExercise; implicitWidth: 44; text: "1"; validator: IntValidator { bottom: 1; top: 45 } }
-                    Label { text: Store.exerciseName(parseInt(gExercise.text) || 0); color: palette.placeholderText }
+                    Label { text: Store.exerciseName(parseInt(gExercise.text) || 0); color: Styles.TokenInterface.semantics.text_muted }
                 }
                 RowLayout {
                     spacing: 8
@@ -245,7 +246,7 @@ Page {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                     font.pixelSize: 11
-                    color: palette.placeholderText
+                    color: Styles.TokenInterface.semantics.text_muted
                     text: "Alle Sportler der Auswahl aus den Einstellungen (Kader, Männer/Frauen)."
                 }
                 IconButton {
@@ -312,7 +313,7 @@ Page {
                     validator: IntValidator { bottom: 1; top: 45 }
                     onEditingFinished: chartTab.reload()
                 }
-                Label { text: Store.exerciseName(parseInt(chEx.text) || 0); color: palette.placeholderText }
+                Label { text: Store.exerciseName(parseInt(chEx.text) || 0); color: Styles.TokenInterface.semantics.text_muted }
                 Item { Layout.fillWidth: true }
                 IconButton {
                     iconName: "file-down"
@@ -384,16 +385,16 @@ Page {
                     const l = []
                     const two = chCompare.checked && chartTab.second.labels
                     const n1 = two ? " 1" : "", n2 = " 2"
-                    if (chMhg.checked) l.push({ name: "MHG" + n1, color: Theme.ink, values: chartTab.first.mhg || [], trend: chTrend.checked })
-                    if (chBw.checked) l.push({ name: "BW" + n1, color: Theme.accent, values: chartTab.first.bw || [], trend: chTrend.checked })
-                    if (two && chMhg.checked) l.push({ name: "MHG" + n2, color: Theme.blue, values: chartTab.second.mhg || [], trend: chTrend.checked })
-                    if (two && chBw.checked) l.push({ name: "BW" + n2, color: Theme.green, values: chartTab.second.bw || [], trend: chTrend.checked })
+                    if (chMhg.checked) l.push({ name: "MHG" + n1, color: Styles.TokenInterface.semantics.chart_series[1], values: chartTab.first.mhg || [], trend: chTrend.checked })
+                    if (chBw.checked) l.push({ name: "BW" + n1, color: Styles.TokenInterface.semantics.primary_default, values: chartTab.first.bw || [], trend: chTrend.checked })
+                    if (two && chMhg.checked) l.push({ name: "MHG" + n2, color: Styles.TokenInterface.semantics.chart_series[2], values: chartTab.second.mhg || [], trend: chTrend.checked })
+                    if (two && chBw.checked) l.push({ name: "BW" + n2, color: Styles.TokenInterface.semantics.chart_series[3], values: chartTab.second.bw || [], trend: chTrend.checked })
                     return l
                 }
                 bars: {
                     const b = []
                     if (chVolume.currentIndex > 0) {
-                        b.push({ name: chVolume.currentText, color: Theme.slate, values: chartTab.first.wh || [] })
+                        b.push({ name: chVolume.currentText, color: Styles.TokenInterface.semantics.chart_muted, values: chartTab.first.wh || [] })
                         if (chCompare.checked && chartTab.second.wh)
                             b.push({ name: chVolume.currentText + " 2", color: "#93c5fd", values: chartTab.second.wh })
                     }

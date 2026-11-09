@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import Trainingsplaner
 import QtQuick.Controls
 
@@ -30,7 +31,7 @@ TextField {
     validator: IntValidator { bottom: 0; top: 999 }
     font.bold: true
     font.strikeout: invalid
-    color: invalid ? Theme.error : palette.text
+    color: invalid ? Styles.TokenInterface.semantics.danger_default : Styles.TokenInterface.semantics.text_default
 
     onTextEdited: {
         const kg = parseInt(text) || 0

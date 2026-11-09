@@ -90,6 +90,7 @@ QtObject {
     // rounded container
     component Radius: QtObject {
         readonly property int r2: 2
+        readonly property int r3: 3
         readonly property int r4: 4
     }
     readonly property Radius radius: Radius {}

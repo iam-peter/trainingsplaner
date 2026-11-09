@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -158,7 +159,7 @@ Page {
             Label {
                 visible: page.maz !== null
                 text: page.maz ? page.maz.from + " – " + page.maz.to + " (" + page.maz.weeks + " Wochen)" : ""
-                color: palette.placeholderText
+                color: Styles.TokenInterface.semantics.text_muted
             }
             Item { Layout.fillWidth: true }
         }
@@ -189,7 +190,7 @@ Page {
                     Label {
                         visible: page.roMode
                         text: "MHG und BW in % der Zielleistung"
-                        color: palette.placeholderText
+                        color: Styles.TokenInterface.semantics.text_muted
                     }
                     IconButton {
                         iconName: "copy"
@@ -248,10 +249,10 @@ Page {
                     Label {
                         text: page.roMode ? "Gewicht in % der Zielleistung, z.B. 70/3/2 75/3/2"
                                           : "Laststufen als kg/Wdh/Sätze, z.B. 80/3/2 85/3/2"
-                        color: palette.placeholderText
+                        color: Styles.TokenInterface.semantics.text_muted
                     }
                 }
-                Label { id: stepsError; color: Theme.error; visible: text !== "" }
+                Label { id: stepsError; color: Styles.TokenInterface.semantics.danger_default; visible: text !== "" }
                 ListView {
                     boundsBehavior: Flickable.StopAtBounds
                     Layout.fillWidth: true
@@ -280,7 +281,7 @@ Page {
                         Label {
                             Layout.preferredWidth: 220
                             text: modelData.wh > 0 ? "WH " + modelData.wh + "   MHG " + modelData.mhg + "   BW " + modelData.bw : ""
-                            color: palette.placeholderText
+                            color: Styles.TokenInterface.semantics.text_muted
                         }
                     }
                 }
@@ -341,7 +342,7 @@ Page {
             }
             Label {
                 text: "Die vorhandenen Werte im Zeitraum werden überschrieben."
-                color: Theme.error
+                color: Styles.TokenInterface.semantics.danger_default
             }
         }
         onAccepted: {
@@ -406,12 +407,12 @@ Page {
                 lines: [
                     { name: "MHG ITP", color: "#a8a29e", values: chartDialog.chartData.itpMhg || [] },
                     { name: "BW ITP", color: "#fdba74", values: chartDialog.chartData.itpBw || [] },
-                    { name: "MHG " + (chartIst.checked ? "Ist" : "Plan"), color: Theme.ink, values: chartDialog.chartData.actMhg || [] },
-                    { name: "BW " + (chartIst.checked ? "Ist" : "Plan"), color: Theme.accent, values: chartDialog.chartData.actBw || [] }
+                    { name: "MHG " + (chartIst.checked ? "Ist" : "Plan"), color: Styles.TokenInterface.semantics.chart_series[1], values: chartDialog.chartData.actMhg || [] },
+                    { name: "BW " + (chartIst.checked ? "Ist" : "Plan"), color: Styles.TokenInterface.semantics.primary_default, values: chartDialog.chartData.actBw || [] }
                 ]
                 bars: [
                     { name: "WH ITP", color: "#cbd5e1", values: chartDialog.chartData.itpWh || [] },
-                    { name: "WH " + (chartIst.checked ? "Ist" : "Plan"), color: Theme.slate, values: chartDialog.chartData.actWh || [] }
+                    { name: "WH " + (chartIst.checked ? "Ist" : "Plan"), color: Styles.TokenInterface.semantics.chart_muted, values: chartDialog.chartData.actWh || [] }
                 ]
             }
         }

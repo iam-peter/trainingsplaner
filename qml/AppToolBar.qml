@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import Trainingsplaner
 
@@ -10,13 +11,13 @@ Pane {
     padding: 0
 
     background: Rectangle {
-        color: Theme.window
+        color: Styles.TokenInterface.semantics.background_default
         Rectangle {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.bottom: parent.bottom
             height: 1
-            color: Theme.line
+            color: Styles.TokenInterface.semantics.stroke_subtle
         }
     }
 }

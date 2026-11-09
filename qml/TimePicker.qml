@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -36,7 +37,7 @@ Popup {
         bottomPadding: 0
         flat: true
         background: Rectangle {
-            color: cell.chosen ? Theme.sh.pickerChosen : cell.hovered ? Theme.sh.pickerHover : "transparent"
+            color: cell.chosen ? Styles.TokenInterface.semantics.picker_chosen : cell.hovered ? Styles.TokenInterface.semantics.picker_hover : "transparent"
             radius: Theme.radius(4)
         }
     }
@@ -48,7 +49,7 @@ Popup {
             Layout.alignment: Qt.AlignTop
             ColumnLayout {
                 spacing: 4
-                Label { text: "Stunde"; font.pixelSize: 11; color: palette.placeholderText }
+                Label { text: "Stunde"; font.pixelSize: 11; color: Styles.TokenInterface.semantics.text_muted }
                 GridLayout {
                     objectName: "hours"
                     columns: 4
@@ -75,7 +76,7 @@ Popup {
             ColumnLayout {
                 spacing: 4
                 Layout.alignment: Qt.AlignTop
-                Label { text: "Minute"; font.pixelSize: 11; color: palette.placeholderText }
+                Label { text: "Minute"; font.pixelSize: 11; color: Styles.TokenInterface.semantics.text_muted }
                 Repeater {
                     model: picker.minutes
                     Cell {

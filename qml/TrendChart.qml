@@ -1,5 +1,6 @@
 import QtCore
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Dialogs
 import Trainingsplaner
@@ -88,7 +89,7 @@ Item {
         onPaint: {
             const ctx = getContext("2d")
             ctx.reset()
-            ctx.fillStyle = palette.base
+            ctx.fillStyle = Styles.TokenInterface.semantics.background_elevated
             ctx.fillRect(0, 0, width, height)
             const font = "12px Inter, sans-serif"
             ctx.font = font
@@ -99,12 +100,12 @@ Item {
             const w = width - left - right, h = height - top - bottom
             if (n === 0 || w <= 0 || h <= 0) {
                 chart.plot = null
-                ctx.fillStyle = palette.placeholderText
+                ctx.fillStyle = Styles.TokenInterface.semantics.text_muted
                 ctx.fillText("Keine Daten", width / 2 - 30, height / 2)
                 return
             }
             if (chart.title !== "") {
-                ctx.fillStyle = palette.text
+                ctx.fillStyle = Styles.TokenInterface.semantics.text_default
                 ctx.font = "bold 13px Inter, sans-serif"
                 ctx.fillText(chart.title, left, 16)
                 ctx.font = font
@@ -130,9 +131,9 @@ Item {
             const yB = v => top + h - v / B.hi * h
 
             // Grid and axes
-            ctx.strokeStyle = palette.mid
+            ctx.strokeStyle = Styles.TokenInterface.semantics.stroke_subtle
             ctx.lineWidth = 1
-            ctx.fillStyle = palette.placeholderText
+            ctx.fillStyle = Styles.TokenInterface.semantics.text_muted
             const axis = L || B
             for (let v = axis.lo; v <= axis.hi + 1e-9; v += axis.step) {
                 const y = L ? yL(v) : yB(v)
@@ -176,7 +177,7 @@ Item {
                     ctx.fillRect(x, yB(v), bw - 1, top + h - yB(v))
                     if (chart.showValues) {
                         ctx.globalAlpha = 1
-                        ctx.fillStyle = palette.text
+                        ctx.fillStyle = Styles.TokenInterface.semantics.text_default
                         ctx.fillText(v, x + bw / 2, yB(v) - 3)
                         ctx.fillStyle = b.color
                         ctx.globalAlpha = 0.55
@@ -213,7 +214,7 @@ Item {
                     if (v === null || v === undefined || isNaN(v)) continue
                     ctx.beginPath(); ctx.arc(xAt(i), yL(v), 3, 0, 2 * Math.PI); ctx.fill()
                     if (chart.showValues) {
-                        ctx.fillStyle = palette.text
+                        ctx.fillStyle = Styles.TokenInterface.semantics.text_default
                         ctx.fillText(v, xAt(i), yL(v) - 7)
                         ctx.fillStyle = l.color
                     }
@@ -249,7 +250,7 @@ Item {
                 ctx.globalAlpha = it.bar ? 0.55 : 1
                 ctx.fillRect(lx, ly - 9, 14, it.bar ? 10 : 3)
                 ctx.globalAlpha = 1
-                ctx.fillStyle = palette.text
+                ctx.fillStyle = Styles.TokenInterface.semantics.text_default
                 ctx.fillText(it.name, lx + 20, ly)
                 lx += 28 + ctx.measureText(it.name).width
             }
@@ -277,7 +278,7 @@ Item {
         y: chart.plot ? chart.plot.top : 0
         width: 1
         height: chart.plot ? chart.plot.height : 0
-        color: palette.placeholderText
+        color: Styles.TokenInterface.semantics.text_muted
     }
     Rectangle {
         id: valueBox
@@ -289,8 +290,8 @@ Item {
         width: valueColumn.implicitWidth + 16
         height: valueColumn.implicitHeight + 12
         radius: Theme.radius(6)
-        color: palette.toolTipBase
-        border.color: palette.mid
+        color: Styles.TokenInterface.semantics.primary_default
+        border.color: Styles.TokenInterface.semantics.stroke_subtle
 
         Column {
             id: valueColumn
@@ -300,7 +301,7 @@ Item {
             Label {
                 text: chart.hoverIndex >= 0 ? chart.labels[chart.hoverIndex] || "" : ""
                 font.bold: true
-                color: palette.toolTipText
+                color: Styles.TokenInterface.semantics.text_on_primary
             }
             Repeater {
                 model: chart.hoverIndex >= 0 ? chart.lines.concat(chart.bars) : []
@@ -317,7 +318,7 @@ Item {
                     Label {
                         objectName: "valueLine"
                         text: modelData.name + ": " + chart.valueText(modelData.values[chart.hoverIndex])
-                        color: palette.toolTipText
+                        color: Styles.TokenInterface.semantics.text_on_primary
                     }
                 }
             }

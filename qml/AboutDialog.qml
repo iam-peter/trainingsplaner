@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -45,7 +46,7 @@ AppDialog {
                     Layout.fillWidth: true
                     Layout.topMargin: 4
                     wrapMode: Text.Wrap
-                    color: palette.placeholderText
+                    color: Styles.TokenInterface.semantics.text_muted
                     text: "Wochenpläne, Planung, Analysen und Wettkämpfe für das Gewichtheben. Freie Software."
                 }
             }
@@ -63,7 +64,7 @@ AppDialog {
                     objectName: "updateStatus"
                     wrapMode: Text.Wrap
                     font.bold: dialog.state === "available"
-                    color: dialog.state === "error" ? Theme.error : palette.windowText
+                    color: dialog.state === "error" ? Styles.TokenInterface.semantics.danger_default : Styles.TokenInterface.semantics.text_default
                     text: {
                         switch (dialog.state) {
                         case "checking": return "Suche nach einer neuen Version …"
@@ -117,7 +118,7 @@ AppDialog {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                     font.pixelSize: 11
-                    color: palette.placeholderText
+                    color: Styles.TokenInterface.semantics.text_muted
                     text: "Höchstens einmal am Tag fragt das Programm bei GitHub nach der neuesten Version. GitHub erfährt dabei die Programmversion und, wie bei jedem Abruf einer Webseite, die IP-Adresse; Trainingsdaten werden nie übertragen."
                 }
             }
@@ -132,7 +133,7 @@ AppDialog {
             Label {
                 textFormat: Text.StyledText
                 text: "<a href=\"" + Updater.issueUrl + "\">Auf GitHub melden</a> (GitHub-Konto nötig)"
-                linkColor: Theme.link
+                linkColor: Styles.TokenInterface.semantics.text_default
                 onLinkActivated: (link) => Qt.openUrlExternally(link)
                 HoverHandler { cursorShape: Qt.PointingHandCursor }
             }
@@ -140,7 +141,7 @@ AppDialog {
             Label {
                 textFormat: Text.StyledText
                 text: "<a href=\"https://iam-peter.github.io/trainingsplaner/\">iam-peter.github.io/trainingsplaner</a>"
-                linkColor: Theme.link
+                linkColor: Styles.TokenInterface.semantics.text_default
                 onLinkActivated: (link) => Qt.openUrlExternally(link)
                 HoverHandler { cursorShape: Qt.PointingHandCursor }
             }
@@ -148,7 +149,7 @@ AppDialog {
             Label {
                 textFormat: Text.StyledText
                 text: "<a href=\"https://github.com/iam-peter/trainingsplaner\">github.com/iam-peter/trainingsplaner</a>"
-                linkColor: Theme.link
+                linkColor: Styles.TokenInterface.semantics.text_default
                 onLinkActivated: (link) => Qt.openUrlExternally(link)
                 HoverHandler { cursorShape: Qt.PointingHandCursor }
             }
@@ -156,7 +157,7 @@ AppDialog {
             Label {
                 Layout.fillWidth: true
                 text: Updater.systemInfo
-                color: palette.placeholderText
+                color: Styles.TokenInterface.semantics.text_muted
                 wrapMode: Text.Wrap
             }
         }
@@ -165,11 +166,11 @@ AppDialog {
             Layout.fillWidth: true
             wrapMode: Text.Wrap
             font.pixelSize: 11
-            color: palette.placeholderText
+            color: Styles.TokenInterface.semantics.text_muted
             textFormat: Text.StyledText
             text: "MIT-Lizenz. Verwendet Qt (LGPL v3), die Schriften Inter und JetBrains Mono (SIL Open Font License) "
                   + "und Lucide-Symbole (ISC). <a href=\"https://iam-peter.github.io/trainingsplaner/hinweise.html\">Hinweise und Lizenzen</a>"
-            linkColor: Theme.link
+            linkColor: Styles.TokenInterface.semantics.text_default
             onLinkActivated: (link) => Qt.openUrlExternally(link)
         }
     }

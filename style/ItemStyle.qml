@@ -59,6 +59,24 @@ QtObject {
         padding.right: Primitives.spacing.sp100 + Primitives.size.s16 + Primitives.spacing.sp100
     }
 
+    // A row of the program's lists: rounded a little less, and under the
+    // pointer or pressed tinted grey instead of the accent, so the chosen
+    // row stays the one that stands out
+    readonly property Style listRow: Style {
+        radius.value: Primitives.radius.r3
+        height: 28
+        width: 0
+
+        Style {
+            state: StyleState.Hover
+            background: Qt.tint(root.s.background_elevated, Qt.rgba(0.5, 0.5, 0.5, 0.12))
+        }
+        Style {
+            state: StyleState.Active
+            background: Qt.tint(root.s.background_elevated, Qt.rgba(0.5, 0.5, 0.5, 0.25))
+        }
+    }
+
     readonly property Style highlighted: Style {
         background: root.s.background_accent
     }

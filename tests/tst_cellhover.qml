@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import Trainingsplaner
+import TrainingsplanerStyle as Styles
 
 // Moving slowly over the lines of a session keeps the cell hovered: no
 // pixel between two lines where the background changes
@@ -33,10 +34,10 @@ Item {
             waitForRendering(cell)
             for (let y = 18; y < 100; ++y) {
                 mouseMove(cell, 60, y)
-                verify(Qt.colorEqual(cell.color, Theme.cellHover), "not hovered at y " + y)
+                verify(Qt.colorEqual(cell.color, Styles.TokenInterface.semantics.cell_hover), "not hovered at y " + y)
             }
             mouseMove(cell, 60, 250)   // outside
-            verify(Qt.colorEqual(cell.color, Theme.cell))
+            verify(Qt.colorEqual(cell.color, Styles.TokenInterface.semantics.cell_default))
         }
     }
 }

@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -145,7 +146,7 @@ EditorDialog {
                 font.bold: true
                 font.pixelSize: 15
                 validator: IntValidator { bottom: 0; top: 99 }
-                color: dialog.valid ? palette.text : Theme.error
+                color: dialog.valid ? Styles.TokenInterface.semantics.text_default : Styles.TokenInterface.semantics.danger_default
                 onEditingFinished: dialog.switchTo(parseInt(text) || 0)
                 ToolTip.visible: activeFocus
                 ToolTip.text: "Andere Übung: Nummer eingeben und Enter"
@@ -167,7 +168,7 @@ EditorDialog {
                 Layout.fillWidth: true
                 text: dialog.valid ? Store.exerciseName(dialog.exercise)
                       : dialog.exercise > 0 ? "Keine Übung mit Gewichten" : "Übung wählen"
-                color: dialog.valid ? palette.text : Theme.error
+                color: dialog.valid ? Styles.TokenInterface.semantics.text_default : Styles.TokenInterface.semantics.danger_default
                 font.pixelSize: 15
                 font.bold: true
                 elide: Text.ElideRight
@@ -242,7 +243,7 @@ EditorDialog {
                     Layout.topMargin: 24
                     horizontalAlignment: Text.AlignHCenter
                     text: "Diese Übung ist in der Woche noch nicht geplant."
-                    color: palette.placeholderText
+                    color: Styles.TokenInterface.semantics.text_muted
                 }
 
                 IconButton {
@@ -255,7 +256,7 @@ EditorDialog {
             }
         }
 
-        Rectangle { Layout.fillWidth: true; height: 1; color: palette.mid }
+        Rectangle { Layout.fillWidth: true; height: 1; color: Styles.TokenInterface.semantics.stroke_subtle }
 
         RowLayout {
             Layout.fillWidth: true
@@ -274,7 +275,7 @@ EditorDialog {
                 visible: itp !== null && itp.has
                 text: itp ? "ITP:  WH " + itp.wh + "  MHG " + itp.mhg + "  BW " + itp.bw
                             + (itp.steps !== "" ? "   Laststufen ITP: " + itp.steps : "") : ""
-                color: Theme.accent
+                color: Styles.TokenInterface.semantics.primary_default
                 font.bold: true
             }
         }

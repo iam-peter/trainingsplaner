@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Controls.impl
 import Trainingsplaner
@@ -28,7 +29,7 @@ TextField {
         width: 16
         height: 16
         source: "qrc:/qt/qml/Trainingsplaner/icons/search.svg"
-        color: field.palette.placeholderText
+        color: Styles.TokenInterface.semantics.text_muted
     }
 
     IconToolButton {

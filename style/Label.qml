@@ -4,6 +4,6 @@ import QtQuick.Templates as T
 T.Label {
     id: control
 
-    color: control.palette.windowText
+    color: TokenInterface.semantics.text_default
     linkColor: TokenInterface.semantics.text_default
 }

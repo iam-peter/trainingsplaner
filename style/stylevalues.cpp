@@ -1,5 +1,8 @@
 #include "stylevalues.h"
 
+#include <QFontInfo>
+#include <QGuiApplication>
+
 namespace {
 
 template<typename T>
@@ -10,6 +13,11 @@ void take(std::optional<T> &slot, const std::optional<T> &later)
 }
 
 } // namespace
+
+int StyleFont::defaultSize()
+{
+    return QFontInfo(QGuiApplication::font()).pixelSize();
+}
 
 void StyleFont::overlay(const StyleFont &later)
 {

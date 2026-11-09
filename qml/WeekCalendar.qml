@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 
@@ -54,7 +55,7 @@ Popup {
     }
 
     function bandColor(m) {
-        return m === monday ? Theme.sh.pickerChosen : m === hovered ? Theme.sh.pickerHover : "transparent"
+        return m === monday ? Styles.TokenInterface.semantics.picker_chosen : m === hovered ? Styles.TokenInterface.semantics.picker_hover : "transparent"
     }
 
     onClosed: hovered = ""

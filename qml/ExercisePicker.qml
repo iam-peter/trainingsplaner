@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -53,7 +54,7 @@ Popup {
                 Label {
                     Layout.preferredWidth: 46
                     text: modelData.group <= 7 ? "K" + modelData.group : "AMKT"
-                    color: palette.placeholderText
+                    color: Styles.TokenInterface.semantics.text_muted
                     font.pixelSize: 11
                 }
                 Repeater {

@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -77,10 +78,10 @@ Popup {
                 opacity: model.month === popup.month ? 1 : 0.4
                 text: model.day
                 font.bold: model.today
-                color: palette.text
+                color: Styles.TokenInterface.semantics.text_default
                 // Chosen and under the pointer as in the other pickers
                 background: Rectangle {
-                    color: chosen ? Theme.sh.pickerChosen : dayHover.hovered ? Theme.sh.pickerHover : "transparent"
+                    color: chosen ? Styles.TokenInterface.semantics.picker_chosen : dayHover.hovered ? Styles.TokenInterface.semantics.picker_hover : "transparent"
                     radius: Theme.radius(4)
                 }
                 HoverHandler {

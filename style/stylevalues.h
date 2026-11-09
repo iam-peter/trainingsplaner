@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QColor>
+#include <QFont>
 #include <QObject>
 #include <QtQml/qqml.h>
 
@@ -26,18 +27,21 @@ public:
     void setColor(const QColor &value) { m_color = value; }
     void resetColor() { m_color.reset(); }
 
-    // Pixel size; 0 keeps the control's font size
-    int size() const { return m_size.value_or(0); }
+    // Pixel size; unset, the application font's
+    int size() const { return m_size.value_or(defaultSize()); }
     void setSize(int value) { m_size = value; }
     void resetSize() { m_size.reset(); }
 
-    // Font.Weight; 0 keeps the control's font weight
-    int weight() const { return m_weight.value_or(0); }
+    // Font.Weight; unset, normal. A control reads its font before its
+    // styles are in place, so unset has to be a font's own default too.
+    int weight() const { return m_weight.value_or(QFont::Normal); }
     void setWeight(int value) { m_weight = value; }
     void resetWeight() { m_weight.reset(); }
 
     // Later set members win
     void overlay(const StyleFont &later);
+
+    static int defaultSize();
 
     friend bool operator==(const StyleFont &a, const StyleFont &b) { return a.m_color == b.m_color && a.m_size == b.m_size && a.m_weight == b.m_weight; }
     friend bool operator!=(const StyleFont &a, const StyleFont &b) { return !(a == b); }

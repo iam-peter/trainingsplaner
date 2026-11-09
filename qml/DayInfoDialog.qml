@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
@@ -137,10 +138,10 @@ AppDialog {
         Label {
             visible: dialog.error !== ""
             text: dialog.error
-            color: Theme.error
+            color: Styles.TokenInterface.semantics.danger_default
         }
 
-        Rectangle { Layout.fillWidth: true; height: 1; color: palette.mid }
+        Rectangle { Layout.fillWidth: true; height: 1; color: Styles.TokenInterface.semantics.stroke_subtle }
 
         ListView {
             boundsBehavior: Flickable.StopAtBounds
@@ -158,7 +159,7 @@ AppDialog {
                 contentItem: RowLayout {
                     spacing: 8
                     Label { text: modelData.dateText; Layout.preferredWidth: 150 }
-                    Label { text: modelData.time; Layout.preferredWidth: 60; color: palette.placeholderText }
+                    Label { text: modelData.time; Layout.preferredWidth: 60; color: Styles.TokenInterface.semantics.text_muted }
                     Label { text: modelData.name; Layout.fillWidth: true }
                     Label { text: modelData.valueText + " " + modelData.unit; font.bold: true }
                     IconToolButton {
@@ -176,7 +177,7 @@ AppDialog {
                 anchors.centerIn: parent
                 visible: dialog.entries.length === 0
                 text: "Keine Einträge in dieser Woche."
-                color: palette.placeholderText
+                color: Styles.TokenInterface.semantics.text_muted
             }
         }
 

@@ -1,4 +1,5 @@
 import QtQuick
+import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 
 // Menu entry that shows its keyboard shortcut on the right. The style
@@ -24,7 +25,7 @@ MenuItem {
         // Our styles name their text colour; the others draw menu text in
         // the window text colour (the style's own label colour cannot be
         // followed in a binding)
-        color: item.foreground !== undefined ? item.foreground : item.palette.windowText
+        color: item.foreground !== undefined ? item.foreground : Styles.TokenInterface.semantics.text_default
         opacity: 0.6
     }
 }
