@@ -46,5 +46,21 @@ Item {
             tryVerify(() => !Theme.dark)
             verify(systemPalette.window.hslLightness > 0.5)
         }
+
+        // The old program's colours: light, beige, yellow session boxes;
+        // back to the usual ones when another scheme is chosen
+        function test_classicColors() {
+            const before = Store.colorScheme
+            Store.colorScheme = "classic"
+            verify(Store.classicColors)
+            tryCompare(Theme, "cell", "#fff4bc")
+            verify(!Theme.dark)
+            compare(Theme.window, "#ece9d8")
+            compare(systemPalette.window, "#ece9d8")   // the system dialogs too
+            Store.colorScheme = "light"
+            verify(!Store.classicColors)
+            tryCompare(Theme, "window", "#ffffff")
+            Store.colorScheme = before
+        }
     }
 }

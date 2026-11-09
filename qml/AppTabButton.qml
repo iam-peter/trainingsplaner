@@ -23,6 +23,6 @@ TabButton {
         // the border
         border.width: (Theme.dark && control.checked) || control.visualFocus ? 1 : 0
         border.color: control.visualFocus ? Theme.sh.ring : Theme.sh.input
-        color: control.checked ? (Theme.dark ? Theme.sh.inputBackground : Theme.sh.background) : "transparent"
+        color: control.checked ? (Theme.dark ? Theme.sh.inputBackground : Theme.sh.card) : "transparent"
     }
 }

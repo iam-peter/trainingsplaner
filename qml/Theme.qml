@@ -8,6 +8,12 @@ import TrainingsplanerStyle as Style
 // tabs, highlights) for light and dark mode, from the style's tokens.
 QtObject {
     readonly property var sh: Style.Tokens
+    // The old program's colours, when chosen as colour scheme
+    readonly property Binding classicColors: Binding {
+        target: Style.Tokens
+        property: "classic"
+        value: Store.classicColors
+    }
     // As the style decides it
     readonly property bool dark: sh.dark
 
@@ -40,10 +46,10 @@ QtObject {
     readonly property color toolTipBase: sh.primary
     readonly property color toolTipText: sh.primaryForeground
 
-    readonly property color cell: sh.card
-    readonly property color cellHover: sh.accent
-    readonly property color cellBorder: sh.border
-    readonly property color cellBorderHover: sh.ring
+    readonly property color cell: sh.cell
+    readonly property color cellHover: sh.cellHover
+    readonly property color cellBorder: sh.cellBorder
+    readonly property color cellBorderHover: sh.cellBorderHover
     readonly property color cellText: sh.foreground
     readonly property color cellMuted: sh.mutedForeground
     readonly property color lineOutline: sh.ring

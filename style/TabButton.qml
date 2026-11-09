@@ -41,7 +41,7 @@ T.TabButton {
     background: Rectangle {
         implicitHeight: 28
         radius: Tokens.radiusMd
-        color: control.checked ? (Tokens.dark ? Tokens.inputBackground : Tokens.background) : "transparent"
+        color: control.checked ? (Tokens.dark ? Tokens.inputBackground : Tokens.card) : "transparent"
         border.width: (control.checked && Tokens.dark) || control.visualFocus ? 1 : 0
         border.color: control.visualFocus ? Tokens.ring : Tokens.input
     }

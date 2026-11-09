@@ -912,6 +912,11 @@ QString Store::colorScheme() const
     return ColorScheme::saved();
 }
 
+bool Store::classicColors() const
+{
+    return ColorScheme::active() == QLatin1String("classic");
+}
+
 void Store::setColorScheme(const QString &scheme)
 {
     if (scheme == colorScheme())

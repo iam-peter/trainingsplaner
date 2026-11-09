@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
                                            QStringLiteral("Trainingseinheit (1:2 = Tag:TE) oder Übung (ex:8) öffnen."),
                                            QStringLiteral("tag:te"));
     const QCommandLineOption schemeOption(QStringLiteral("farbschema"),
-                                          QStringLiteral("Farbschema für diesen Start, unabhängig von der Einstellung: hell oder dunkel."),
+                                          QStringLiteral("Farbschema für diesen Start, unabhängig von der Einstellung: hell, dunkel oder klassisch."),
                                           QStringLiteral("schema"));
     const QCommandLineOption checkUpdateOption(QStringLiteral("check-update"),
                                                QStringLiteral("Neueste Version bei GitHub erfragen und beenden."));
@@ -105,7 +105,9 @@ int main(int argc, char *argv[])
     // The scheme chosen in the settings; --farbschema only for this start
     QString scheme = ColorScheme::saved();
     if (parser.isSet(schemeOption))
-        scheme = parser.value(schemeOption) == QLatin1String("dunkel") ? QStringLiteral("dark") : QStringLiteral("light");
+        scheme = parser.value(schemeOption) == QLatin1String("dunkel")       ? QStringLiteral("dark")
+                 : parser.value(schemeOption) == QLatin1String("klassisch") ? QStringLiteral("classic")
+                                                                           : QStringLiteral("light");
     ColorScheme::apply(scheme);
 
     // The program's own style; what it leaves out comes from Basic

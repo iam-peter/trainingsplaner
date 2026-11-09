@@ -142,7 +142,7 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `--page sportler\|planung\|analyse\|wettkaempfe\|einstellungen` | start on that page |
 | `--open 1:2`, `ex:8`, `hist:8`, `chart:8` | open a session (day:number), an exercise's week, history or chart |
 | `--page planung --open maz\|itp\|ro\|laststufen`, `--page analyse --open individual\|group\|check\|chart` | open a tab |
-| `--farbschema hell\|dunkel` | light or dark colours for this start, regardless of the setting (Einstellungen › Allgemein › Farbschema) |
+| `--farbschema hell\|dunkel\|klassisch` | light, dark or the old program's colours for this start, regardless of the setting (Einstellungen › Allgemein › Farbschema) |
 | `--grab <file.png>` | save a screenshot and exit (for testing) |
 | `--check-update` | print the latest release and exit (0 found, 2 GitHub answered without one, 1 unreachable) |
 

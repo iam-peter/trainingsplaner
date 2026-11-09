@@ -362,7 +362,7 @@ AppDialog {
                 RowLayout {
                     Repeater {
                         model: [{ value: "system", text: "wie das System" }, { value: "light", text: "Hell" },
-                                { value: "dark", text: "Dunkel" }]
+                                { value: "dark", text: "Dunkel" }, { value: "classic", text: "Klassisch" }]
                         RadioButton {
                             required property var modelData
                             objectName: "scheme_" + modelData.value
@@ -371,6 +371,14 @@ AppDialog {
                             onToggled: if (checked) Store.colorScheme = modelData.value
                         }
                     }
+                }
+                Label {
+                    Layout.columnSpan: 2
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                    font.pixelSize: 11
+                    color: palette.placeholderText
+                    text: "Klassisch: die Farben des alten Programms, mit den gelben Kästen im Wochenplan."
                 }
                 Label {
                     Layout.columnSpan: 2
