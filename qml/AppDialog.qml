@@ -79,6 +79,10 @@ Dialog {
                             titleWidth,
                             buttonsWidth)
     modal: true
+    // Blocking: a click on the dimmed window does nothing (Qt's dialogs
+    // close on it by default, losing what was entered); the dialog's
+    // buttons or Esc close it
+    closePolicy: Popup.CloseOnEscape
     focus: true
 
     // A dialog keeps its size while open: tab pages that are not shown are

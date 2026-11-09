@@ -21,8 +21,10 @@ MenuItem {
         visible: item.keys !== ""
         text: item.keys
         font: item.font
-        color: item.contentItem && item.contentItem.color !== undefined ? item.contentItem.color
-                                                                          : item.palette.windowText
+        // Our styles name their text colour; the others draw menu text in
+        // the window text colour (the style's own label colour cannot be
+        // followed in a binding)
+        color: item.foreground !== undefined ? item.foreground : item.palette.windowText
         opacity: 0.6
     }
 }

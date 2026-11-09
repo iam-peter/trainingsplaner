@@ -261,14 +261,23 @@ AppDialog {
 
             // Categories of extra info
             ColumnLayout {
+                id: categoryTab
                 spacing: 4
+                // Column widths shared by the headings and the rows, wide
+                // enough in every style; the name takes the rest
+                readonly property int wCode: 72
+                readonly property int wUnit: 72
+                readonly property int wDecimals: 112
+                readonly property int wWeek: 136
+                readonly property int wRemove: 32
                 RowLayout {
                     spacing: 8
-                    Label { text: "Bezeichnung"; Layout.preferredWidth: 180; font.pixelSize: 11 }
-                    Label { text: "Kürzel"; Layout.preferredWidth: 60; font.pixelSize: 11 }
-                    Label { text: "Einheit"; Layout.preferredWidth: 60; font.pixelSize: 11 }
-                    Label { text: "Nachkomma"; Layout.preferredWidth: 80; font.pixelSize: 11 }
-                    Label { text: "Woche"; Layout.preferredWidth: 100; font.pixelSize: 11 }
+                    Layout.rightMargin: categoryTab.wRemove + 8
+                    Label { text: "Bezeichnung"; Layout.fillWidth: true; font.pixelSize: 11 }
+                    Label { text: "Kürzel"; Layout.preferredWidth: categoryTab.wCode; font.pixelSize: 11 }
+                    Label { text: "Einheit"; Layout.preferredWidth: categoryTab.wUnit; font.pixelSize: 11 }
+                    Label { text: "Nachkomma"; Layout.preferredWidth: categoryTab.wDecimals; font.pixelSize: 11 }
+                    Label { text: "Woche"; Layout.preferredWidth: categoryTab.wWeek; font.pixelSize: 11 }
                 }
                 ListView {
                     boundsBehavior: Flickable.StopAtBounds
@@ -276,9 +285,12 @@ AppDialog {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 280
                     clip: true
+                    // The normal form spacing between the rows
+                    spacing: 8
                     model: ListModel { id: categoryModel }
                     ScrollBar.vertical: ScrollBar {}
                     delegate: RowLayout {
+                        width: ListView.view.width
                         required property int index
                         required property string name
                         required property string code
@@ -286,19 +298,25 @@ AppDialog {
                         required property int decimals
                         required property string aggregate
                         spacing: 8
-                        TextField { Layout.preferredWidth: 180; text: name; onTextEdited: categoryModel.setProperty(index, "name", text) }
-                        TextField { Layout.preferredWidth: 60; text: code; onTextEdited: categoryModel.setProperty(index, "code", text) }
-                        TextField { Layout.preferredWidth: 60; text: unit; onTextEdited: categoryModel.setProperty(index, "unit", text) }
-                        SpinBox { Layout.preferredWidth: 80; from: 0; to: 3; value: decimals; onValueModified: categoryModel.setProperty(index, "decimals", value) }
+                        TextField { Layout.fillWidth: true; text: name; onTextEdited: categoryModel.setProperty(index, "name", text) }
+                        TextField { Layout.preferredWidth: categoryTab.wCode; text: code; onTextEdited: categoryModel.setProperty(index, "code", text) }
+                        TextField { Layout.preferredWidth: categoryTab.wUnit; text: unit; onTextEdited: categoryModel.setProperty(index, "unit", text) }
+                        SpinBox { Layout.preferredWidth: categoryTab.wDecimals; from: 0; to: 3; value: decimals; onValueModified: categoryModel.setProperty(index, "decimals", value) }
                         ComboBox {
-                            Layout.preferredWidth: 100
+                            Layout.preferredWidth: categoryTab.wWeek
                             model: [{ text: "Maximum", v: "MAX" }, { text: "Minimum", v: "MIN" }, { text: "Summe", v: "SUM" }]
                             textRole: "text"
                             valueRole: "v"
                             Component.onCompleted: currentIndex = indexOfValue(aggregate)
                             onActivated: categoryModel.setProperty(index, "aggregate", currentValue)
                         }
-                        IconToolButton { iconName: "trash-2"; toolTip: "Entfernen"; onClicked: categoryModel.remove(index) }
+                        IconToolButton {
+                            Layout.preferredWidth: categoryTab.wRemove
+                            Layout.preferredHeight: categoryTab.wRemove
+                            iconName: "trash-2"
+                            toolTip: "Entfernen"
+                            onClicked: categoryModel.remove(index)
+                        }
                     }
                 }
                 IconButton {
