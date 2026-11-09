@@ -20,9 +20,12 @@
   --soft: #f5f5f5;
   --accent: #2a2a2a;
   --on-accent: #fafafa;
+  color-scheme: light;
 }
+/* Dark by the system's setting, unless the switch chose light; or dark
+   by the switch */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #1e1e1e;
     --fg: #e6e6e6;
     --muted: #a0a0a0;
@@ -30,7 +33,18 @@
     --soft: #262626;
     --accent: #e0e0e0;
     --on-accent: #1e1e1e;
+    color-scheme: dark;
   }
+}
+:root[data-theme="dark"] {
+  --bg: #1e1e1e;
+  --fg: #e6e6e6;
+  --muted: #a0a0a0;
+  --line: #3a3a3a;
+  --soft: #262626;
+  --accent: #e0e0e0;
+  --on-accent: #1e1e1e;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -54,6 +68,27 @@ nav .brand img { width: 26px; height: 26px; }
 nav .links { margin-left: auto; display: flex; gap: 20px; }
 nav .links a { color: var(--muted); text-decoration: none; font-size: 0.95rem; }
 nav .links a:hover { color: var(--fg); }
+/* Sun in dark mode, moon in light: the design a click switches to */
+.theme-switch {
+  display: grid; place-items: center; width: 34px; height: 34px; margin-left: -6px;
+  padding: 0; border: 1px solid transparent; border-radius: 8px;
+  background: none; color: var(--muted); cursor: pointer;
+}
+.theme-switch:hover { color: var(--fg); border-color: var(--line); }
+.theme-switch svg { width: 18px; height: 18px; }
+/* Phones: no room for the links beside the name; the page's own buttons
+   lead to the download and the source */
+@media (max-width: 560px) {
+  nav .links { display: none; }
+  .theme-switch { margin-left: auto; }
+}
+.theme-switch .sun { display: none; }
+:root[data-theme="dark"] .theme-switch .sun { display: block; }
+:root[data-theme="dark"] .theme-switch .moon { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-switch .sun { display: block; }
+  :root:not([data-theme="light"]) .theme-switch .moon { display: none; }
+}
 
 header.hero { padding: 64px 0 8px; }
 h1 { font-weight: 600; font-size: clamp(2rem, 5vw, 2.8rem); line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 12px; }

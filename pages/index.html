@@ -10,6 +10,7 @@
 <meta property="og:image" content="https://iam-peter.github.io/trainingsplaner/week.png">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
 </head>
 <body>
 
@@ -22,6 +23,10 @@
       <a href="#fragen">Fragen</a>
       <a href="https://github.com/iam-peter/trainingsplaner">GitHub</a>
     </div>
+    <button class="theme-switch" id="theme-switch" type="button" aria-label="Dunkles Design">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /></svg>
+    </button>
   </div>
 </nav>
 
@@ -35,8 +40,8 @@
       <a class="button" href="https://github.com/iam-peter/trainingsplaner">Quellcode</a>
     </div>
     <p class="release-info" id="release-info"></p>
-    <img class="shot" src="week.png" width="1366" height="900"
-         alt="Wochenplan eines Sportlers mit Trainingseinheiten von Montag bis Sonnabend und der Wochenübersicht K1 bis K7">
+    <img class="shot" src="week-schemes.png" width="1366" height="900"
+         alt="Wochenplan eines Sportlers mit Trainingseinheiten von Montag bis Sonnabend und der Wochenübersicht K1 bis K7, in drei Streifen hell, dunkel und klassisch">
   </header>
 
   <section id="funktionen">
