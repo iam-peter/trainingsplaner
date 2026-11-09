@@ -116,15 +116,12 @@ Page {
             anchors.fill: parent
             anchors.leftMargin: 8
             anchors.rightMargin: 8
-            ComboBox {
-                id: compAthleteBox
+            ValueComboBox {
                 Layout.preferredWidth: 220
                 model: Store.selectableAthletes
-                textRole: "displayName"
-                valueRole: "id"
-                currentIndex: (compAthleteBox.count, compAthleteBox.indexOfValue(page.athleteId))
+                value: page.athleteId
                 displayText: currentIndex < 0 ? "Sportler wählen" : currentText
-                onActivated: page.athleteId = currentValue
+                onChosen: (v) => page.athleteId = v
             }
             AppTabBar {
                 id: tabs

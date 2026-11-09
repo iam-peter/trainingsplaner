@@ -72,6 +72,7 @@ qt_add_qml_module(tpqml
         qml/TimePicker.qml
         qml/TimeField.qml
         qml/WeekField.qml
+        qml/ValueComboBox.qml
         qml/SearchField.qml
         qml/WeekPage.qml
         qml/SessionCell.qml

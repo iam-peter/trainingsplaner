@@ -190,15 +190,13 @@ Page {
             // The fullest toolbar: tight gaps, the separators group it
             spacing: 4
 
-            ComboBox {
+            ValueComboBox {
                 id: athleteBox
                 Layout.preferredWidth: 220
                 model: Store.selectableAthletes
-                textRole: "displayName"
-                valueRole: "id"
-                currentIndex: (athleteBox.count, athleteBox.indexOfValue(page.athleteId))
+                value: page.athleteId
                 displayText: currentIndex < 0 ? "Sportler wählen" : currentText
-                onActivated: page.athleteId = currentValue
+                onChosen: (v) => page.athleteId = v
             }
 
             ToolSeparator {}

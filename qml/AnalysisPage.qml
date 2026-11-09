@@ -87,14 +87,11 @@ Page {
                     width: parent.width
                     spacing: 8
                     Label { text: "Sportler"; font.bold: true }
-                    ComboBox {
-                        id: iAthlete
+                    ValueComboBox {
                         Layout.fillWidth: true
                         model: Store.selectableAthletes
-                        textRole: "displayName"
-                        valueRole: "id"
-                        currentIndex: (iAthlete.count, iAthlete.indexOfValue(page.athleteId))
-                        onActivated: page.athleteId = currentValue
+                        value: page.athleteId
+                        onChosen: (v) => page.athleteId = v
                     }
                     Label { text: "Zeitraum"; font.bold: true }
                     ComboBox {
@@ -291,14 +288,11 @@ Page {
             }
             RowLayout {
                 spacing: 8
-                ComboBox {
-                    id: chAthlete
+                ValueComboBox {
                     implicitWidth: 180
                     model: Store.selectableAthletes
-                    textRole: "displayName"
-                    valueRole: "id"
-                    currentIndex: (chAthlete.count, chAthlete.indexOfValue(page.athleteId))
-                    onActivated: { page.athleteId = currentValue; chartTab.reload() }
+                    value: page.athleteId
+                    onChosen: (v) => { page.athleteId = v; chartTab.reload() }
                 }
                 ComboBox {
                     id: chMaz

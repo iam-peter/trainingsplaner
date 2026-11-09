@@ -125,29 +125,21 @@ Page {
                 checked: page.roMode
                 onToggled: if (checked) page.roMode = true
             }
-            ComboBox {
-                id: planAthleteBox
+            ValueComboBox {
                 visible: !page.roMode
                 implicitWidth: 200
                 model: Store.selectableAthletes
-                textRole: "displayName"
-                valueRole: "id"
-                currentIndex: (planAthleteBox.count, planAthleteBox.indexOfValue(page.athleteId))
-                onActivated: page.athleteId = currentValue
+                value: page.athleteId
+                onChosen: (v) => page.athleteId = v
             }
-            ComboBox {
+            ValueComboBox {
                 id: mazBox
                 objectName: "mazBox"
                 implicitWidth: 260
                 model: (page.roMode ? [] : [{ id: "", displayName: "eigener Zeitraum" }]).concat(page.mazChoices)
-                textRole: "displayName"
-                valueRole: "id"
-                // Also computed again once the list has changed: switching
-                // ITP/RO chose the period before the list had switched, the
-                // MAZ was not found, and the box showed "eigener Zeitraum"
-                currentIndex: (mazBox.count, mazBox.indexOfValue(page.mazId))
-                displayText: currentIndex < 0 ? (page.roMode ? "MAZ wählen" : "eigener Zeitraum") : currentText
-                onActivated: page.chooseMaz(currentValue)
+                value: page.mazId
+                displayText: currentIndex < 0 ? "MAZ wählen" : currentText
+                onChosen: (v) => page.chooseMaz(v)
             }
             Label { visible: page.maz === null && !page.roMode; text: "ab" }
             WeekField {
