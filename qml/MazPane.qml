@@ -63,10 +63,10 @@ RowLayout {
                 Layout.fillHeight: true
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
-                // With the rows' 1 px inset, the selection keeps 3 px to the
+                // With the rows' inset, the selection keeps the same gap to the
                 // border on every side
-                topMargin: 1
-                bottomMargin: 1
+                topMargin: Theme.listMargin
+                bottomMargin: Theme.listMargin
                 model: Plan.mazList
                 ScrollBar.vertical: ScrollBar {}
                 delegate: ListRow {

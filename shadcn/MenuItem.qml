@@ -11,10 +11,10 @@ T.MenuItem {
                              implicitContentHeight + topPadding + bottomPadding,
                              implicitIndicatorHeight + topPadding + bottomPadding)
 
-    padding: 6
-    leftPadding: 8
-    rightPadding: 8
-    spacing: 8
+    padding: Tokens.space2
+    leftPadding: Tokens.space2
+    rightPadding: Tokens.space2
+    spacing: Tokens.space2
     hoverEnabled: true
     opacity: enabled ? 1 : 0.5
 
@@ -64,7 +64,7 @@ T.MenuItem {
 
     background: Rectangle {
         implicitWidth: 192
-        implicitHeight: 30
+        implicitHeight: Tokens.controlHeight
         radius: Tokens.radiusSm
         color: control.highlighted || control.down ? Tokens.accent : "transparent"
     }

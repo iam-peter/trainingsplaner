@@ -13,8 +13,8 @@ T.ComboBox {
                              implicitContentHeight + topPadding + bottomPadding,
                              implicitIndicatorHeight + topPadding + bottomPadding)
 
-    leftPadding: control.editable ? 0 : 12
-    rightPadding: 12 + (indicator ? indicator.width + 8 : 0)
+    leftPadding: control.editable ? 0 : Tokens.space3
+    rightPadding: Tokens.space3 + (indicator ? indicator.width + Tokens.space2 : 0)
     hoverEnabled: true
     opacity: enabled ? 1 : 0.5
 
@@ -24,9 +24,9 @@ T.ComboBox {
         required property int index
 
         width: ListView.view.width
-        implicitHeight: 30
-        leftPadding: 8
-        rightPadding: 32
+        implicitHeight: Tokens.controlHeight
+        leftPadding: Tokens.space2
+        rightPadding: Tokens.space2 + 16 + Tokens.space2
         hoverEnabled: control.hoverEnabled
         highlighted: control.highlightedIndex === index
         text: model[control.textRole] ?? ""
@@ -43,7 +43,7 @@ T.ComboBox {
             color: item.highlighted ? Tokens.accent : "transparent"
             ColorImage {
                 anchors.right: parent.right
-                anchors.rightMargin: 8
+                anchors.rightMargin: Tokens.space2
                 anchors.verticalCenter: parent.verticalCenter
                 visible: control.currentIndex === item.index
                 source: "qrc:/qt/qml/Shadcn/images/check.svg"
@@ -54,7 +54,7 @@ T.ComboBox {
     }
 
     indicator: ColorImage {
-        x: control.mirrored ? 12 : control.width - width - 12
+        x: control.mirrored ? Tokens.space3 : control.width - width - Tokens.space3
         y: (control.height - height) / 2
         source: "qrc:/qt/qml/Shadcn/images/chevron-down.svg"
         sourceSize: Qt.size(16, 16)
@@ -63,7 +63,7 @@ T.ComboBox {
     }
 
     contentItem: T.TextField {
-        leftPadding: control.editable ? 12 : 0
+        leftPadding: control.editable ? Tokens.space3 : 0
         topPadding: 4
         bottomPadding: 4
 
@@ -95,20 +95,16 @@ T.ComboBox {
             radius: parent.radius
             depth: 1
         }
-        FocusRing {
-            baseRadius: parent.radius
-            visible: control.activeFocus
-        }
     }
 
     popup: T.Popup {
-        y: control.height + 4
+        y: control.height + Tokens.space1
         width: control.width
         height: Math.min(contentItem.implicitHeight + topPadding + bottomPadding,
                          control.Window.height - topMargin - bottomMargin)
-        topMargin: 6
-        bottomMargin: 6
-        padding: 4
+        topMargin: Tokens.space2
+        bottomMargin: Tokens.space2
+        padding: Tokens.space1
 
         contentItem: ListView {
             clip: true

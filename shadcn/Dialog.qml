@@ -15,9 +15,9 @@ T.Dialog {
                              + (implicitHeaderHeight > 0 ? implicitHeaderHeight + spacing : 0)
                              + (implicitFooterHeight > 0 ? implicitFooterHeight + spacing : 0))
 
-    padding: 24
-    topPadding: 8
-    bottomPadding: 16
+    padding: Tokens.space4
+    topPadding: Tokens.space2
+    bottomPadding: Tokens.space4
 
     background: Rectangle {
         color: Tokens.background
@@ -38,10 +38,10 @@ T.Dialog {
         font.pixelSize: 18
         font.weight: Font.DemiBold
         color: Tokens.foreground
-        leftPadding: 24
-        rightPadding: 24
-        topPadding: 24
-        bottomPadding: 4
+        leftPadding: Tokens.space4
+        rightPadding: Tokens.space4
+        topPadding: Tokens.space4
+        bottomPadding: Tokens.space2
     }
 
     footer: DialogButtonBox {

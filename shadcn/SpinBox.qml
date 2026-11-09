@@ -6,7 +6,7 @@ import QtQuick.Templates as T
 T.SpinBox {
     id: control
 
-    readonly property int stepWidth: 26
+    readonly property int stepWidth: 24
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
                             contentItem.implicitWidth + leftPadding + rightPadding)
@@ -14,8 +14,8 @@ T.SpinBox {
                              implicitContentHeight + topPadding + bottomPadding,
                              up.implicitIndicatorHeight, down.implicitIndicatorHeight)
 
-    leftPadding: 10
-    rightPadding: 2 * stepWidth + 6
+    leftPadding: Tokens.space3
+    rightPadding: 2 * stepWidth + 2 * Tokens.space1
     hoverEnabled: true
     opacity: enabled ? 1 : 0.5
 
@@ -41,7 +41,7 @@ T.SpinBox {
     }
 
     down.indicator: Rectangle {
-        x: control.mirrored ? control.stepWidth + 3 : control.width - 2 * control.stepWidth - 3
+        x: control.mirrored ? control.stepWidth + Tokens.space1 : control.width - 2 * control.stepWidth - Tokens.space1
         y: (control.height - height) / 2
         implicitWidth: control.stepWidth
         implicitHeight: control.stepWidth
@@ -57,7 +57,7 @@ T.SpinBox {
     }
 
     up.indicator: Rectangle {
-        x: control.mirrored ? 3 : control.width - control.stepWidth - 3
+        x: control.mirrored ? Tokens.space1 : control.width - control.stepWidth - Tokens.space1
         y: (control.height - height) / 2
         implicitWidth: control.stepWidth
         implicitHeight: control.stepWidth
@@ -90,10 +90,6 @@ T.SpinBox {
             anchors.fill: parent
             radius: parent.radius
             depth: 1
-        }
-        FocusRing {
-            baseRadius: parent.radius
-            visible: control.activeFocus
         }
     }
 }

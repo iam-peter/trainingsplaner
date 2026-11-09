@@ -11,7 +11,6 @@ qt_add_qml_module(shadcnstyle
     QML_FILES
         Tokens.qml
         Shadow.qml
-        FocusRing.qml
         ApplicationWindow.qml
         Button.qml
         CheckBox.qml

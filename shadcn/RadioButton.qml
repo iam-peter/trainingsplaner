@@ -39,10 +39,6 @@ T.RadioButton {
             color: Tokens.primary
             visible: control.checked
         }
-        FocusRing {
-            baseRadius: parent.radius
-            visible: control.visualFocus
-        }
     }
 
     contentItem: CheckLabel {

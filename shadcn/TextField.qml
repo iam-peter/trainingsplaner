@@ -14,10 +14,10 @@ T.TextField {
                              placeholder.implicitHeight + topPadding + bottomPadding)
 
     // Narrow fields (a number of reps) keep room for their text
-    leftPadding: width > 0 && width < 64 ? 3 : 12
+    leftPadding: width > 0 && width < 64 ? Tokens.space1 : Tokens.space3
     rightPadding: leftPadding
-    topPadding: 4
-    bottomPadding: 4
+    topPadding: Tokens.space1
+    bottomPadding: Tokens.space1
     verticalAlignment: TextInput.AlignVCenter
     hoverEnabled: true
     opacity: enabled ? 1 : 0.5
@@ -55,10 +55,6 @@ T.TextField {
             radius: parent.radius
             depth: 1
             visible: !control.readOnly
-        }
-        FocusRing {
-            baseRadius: parent.radius
-            visible: control.activeFocus && !control.readOnly
         }
     }
 }

@@ -13,11 +13,11 @@ T.ToolTip {
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding)
 
-    margins: 6
-    topPadding: 6
-    bottomPadding: 6
-    leftPadding: 12
-    rightPadding: 12
+    margins: Tokens.space2
+    topPadding: Tokens.space1
+    bottomPadding: Tokens.space1
+    leftPadding: Tokens.space2
+    rightPadding: Tokens.space2
     font.pixelSize: 12
 
     closePolicy: T.Popup.CloseOnEscape | T.Popup.CloseOnPressOutsideParent | T.Popup.CloseOnReleaseOutsideParent

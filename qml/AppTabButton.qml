@@ -9,7 +9,7 @@ TabButton {
 
     property string iconName
 
-    implicitHeight: Theme.carbon ? 32 : Theme.shadcn ? 30 : 28
+    implicitHeight: Theme.carbon ? 32 : 28
     // The program's font: some styles (Universal) make tabs much larger
     font: Qt.application.font
     icon.source: iconName !== "" ? "qrc:/qt/qml/Trainingsplaner/icons/" + iconName + ".svg" : ""
@@ -23,8 +23,9 @@ TabButton {
     background: Rectangle {
         radius: Theme.radius(3)
         // shadcn's active trigger is raised; in dark mode it has a border
-        border.width: Theme.shadcn && Theme.dark && control.checked ? 1 : 0
-        border.color: Theme.shadcn ? Theme.sh.input : "transparent"
+        // and focus shows in the border
+        border.width: Theme.shadcn && ((Theme.dark && control.checked) || control.visualFocus) ? 1 : 0
+        border.color: Theme.shadcn ? (control.visualFocus ? Theme.sh.ring : Theme.sh.input) : "transparent"
         Shadcn.Shadow {
             z: -1
             anchors.fill: parent

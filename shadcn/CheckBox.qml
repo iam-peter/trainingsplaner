@@ -21,7 +21,7 @@ T.CheckBox {
         x: control.text ? (control.mirrored ? control.width - width - control.rightPadding : control.leftPadding)
                         : control.leftPadding + (control.availableWidth - width) / 2
         y: control.topPadding + (control.availableHeight - height) / 2
-        radius: 4
+        radius: Tokens.radiusMd
         color: control.checkState !== Qt.Unchecked ? Tokens.primary : Tokens.inputBackground
         border.color: control.checkState !== Qt.Unchecked ? Tokens.primary
                       : control.visualFocus ? Tokens.ring : Tokens.input
@@ -46,10 +46,6 @@ T.CheckBox {
             radius: 1
             color: Tokens.primaryForeground
             visible: control.checkState === Qt.PartiallyChecked
-        }
-        FocusRing {
-            baseRadius: parent.radius
-            visible: control.visualFocus
         }
     }
 

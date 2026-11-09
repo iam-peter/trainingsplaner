@@ -12,9 +12,9 @@ T.TextArea {
                              implicitBackgroundHeight + topInset + bottomInset,
                              placeholder.implicitHeight + topPadding + bottomPadding)
 
-    padding: 8
-    leftPadding: 12
-    rightPadding: 12
+    padding: Tokens.space2
+    leftPadding: Tokens.space3
+    rightPadding: Tokens.space3
     hoverEnabled: true
     opacity: enabled ? 1 : 0.5
 
@@ -51,10 +51,6 @@ T.TextArea {
             radius: parent.radius
             depth: 1
             visible: !control.readOnly
-        }
-        FocusRing {
-            baseRadius: parent.radius
-            visible: control.activeFocus && !control.readOnly
         }
     }
 }

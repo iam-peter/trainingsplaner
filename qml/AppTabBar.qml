@@ -10,7 +10,7 @@ TabBar {
     id: control
 
     spacing: 0
-    padding: Theme.carbon ? 0 : Theme.shadcn ? 3 : 1
+    padding: Theme.carbon ? 0 : Theme.shadcn ? 4 : 1
 
     background: Rectangle {
         color: Theme.carbon ? Theme.tokens.layerAccent : Theme.shadcn ? Theme.sh.muted : control.palette.button

@@ -13,9 +13,9 @@ T.DialogButtonBox {
                              implicitContentHeight + topPadding + bottomPadding)
     contentWidth: (contentItem as ListView)?.contentWidth
 
-    spacing: 8
-    padding: 24
-    topPadding: 8
+    spacing: Tokens.space2
+    padding: Tokens.space4
+    topPadding: 0
     alignment: Qt.AlignRight
     // Cancel on the left, confirm on the right, on every system
     buttonLayout: T.DialogButtonBox.GnomeLayout

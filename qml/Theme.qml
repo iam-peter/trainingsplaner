@@ -28,15 +28,16 @@ QtObject {
     readonly property ComboBox sizeProbe: ComboBox {}
     readonly property int toolBarHeight: Math.max(44, sizeProbe.implicitHeight + 10)
 
-    // Corner radius: Carbon is square, shadcn rounder (its radius scale:
-    // sm 6, md 8, lg 10, xl 14)
+    // Corner radius: Carbon is square, shadcn at most 4 px
     function radius(r) {
-        if (carbon)
-            return 0
-        if (shadcn)
-            return r >= 10 ? 14 : r >= 6 ? 8 : r >= 4 ? 10 : r >= 3 ? 6 : r
-        return r
+        return carbon ? 0 : shadcn ? Math.min(r, 4) : r
     }
+
+    // List rows: the selection's gap to the list's border, the same on
+    // every side (inset across, inset down plus the list's own margin)
+    readonly property int rowInsetX: carbon ? 0 : shadcn ? 4 : 2
+    readonly property int rowInsetY: carbon ? 0 : shadcn ? 2 : 1
+    readonly property int listMargin: rowInsetX - rowInsetY
 
     // The palette for all controls
     readonly property color window: carbon ? tokens.background

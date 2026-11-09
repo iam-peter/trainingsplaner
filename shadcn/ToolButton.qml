@@ -11,10 +11,10 @@ T.ToolButton {
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding)
 
-    padding: 6
-    leftPadding: text !== "" && display !== T.AbstractButton.IconOnly ? 10 : 8
+    padding: Tokens.space2
+    leftPadding: text !== "" && display !== T.AbstractButton.IconOnly ? Tokens.space3 : Tokens.space2
     rightPadding: leftPadding
-    spacing: 6
+    spacing: Tokens.space2
     hoverEnabled: true
     opacity: enabled ? 1 : 0.5
     font.weight: Font.Medium
@@ -41,11 +41,9 @@ T.ToolButton {
         implicitWidth: Tokens.controlHeight
         implicitHeight: Tokens.controlHeight
         radius: Tokens.radiusMd
+        border.width: control.visualFocus ? 1 : 0
+        border.color: Tokens.ring
         color: control.down || control.checked || (control.hovered && control.enabled)
                ? (Tokens.dark ? Tokens.alpha(Tokens.accent, 0.5) : Tokens.accent) : "transparent"
-        FocusRing {
-            baseRadius: parent.radius
-            visible: control.visualFocus
-        }
     }
 }

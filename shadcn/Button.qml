@@ -30,10 +30,10 @@ T.Button {
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding)
 
-    padding: 6
-    leftPadding: text !== "" ? 12 : 8
-    rightPadding: text !== "" ? 12 : 8
-    spacing: 6
+    padding: Tokens.space2
+    leftPadding: text !== "" ? Tokens.space3 : Tokens.space2
+    rightPadding: leftPadding
+    spacing: Tokens.space2
     hoverEnabled: true
     opacity: enabled ? 1 : 0.5
     font.weight: Font.Medium
@@ -61,7 +61,8 @@ T.Button {
         implicitHeight: Tokens.controlHeight
         radius: Tokens.radiusMd
         color: control.fill
-        border.width: control.kind === "outline" ? 1 : 0
+        // Focus shows in the border, without a glow
+        border.width: control.kind === "outline" || control.visualFocus ? 1 : 0
         border.color: control.visualFocus ? Tokens.ring : Tokens.dark ? Tokens.input : Tokens.border
 
         Shadow {
@@ -70,10 +71,6 @@ T.Button {
             radius: parent.radius
             depth: 1
             visible: control.kind !== "ghost" && control.enabled
-        }
-        FocusRing {
-            baseRadius: parent.radius
-            visible: control.visualFocus
         }
     }
 }

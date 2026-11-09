@@ -23,6 +23,8 @@ T.Switch {
         y: control.topPadding + (control.availableHeight - height) / 2
         radius: height / 2
         color: control.checked ? Tokens.primary : Tokens.input
+        border.width: control.visualFocus ? 1 : 0
+        border.color: Tokens.ring
 
         Rectangle {
             x: Math.max(1, Math.min(parent.width - width - 1, control.visualPosition * parent.width - width / 2))
@@ -32,10 +34,6 @@ T.Switch {
             radius: 8
             color: Tokens.dark ? (control.checked ? Tokens.primaryForeground : Tokens.foreground) : Tokens.background
             Behavior on x { enabled: !control.down; NumberAnimation { duration: 110 } }
-        }
-        FocusRing {
-            baseRadius: parent.radius
-            visible: control.visualFocus
         }
     }
 

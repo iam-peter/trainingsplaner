@@ -9,7 +9,7 @@ T.Pane {
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              contentHeight + topPadding + bottomPadding)
 
-    padding: 16
+    padding: Tokens.space4
 
     background: Rectangle {
         color: Tokens.background

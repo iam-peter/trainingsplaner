@@ -11,10 +11,10 @@ T.ItemDelegate {
                              implicitContentHeight + topPadding + bottomPadding,
                              implicitIndicatorHeight + topPadding + bottomPadding)
 
-    padding: 6
-    leftPadding: 10
-    rightPadding: 10
-    spacing: 8
+    padding: Tokens.space2
+    leftPadding: Tokens.space2
+    rightPadding: Tokens.space2
+    spacing: Tokens.space2
     hoverEnabled: true
     opacity: enabled ? 1 : 0.5
 

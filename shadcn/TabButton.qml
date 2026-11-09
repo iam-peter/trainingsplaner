@@ -13,10 +13,10 @@ T.TabButton {
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding)
 
-    padding: 4
-    leftPadding: 10
-    rightPadding: 10
-    spacing: 6
+    padding: Tokens.space1
+    leftPadding: Tokens.space3
+    rightPadding: Tokens.space3
+    spacing: Tokens.space2
     hoverEnabled: true
     opacity: enabled ? 1 : 0.5
     font.weight: Font.Medium
@@ -42,18 +42,14 @@ T.TabButton {
         implicitHeight: 28
         radius: Tokens.radiusMd
         color: control.checked ? (Tokens.dark ? Tokens.inputBackground : Tokens.background) : "transparent"
-        border.width: control.checked && Tokens.dark ? 1 : 0
-        border.color: Tokens.input
+        border.width: (control.checked && Tokens.dark) || control.visualFocus ? 1 : 0
+        border.color: control.visualFocus ? Tokens.ring : Tokens.input
         Shadow {
             z: -1
             anchors.fill: parent
             radius: parent.radius
             depth: 1
             visible: control.checked
-        }
-        FocusRing {
-            baseRadius: parent.radius
-            visible: control.visualFocus
         }
     }
 }

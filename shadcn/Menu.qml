@@ -13,7 +13,7 @@ T.Menu {
 
     margins: 0
     overlap: 1
-    padding: 4
+    padding: Tokens.space1
 
     delegate: MenuItem {}
 

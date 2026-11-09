@@ -11,11 +11,19 @@ QtObject {
 
     // The "sm" size (h-8) suits a dense desktop program
     readonly property int controlHeight: 32
-    // --radius: 0.625rem, and the steps derived from it
-    readonly property int radiusSm: 6
-    readonly property int radiusMd: 8
-    readonly property int radiusLg: 10
-    readonly property int radiusXl: 14
+    // Corner radii, kept small: never more than 4 px; small items inside a
+    // rounded container get 2 px
+    readonly property int radiusSm: 2
+    readonly property int radiusMd: 4
+    readonly property int radiusLg: 4
+    readonly property int radiusXl: 4
+
+    // Spacing in steps of 4: gaps and item padding 8, control padding 12,
+    // dialog and card padding 16, tight insets 4
+    readonly property int space1: 4
+    readonly property int space2: 8
+    readonly property int space3: 12
+    readonly property int space4: 16
 
     function alpha(c, a) {
         return Qt.rgba(c.r, c.g, c.b, a)
@@ -40,8 +48,9 @@ QtObject {
     // colours: the soft shadow behind a control would show through
     readonly property color inputBackground: dark ? "#141414" : "#ffffff"
     readonly property color inputHover: dark ? "#1c1c1c" : accent
-    readonly property color ring: dark ? "#737373" : "#a1a1a1"
-    readonly property color ringSoft: alpha(ring, 0.5)
+    // The focus border; a step stronger than shadcn's ring, which was made
+    // for a glow around it and is too faint as a border alone
+    readonly property color ring: dark ? "#a1a1a1" : "#737373"
     readonly property color overlay: Qt.rgba(0, 0, 0, 0.5)
     readonly property real shadowStrength: dark ? 0.35 : 0.06
 
