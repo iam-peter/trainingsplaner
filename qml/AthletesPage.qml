@@ -180,6 +180,7 @@ Page {
 
                 Label { text: "" }
                 RowLayout {
+                    spacing: 8
                     RadioButton { id: maleButton; text: "Mann"; checked: true; onToggled: page.dirty = true }
                     RadioButton { id: femaleButton; text: "Frau"; onToggled: page.dirty = true }
                 }
@@ -200,6 +201,7 @@ Page {
 
                 Label { text: "geb.:" }
                 RowLayout {
+                    spacing: 8
                     DateField {
                         id: bornField
                         Layout.preferredWidth: 136
@@ -252,7 +254,7 @@ Page {
                             spacing: 0
                             Label { text: attribute.art + ":"; font.pixelSize: 11; color: palette.placeholderText }
                             RowLayout {
-                                spacing: 2
+                                spacing: 4
                                 ComboBox {
                                     objectName: "attr_" + attribute.art
                                     implicitWidth: 200

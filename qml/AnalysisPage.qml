@@ -50,6 +50,7 @@ Page {
 
     header: AppToolBar {
         RowLayout {
+            spacing: 8
             anchors.fill: parent
             anchors.leftMargin: 8
             AppTabBar {
@@ -100,6 +101,7 @@ Page {
                         valueRole: "id"
                     }
                     RowLayout {
+                        spacing: 8
                         visible: iMaz.currentIndex <= 0
                         Label { text: "ab" }
                         TextField { id: iFrom; implicitWidth: 80; text: page.defaultFrom }
@@ -109,11 +111,13 @@ Page {
                     CheckBox { id: iCompWeeks; text: "WK-Woche einschließen" }
                     Label { text: "Bezug"; font.bold: true }
                     RowLayout {
+                        spacing: 8
                         RadioButton { id: iIst; text: "Ist"; checked: true }
                         RadioButton { id: iPlan; text: "Plan" }
                         RadioButton { id: iItp; text: "ITP" }
                     }
                     RowLayout {
+                        spacing: 8
                         RadioButton { id: iKg; text: "kg"; checked: true }
                         RadioButton { id: iZiel; text: "% MAZ-Ziel"; enabled: iMaz.currentIndex > 0 }
                         RadioButton { id: iWk; text: "% MAZ-WK"; enabled: iMaz.currentIndex > 0 }
@@ -136,6 +140,7 @@ Page {
                     }
                     CheckBox { id: iAllMaz; text: "Gesamtübersicht (alle MAZ)" }
                     RowLayout {
+                        spacing: 8
                         CheckBox { id: iLoad; text: "Laststufenanalyse TÜ" }
                         TextField { id: iLoadEx; implicitWidth: 44; text: "1"; enabled: iLoad.checked; validator: IntValidator { bottom: 1; top: 45 } }
                     }
@@ -176,12 +181,14 @@ Page {
                 RadioButton { id: gVolume; text: "Umfangskennziffern" }
                 RadioButton { id: gIntensity; text: "Intensitätskennziffern" }
                 RowLayout {
+                    spacing: 8
                     enabled: gIntensity.checked
                     Label { text: "TÜ" }
                     TextField { id: gExercise; implicitWidth: 44; text: "1"; validator: IntValidator { bottom: 1; top: 45 } }
                     Label { text: Store.exerciseName(parseInt(gExercise.text) || 0); color: palette.placeholderText }
                 }
                 RowLayout {
+                    spacing: 8
                     enabled: gIntensity.checked
                     RadioButton { id: gKg; text: "kg"; checked: true }
                     RadioButton { id: gZiel; text: "% MAZ-Ziel" }
@@ -219,6 +226,7 @@ Page {
                 spacing: 8
                 Label { text: "Zeitraum"; font.bold: true }
                 RowLayout {
+                    spacing: 8
                     Label { text: "ab" }
                     TextField { id: cFrom; implicitWidth: 80; text: page.defaultFrom }
                     SpinBox { id: cWeeks; from: 1; to: 104; value: 12; editable: true }

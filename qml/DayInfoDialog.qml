@@ -81,7 +81,7 @@ AppDialog {
         GridLayout {
             columns: 5
             columnSpacing: 8
-            rowSpacing: 2
+            rowSpacing: 4
             Label { text: "Tag"; font.pixelSize: 11 }
             Label { text: "Zeit"; font.pixelSize: 11 }
             Label { text: "Kategorie"; font.pixelSize: 11 }
@@ -113,6 +113,7 @@ AppDialog {
                 }
             }
             RowLayout {
+                spacing: 8
                 IconButton {
                     iconName: dialog.editing ? "save" : "plus"
                     text: dialog.editing ? "Speichern" : "Hinzufügen"
@@ -149,6 +150,7 @@ AppDialog {
                              && dialog.editing.code === modelData.code && dialog.editing.time === modelData.time
                 onClicked: dialog.startEdit(modelData)
                 contentItem: RowLayout {
+                    spacing: 8
                     Label { text: modelData.dateText; Layout.preferredWidth: 150 }
                     Label { text: modelData.time; Layout.preferredWidth: 60; color: palette.placeholderText }
                     Label { text: modelData.name; Layout.fillWidth: true }

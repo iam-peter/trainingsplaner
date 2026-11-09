@@ -112,6 +112,7 @@ Page {
 
     header: AppToolBar {
         RowLayout {
+            spacing: 8
             anchors.fill: parent
             anchors.leftMargin: 8
             anchors.rightMargin: 8
@@ -176,6 +177,7 @@ Page {
                                 deleteConfirm.open()
                             }
                             contentItem: RowLayout {
+                                spacing: 8
                                 Label { text: modelData.dateText; Layout.preferredWidth: 80 }
                                 Label { text: modelData.typeName; Layout.preferredWidth: 28; color: palette.placeholderText }
                                 Label { text: modelData.name || modelData.place; Layout.fillWidth: true; elide: Text.ElideRight }
@@ -218,6 +220,7 @@ Page {
                     }
                     Label { text: "Datum / Zeit:" }
                     RowLayout {
+                        spacing: 8
                         DateField { id: dateField; onTextEdited: page.dirty = true }
                         TimeField { id: timeField; objectName: "timeField"; onTextEdited: page.dirty = true }
                     }
@@ -234,11 +237,13 @@ Page {
                     TextField { id: placeField; Layout.preferredWidth: 320; onTextEdited: page.dirty = true }
                     Label { text: "Körpergewicht:" }
                     RowLayout {
+                        spacing: 8
                         TextField { id: weightField; implicitWidth: 80; horizontalAlignment: TextInput.AlignRight; onTextEdited: page.dirty = true }
                         Label { text: "kg" }
                     }
                     Label { text: "Reißen:" }
                     RowLayout {
+                        spacing: 8
                         Repeater {
                             id: snatchRepeater
                             model: 3
@@ -251,6 +256,7 @@ Page {
                     }
                     Label { text: "Stoßen:" }
                     RowLayout {
+                        spacing: 8
                         Repeater {
                             id: cjRepeater
                             model: 3
@@ -273,6 +279,7 @@ Page {
 
                     Item {}
                     RowLayout {
+                        spacing: 8
                         IconButton {
                             iconName: page.current ? "save" : "plus"
                             text: page.current ? "Speichern" : "Hinzufügen"

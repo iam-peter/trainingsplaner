@@ -144,6 +144,7 @@ Frame {
 
         // General exercise as text
         RowLayout {
+            spacing: 8
             visible: editor.kind === 1
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignTop
@@ -168,6 +169,7 @@ Frame {
 
         // Free text
         RowLayout {
+            spacing: 8
             visible: editor.kind === 2
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignTop

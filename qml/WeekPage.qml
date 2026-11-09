@@ -466,6 +466,7 @@ Page {
                 spacing: 0
 
                 RowLayout {
+                    spacing: 8
                     Layout.fillWidth: true
                     Layout.margins: 8
                     Label {

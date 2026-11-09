@@ -37,6 +37,7 @@ AppDialog {
 
         RadioButton { id: modeSince; text: "Änderungen seit" }
         RowLayout {
+            spacing: 8
             Layout.leftMargin: 24
             enabled: modeSince.checked
             DateField { id: sinceDate }
@@ -50,6 +51,7 @@ AppDialog {
 
         RadioButton { id: modeAthlete; text: "Trainingswochen eines Sportlers" }
         RowLayout {
+            spacing: 8
             Layout.leftMargin: 24
             enabled: modeAthlete.checked
             ComboBox {

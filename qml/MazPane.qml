@@ -131,6 +131,7 @@ RowLayout {
                 TextField { id: shortField; Layout.preferredWidth: 100; onTextEdited: pane.dirty = true }
                 Label { text: "Für:" }
                 RowLayout {
+                    spacing: 8
                     RadioButton { id: men; text: "Männer"; onToggled: pane.dirty = true }
                     RadioButton { id: women; text: "Frauen"; onToggled: pane.dirty = true }
                 }
@@ -144,11 +145,12 @@ RowLayout {
                 TextField { id: buildUpField; implicitWidth: 90; onTextEdited: pane.dirty = true }
                 Label { text: "Leistungsausprägung ab:" }
                 TextField { id: peakField; implicitWidth: 90; onTextEdited: pane.dirty = true }
-                Label { text: "Bemerkung:"; Layout.alignment: Qt.AlignTop }
+                Label { text: "Bemerkung:" }
                 TextField { id: noteField; Layout.columnSpan: 3; Layout.fillWidth: true; onTextEdited: pane.dirty = true }
             }
 
             RowLayout {
+                spacing: 8
                 IconButton {
                     iconName: pane.mazId === "" ? "plus" : "save"
                     text: pane.mazId === "" ? "Hinzufügen" : "Speichern"
@@ -193,7 +195,8 @@ RowLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 clip: true
-                spacing: 2
+                // The form spacing between the rows of fields
+                spacing: 8
                 model: pane.athletes
                 ScrollBar.vertical: AppScrollBar {}
                 delegate: RowLayout {
@@ -253,6 +256,7 @@ RowLayout {
                 }
             }
             RowLayout {
+                spacing: 8
                 visible: pane.mazId !== ""
                 ComboBox {
                     id: addAthlete

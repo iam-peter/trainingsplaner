@@ -40,6 +40,7 @@ AppDialog {
         spacing: 8
 
         RowLayout {
+            spacing: 8
             AppTabBar {
                 id: tabs
                 Layout.preferredWidth: 260
@@ -80,6 +81,7 @@ AppDialog {
             ColumnLayout {
                 spacing: 0
                 RowLayout {
+                    spacing: 8
                     Layout.fillWidth: true
                     Layout.leftMargin: 8
                     Label { text: "Woche"; Layout.preferredWidth: 70; font.bold: true }
@@ -103,6 +105,7 @@ AppDialog {
                         height: 26
                         color: index % 2 ? palette.alternateBase : palette.base
                         RowLayout {
+                            spacing: 8
                             anchors.fill: parent
                             anchors.leftMargin: 8
                             Label { text: modelData.week; Layout.preferredWidth: 70 }

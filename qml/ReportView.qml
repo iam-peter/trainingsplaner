@@ -14,6 +14,7 @@ ColumnLayout {
     spacing: 8
 
     RowLayout {
+        spacing: 8
         Label { text: view.title; font.bold: true; Layout.fillWidth: true }
         IconButton {
             iconName: "printer"

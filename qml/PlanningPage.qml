@@ -59,6 +59,7 @@ Page {
 
     header: AppToolBar {
         RowLayout {
+            spacing: 8
             anchors.fill: parent
             anchors.leftMargin: 8
             anchors.rightMargin: 8
@@ -131,6 +132,7 @@ Page {
             Layout.fillHeight: true
 
             MazPane {
+                objectName: "mazPane"
                 onOpenFramework: (id) => page.openFramework(id)
             }
 
@@ -138,6 +140,7 @@ Page {
             ColumnLayout {
                 spacing: 8
                 RowLayout {
+                    spacing: 8
                     ComboBox {
                         implicitWidth: 340
                         model: Plan.exerciseSets.map(s => s.name)
@@ -182,6 +185,7 @@ Page {
             ColumnLayout {
                 spacing: 8
                 RowLayout {
+                    spacing: 8
                     Label { text: "Übung:" }
                     TextField {
                         id: stepsExercise
@@ -216,6 +220,8 @@ Page {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     clip: true
+                    // The form spacing between the rows of fields
+                    spacing: 8
                     model: page.stepRows
                     ScrollBar.vertical: AppScrollBar {}
                     delegate: RowLayout {
@@ -261,6 +267,7 @@ Page {
         standardButtons: Dialog.Ok | Dialog.Cancel
         onAboutToShow: fromRo.checked = !page.roMode && page.maz !== null
         ColumnLayout {
+            spacing: 8
             RadioButton {
                 id: fromRo
                 visible: !page.roMode
@@ -273,6 +280,7 @@ Page {
                 text: page.roMode ? "Rahmenorientierung eines anderen MAZ" : "ITP eines anderen Sportlers"
             }
             RowLayout {
+                spacing: 8
                 enabled: fromOther.checked
                 Layout.leftMargin: 24
                 ComboBox {
@@ -325,7 +333,9 @@ Page {
         }
         onAboutToShow: reload()
         contentItem: ColumnLayout {
+            spacing: 8
             RowLayout {
+                spacing: 8
                 ComboBox {
                     id: chartExercise
                     implicitWidth: 260

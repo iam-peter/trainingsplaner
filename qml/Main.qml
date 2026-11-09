@@ -74,6 +74,7 @@ ApplicationWindow {
 
             AppTabBar {
                 id: tabs
+                objectName: "mainTabs"
                 Layout.preferredWidth: 720
                 currentIndex: window.weekTab
                 AppTabButton { text: "Sportler"; iconName: "users" }
@@ -202,6 +203,7 @@ ApplicationWindow {
             color: palette.highlight
             RowLayout {
                 id: bannerRow
+                spacing: 8
                 anchors.fill: parent
                 anchors.leftMargin: 12
                 anchors.rightMargin: 8
@@ -289,6 +291,7 @@ ApplicationWindow {
         title: "Daten importieren"
         standardButtons: Dialog.Ok | Dialog.Cancel
         ColumnLayout {
+            spacing: 8
             Label {
                 text: decodeURIComponent(importDialog.selectedFile.toString().replace(/^.*\//, ""))
                 font.bold: true

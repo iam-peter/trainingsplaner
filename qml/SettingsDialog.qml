@@ -141,6 +141,7 @@ AppDialog {
 
                 Label { text: "Laststufen:" }
                 RowLayout {
+                    spacing: 8
                     RadioButton { id: fraction; text: "Bruch (Gewicht über Wiederholungen)" }
                     RadioButton { id: slash; text: "100/2/2" }
                 }
@@ -183,6 +184,7 @@ AppDialog {
 
                 Label { text: "Farbe TE-Zeile:" }
                 RowLayout {
+                    spacing: 8
                     Rectangle {
                         id: sessionColor
                         implicitWidth: 40
@@ -196,6 +198,7 @@ AppDialog {
 
                 Label { text: "Logo im Hintergrund:" }
                 RowLayout {
+                    spacing: 8
                     TextField { id: logoPath; Layout.fillWidth: true; placeholderText: "kein Logo"; readOnly: true }
                     IconButton { iconName: "folder-open"; toolTip: "Bild wählen"; onClicked: logoDialog.open() }
                     IconButton { iconName: "x"; toolTip: "Kein Logo"; onClicked: logoPath.text = "" }
@@ -318,6 +321,7 @@ AppDialog {
                 rowSpacing: 8
                 Label { text: "Sportlerauswahl:" }
                 RowLayout {
+                    spacing: 8
                     ComboBox {
                         id: kaderFilter
                         implicitWidth: 160
@@ -337,6 +341,7 @@ AppDialog {
                 }
                 Label { text: "Steigerung:" }
                 RowLayout {
+                    spacing: 8
                     RadioButton { id: step25; text: "2,5 kg" }
                     RadioButton { id: step10; text: "1,0 kg" }
                 }
@@ -360,6 +365,7 @@ AppDialog {
                 }
                 Label { text: "Farbschema:" }
                 RowLayout {
+                    spacing: 8
                     Repeater {
                         model: [{ value: "system", text: "wie das System" }, { value: "light", text: "Hell" },
                                 { value: "dark", text: "Dunkel" }, { value: "classic", text: "Klassisch" }]
