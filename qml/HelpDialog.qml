@@ -129,7 +129,7 @@ AppDialog {
                     lineHeight: 1.2
                     text: "<b>Daten aus dem alten Programm:</b> Daten › Importieren… liest die Datensicherung "
                           + "(winwotaxp.bak) ein. Neuere Einträge im Programm bleiben dabei erhalten.<br><br>"
-                          + "<b>Sportler:</b> unter „Sportler“ anlegen und bearbeiten; Kader, Verein usw. mit Verlauf.<br><br>"
+                          + "<b>Sportler:</b> unter „Sportler“ anlegen und bearbeiten; Kader, Verein usw. mit Zeiträumen (Stift-Symbol daneben).<br><br>"
                           + "<b>Wochenplan:</b> Sportler und Woche wählen. Ein Klick in eine Trainingseinheit öffnet sie, "
                           + "ein Klick auf eine Übung bearbeitet diese Übung für die ganze Woche. Plan und Ist umschalten "
                           + "oben. „Woche kopieren“ und „Einfügen“ übertragen ganze Wochen, auch zu anderen Sportlern.<br><br>"

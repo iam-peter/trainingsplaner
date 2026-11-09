@@ -270,7 +270,7 @@ Page {
                                     // As in the old program: edit the values
                                     // with their time ranges
                                     iconName: "square-pen"
-                                    toolTip: attribute.art + " mit Zeiträumen bearbeiten"
+                                    toolTip: "Erfassung " + attribute.art + " (mit Zeiträumen)"
                                     enabled: page.selectedId !== ""
                                     onClicked: historyDialog.edit(page.selectedId, attribute.art)
                                 }

@@ -27,7 +27,8 @@ AppDialog {
         error = ""
     }
 
-    title: art + " mit Zeiträumen"
+    // The old program's title for this window
+    title: "Erfassung " + art
     width: 560
     standardButtons: Dialog.Close
 
