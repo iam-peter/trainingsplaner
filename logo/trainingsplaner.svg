@@ -1,19 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-  <rect x="8" y="8" width="240" height="240" rx="56" fill="#ea580c"/>
-  <!-- barbell -->
-  <rect x="30" y="111" width="196" height="14" rx="7" fill="#fff"/>
-  <rect x="54" y="62" width="24" height="112" rx="7" fill="#fff"/>
-  <rect x="82" y="80" width="17" height="76" rx="6" fill="#fff"/>
-  <rect x="178" y="62" width="24" height="112" rx="7" fill="#fff"/>
-  <rect x="157" y="80" width="17" height="76" rx="6" fill="#fff"/>
-  <!-- the seven days of the week -->
-  <g fill="#fff">
-    <circle cx="62" cy="206" r="8" opacity="0.5"/>
-    <circle cx="84" cy="206" r="8" opacity="0.5"/>
-    <circle cx="106" cy="206" r="8"/>
-    <circle cx="128" cy="206" r="8" opacity="0.5"/>
-    <circle cx="150" cy="206" r="8" opacity="0.5"/>
-    <circle cx="172" cy="206" r="8" opacity="0.5"/>
-    <circle cx="194" cy="206" r="8" opacity="0.5"/>
+  <!-- A neutral tile with a dumbbell: bar, two large and two small plates,
+       end caps. Drawn for the program; no third-party artwork. -->
+  <rect x="8" y="8" width="240" height="240" rx="56" fill="#262626"/>
+  <g fill="#ffffff">
+    <rect x="94" y="120" width="68" height="16" rx="2"/>
+    <rect x="68" y="78" width="22" height="100" rx="7"/>
+    <rect x="166" y="78" width="22" height="100" rx="7"/>
+    <rect x="49" y="94" width="16" height="68" rx="5"/>
+    <rect x="191" y="94" width="16" height="68" rx="5"/>
+    <path d="M46 118 H41 L36 123 V133 L41 138 H46 Z"/>
+    <path d="M210 118 H215 L220 123 V133 L215 138 H210 Z"/>
   </g>
 </svg>

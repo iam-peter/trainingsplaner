@@ -21,10 +21,11 @@ QPalette palette(bool dark, bool classic)
     };
     const Colors c = classic ? Colors{0xece9d8, 0x000000, 0xffffff, 0xf7f3ef, 0xf7f7f7,
                                       0x949a9c, 0x716f64, 0xffffff, 0x716f64, 0xaca899}
-                     : dark  ? Colors{0x2b2a29, 0xeeecea, 0x1f1e1d, 0x2f2d2b, 0x353331,
-                                      0x55524f, 0x1a1918, 0x4a4744, 0x9a9590, 0x777370}
-                             : Colors{0xefeeec, 0x1c1917, 0xffffff, 0xf5f4f2, 0xefeeec,
-                                      0xb8b4b0, 0x9f9b97, 0xffffff, 0x8a847e, 0x9f9b97};
+                     // The neutral greys of the style's light and dark schemes
+                     : dark  ? Colors{0x1e1e1e, 0xe6e6e6, 0x242424, 0x2e2e2e, 0x323232,
+                                      0x3a3a3a, 0x141414, 0x454545, 0xa0a0a0, 0x6e6e6e}
+                             : Colors{0xf8f8f8, 0x2a2a2a, 0xffffff, 0xeeeeee, 0xeeeeee,
+                                      0xe0e0e0, 0x9a9a9a, 0xffffff, 0x6e6e6e, 0xa0a0a0};
     QPalette p;
     p.setColor(QPalette::Window, QColor(c.window));
     p.setColor(QPalette::WindowText, QColor(c.windowText));
@@ -33,11 +34,12 @@ QPalette palette(bool dark, bool classic)
     p.setColor(QPalette::Text, QColor(c.windowText));
     p.setColor(QPalette::Button, QColor(c.button));
     p.setColor(QPalette::ButtonText, QColor(c.windowText));
-    p.setColor(QPalette::Highlight, classic ? QColor(0x316ac5) : QColor(0xc2410c));
-    p.setColor(QPalette::HighlightedText, Qt::white);
+    // Selections neutral like the program's, blue in the classic colours
+    p.setColor(QPalette::Highlight, classic ? QColor(0x316ac5) : dark ? QColor(0xe0e0e0) : QColor(0x2a2a2a));
+    p.setColor(QPalette::HighlightedText, dark && !classic ? QColor(0x1e1e1e) : QColor(Qt::white));
     p.setColor(QPalette::PlaceholderText, QColor(c.placeholder));
-    p.setColor(QPalette::ToolTipBase, dark ? QColor(c.button) : QColor(0xfffbeb));
-    p.setColor(QPalette::ToolTipText, QColor(c.windowText));
+    p.setColor(QPalette::ToolTipBase, dark ? QColor(0xe0e0e0) : QColor(0x2a2a2a));
+    p.setColor(QPalette::ToolTipText, dark ? QColor(0x1e1e1e) : QColor(0xfafafa));
     p.setColor(QPalette::Link, dark ? QColor(0x93c5fd) : QColor(0x1d4ed8));
     p.setColor(QPalette::LinkVisited, dark ? QColor(0xc4b5fd) : QColor(0x6d28d9));
     p.setColor(QPalette::Mid, QColor(c.mid));
