@@ -87,12 +87,11 @@ Page {
             anchors.leftMargin: 8
             anchors.rightMargin: 8
             spacing: 8
-            TextField {
+            SearchField {
                 id: searchField
                 objectName: "searchField"
                 Layout.preferredWidth: 220
                 placeholderText: "Sportler suchen"
-                selectByMouse: true
             }
             Label {
                 Layout.leftMargin: 8
@@ -109,7 +108,7 @@ Page {
         anchors.fill: parent
         // Lined up with the toolbar above (8 px from the window edge)
         anchors.margins: 8
-        spacing: 12
+        spacing: 8
 
         ListPanel {
             objectName: "athleteList"

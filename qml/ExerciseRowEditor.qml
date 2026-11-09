@@ -43,7 +43,10 @@ Frame {
         number = source.number || 1
     }
 
-    padding: 8
+    // The same 12 px on every side: the icon buttons on the right are
+    // pulled out by the free space around their icons (8 px), so the icons
+    // end 12 px from the border like the fields on the left
+    padding: 12
     background: Rectangle {
         color: palette.window
         border.color: palette.mid
@@ -136,6 +139,8 @@ Frame {
         }
         IconToolButton {
             Layout.alignment: Qt.AlignTop
+            // Pulled out by the free space around its icon, see padding
+            Layout.rightMargin: -8
             iconName: "trash-2"
             toolTip: "Aus dieser Einheit entfernen"
             onClicked: row.removeRequested()

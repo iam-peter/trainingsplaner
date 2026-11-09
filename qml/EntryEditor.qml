@@ -63,7 +63,10 @@ Frame {
         combination = source.combination || 0
     }
 
-    padding: 8
+    // The same 12 px on every side: the icon buttons on the right are
+    // pulled out by the free space around their icons (8 px), so the icons
+    // end 12 px from the border like the fields on the left
+    padding: 12
     background: Rectangle {
         color: palette.window
         border.color: palette.mid
@@ -220,6 +223,7 @@ Frame {
         // Move / remove
         ColumnLayout {
             Layout.alignment: Qt.AlignTop
+            Layout.rightMargin: -8
             spacing: 0
             RowLayout {
                 spacing: 0

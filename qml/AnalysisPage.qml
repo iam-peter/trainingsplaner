@@ -74,7 +74,7 @@ Page {
 
         // Section analysis of one athlete
         RowLayout {
-            spacing: 12
+            spacing: 8
             ScrollView {
                 // No overshoot at the ends
                 Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds
@@ -164,7 +164,7 @@ Page {
 
         // Group analysis of a MAZ
         RowLayout {
-            spacing: 12
+            spacing: 8
             ColumnLayout {
                 // As wide as the settings of the other tabs: a layout would
                 // otherwise share the width with the report
@@ -223,7 +223,7 @@ Page {
 
         // Which athletes have data
         RowLayout {
-            spacing: 12
+            spacing: 8
             ColumnLayout {
                 // As wide as the settings of the other tabs: a layout would
                 // otherwise share the width with the report

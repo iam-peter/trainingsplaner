@@ -106,7 +106,6 @@ EditorDialog {
     height: parent ? Math.max(500, Math.min(parent.height - 40, 820)) : 760
     // Fixed height; scrolls its content itself
     scrollsContent: false
-    padding: 12
 
     Timer {
         id: recalcTimer
@@ -177,7 +176,7 @@ EditorDialog {
 
             ColumnLayout {
                 id: entryColumn
-                width: flick.width - 14
+                width: flick.width - flick.ScrollBar.vertical.room
                 spacing: 8
 
                 Repeater {

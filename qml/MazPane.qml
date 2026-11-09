@@ -47,7 +47,7 @@ RowLayout {
             select(r.id)
     }
 
-    spacing: 12
+    spacing: 8
 
     ListPanel {
         objectName: "mazList"

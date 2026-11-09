@@ -53,5 +53,24 @@ Item {
             compare(page.selectedId, "test_tina")   // still editing Tina
             search.text = ""
         }
+
+        // The clear button shows once there is text and empties the search;
+        // Esc does the same
+        function test_clearSearch() {
+            const search = findChild(page, "searchField")
+            const clear = findChild(search, "clearButton")
+            search.text = ""
+            verify(!clear.visible)
+            search.forceActiveFocus()
+            keyClick(Qt.Key_T)
+            verify(clear.visible)
+            const all = Store.athletes.length
+            mouseClick(clear)
+            compare(search.text, "")
+            compare(page.shown.length, all)
+            keyClick(Qt.Key_X)
+            keyClick(Qt.Key_Escape)
+            compare(search.text, "")
+        }
     }
 }

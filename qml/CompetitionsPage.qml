@@ -144,7 +144,7 @@ Page {
 
         // Results: list and form
         RowLayout {
-            spacing: 12
+            spacing: 8
 
             ListPanel {
                 objectName: "competitionList"
