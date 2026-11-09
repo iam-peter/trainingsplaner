@@ -118,7 +118,9 @@ open `CMakeLists.txt` in Qt Creator and build *Release*. `windeployqt
 The database is stored at
 `%APPDATA%\Trainingsplaner\Trainingsplaner\trainingsplaner.sqlite`
 (shown under *Einstellungen*). To back up, close the program and copy that
-file.
+file. When a new version changes the tables, it updates the file on the
+first start and keeps the old one beside it, e.g.
+`trainingsplaner.schema1.sqlite`. A file from a newer version is not opened.
 
 ## Releases
 

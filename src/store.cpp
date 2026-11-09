@@ -7,6 +7,7 @@
 #include "database.h"
 #include "demo.h"
 #include "exerciseweek.h"
+#include "settings.h"
 #include "weekreport.h"
 
 #include <QCoreApplication>
@@ -192,7 +193,11 @@ QSettings settings()
 
 } // namespace
 
-Store::Store(QObject *parent) : QObject(parent) {}
+Store::Store(QObject *parent) : QObject(parent)
+{
+    QSettings s;
+    Settings::migrate(s);
+}
 
 void Store::bump()
 {

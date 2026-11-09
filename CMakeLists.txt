@@ -27,6 +27,7 @@ add_library(tpcore STATIC
     src/weekreport.cpp  src/weekreport.h
     src/demo.cpp        src/demo.h
     src/update.cpp      src/update.h
+    src/settings.cpp    src/settings.h
 )
 target_include_directories(tpcore PUBLIC src)
 target_link_libraries(tpcore PUBLIC Qt6::Core Qt6::Gui Qt6::Sql)

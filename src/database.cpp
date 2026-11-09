@@ -4,6 +4,7 @@
 
 #include <QDateTime>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QSqlDatabase>
 #include <QSqlError>
@@ -105,6 +106,97 @@ bool execSql(const QString &sql)
         return false;
     }
     return true;
+}
+
+// The tables' layout; meta.schema says which one a database file has.
+// 1: up to version 0.3.0. 2: maz_sp.auswahl is 0/1 instead of 'Y'/'N',
+// sessions without a time have NULL, change stamps one form.
+constexpr int kSchemaVersion = 2;
+
+const char *const kStampedTables[] = {"sp", "te", "te_ueb", "wo", "normen", "spinfo", "wk",
+                                      "maz", "maz_sp", "ueb", "itp_ls", "geloescht"};
+
+QString createStatement(const char *table)
+{
+    const QString head = QStringLiteral("CREATE TABLE IF NOT EXISTS %1 (").arg(QLatin1String(table));
+    for (const char *sql : kSchema) {
+        if (QString::fromLatin1(sql).startsWith(head))
+            return QString::fromLatin1(sql);
+    }
+    return QString();
+}
+
+int schemaVersion()
+{
+    QSqlQuery q(db());
+    if (!q.exec(QStringLiteral("SELECT value FROM meta WHERE key = 'schema'")) || !q.next())
+        return 0;
+    return q.value(0).toInt();
+}
+
+bool migrateTo2()
+{
+    QStringList steps = {
+        // SQLite cannot change a column's type: the table is built anew
+        QStringLiteral("ALTER TABLE maz_sp RENAME TO maz_sp_v1"),
+        createStatement("maz_sp"),
+        QStringLiteral("INSERT INTO maz_sp (mazid, spid, gew, ziel_rei, ziel_sto, wk_rei, wk_sto, auswahl,"
+                       " bem, user, korrektur)"
+                       " SELECT mazid, spid, gew, ziel_rei, ziel_sto, wk_rei, wk_sto,"
+                       " CASE WHEN upper(trim(coalesce(auswahl, ''))) IN ('N', '0') THEN 0 ELSE 1 END,"
+                       " bem, user, korrektur FROM maz_sp_v1"),
+        QStringLiteral("DROP TABLE maz_sp_v1"),
+    };
+    // One form of "no time" (NULL) and of a time (15:30:00)
+    for (const char *column : {"von", "bis"}) {
+        steps.append(QStringLiteral("UPDATE te SET %1 = NULL WHERE trim(%1) IN ('', '00:00:00')")
+                         .arg(QLatin1String(column)));
+        steps.append(QStringLiteral("UPDATE te SET %1 = strftime('%H:%M:%S', %1)"
+                                    " WHERE strftime('%H:%M:%S', %1) IS NOT NULL")
+                         .arg(QLatin1String(column)));
+    }
+    // Imported stamps came as the file had them, e.g. with a T
+    for (const char *table : kStampedTables) {
+        steps.append(QStringLiteral("UPDATE %1 SET korrektur = strftime('%Y-%m-%d %H:%M:%S', korrektur)"
+                                    " WHERE strftime('%Y-%m-%d %H:%M:%S', korrektur) IS NOT NULL")
+                         .arg(QLatin1String(table)));
+    }
+    for (const QString &sql : std::as_const(steps)) {
+        if (!execSql(sql))
+            return false;
+    }
+    return true;
+}
+
+// A copy of the file as the older program left it, before changing it:
+// "trainingsplaner.sqlite" -> "trainingsplaner.schema1.sqlite"
+bool keepCopy(const QString &path, int version)
+{
+    const QFileInfo info(path);
+    const QString copy = info.dir().filePath(QStringLiteral("%1.schema%2.%3")
+                                                 .arg(info.completeBaseName())
+                                                 .arg(version)
+                                                 .arg(info.suffix()));
+    if (QFileInfo::exists(copy) || QFile::copy(path, copy))
+        return true;
+    g_lastError = QStringLiteral("Sicherungskopie %1 nicht angelegt").arg(copy);
+    return false;
+}
+
+// Brings a database file from an older program up to date, all or nothing
+bool migrate(int from)
+{
+    QSqlDatabase d = db();
+    d.transaction();
+    bool ok = true;
+    if (from < 2)
+        ok = migrateTo2();
+    ok = ok && execSql(QStringLiteral("UPDATE meta SET value = '%1' WHERE key = 'schema'").arg(kSchemaVersion));
+    if (!ok) {
+        d.rollback();
+        return false;
+    }
+    return d.commit();
 }
 
 QString dateString(const QDate &d)
@@ -290,7 +382,25 @@ bool open(const QString &path, QString *error)
             return false;
         }
     }
-    execSql(QStringLiteral("INSERT OR IGNORE INTO meta (key, value) VALUES ('schema', '1')"));
+    // A new file has the current tables; an older one is brought up to date
+    // once, one from a newer program is left alone
+    const int version = schemaVersion();
+    if (version == 0) {
+        execSql(QStringLiteral("INSERT INTO meta (key, value) VALUES ('schema', '%1')").arg(kSchemaVersion));
+    } else if (version > kSchemaVersion) {
+        g_lastError = QStringLiteral("Die Datenbank stammt von einer neueren Version des Trainingsplaners.");
+        if (error)
+            *error = g_lastError;
+        d = QSqlDatabase();
+        close();
+        return false;
+    } else if (version < kSchemaVersion && !(keepCopy(path, version) && migrate(version))) {
+        if (error)
+            *error = QStringLiteral("Die Datenbank ließ sich nicht aktualisieren: ") + g_lastError;
+        d = QSqlDatabase();
+        close();
+        return false;
+    }
     return true;
 }
 

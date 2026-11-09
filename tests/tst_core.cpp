@@ -6,12 +6,15 @@
 #include "database.h"
 #include "exerciseweek.h"
 #include "model.h"
+#include "settings.h"
 #include "steps.h"
 #include "update.h"
 #include "weekreport.h"
 
 #include <QFileInfo>
 
+#include <QSettings>
+#include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QTemporaryDir>
 #include <QtTest>
@@ -32,6 +35,8 @@ private slots:
     void bakParser();
     void importAndMerge();
     void oldFormatColumns();
+    void migrateDatabase();
+    void migrateSettings();
     void saveAndLoadSession();
     void copyWeek();
     void weekSummary();
@@ -251,6 +256,106 @@ void TestCore::oldFormatColumns()
 
     QVERIFY(Planning::removeMaz(QStringLiteral("m_alt")));
     QVERIFY(Database::removeAthlete(QStringLiteral("alt_otto")));
+}
+
+// A database file of version 0.3.0 (schema 1) opens up to date, with a
+// copy of the old file; one of a newer program is not touched
+void TestCore::migrateDatabase()
+{
+    const QString old = m_dir.filePath(QStringLiteral("old.sqlite"));
+    {
+        QSqlDatabase d = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), QStringLiteral("old"));
+        d.setDatabaseName(old);
+        QVERIFY(d.open());
+        QSqlQuery q(d);
+        for (const char *sql : {
+                 "CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT)",
+                 "INSERT INTO meta VALUES ('schema', '1')",
+                 "CREATE TABLE te (spid TEXT NOT NULL, wodate TEXT NOT NULL, tag INTEGER NOT NULL,"
+                 " te INTEGER NOT NULL, spi TEXT NOT NULL, art INTEGER DEFAULT 0, von TEXT, bis TEXT, bem TEXT,"
+                 " user TEXT, korrektur TEXT, PRIMARY KEY (spid, wodate, tag, te, spi))",
+                 "INSERT INTO te VALUES ('alt', '2024-05-06', 1, 1, 'P', 0, '00:00:00', '', 'a', 'u',"
+                 " '2024-05-02T09:00:00')",
+                 "INSERT INTO te VALUES ('alt', '2024-05-06', 2, 1, 'P', 0, '15:30', '17:30:00', 'b', 'u',"
+                 " '2024-05-02 10:00:00')",
+                 "CREATE TABLE maz_sp (mazid TEXT NOT NULL, spid TEXT NOT NULL, gew INTEGER, ziel_rei INTEGER,"
+                 " ziel_sto INTEGER, wk_rei INTEGER, wk_sto INTEGER, auswahl TEXT DEFAULT 'Y', bem TEXT,"
+                 " user TEXT, korrektur TEXT, PRIMARY KEY (mazid, spid))",
+                 "INSERT INTO maz_sp VALUES ('m', 'alt', 73, 80, 100, NULL, NULL, 'N', 'x', 'u', '2024-05-01 10:00:00')",
+                 "INSERT INTO maz_sp VALUES ('m', 'neu', 81, 90, 110, NULL, NULL, 'Y', NULL, 'u', NULL)",
+             })
+            QVERIFY2(q.exec(QString::fromLatin1(sql)), sql);
+        d.close();
+    }
+    QSqlDatabase::removeDatabase(QStringLiteral("old"));
+
+    Database::close();
+    QString error;
+    QVERIFY2(Database::open(old, &error), qPrintable(error));
+    QVERIFY(QFileInfo::exists(m_dir.filePath(QStringLiteral("old.schema1.sqlite"))));
+    {
+    QSqlQuery q;
+    QVERIFY(q.exec(QStringLiteral("SELECT value FROM meta WHERE key = 'schema'")) && q.next());
+    QCOMPARE(q.value(0).toString(), QStringLiteral("2"));
+    // auswahl: an integer column with 0/1, the rest of the rows unchanged
+    QVERIFY(q.exec(QStringLiteral("SELECT type FROM pragma_table_info('maz_sp') WHERE name = 'auswahl'")) && q.next());
+    QCOMPARE(q.value(0).toString(), QStringLiteral("INTEGER"));
+    const QList<MazAthlete> athletes = Planning::mazAthletes(QStringLiteral("m"));
+    QCOMPARE(athletes.size(), 2);
+    for (const MazAthlete &a : athletes) {
+        QCOMPARE(a.selected, a.athleteId == QLatin1String("neu"));
+        if (a.athleteId == QLatin1String("alt"))
+            QCOMPARE(a.note, QStringLiteral("x"));
+    }
+    // Times: none is NULL, the others in one form; stamps in one form
+    QVERIFY(q.exec(QStringLiteral("SELECT von, bis, korrektur FROM te ORDER BY tag")));
+    QVERIFY(q.next());
+    QVERIFY(q.value(0).isNull() && q.value(1).isNull());
+    QCOMPARE(q.value(2).toString(), QStringLiteral("2024-05-02 09:00:00"));
+    QVERIFY(q.next());
+    QCOMPARE(q.value(0).toString(), QStringLiteral("15:30:00"));
+    QCOMPARE(q.value(1).toString(), QStringLiteral("17:30:00"));
+    }
+
+    // Opening again changes nothing more
+    Database::close();
+    QVERIFY(Database::open(old));
+    {
+        QSqlQuery count;
+        QVERIFY(count.exec(QStringLiteral("SELECT COUNT(*) FROM maz_sp")) && count.next());
+        QCOMPARE(count.value(0).toInt(), 2);
+        // A file from a newer program is refused, not changed
+        QVERIFY(count.exec(QStringLiteral("UPDATE meta SET value = '99' WHERE key = 'schema'")));
+    }
+    Database::close();
+    QVERIFY(!Database::open(old, &error));
+    QVERIFY(error.contains(QStringLiteral("neueren Version")));
+
+    QVERIFY(Database::open(m_dir.filePath(QStringLiteral("test.sqlite"))));
+}
+
+// Settings of version 0.3.0 held times and dates as text
+void TestCore::migrateSettings()
+{
+    QSettings s(m_dir.filePath(QStringLiteral("settings.ini")), QSettings::IniFormat);
+    s.setValue(QStringLiteral("times/1/from"), QStringLiteral("9:30"));
+    s.setValue(QStringLiteral("times/1/to"), QStringLiteral("11:00"));
+    s.setValue(QStringLiteral("times/2/from"), QStringLiteral("abends"));
+    s.setValue(QStringLiteral("export/last"), QStringLiteral("2026-11-08 18:05:00"));
+    Settings::migrate(s);
+    QCOMPARE(s.value(QStringLiteral("times/1/from")).typeId(), QMetaType::QTime);
+    QCOMPARE(s.value(QStringLiteral("times/1/from")).toTime(), QTime(9, 30));
+    QCOMPARE(s.value(QStringLiteral("times/1/to")).toTime(), QTime(11, 0));
+    QVERIFY(!s.contains(QStringLiteral("times/2/from")));
+    QCOMPARE(s.value(QStringLiteral("export/last")).toDateTime(), QDateTime(QDate(2026, 11, 8), QTime(18, 5)));
+
+    // Written back and read again, the types stay; a second run changes nothing
+    s.sync();
+    QSettings again(s.fileName(), QSettings::IniFormat);
+    QCOMPARE(again.value(QStringLiteral("times/1/from")).toTime(), QTime(9, 30));
+    again.setValue(QStringLiteral("times/3/from"), QStringLiteral("7:00"));
+    Settings::migrate(again);
+    QCOMPARE(again.value(QStringLiteral("times/3/from")).typeId(), QMetaType::QString);
 }
 
 void TestCore::saveAndLoadSession()
