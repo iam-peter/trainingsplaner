@@ -65,6 +65,10 @@ QList<InfoRecord> infoRecords(const QStringList &arts);
 bool saveInfoRecord(const InfoRecord &r);
 bool removeInfoRecord(const QString &athleteId, const QString &art, const QDate &from,
                       const QString &time = QStringLiteral("00:00:00"));
+// Makes `records` the whole history of one attribute in one step:
+// records starting on a day no longer in it are removed
+bool replaceInfoRecords(const QString &athleteId, const QString &art,
+                        const QList<InfoRecord> &records);
 QStringList infoValues(const QString &art); // distinct texts, sorted
 // Records of the given kinds dated from..to (inclusive)
 QList<InfoRecord> infoRecordsBetween(const QString &athleteId, const QStringList &arts,

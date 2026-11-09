@@ -189,12 +189,11 @@ public:
     Q_INVOKABLE bool setAthleteAttributes(const QString &athleteId, const QVariantMap &values);
     // [{from, to, text}] with dates as "dd.MM.yyyy"
     Q_INVOKABLE QVariantList attributeHistory(const QString &athleteId, const QString &art) const;
-    // Replaces the record starting at oldFrom (empty: new record)
-    Q_INVOKABLE QString saveAttributeRecord(const QString &athleteId, const QString &art,
-                                            const QString &oldFrom, const QString &from,
-                                            const QString &to, const QString &text);
-    Q_INVOKABLE bool removeAttributeRecord(const QString &athleteId, const QString &art,
-                                           const QString &from);
+    // Saves the whole history [{from, to, text}] (dates "d.M.yyyy"; rows
+    // with nothing filled in are left out) after checking every row; the
+    // error names the row, nothing is saved then
+    Q_INVOKABLE QString saveAttributeHistory(const QString &athleteId, const QString &art,
+                                             const QVariantList &rows);
 
     // Dates
     Q_INVOKABLE QString today() const;

@@ -484,36 +484,37 @@ QVariantList Store::attributeHistory(const QString &athleteId, const QString &ar
     return list;
 }
 
-QString Store::saveAttributeRecord(const QString &athleteId, const QString &art, const QString &oldFrom,
-                                   const QString &from, const QString &to, const QString &text)
+QString Store::saveAttributeHistory(const QString &athleteId, const QString &art,
+                                   const QVariantList &rows)
 {
-    Database::InfoRecord r;
-    r.athleteId = athleteId;
-    r.art = art;
-    r.from = QDate::fromString(from.trimmed(), QStringLiteral("d.M.yyyy"));
-    r.to = QDate::fromString(to.trimmed(), QStringLiteral("d.M.yyyy"));
-    r.text = text.trimmed();
-    if (!r.from.isValid())
-        return QStringLiteral("„von“ ist kein gültiges Datum.");
-    if (!to.trimmed().isEmpty() && !r.to.isValid())
-        return QStringLiteral("„bis“ ist kein gültiges Datum.");
-    if (r.to.isValid() && r.to < r.from)
-        return QStringLiteral("„bis“ liegt vor „von“.");
-    const QDate old = QDate::fromString(oldFrom.trimmed(), QStringLiteral("d.M.yyyy"));
-    if (old.isValid() && old != r.from)
-        Database::removeInfoRecord(athleteId, art, old);
-    if (!Database::saveInfoRecord(r))
+    QList<Database::InfoRecord> records;
+    for (int i = 0; i < rows.size(); ++i) {
+        const QVariantMap row = rows.at(i).toMap();
+        const QString from = row.value(QStringLiteral("from")).toString().trimmed();
+        const QString to = row.value(QStringLiteral("to")).toString().trimmed();
+        Database::InfoRecord r;
+        r.text = row.value(QStringLiteral("text")).toString().trimmed();
+        if (from.isEmpty() && to.isEmpty() && r.text.isEmpty())
+            continue;
+        const QString line = QStringLiteral("Zeile %1: ").arg(i + 1);
+        r.from = QDate::fromString(from, QStringLiteral("d.M.yyyy"));
+        r.to = QDate::fromString(to, QStringLiteral("d.M.yyyy"));
+        if (!r.from.isValid())
+            return line + QStringLiteral("„von“ ist kein gültiges Datum.");
+        if (!to.isEmpty() && !r.to.isValid())
+            return line + QStringLiteral("„bis“ ist kein gültiges Datum.");
+        if (r.to.isValid() && r.to < r.from)
+            return line + QStringLiteral("„bis“ liegt vor „von“.");
+        for (const Database::InfoRecord &other : std::as_const(records)) {
+            if (other.from == r.from)
+                return line + QStringLiteral("Ein anderer Eintrag beginnt am selben Tag.");
+        }
+        records.append(r);
+    }
+    if (!Database::replaceInfoRecords(athleteId, art, records))
         return QStringLiteral("Speichern fehlgeschlagen: ") + Database::lastError();
     emit athletesChanged();
     return QString();
-}
-
-bool Store::removeAttributeRecord(const QString &athleteId, const QString &art, const QString &from)
-{
-    const bool ok = Database::removeInfoRecord(athleteId, art,
-                                               QDate::fromString(from, QStringLiteral("d.M.yyyy")));
-    emit athletesChanged();
-    return ok;
 }
 
 QVariantList Store::catalog() const

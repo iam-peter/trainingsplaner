@@ -10,6 +10,8 @@
 #include <QSqlQuery>
 #include <QVariant>
 
+#include <algorithm>
+
 namespace {
 
 QString g_lastError;
@@ -455,6 +457,34 @@ bool removeInfoRecord(const QString &athleteId, const QString &art, const QDate 
 {
     return deleteRows(QStringLiteral("spinfo"), QStringLiteral("spid = ? AND art = ? AND von = ? AND zeit = ?"),
                       {athleteId, art, from.toString(Qt::ISODate), time}, now());
+}
+
+bool replaceInfoRecords(const QString &athleteId, const QString &art,
+                        const QList<InfoRecord> &records)
+{
+    QSqlDatabase d = db();
+    d.transaction();
+    const QString stamp = now();
+    for (const InfoRecord &old : infoRecords(athleteId, art)) {
+        const bool kept = std::any_of(records.begin(), records.end(), [&](const InfoRecord &r) {
+            return r.from == old.from && r.time == old.time;
+        });
+        if (!kept && !deleteRows(QStringLiteral("spinfo"),
+                                 QStringLiteral("spid = ? AND art = ? AND von = ? AND zeit = ?"),
+                                 {athleteId, art, old.from.toString(Qt::ISODate), old.time}, stamp)) {
+            d.rollback();
+            return false;
+        }
+    }
+    for (InfoRecord r : records) {
+        r.athleteId = athleteId;
+        r.art = art;
+        if (!saveInfoRecord(r)) {
+            d.rollback();
+            return false;
+        }
+    }
+    return d.commit();
 }
 
 QStringList infoValues(const QString &art)
