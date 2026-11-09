@@ -153,8 +153,8 @@ QVariantMap sessionToMap(const Session &s, bool exists)
     return {
         {QStringLiteral("day"), s.day},
         {QStringLiteral("number"), s.number},
-        {QStringLiteral("from"), s.from},
-        {QStringLiteral("to"), s.to},
+        {QStringLiteral("from"), Times::text(s.from)},
+        {QStringLiteral("to"), Times::text(s.to)},
         {QStringLiteral("note"), s.note},
         {QStringLiteral("entries"), entries},
         {QStringLiteral("exists"), exists},
@@ -167,8 +167,8 @@ Session sessionFromMap(const QVariantMap &m)
     Session s;
     s.day = qBound(1, m.value(QStringLiteral("day")).toInt(), 7);
     s.number = qBound(1, m.value(QStringLiteral("number")).toInt(), 3);
-    s.from = m.value(QStringLiteral("from")).toString().trimmed();
-    s.to = m.value(QStringLiteral("to")).toString().trimmed();
+    s.from = Times::parse(m.value(QStringLiteral("from")).toString());
+    s.to = Times::parse(m.value(QStringLiteral("to")).toString());
     s.note = m.value(QStringLiteral("note")).toString();
     for (const QVariant &v : m.value(QStringLiteral("entries")).toList()) {
         const Entry e = entryFromMap(v.toMap());
@@ -176,6 +176,13 @@ Session sessionFromMap(const QVariantMap &m)
             s.entries.append(e);
     }
     return s;
+}
+
+// The time of a record keyed by date and time, from QML: empty for none,
+// which is stored as midnight; invalid for unreadable text
+QTime keyTime(const QString &text)
+{
+    return text.trimmed().isEmpty() ? QTime(0, 0) : Times::parse(text);
 }
 
 QSettings settings()
@@ -361,7 +368,7 @@ QVariantList Store::dayInfo(const QString &athleteId, const QString &monday) con
         list.append(QVariantMap{
             {QStringLiteral("date"), r.from.toString(Qt::ISODate)},
             {QStringLiteral("dateText"), Weeks::dayName(r.from.dayOfWeek()) + r.from.toString(QStringLiteral(", dd.MM."))},
-            {QStringLiteral("time"), r.time.left(5) == QLatin1String("00:00") ? QString() : r.time.left(5)},
+            {QStringLiteral("time"), Times::optional(r.time)},
             {QStringLiteral("code"), r.art},
             {QStringLiteral("name"), c.value(QStringLiteral("name"))},
             {QStringLiteral("unit"), c.value(QStringLiteral("unit"))},
@@ -384,13 +391,12 @@ QString Store::saveDayInfo(const QString &athleteId, const QString &date, const 
     const QDate d = QDate::fromString(date, Qt::ISODate);
     if (!d.isValid() || code.isEmpty())
         return QStringLiteral("Bitte Tag und Kategorie wählen.");
-    QString t = time.trimmed();
-    if (!t.isEmpty() && !QTime::fromString(t, QStringLiteral("H:mm")).isValid())
-        return QStringLiteral("Zeit ungültig: ") + t;
-    t = t.isEmpty() ? QStringLiteral("00:00:00") : QTime::fromString(t, QStringLiteral("H:mm")).toString(QStringLiteral("HH:mm:ss"));
+    const QTime t = keyTime(time);
+    if (!t.isValid())
+        return QStringLiteral("Zeit ungültig: ") + time.trimmed();
 
     if (!oldDate.isEmpty()) {
-        const QString ot = oldTime.isEmpty() ? QStringLiteral("00:00:00") : oldTime + QStringLiteral(":00");
+        const QTime ot = keyTime(oldTime);
         if (oldDate != date || ot != t || oldCode != code)
             Database::removeInfoRecord(athleteId, oldCode, QDate::fromString(oldDate, Qt::ISODate), ot);
     }
@@ -411,7 +417,7 @@ bool Store::removeDayInfo(const QString &athleteId, const QString &code, const Q
                           const QString &time)
 {
     const bool ok = Database::removeInfoRecord(athleteId, code, QDate::fromString(date, Qt::ISODate),
-                                               time.isEmpty() ? QStringLiteral("00:00:00") : time + QStringLiteral(":00"));
+                                               keyTime(time));
     bump();
     return ok;
 }
@@ -756,16 +762,16 @@ QVariantMap Store::session(const QString &athleteId, const QString &monday,
     // The times of another session with the same number this week, else the
     // default times from the settings.
     for (const Session &other : w.sessions) {
-        if (other.number == number && !other.from.isEmpty()) {
+        if (other.number == number && other.from.isValid()) {
             s.from = other.from;
             s.to = other.to;
             break;
         }
     }
-    if (s.from.isEmpty() && number >= 1 && number <= 3) {
+    if (!s.from.isValid() && number >= 1 && number <= 3) {
         const QVariantMap t = sessionTimes().at(number - 1).toMap();
-        s.from = t.value(QStringLiteral("from")).toString();
-        s.to = t.value(QStringLiteral("to")).toString();
+        s.from = Times::parse(t.value(QStringLiteral("from")).toString());
+        s.to = Times::parse(t.value(QStringLiteral("to")).toString());
     }
     return sessionToMap(s, false);
 }
@@ -776,7 +782,7 @@ bool Store::saveSession(const QString &athleteId, const QString &monday, const Q
     const Session s = sessionFromMap(session);
     // Nothing in it: no session, which the week would not show either. One
     // that was there goes, as with TE löschen.
-    if (s.entries.isEmpty() && s.from.isEmpty() && s.to.isEmpty() && s.note.trimmed().isEmpty()) {
+    if (s.entries.isEmpty() && !s.from.isValid() && !s.to.isValid() && s.note.trimmed().isEmpty()) {
         if (!loadWeek(athleteId, monday, variant).session(s.day, s.number))
             return true;
         return removeSession(athleteId, monday, variant, s.day, s.number);
@@ -1104,7 +1110,7 @@ QVariantList Store::competitions(const QString &athleteId) const
             {QStringLiteral("athleteId"), c.athleteId},
             {QStringLiteral("date"), c.date.toString(Qt::ISODate)},
             {QStringLiteral("dateText"), c.date.toString(QStringLiteral("dd.MM.yyyy"))},
-            {QStringLiteral("time"), c.time.left(5) == QLatin1String("00:00") ? QString() : c.time.left(5)},
+            {QStringLiteral("time"), Times::optional(c.time)},
             {QStringLiteral("type"), c.type},
             {QStringLiteral("typeName"), Competitions::typeShortNames().value(c.type)},
             {QStringLiteral("name"), c.name},
@@ -1132,11 +1138,9 @@ QString Store::saveCompetition(const QVariantMap &m, const QString &oldDate, con
         return QStringLiteral("Bitte einen Sportler wählen.");
     if (!c.date.isValid())
         return QStringLiteral("Datum ungültig.");
-    const QString t = m.value(QStringLiteral("time")).toString().trimmed();
-    const QTime time = QTime::fromString(t, QStringLiteral("H:mm"));
-    if (!t.isEmpty() && !time.isValid())
+    c.time = keyTime(m.value(QStringLiteral("time")).toString());
+    if (!c.time.isValid())
         return QStringLiteral("Zeit ungültig.");
-    c.time = t.isEmpty() ? QStringLiteral("00:00:00") : time.toString(QStringLiteral("HH:mm:ss"));
     c.type = qBound(0, m.value(QStringLiteral("type")).toInt(), int(Competitions::typeNames().size()) - 1);
     c.name = m.value(QStringLiteral("name")).toString().trimmed();
     c.place = m.value(QStringLiteral("place")).toString().trimmed();
@@ -1149,7 +1153,7 @@ QString Store::saveCompetition(const QVariantMap &m, const QString &oldDate, con
     }
     c.note = m.value(QStringLiteral("note")).toString().trimmed();
     const QDate od = QDate::fromString(oldDate, Qt::ISODate);
-    const QString ot = oldTime.isEmpty() ? QStringLiteral("00:00:00") : oldTime + QStringLiteral(":00");
+    const QTime ot = keyTime(oldTime);
     if (od.isValid() && (od != c.date || ot != c.time))
         Competitions::remove(c.athleteId, od, ot);
     if (!Competitions::save(c))
@@ -1160,8 +1164,7 @@ QString Store::saveCompetition(const QVariantMap &m, const QString &oldDate, con
 
 bool Store::removeCompetition(const QString &athleteId, const QString &date, const QString &time)
 {
-    const bool ok = Competitions::remove(athleteId, QDate::fromString(date, Qt::ISODate),
-                                         time.isEmpty() ? QStringLiteral("00:00:00") : time + QStringLiteral(":00"));
+    const bool ok = Competitions::remove(athleteId, QDate::fromString(date, Qt::ISODate), keyTime(time));
     bump();
     return ok;
 }
@@ -1379,13 +1382,13 @@ QString Store::exportBak(const QUrl &file, const QString &mode, const QString &s
     BakExport::Filter f;
     if (mode == QLatin1String("since")) {
         const QDate d = QDate::fromString(sinceDate.trimmed(), QStringLiteral("d.M.yyyy"));
-        QTime t = QTime::fromString(sinceTime.trimmed(), QStringLiteral("H:mm"));
+        QTime t = Times::parse(sinceTime);
         if (!d.isValid())
             return QStringLiteral("Datum ungültig: ") + sinceDate;
         if (!t.isValid())
             t = QTime(0, 0);
         f.mode = BakExport::Filter::ChangedSince;
-        f.since = QDateTime(d, t).toString(QStringLiteral("yyyy-MM-dd HH:mm:ss"));
+        f.since = QDateTime(d, t);
     } else if (mode == QLatin1String("athlete")) {
         f.mode = BakExport::Filter::AthleteWeeks;
         f.athleteId = athleteId;

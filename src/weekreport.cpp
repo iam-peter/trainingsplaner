@@ -70,13 +70,13 @@ QString num(int v)
 QString sessionTitle(const Session &s)
 {
     QString t = Weeks::dayName(s.day);
-    if (!s.from.isEmpty()) {
-        t += QLatin1Char(' ') + s.from;
-        if (!s.to.isEmpty())
-            t += QStringLiteral("–") + s.to;
+    if (s.from.isValid()) {
+        t += QLatin1Char(' ') + Times::text(s.from);
+        if (s.to.isValid())
+            t += QStringLiteral("–") + Times::text(s.to);
         t += QStringLiteral(" Uhr");
     }
-    if (s.number > 1 || s.from.isEmpty())
+    if (s.number > 1 || !s.from.isValid())
         t += QStringLiteral(" (%1. TE)").arg(s.number);
     return t;
 }

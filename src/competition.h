@@ -4,6 +4,7 @@
 #include <QList>
 #include <QString>
 #include <QStringList>
+#include <QTime>
 
 // A competition result (table wk). Attempts: positive = valid, negative =
 // invalid at that weight, 0 = not taken.
@@ -11,7 +12,7 @@ struct Competition
 {
     QString athleteId;
     QDate date;
-    QString time = QStringLiteral("00:00:00");
+    QTime time = QTime(0, 0); // part of the key; midnight: no time given
     int type = 0; // index into Competitions::typeNames()
     QString name;
     QString place;
@@ -34,7 +35,7 @@ const QStringList &typeShortNames(); // "NT", "DM", ...
 QList<Competition> forAthlete(const QString &athleteId); // newest first
 QList<Competition> between(const QString &athleteId, const QDate &from, const QDate &to);
 bool save(const Competition &c);
-bool remove(const QString &athleteId, const QDate &date, const QString &time);
+bool remove(const QString &athleteId, const QDate &date, const QTime &time);
 // Whether the athlete had a competition in the week starting `monday`
 bool inWeek(const QString &athleteId, const QDate &monday);
 

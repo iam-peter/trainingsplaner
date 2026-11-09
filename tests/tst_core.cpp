@@ -45,6 +45,7 @@ private slots:
     void sectionAnalysis();
     void exerciseWeekApply();
     void compareVersions();
+    void times();
     void parseRelease();
 
 private:
@@ -182,7 +183,7 @@ void TestCore::importAndMerge()
     const Week w = Database::loadWeek(QStringLiteral("müßig_jörg"), QDate(2024, 3, 4),
                                       Variant::Plan);
     QCOMPARE(w.sessions.size(), 1);
-    QCOMPARE(w.sessions[0].from, QStringLiteral("15:30"));
+    QCOMPARE(w.sessions[0].from, QTime(15, 30));
     QCOMPARE(w.sessions[0].entries.size(), 1);
     QCOMPARE(w.sessions[0].entries[0].steps.value(0), (Step{62, 4, 1, 0}));
 }
@@ -202,8 +203,8 @@ void TestCore::saveAndLoadSession()
     Session s;
     s.day = 1;
     s.number = 2;
-    s.from = QStringLiteral("15:30");
-    s.to = QStringLiteral("17:30");
+    s.from = QTime(15, 30);
+    s.to = QTime(17, 30);
     Entry e1;
     e1.exercise = 8;
     e1.steps = {{13, 4, 3, 0}, {15, 3, 2, 0}};
@@ -224,7 +225,7 @@ void TestCore::saveAndLoadSession()
     QCOMPARE(l.entries[0].steps, e1.steps);
     QCOMPARE(l.entries[1].text, QStringLiteral("4x8"));
     QCOMPARE(l.entries[2].kind, Entry::FreeText);
-    QCOMPARE(l.to, QStringLiteral("17:30"));
+    QCOMPARE(l.to, QTime(17, 30));
 
     // Shorter list replaces the old one.
     s.entries = {e1};
@@ -288,8 +289,8 @@ static Week exerciseTestWeek()
     Session mo;
     mo.day = 1;
     mo.number = 2;
-    mo.from = QStringLiteral("15:30");
-    mo.to = QStringLiteral("17:30");
+    mo.from = QTime(15, 30);
+    mo.to = QTime(17, 30);
     Entry a;
     a.exercise = 8;
     a.steps = {{13, 4, 3, 0}};
@@ -352,7 +353,7 @@ void TestCore::exerciseWeekApply()
 
     const Session *sa = w.session(6, 2);
     QVERIFY(sa);
-    QCOMPARE(sa->from, QStringLiteral("15:30")); // times of another 2nd session
+    QCOMPARE(sa->from, QTime(15, 30)); // times of another 2nd session
     QCOMPARE(sa->entries[0].exercise, 8);
 
     // Nothing changed: nothing touched
@@ -409,7 +410,7 @@ void TestCore::exportRoundTrip()
     Session s;
     s.day = 1;
     s.number = 2;
-    s.from = QStringLiteral("15:30");
+    s.from = QTime(15, 30);
     s.note = QStringLiteral("mit \"Anführungszeichen\"\nund Zeilenumbruch");
     Entry e;
     e.exercise = 3;
@@ -439,7 +440,7 @@ void TestCore::exportRoundTrip()
 
     // Remove Wednesday, then export the changes since just before
     QTest::qWait(1100); // timestamps have whole seconds; keep earlier changes out
-    const QString since = Database::now();
+    const QDateTime since = QDateTime::currentDateTime();
     QVERIFY(Database::removeSession(id, monday, Variant::Plan, 3, 2));
     BakExport::Result changed;
     const QString delta = BakExport::exportText({BakExport::Filter::ChangedSince, since, {}, {}, {}}, &changed);
@@ -501,7 +502,7 @@ void TestCore::attributesWithHistory()
     imported.athleteId = id;
     imported.art = QStringLiteral("Verein");
     imported.from = jan;
-    imported.time = QStringLiteral("08:30:00");
+    imported.time = QTime(8, 30);
     imported.text = QStringLiteral("SV Alt");
     QVERIFY(Database::saveInfoRecord(imported));
     Database::InfoRecord changed;
@@ -513,7 +514,7 @@ void TestCore::attributesWithHistory()
     QVERIFY(Database::replaceInfoRecords(id, QStringLiteral("Verein"), {changed, added}));
     r = Database::infoRecords(id, QStringLiteral("Verein"));
     QCOMPARE(r.size(), 2);
-    QCOMPARE(r[0].time, QStringLiteral("08:30:00"));
+    QCOMPARE(r[0].time, QTime(8, 30));
     QCOMPARE(r[0].text, QStringLiteral("SV Neu"));
     QVERIFY(Database::replaceInfoRecords(id, QStringLiteral("Verein"), {added}));
     r = Database::infoRecords(id, QStringLiteral("Verein"));
@@ -768,10 +769,25 @@ void TestCore::compareVersions()
     QCOMPARE(compareVersions(QStringLiteral("v0.2.0"), QStringLiteral("0.2.0")), 0);
     QCOMPARE(compareVersions(QStringLiteral("0.10.0"), QStringLiteral("0.9.3")), 1);
     QCOMPARE(compareVersions(QStringLiteral("0.2"), QStringLiteral("0.2.1")), -1);
+    QCOMPARE(compareVersions(QStringLiteral("0.2"), QStringLiteral("0.2.0")), 0);
     QCOMPARE(compareVersions(QStringLiteral("1.0.0-rc.1"), QStringLiteral("1.0.0")), -1);
     QCOMPARE(compareVersions(QStringLiteral("1.0.0"), QStringLiteral("1.0.0-rc.2")), 1);
     QCOMPARE(compareVersions(QStringLiteral("1.0.0-rc.1"), QStringLiteral("1.0.0-rc.2")), -1);
     QCOMPARE(compareVersions(QStringLiteral("1.0.0-rc.1"), QStringLiteral("0.9.0")), 1);
+}
+
+void TestCore::times()
+{
+    QCOMPARE(Times::parse(QStringLiteral("15:30")), QTime(15, 30));
+    QCOMPARE(Times::parse(QStringLiteral(" 9:05 ")), QTime(9, 5));
+    QCOMPARE(Times::parse(QStringLiteral("15:30:00")), QTime(15, 30));
+    QVERIFY(!Times::parse(QString()).isValid());
+    QVERIFY(!Times::parse(QStringLiteral("25:00")).isValid());
+    QCOMPARE(Times::text(QTime(9, 5)), QStringLiteral("09:05"));
+    QCOMPARE(Times::text(QTime()), QString());
+    QCOMPARE(Times::stored(QTime(8, 30)), QStringLiteral("08:30:00"));
+    QCOMPARE(Times::optional(QTime(0, 0)), QString());
+    QCOMPARE(Times::optional(QTime(8, 30)), QStringLiteral("08:30"));
 }
 
 void TestCore::parseRelease()

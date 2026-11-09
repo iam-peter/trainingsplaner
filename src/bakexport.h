@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDate>
+#include <QDateTime>
 #include <QMap>
 #include <QString>
 
@@ -19,7 +20,7 @@ struct Filter
         Maz           // a macrocycle with its athletes and framework plan
     };
     Mode mode = All;
-    QString since; // "yyyy-MM-dd HH:mm:ss"
+    QDateTime since;
     QString athleteId;
     QString mazId;
     QDate fromMonday;

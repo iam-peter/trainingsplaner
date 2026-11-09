@@ -1,6 +1,7 @@
 #include "competition.h"
 
 #include "database.h"
+#include "model.h"
 
 #include <QMap>
 #include <QSqlQuery>
@@ -30,7 +31,7 @@ QList<Competition> read(QSqlQuery &q)
         Competition c;
         c.athleteId = q.value(0).toString();
         c.date = QDate::fromString(q.value(1).toString(), Qt::ISODate);
-        c.time = q.value(2).toString();
+        c.time = Times::parse(q.value(2).toString());
         c.type = q.value(3).toInt();
         c.name = q.value(4).toString();
         c.place = q.value(5).toString();
@@ -119,7 +120,7 @@ bool save(const Competition &c)
                   .arg(kColumns));
     q.addBindValue(c.athleteId);
     q.addBindValue(c.date.toString(Qt::ISODate));
-    q.addBindValue(c.time.isEmpty() ? QStringLiteral("00:00:00") : c.time);
+    q.addBindValue(Times::stored(c.time));
     q.addBindValue(c.type);
     q.addBindValue(c.name);
     q.addBindValue(c.place);
@@ -135,10 +136,10 @@ bool save(const Competition &c)
     return q.exec();
 }
 
-bool remove(const QString &athleteId, const QDate &date, const QString &time)
+bool remove(const QString &athleteId, const QDate &date, const QTime &time)
 {
     return Database::deleteRows(QStringLiteral("wk"), QStringLiteral("spid = ? AND datum = ? AND zeit = ?"),
-                                {athleteId, date.toString(Qt::ISODate), time}, Database::now());
+                                {athleteId, date.toString(Qt::ISODate), Times::stored(time)}, Database::now());
 }
 
 bool inWeek(const QString &athleteId, const QDate &monday)
@@ -170,7 +171,7 @@ QList<Point> bestResults(const QList<Competition> &list, int period)
         } else if (period == 2) {
             key = label = QString::number(c.date.year());
         } else {
-            key = c.date.toString(Qt::ISODate) + c.time;
+            key = c.date.toString(Qt::ISODate) + Times::stored(c.time);
             label = c.date.toString(QStringLiteral("dd.MM.yy"));
         }
         Point p{label, c.date, c.total(), c.bestSnatch(), c.bestCleanJerk()};

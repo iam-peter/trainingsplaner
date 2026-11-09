@@ -98,7 +98,7 @@ QList<QPair<int, int>> apply(Week &week, int exercise, const QList<ExerciseRow> 
             created.number = r.number;
             // The times of another session with the same number this week
             for (const Session &other : std::as_const(week.sessions)) {
-                if (other.number == r.number && !other.from.isEmpty()) {
+                if (other.number == r.number && other.from.isValid()) {
                     created.from = other.from;
                     created.to = other.to;
                     break;

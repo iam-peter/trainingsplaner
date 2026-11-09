@@ -8,6 +8,7 @@
 #include <QRegularExpression>
 #include <QString>
 #include <QStringList>
+#include <QTime>
 
 struct Athlete
 {
@@ -58,8 +59,8 @@ struct Session
 {
     int day = 1;    // 1 = Monday ... 7 = Sunday
     int number = 1; // 1st, 2nd or 3rd session of the day
-    QString from;   // "15:30"
-    QString to;
+    QTime from;     // invalid: not given
+    QTime to;
     QString note;
     QList<Entry> entries;
 };
@@ -109,6 +110,22 @@ QDate fromLabel(const QString &label);
 QString dayName(int day);
 
 } // namespace Weeks
+
+// Times of day as text: "15:30" for people and QML, "15:30:00" in the
+// database and the old program's files
+namespace Times {
+
+// "15:30", "9:30" or "15:30:00"; invalid for empty or unreadable text
+QTime parse(const QString &text);
+// "15:30", empty for an invalid time
+QString text(const QTime &time);
+// "15:30:00"
+QString stored(const QTime &time);
+// As text(), but empty for midnight too: records keyed by date and time
+// (competitions, extra info) store 00:00:00 when no time was given
+QString optional(const QTime &time);
+
+} // namespace Times
 
 // Inline implementations kept here so the struct header stays self-contained.
 #include "catalog.h"
@@ -246,3 +263,31 @@ inline QString dayName(int day)
 }
 
 } // namespace Weeks
+
+namespace Times {
+
+inline QTime parse(const QString &text)
+{
+    const QString t = text.trimmed();
+    QTime time = QTime::fromString(t, QStringLiteral("H:mm"));
+    if (!time.isValid())
+        time = QTime::fromString(t, QStringLiteral("H:mm:ss"));
+    return time;
+}
+
+inline QString text(const QTime &time)
+{
+    return time.isValid() ? time.toString(QStringLiteral("HH:mm")) : QString();
+}
+
+inline QString stored(const QTime &time)
+{
+    return time.toString(QStringLiteral("HH:mm:ss"));
+}
+
+inline QString optional(const QTime &time)
+{
+    return time == QTime(0, 0) ? QString() : text(time);
+}
+
+} // namespace Times

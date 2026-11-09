@@ -2,6 +2,7 @@
 
 #include "model.h"
 
+#include <QDateTime>
 #include <QList>
 #include <QString>
 #include <QVariantList>
@@ -18,7 +19,9 @@ bool open(const QString &path, QString *error = nullptr);
 void close();
 QString path();
 
-QString now();
+// The last-change stamp of rows, "yyyy-MM-dd HH:mm:ss"
+QString stamp(const QDateTime &time);
+QString now(); // stamp() of the current time
 
 // Athletes
 QList<Athlete> athletes();
@@ -53,7 +56,7 @@ struct InfoRecord
     QString athleteId;
     QString art;
     QDate from;
-    QString time = QStringLiteral("00:00:00");
+    QTime time = QTime(0, 0); // part of the key; midnight: no time given
     QDate to;          // invalid: open end
     QString text;
     double number = 0;
@@ -64,7 +67,7 @@ QList<InfoRecord> infoRecords(const QString &athleteId, const QString &art);
 QList<InfoRecord> infoRecords(const QStringList &arts);
 bool saveInfoRecord(const InfoRecord &r);
 bool removeInfoRecord(const QString &athleteId, const QString &art, const QDate &from,
-                      const QString &time = QStringLiteral("00:00:00"));
+                      const QTime &time = QTime(0, 0));
 // Makes `records` the whole history of one attribute in one step:
 // records starting on a day no longer in it are removed
 bool replaceInfoRecords(const QString &athleteId, const QString &art,
@@ -111,7 +114,8 @@ struct Deletion
     QStringList key;
     QString stamp;
 };
-QList<Deletion> deletions(const QString &table, const QString &since);
+// Deletions logged from `since` on; all of them for an invalid time
+QList<Deletion> deletions(const QString &table, const QDateTime &since = {});
 
 QString lastError();
 

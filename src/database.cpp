@@ -122,19 +122,16 @@ QString noteColumn(Variant v)
     return v == Variant::Plan ? QStringLiteral("bem_plan") : QStringLiteral("bem_ist");
 }
 
-QString timeToStorage(const QString &t)
+// A session's start or end; none is NULL (the old program wrote 00:00:00)
+QVariant timeToStorage(const QTime &t)
 {
-    const QString s = t.trimmed();
-    if (s.isEmpty())
-        return QString();
-    return s.size() == 5 ? s + QStringLiteral(":00") : s;
+    return t.isValid() ? QVariant(Times::stored(t)) : QVariant();
 }
 
-QString timeFromStorage(const QString &t)
+QTime timeFromStorage(const QString &t)
 {
-    if (t.isEmpty() || t == QLatin1String("00:00:00"))
-        return QString();
-    return t.left(5);
+    const QTime time = Times::parse(t);
+    return time == QTime(0, 0) ? QTime() : time;
 }
 
 QString makeAthleteId(const QString &last, const QString &first)
@@ -254,9 +251,14 @@ QString lastError()
     return g_lastError;
 }
 
+QString stamp(const QDateTime &time)
+{
+    return time.toString(QStringLiteral("yyyy-MM-dd HH:mm:ss"));
+}
+
 QString now()
 {
-    return QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH:mm:ss"));
+    return stamp(QDateTime::currentDateTime());
 }
 
 bool open(const QString &path, QString *error)
@@ -368,7 +370,7 @@ QList<InfoRecord> readInfo(QSqlQuery &q)
         r.athleteId = q.value(0).toString();
         r.art = q.value(1).toString();
         r.from = QDate::fromString(q.value(2).toString(), Qt::ISODate);
-        r.time = q.value(3).toString();
+        r.time = Times::parse(q.value(3).toString());
         r.to = QDate::fromString(q.value(4).toString(), Qt::ISODate);
         r.text = q.value(5).toString();
         r.hasNumber = !q.value(6).isNull();
@@ -443,7 +445,7 @@ bool saveInfoRecord(const InfoRecord &r)
     q.addBindValue(r.athleteId);
     q.addBindValue(r.art);
     q.addBindValue(r.from.toString(Qt::ISODate));
-    q.addBindValue(r.time.isEmpty() ? QStringLiteral("00:00:00") : r.time);
+    q.addBindValue(Times::stored(r.time));
     q.addBindValue(r.to.isValid() ? QVariant(r.to.toString(Qt::ISODate)) : QVariant());
     q.addBindValue(r.text);
     q.addBindValue(r.hasNumber ? QVariant(r.number) : QVariant());
@@ -453,10 +455,10 @@ bool saveInfoRecord(const InfoRecord &r)
 }
 
 bool removeInfoRecord(const QString &athleteId, const QString &art, const QDate &from,
-                      const QString &time)
+                      const QTime &time)
 {
     return deleteRows(QStringLiteral("spinfo"), QStringLiteral("spid = ? AND art = ? AND von = ? AND zeit = ?"),
-                      {athleteId, art, from.toString(Qt::ISODate), time}, now());
+                      {athleteId, art, from.toString(Qt::ISODate), Times::stored(time)}, now());
 }
 
 bool replaceInfoRecords(const QString &athleteId, const QString &art,
@@ -476,7 +478,7 @@ bool replaceInfoRecords(const QString &athleteId, const QString &art,
         if (!sameDay(records, old.from)
             && !deleteRows(QStringLiteral("spinfo"),
                            QStringLiteral("spid = ? AND art = ? AND von = ? AND zeit = ?"),
-                           {athleteId, art, old.from.toString(Qt::ISODate), old.time}, stamp)) {
+                           {athleteId, art, old.from.toString(Qt::ISODate), Times::stored(old.time)}, stamp)) {
             d.rollback();
             return false;
         }
@@ -645,14 +647,16 @@ bool recordDeletion(const QString &table, const QVariantList &key, const QString
     return exec(q);
 }
 
-QList<Deletion> deletions(const QString &table, const QString &since)
+QList<Deletion> deletions(const QString &table, const QDateTime &since)
 {
     QList<Deletion> list;
     QSqlQuery q(db());
-    q.prepare(QStringLiteral("SELECT schluessel, korrektur FROM geloescht WHERE tabelle = ?"
-                             " AND korrektur >= ? ORDER BY korrektur"));
+    q.prepare(QStringLiteral("SELECT schluessel, korrektur FROM geloescht WHERE tabelle = ?%1"
+                             " ORDER BY korrektur")
+                  .arg(since.isValid() ? QStringLiteral(" AND korrektur >= ?") : QString()));
     q.addBindValue(table);
-    q.addBindValue(since);
+    if (since.isValid())
+        q.addBindValue(stamp(since));
     if (!exec(q))
         return list;
     while (q.next())

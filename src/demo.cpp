@@ -21,7 +21,7 @@ struct Day
 {
     int day;
     int number;
-    QString from;
+    QTime from;
     QList<Line> lines;
     QString text; // general exercise 33 (Klimmzüge) or a free note
     bool freeText = false;
@@ -30,22 +30,22 @@ struct Day
 const QList<Day> &weekTemplate()
 {
     static const QList<Day> days = {
-        {1, 2, QStringLiteral("15:30"),
+        {1, 2, QTime(15, 30),
          {{1, true, {{70, 3, 2}, {78, 2, 2}, {83, 1, 3}}},
           {13, true, {{90, 3, 3}, {100, 3, 2}}},
           {19, false, {{100, 3, 2}, {110, 2, 3}}}},
          QStringLiteral("3x8")},
-        {3, 2, QStringLiteral("15:30"),
+        {3, 2, QTime(15, 30),
          {{3, false, {{70, 2, 2}, {80, 1, 3}}},
           {14, false, {{90, 3, 3}}},
           {20, false, {{110, 4, 2}, {120, 3, 3}}}},
          QStringLiteral("Dehnen 15 min"), true},
-        {5, 2, QStringLiteral("15:30"),
+        {5, 2, QTime(15, 30),
          {{6, true, {{65, 3, 2}, {75, 2, 3}}},
           {10, false, {{68, 2, 2}, {76, 2, 3}}},
           {25, false, {{45, 5, 3}}}},
          QString()},
-        {6, 1, QStringLiteral("10:00"),
+        {6, 1, QTime(10, 0),
          {{1, true, {{75, 2, 2}, {85, 1, 3}}},
           {4, false, {{75, 2, 2}, {85, 1, 2}}},
           {19, false, {{105, 2, 3}}}},

@@ -3,8 +3,8 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QRegularExpression>
 #include <QStringList>
+#include <QVersionNumber>
 
 namespace Update {
 
@@ -32,24 +32,35 @@ QString assetName(Platform platform)
     return QStringLiteral("trainingsplaner-linux-x64.AppImage");
 }
 
+namespace {
+
+// "v1.0.0-rc.1": the numbers 1.0.0 (trailing zeros dropped, so 0.2 equals
+// 0.2.0) and the suffix "rc.1"
+QVersionNumber splitVersion(const QString &text, QString *suffix)
+{
+    QString s = text.trimmed();
+    if (s.startsWith(QLatin1Char('v')))
+        s.remove(0, 1);
+    qsizetype end = 0;
+    const QVersionNumber v = QVersionNumber::fromString(s, &end);
+    *suffix = s.mid(end);
+    if (!suffix->isEmpty() && QStringLiteral("-+.").contains(suffix->front()))
+        suffix->remove(0, 1);
+    return v.normalized();
+}
+
+} // namespace
+
 int compareVersions(const QString &a, const QString &b)
 {
-    static const QRegularExpression format(QStringLiteral("^v?(\\d+(?:\\.\\d+)*)(?:[-+.]?(.*))?$"));
-    const QRegularExpressionMatch ma = format.match(a.trimmed());
-    const QRegularExpressionMatch mb = format.match(b.trimmed());
-    if (!ma.hasMatch() || !mb.hasMatch())
+    QString sa, sb;
+    const QVersionNumber va = splitVersion(a, &sa);
+    const QVersionNumber vb = splitVersion(b, &sb);
+    if (va.isNull() || vb.isNull())
         return QString::compare(a, b) < 0 ? -1 : (a == b ? 0 : 1);
-
-    const QStringList na = ma.captured(1).split(QLatin1Char('.'));
-    const QStringList nb = mb.captured(1).split(QLatin1Char('.'));
-    for (qsizetype i = 0; i < qMax(na.size(), nb.size()); ++i) {
-        const qlonglong x = na.value(i, QStringLiteral("0")).toLongLong();
-        const qlonglong y = nb.value(i, QStringLiteral("0")).toLongLong();
-        if (x != y)
-            return x < y ? -1 : 1;
-    }
+    if (const int c = QVersionNumber::compare(va, vb))
+        return c < 0 ? -1 : 1;
     // 1.0.0-rc.1 < 1.0.0; two pre-releases compare as text
-    const QString sa = ma.captured(2), sb = mb.captured(2);
     if (sa == sb)
         return 0;
     if (sa.isEmpty())

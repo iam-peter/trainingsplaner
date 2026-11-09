@@ -45,7 +45,7 @@ bool whereFor(const TableSpec &t, const BakExport::Filter &f, QString *where, QV
         return true;
     case F::ChangedSince:
         *where = QStringLiteral("korrektur >= ?");
-        binds->append(f.since);
+        binds->append(Database::stamp(f.since));
         return true;
     case F::AthleteWeeks: {
         const QString from = f.fromMonday.toString(Qt::ISODate);
@@ -187,7 +187,7 @@ QString exportText(const Filter &filter, Result *result)
         // Deletions, unless the row exists again
         if (filter.mode == Filter::AthleteWeeks || filter.mode == Filter::Maz)
             continue;
-        const QString since = filter.mode == Filter::ChangedSince ? filter.since : QString();
+        const QDateTime since = filter.mode == Filter::ChangedSince ? filter.since : QDateTime();
         for (const Database::Deletion &d : Database::deletions(t.name, since)) {
             if (d.key.size() != t.keys.size() || liveKeys.contains(d.key.join(QChar(0x1f))))
                 continue;
