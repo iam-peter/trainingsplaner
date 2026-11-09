@@ -163,6 +163,22 @@ Item {
             verify(!Store.session(athlete, monday, "P", 1, 2).exists)
         }
 
+        // An impossible time keeps the editor open and says so
+        function test_6_impossibleTime() {
+            dialog.edit(athlete, monday, "P", 1, 2)
+            tryCompare(dialog, "opened", true)
+            dialog.addEntry({ kind: 2, text: "locker" }, false)
+            findChild(dialog.contentItem, "fromBox").text = "25:00"
+            dialog.save()
+            verify(dialog.visible)
+            compare(dialog.error, "„25:00“ ist keine Uhrzeit.")
+            verify(!Store.session(athlete, monday, "P", 1, 2).exists)
+            findChild(dialog.contentItem, "fromBox").text = "9:5"
+            dialog.save()
+            tryCompare(dialog, "visible", false)
+            compare(Store.session(athlete, monday, "P", 1, 2).from, "09:05")
+        }
+
         function test_3_cancelAsksWhenChanged() {
             dialog.edit(athlete, monday, "P", 1, 2)
             tryCompare(dialog, "opened", true)

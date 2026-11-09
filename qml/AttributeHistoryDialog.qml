@@ -6,13 +6,14 @@ import Trainingsplaner
 // The history of one attribute (Kader, Verein, ...) of an athlete:
 // which value applied from when to when. All rows are edited in place
 // and saved together; Abbrechen leaves the history as it was.
-AppDialog {
+EditorDialog {
     id: dialog
 
     property string athleteId
     property string art
     property string error
-    property bool dirty: false
+    // The values offered in every row, read once per opening
+    property var values: []
 
     signal changed()
 
@@ -23,15 +24,18 @@ AppDialog {
     function edit(id, a) {
         athleteId = id
         art = a
+        values = Store.attributeValues(art)
+        error = ""
+        // The rows after opening: rows changed while the dialog is hidden
+        // keep the last opening's layout, as Qt does not lay them out anew
+        open()
         rows.clear()
         for (const r of Store.attributeHistory(athleteId, art))
             rows.append({ from: r.from, to: r.to, text: r.text })
         // Nothing recorded yet: a row to start typing in
         if (rows.count === 0)
             addRow()
-        error = ""
         dirty = false
-        open()
     }
 
     function addRow() {
@@ -54,28 +58,15 @@ AppDialog {
         close()
     }
 
-    function cancel() {
-        if (dirty)
-            discardConfirm.open()
-        else
-            close()
-    }
-
     // The old program's title for this window
     title: "Erfassung " + art
     width: parent ? Math.min(parent.width - 40, 640) : 640
-    closePolicy: Popup.NoAutoClose
+    discardText: "Die Änderungen an „" + art + "“ gehen verloren."
 
     Shortcut {
         sequence: "Ctrl+S"
-        enabled: dialog.visible && dialog.level === DialogStack.open
+        enabled: dialog.onTop
         onActivated: dialog.save()
-    }
-    // Esc asks before throwing away changes, like Abbrechen
-    Shortcut {
-        sequences: [StandardKey.Cancel]
-        enabled: dialog.visible && dialog.level === DialogStack.open
-        onActivated: dialog.cancel()
     }
 
     ListModel { id: rows }
@@ -119,7 +110,7 @@ AppDialog {
                     objectName: "valueBox"
                     Layout.fillWidth: true
                     editable: true
-                    model: Store.attributeValues(dialog.art)
+                    model: dialog.values
                     // The box sets its text from the list once it has it
                     // (to the first value): the row's value is chosen first,
                     // and only then do changes count
@@ -186,19 +177,6 @@ AppDialog {
             highlighted: true
             DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
             onClicked: dialog.save()
-        }
-    }
-
-    AppDialog {
-        id: discardConfirm
-        objectName: "discardConfirm"
-        title: "Änderungen verwerfen?"
-        standardButtons: Dialog.Discard | Dialog.Cancel
-        Label { text: "Die Änderungen an „" + dialog.art + "“ gehen verloren." }
-        onDiscarded: {
-            dialog.dirty = false
-            close()
-            dialog.close()
         }
     }
 }

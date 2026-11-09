@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import Trainingsplaner
 
 // Editor for one training session ("Trainingseinheit").
-AppDialog {
+EditorDialog {
     id: dialog
 
     property string athleteId
@@ -13,7 +13,6 @@ AppDialog {
     property int day: 1
     property int number: 1
     property bool exists: false
-    property bool dirty: false
     property var weekStats: ({})
 
     // Initial entry data by uid; the ListModel only holds the uids so that
@@ -37,6 +36,7 @@ AppDialog {
         fromBox.text = s.from
         toBox.text = s.to
         noteField.text = s.note
+        error = ""
         dirty = false
         open()
         recalc()
@@ -77,16 +77,21 @@ AppDialog {
         recalcTimer.restart()
     }
 
-    function validTime(t) {
-        return /^\d{1,2}:\d{2}$/.test(t.trim()) ? t.trim() : ""
-    }
+    // Why the session cannot be saved yet, "" when it can
+    property string error: ""
 
     function save() {
+        // An impossible time is shown, not dropped
+        if (!fromBox.valid || !toBox.valid) {
+            error = "„" + (fromBox.valid ? toBox.text : fromBox.text) + "“ ist keine Uhrzeit."
+            return
+        }
+        error = ""
         Store.saveSession(athleteId, monday, variant, {
             day: day,
             number: number,
-            from: validTime(fromBox.time),
-            to: validTime(toBox.time),
+            from: fromBox.time,
+            to: toBox.time,
             note: noteField.text,
             entries: collect()
         })
@@ -94,16 +99,9 @@ AppDialog {
         close()
     }
 
-    function cancel() {
-        if (dirty)
-            discardConfirm.open()
-        else
-            close()
-    }
-
     title: Store.dayName(day) + ", " + Store.dayDate(monday, day) + "  –  " + number + ". TE  ("
            + (variant === "P" ? "Plan" : "Ist") + ")  –  Woche " + Store.weekLabel(monday)
-    closePolicy: Popup.NoAutoClose
+    discardText: "Die Trainingseinheit wurde geändert und noch nicht gespeichert."
     width: parent ? Math.max(700, Math.min(parent.width - 40, 1100)) : 1000
     height: parent ? Math.max(500, Math.min(parent.height - 40, 820)) : 760
     padding: 12
@@ -116,13 +114,8 @@ AppDialog {
 
     Shortcut {
         sequence: "Ctrl+S"
-        enabled: dialog.visible && !discardConfirm.visible && !deleteConfirm.visible && !historyDialog.visible
+        enabled: dialog.onTop
         onActivated: dialog.save()
-    }
-    Shortcut {
-        sequence: "Esc"
-        enabled: dialog.visible && !discardConfirm.visible && !deleteConfirm.visible
-        onActivated: dialog.cancel()
     }
 
     ListModel { id: entryModel }
@@ -246,6 +239,12 @@ AppDialog {
                     objectName: "toBox"
                     onTextEdited: dialog.dirty = true
                 }
+                Label {
+                    objectName: "errorLabel"
+                    visible: dialog.error !== ""
+                    text: dialog.error
+                    color: Theme.error
+                }
             }
             Label {
                 text: "Bemerkung:"
@@ -295,18 +294,6 @@ AppDialog {
 
     ExerciseHistoryDialog {
         id: historyDialog
-    }
-
-    AppDialog {
-        id: discardConfirm
-        title: "Änderungen verwerfen?"
-        standardButtons: Dialog.Discard | Dialog.Cancel
-        Label { text: "Die Trainingseinheit wurde geändert und noch nicht gespeichert." }
-        onDiscarded: {
-            close()
-            dialog.dirty = false
-            dialog.close()
-        }
     }
 
     AppDialog {

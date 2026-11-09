@@ -5,7 +5,7 @@ import Trainingsplaner
 
 // "Erfassung TÜ": one exercise across the whole week, one row for each
 // session it appears in.
-AppDialog {
+EditorDialog {
     id: dialog
 
     property string athleteId
@@ -13,13 +13,11 @@ AppDialog {
     property string variant: "P"
     property int exercise: 0
     property bool valid: false
-    property bool dirty: false
     property var weekStats: ({})
 
     // Initial row data by uid, as in SessionDialog
     property var initial: ({})
     property int nextUid: 0
-    property int pendingExercise: 0
     property var copiedSteps: null
 
     function edit(a, m, v, ex) {
@@ -46,12 +44,10 @@ AppDialog {
     function switchTo(ex) {
         if (ex === exercise)
             return
-        if (dirty) {
-            pendingExercise = ex
-            discardConfirm.open()
-        } else {
+        if (dirty)
+            askDiscard(() => load(ex), () => numberField.text = exercise > 0 ? exercise : "")
+        else
             load(ex)
-        }
     }
 
     function addRow(r, focus) {
@@ -112,18 +108,9 @@ AppDialog {
         close()
     }
 
-    function cancel() {
-        if (dirty) {
-            pendingExercise = 0
-            discardConfirm.open()
-        } else {
-            close()
-        }
-    }
-
     title: "Erfassung TÜ " + (exercise > 0 ? exercise : "") + "  –  Woche " + Store.weekLabel(monday)
            + "  (" + (variant === "P" ? "Plan" : "Ist") + ")"
-    closePolicy: Popup.NoAutoClose
+    discardText: "Die Übung wurde geändert und noch nicht gespeichert."
     width: parent ? Math.max(700, Math.min(parent.width - 40, 1100)) : 1000
     height: parent ? Math.max(500, Math.min(parent.height - 40, 820)) : 760
     padding: 12
@@ -136,13 +123,8 @@ AppDialog {
 
     Shortcut {
         sequence: "Ctrl+S"
-        enabled: dialog.visible && dialog.valid && !discardConfirm.visible && !historyDialog.visible
+        enabled: dialog.onTop && dialog.valid
         onActivated: dialog.save()
-    }
-    Shortcut {
-        sequence: "Esc"
-        enabled: dialog.visible && !discardConfirm.visible
-        onActivated: dialog.cancel()
     }
 
     ListModel { id: rowModel }
@@ -318,20 +300,4 @@ AppDialog {
         id: historyDialog
     }
 
-    AppDialog {
-        id: discardConfirm
-        title: "Änderungen verwerfen?"
-        standardButtons: Dialog.Discard | Dialog.Cancel
-        Label { text: "Die Übung wurde geändert und noch nicht gespeichert." }
-        onDiscarded: {
-            close()
-            if (dialog.pendingExercise > 0) {
-                dialog.load(dialog.pendingExercise)
-            } else {
-                dialog.dirty = false
-                dialog.close()
-            }
-        }
-        onRejected: numberField.text = dialog.exercise > 0 ? dialog.exercise : ""
-    }
 }
