@@ -141,10 +141,13 @@ elseif(APPLE)
 endif()
 
 enable_testing()
+# Every test run also writes its results to build/test-results, which
+# the nightly uploads when a run fails
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/test-results)
 
 qt_add_executable(tst_core tests/tst_core.cpp)
 target_link_libraries(tst_core PRIVATE tpcore Qt6::Test)
-add_test(NAME tst_core COMMAND tst_core)
+add_test(NAME tst_core COMMAND tst_core -o ${CMAKE_BINARY_DIR}/test-results/tst_core.txt,txt -o -,txt)
 set_tests_properties(tst_core PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
 qt_add_executable(tst_qml tests/tst_qml.cpp)
@@ -155,14 +158,14 @@ target_compile_definitions(tst_qml PRIVATE
     QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests")
 target_link_libraries(tst_qml PRIVATE tpqml tpqmlplugin Qt6::QuickTest)
 # The QML tests in the program's default style, our own Carbon and shadcn styles and Material
-add_test(NAME tst_qml COMMAND tst_qml)
+add_test(NAME tst_qml COMMAND tst_qml -o ${CMAKE_BINARY_DIR}/test-results/tst_qml.txt,txt -o -,txt)
 set_tests_properties(tst_qml PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_CONTROLS_STYLE=Fusion")
-add_test(NAME tst_qml_carbon COMMAND tst_qml)
+add_test(NAME tst_qml_carbon COMMAND tst_qml -o ${CMAKE_BINARY_DIR}/test-results/tst_qml_carbon.txt,txt -o -,txt)
 set_tests_properties(tst_qml_carbon PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_CONTROLS_STYLE=Carbon")
-add_test(NAME tst_qml_shadcn COMMAND tst_qml)
+add_test(NAME tst_qml_shadcn COMMAND tst_qml -o ${CMAKE_BINARY_DIR}/test-results/tst_qml_shadcn.txt,txt -o -,txt)
 set_tests_properties(tst_qml_shadcn PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_CONTROLS_STYLE=Shadcn")
 # A style that animates its dialogs, which the tests must allow for
-add_test(NAME tst_qml_material COMMAND tst_qml)
+add_test(NAME tst_qml_material COMMAND tst_qml -o ${CMAKE_BINARY_DIR}/test-results/tst_qml_material.txt,txt -o -,txt)
 set_tests_properties(tst_qml_material PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_CONTROLS_STYLE=Material")
 
 include(GNUInstallDirs)
