@@ -75,18 +75,6 @@ Page {
         return Store.mondayOf(t) === monday ? (new Date(t + "T12:00:00").getDay() + 6) % 7 + 1 : 0
     }
 
-    // How much room a row of sessions gets: by its longest session, so an
-    // empty row of first sessions stays small
-    function rowWeight(number) {
-        let lines = 0
-        for (let d = 1; d <= 7; ++d) {
-            const s = sessionAt(d, number)
-            if (s)
-                lines = Math.max(lines, s.entries.length + 2)
-        }
-        return Math.max(lines, 2)
-    }
-
     function sessionAt(day, number) {
         if (!weekData.sessions)
             return null
@@ -386,8 +374,9 @@ Page {
                     Layout.fillHeight: true
                     Layout.preferredWidth: 1
                     Layout.preferredHeight: 1
+                    // Every row of sessions as high as the others, as in the
+                    // old program, so the grid keeps its shape from week to week
                     Layout.minimumHeight: 44
-                    Layout.verticalStretchFactor: page.rowWeight(number)
                     today: page.todayDay === day
                     sessionNumber: number
                     session: page.sessionAt(day, number)
