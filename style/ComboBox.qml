@@ -89,7 +89,7 @@ T.ComboBox {
         implicitWidth: 160
         implicitHeight: Tokens.controlHeight
         radius: Tokens.radiusMd
-        color: control.hovered && Tokens.dark ? Tokens.inputHover : Tokens.inputBackground
+        color: control.hovered ? Tokens.fieldHover : Tokens.inputBackground
         border.color: control.activeFocus ? Tokens.ring : Tokens.input
     }
 

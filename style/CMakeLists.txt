@@ -11,6 +11,7 @@ qt_add_qml_module(tpstyle
     IMPORTS QtQuick.Controls.Basic
     QML_FILES
         Tokens.qml
+        SchemeColors.qml
         Shadow.qml
         ApplicationWindow.qml
         Button.qml

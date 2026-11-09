@@ -59,7 +59,7 @@ Item {
             compare(systemPalette.window, "#ece9d8")   // the system dialogs too
             Store.colorScheme = "light"
             verify(!Store.classicColors)
-            tryCompare(Theme, "window", "#ffffff")
+            tryCompare(Theme, "window", "#f8f8f8")
             Store.colorScheme = before
         }
     }

@@ -44,6 +44,6 @@ T.ToolButton {
         border.width: control.visualFocus ? 1 : 0
         border.color: Tokens.ring
         color: control.down || control.checked || (control.hovered && control.enabled)
-               ? (Tokens.dark ? Tokens.alpha(Tokens.accent, 0.5) : Tokens.accent) : "transparent"
+               ? Tokens.ghostHover : "transparent"
     }
 }

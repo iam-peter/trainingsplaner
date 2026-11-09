@@ -68,7 +68,7 @@ QtObject {
 
     // Chart series: readable on the light and the dark chart background
     readonly property color ink: sh.chart[1]
-    readonly property color slate: (dark ? "#525252" : "#d4d4d4")
+    readonly property color slate: sh.chartMuted
     readonly property color blue: sh.chart[2]
     readonly property color green: sh.chart[3]
 }

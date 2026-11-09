@@ -19,10 +19,10 @@ TabButton {
 
     background: Rectangle {
         radius: Theme.radius(3)
-        // The current tab has a border in dark mode, and focus shows in
-        // the border
-        border.width: (Theme.dark && control.checked) || control.visualFocus ? 1 : 0
-        border.color: control.visualFocus ? Theme.sh.ring : Theme.sh.input
-        color: control.checked ? (Theme.dark ? Theme.sh.inputBackground : Theme.sh.card) : "transparent"
+        // The current tab is raised (with a border where the scheme has
+        // one), and focus shows in the border
+        border.width: control.checked || control.visualFocus ? 1 : 0
+        border.color: control.visualFocus ? Theme.sh.ring : Theme.sh.tabActiveBorder
+        color: control.checked ? Theme.sh.tabActive : "transparent"
     }
 }

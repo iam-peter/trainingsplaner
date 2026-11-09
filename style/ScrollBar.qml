@@ -17,7 +17,7 @@ T.ScrollBar {
         implicitWidth: control.interactive ? 6 : 2
         implicitHeight: control.interactive ? 6 : 2
         radius: width / 2
-        color: Tokens.dark ? Qt.rgba(1, 1, 1, 0.25) : "#d4d4d4"
+        color: Tokens.scrollThumb
         opacity: control.policy === T.ScrollBar.AlwaysOn || (control.active && control.size < 1.0) ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: 200 } }
     }

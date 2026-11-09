@@ -14,11 +14,11 @@ T.Button {
     readonly property color fill: {
         switch (kind) {
         case "default": return hot || down ? Tokens.alpha(Tokens.primary, 0.9) : Tokens.primary
-        case "destructive": return Tokens.alpha(Tokens.destructive, (hot || down ? 0.9 : 1) * (Tokens.dark ? 0.6 : 1))
+        case "destructive": return hot || down ? Tokens.alpha(Tokens.destructiveFill, 0.9 * Tokens.destructiveFill.a) : Tokens.destructiveFill
         case "secondary": return hot || down ? Tokens.alpha(Tokens.secondary, 0.8) : Tokens.secondary
-        case "outline": return hot || down || checked ? (Tokens.dark ? Tokens.inputHover : Tokens.accent) : Tokens.dark ? Tokens.inputBackground : Tokens.background
+        case "outline": return hot || down || checked ? Tokens.outlineHover : Tokens.outlineBackground
         }
-        return hot || down || checked ? (Tokens.dark ? Tokens.alpha(Tokens.accent, 0.5) : Tokens.accent) : "transparent"
+        return hot || down || checked ? Tokens.ghostHover : "transparent"
     }
     readonly property color foreground: kind === "default" ? Tokens.primaryForeground
                                         : kind === "destructive" ? "#ffffff"
@@ -63,7 +63,7 @@ T.Button {
         color: control.fill
         // Focus shows in the border, without a glow
         border.width: control.kind === "outline" || control.visualFocus ? 1 : 0
-        border.color: control.visualFocus ? Tokens.ring : Tokens.dark ? Tokens.input : Tokens.border
+        border.color: control.visualFocus ? Tokens.ring : Tokens.outlineBorder
 
     }
 }

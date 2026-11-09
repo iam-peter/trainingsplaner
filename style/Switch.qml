@@ -32,7 +32,7 @@ T.Switch {
             width: 16
             height: 16
             radius: 8
-            color: Tokens.dark ? (control.checked ? Tokens.primaryForeground : Tokens.foreground) : Tokens.background
+            color: control.checked ? Tokens.switchThumbChecked : Tokens.switchThumb
             Behavior on x { enabled: !control.down; NumberAnimation { duration: 110 } }
         }
     }
