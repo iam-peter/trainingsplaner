@@ -3,14 +3,17 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
 
-// Grid of exercise numbers, one row per group. Hovering shows the name.
+// Grid of exercise numbers, one row per group. The title names the
+// exercise under the pointer, else the chosen one, always with its number.
 Popup {
     id: picker
 
     // true: general exercises entered as text (AMKT); false: weight exercises
     property bool textExercises: false
     property int current: 0
-    property string hoverName: ""
+    // The exercise under the pointer, 0 for none
+    property int hovered: 0
+    readonly property int shown: hovered > 0 ? hovered : current
 
     signal picked(int id)
 
@@ -29,17 +32,17 @@ Popup {
     padding: 12
     modal: false
     focus: true
-    onOpened: hoverName = ""
+    onOpened: hovered = 0
 
     contentItem: ColumnLayout {
         spacing: 4
 
         Label {
+            objectName: "pickerTitle"
             Layout.fillWidth: true
             Layout.preferredWidth: 300
             horizontalAlignment: Text.AlignHCenter
-            text: picker.hoverName !== "" ? picker.hoverName
-                  : (picker.current > 0 ? Store.exerciseName(picker.current) : "Übung wählen")
+            text: picker.shown > 0 ? picker.shown + "  " + Store.exerciseName(picker.shown) : "Übung wählen"
             font.bold: true
         }
 
@@ -69,7 +72,13 @@ Popup {
                         text: modelData.id
                         highlighted: modelData.id === picker.current
                         hoverEnabled: true
-                        onHoveredChanged: if (hovered) picker.hoverName = modelData.id + "  " + modelData.name
+                        objectName: "exercise" + modelData.id
+                        onHoveredChanged: {
+                            if (hovered)
+                                picker.hovered = modelData.id
+                            else if (picker.hovered === modelData.id)
+                                picker.hovered = 0
+                        }
                         onClicked: {
                             picker.picked(modelData.id)
                             picker.close()
