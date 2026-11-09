@@ -146,57 +146,30 @@ Page {
         RowLayout {
             spacing: 12
 
-            Panel {
+            ListPanel {
+                objectName: "competitionList"
                 Layout.preferredWidth: 380
                 Layout.fillHeight: true
-                // Rows stay inside the border
-                padding: 1
-                filled: true
-                ColumnLayout {
-                    anchors.fill: parent
-                    spacing: 0
-                    ListView {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        clip: true
-                        boundsBehavior: Flickable.StopAtBounds
-                        // With the rows' inset, the selection keeps the same gap to the
-                        // border on every side
-                        topMargin: Theme.listMargin
-                        bottomMargin: Theme.listMargin
-                        model: page.list
-                        ScrollBar.vertical: AppScrollBar {}
-                        delegate: ListRow {
-                            required property var modelData
-                            highlighted: page.current && page.current.date === modelData.date
-                                         && page.current.time === modelData.time
-                            deleteToolTip: "Wettkampf löschen"
-                            onClicked: page.edit(modelData)
-                            onDeleteRequested: {
-                                deleteConfirm.competition = modelData
-                                deleteConfirm.open()
-                            }
-                            contentItem: RowLayout {
-                                spacing: 8
-                                Label { text: modelData.dateText; Layout.preferredWidth: 80 }
-                                Label { text: modelData.typeName; Layout.preferredWidth: 28; color: palette.placeholderText }
-                                Label { text: modelData.name || modelData.place; Layout.fillWidth: true; elide: Text.ElideRight }
-                                Label { text: modelData.total > 0 ? modelData.total : "–"; font.bold: true }
-                            }
-                        }
-                        Label {
-                            anchors.centerIn: parent
-                            visible: page.list.length === 0
-                            text: "Noch keine Wettkämpfe."
-                            color: palette.placeholderText
-                        }
+                model: page.list
+                emptyText: "Noch keine Wettkämpfe."
+                addText: "Neuer Wettkampf"
+                onAddClicked: page.edit(null)
+                delegate: ListRow {
+                    required property var modelData
+                    highlighted: page.current && page.current.date === modelData.date
+                                 && page.current.time === modelData.time
+                    deleteToolTip: "Wettkampf löschen"
+                    onClicked: page.edit(modelData)
+                    onDeleteRequested: {
+                        deleteConfirm.competition = modelData
+                        deleteConfirm.open()
                     }
-                    IconButton {
-                        Layout.fillWidth: true
-                        Layout.margins: 8
-                        iconName: "plus"
-                        text: "Neuer Wettkampf"
-                        onClicked: page.edit(null)
+                    contentItem: RowLayout {
+                        spacing: 8
+                        Label { text: modelData.dateText; Layout.preferredWidth: 80 }
+                        Label { text: modelData.typeName; Layout.preferredWidth: 28; color: palette.placeholderText }
+                        Label { text: modelData.name || modelData.place; Layout.fillWidth: true; elide: Text.ElideRight }
+                        Label { text: modelData.total > 0 ? modelData.total : "–"; font.bold: true }
                     }
                 }
             }

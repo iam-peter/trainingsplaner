@@ -49,59 +49,32 @@ RowLayout {
 
     spacing: 12
 
-    Panel {
+    ListPanel {
+        objectName: "mazList"
         Layout.preferredWidth: 300
         Layout.fillHeight: true
-        // Rows stay inside the border
-        padding: 1
-        filled: true
-        ColumnLayout {
-            anchors.fill: parent
-            spacing: 0
-            ListView {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
-                // With the rows' inset, the selection keeps the same gap to the
-                // border on every side
-                topMargin: Theme.listMargin
-                bottomMargin: Theme.listMargin
-                model: Plan.mazList
-                ScrollBar.vertical: AppScrollBar {}
-                delegate: ListRow {
-                    required property var modelData
-                    highlighted: modelData.id === pane.mazId
-                    deleteToolTip: "MAZ löschen"
-                    onClicked: pane.select(modelData.id)
-                    onDeleteRequested: {
-                        deleteConfirm.mazId = modelData.id
-                        deleteConfirm.name = modelData.displayName
-                        deleteConfirm.open()
-                    }
-                    contentItem: ColumnLayout {
-                        spacing: 0
-                        Label { text: modelData.displayName; elide: Text.ElideRight; Layout.fillWidth: true }
-                        Label {
-                            text: modelData.from + " – " + modelData.to + "  ·  " + (modelData.sex === 0 ? "Männer" : "Frauen")
-                            font.pixelSize: 11
-                            color: palette.placeholderText
-                        }
-                    }
-                }
+        model: Plan.mazList
+        emptyText: "Noch kein MAZ."
+        addText: "Neuer MAZ"
+        onAddClicked: pane.select("")
+        delegate: ListRow {
+            required property var modelData
+            highlighted: modelData.id === pane.mazId
+            deleteToolTip: "MAZ löschen"
+            onClicked: pane.select(modelData.id)
+            onDeleteRequested: {
+                deleteConfirm.mazId = modelData.id
+                deleteConfirm.name = modelData.displayName
+                deleteConfirm.open()
+            }
+            contentItem: ColumnLayout {
+                spacing: 0
+                Label { text: modelData.displayName; elide: Text.ElideRight; Layout.fillWidth: true }
                 Label {
-                    anchors.centerIn: parent
-                    visible: Plan.mazList.length === 0
-                    text: "Noch kein MAZ."
+                    text: modelData.from + " – " + modelData.to + "  ·  " + (modelData.sex === 0 ? "Männer" : "Frauen")
+                    font.pixelSize: 11
                     color: palette.placeholderText
                 }
-            }
-            IconButton {
-                Layout.fillWidth: true
-                Layout.margins: 8
-                iconName: "plus"
-                text: "Neuer MAZ"
-                onClicked: pane.select("")
             }
         }
     }

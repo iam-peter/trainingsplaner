@@ -111,51 +111,22 @@ Page {
         anchors.margins: 8
         spacing: 12
 
-        Panel {
+        ListPanel {
+            objectName: "athleteList"
             Layout.preferredWidth: 280
             Layout.fillHeight: true
-            // Rows stay inside the border
-            padding: 1
-            filled: true
-
-            ColumnLayout {
-                anchors.fill: parent
-                spacing: 0
-
-                ListView {
-                    id: list
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    clip: true
-                    boundsBehavior: Flickable.StopAtBounds
-                    // With the rows' inset, the selection keeps the same gap to the
-                    // border on every side
-                    topMargin: Theme.listMargin
-                    bottomMargin: Theme.listMargin
-                    model: page.shown
-                    delegate: ListRow {
-                        required property var modelData
-                        text: modelData.displayName
-                        highlighted: modelData.id === page.selectedId
-                        deleteToolTip: "Sportler löschen"
-                        onClicked: page.select(modelData.id)
-                        onDeleteRequested: page.askRemove(modelData.id)
-                    }
-                    ScrollBar.vertical: AppScrollBar {}
-                    Label {
-                        anchors.centerIn: parent
-                        visible: page.shown.length === 0
-                        text: Store.athletes.length === 0 ? "Noch keine Sportler." : "Niemand gefunden."
-                        color: palette.placeholderText
-                    }
-                }
-                IconButton {
-                    Layout.fillWidth: true
-                    Layout.margins: 8
-                    iconName: "user-plus"
-                    text: "Neuer Sportler"
-                    onClicked: page.select("")
-                }
+            model: page.shown
+            emptyText: Store.athletes.length === 0 ? "Noch keine Sportler." : "Niemand gefunden."
+            addText: "Neuer Sportler"
+            addIcon: "user-plus"
+            onAddClicked: page.select("")
+            delegate: ListRow {
+                required property var modelData
+                text: modelData.displayName
+                highlighted: modelData.id === page.selectedId
+                deleteToolTip: "Sportler löschen"
+                onClicked: page.select(modelData.id)
+                onDeleteRequested: page.askRemove(modelData.id)
             }
         }
 
