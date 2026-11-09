@@ -28,7 +28,9 @@ Page {
         if (tabs.currentIndex === 3) chartTab.reload()
     }
 
-    readonly property var athleteMaz: athleteId !== "" ? (Plan.changed, Plan.mazForAthlete(athleteId)) : []
+    // Plan.mazList is notified on every change of the plans, so the list
+    // follows them (Plan.changed, a signal, made no dependency)
+    readonly property var athleteMaz: athleteId !== "" ? (Plan.mazList, Plan.mazForAthlete(athleteId)) : []
     readonly property string defaultFrom: Store.weekLabel(Store.addWeeks(Store.mondayOf(Store.today()), -11))
 
     function individualParams() {
@@ -86,11 +88,12 @@ Page {
                     spacing: 8
                     Label { text: "Sportler"; font.bold: true }
                     ComboBox {
+                        id: iAthlete
                         Layout.fillWidth: true
                         model: Store.selectableAthletes
                         textRole: "displayName"
                         valueRole: "id"
-                        currentIndex: indexOfValue(page.athleteId)
+                        currentIndex: (iAthlete.count, iAthlete.indexOfValue(page.athleteId))
                         onActivated: page.athleteId = currentValue
                     }
                     Label { text: "Zeitraum"; font.bold: true }
@@ -289,11 +292,12 @@ Page {
             RowLayout {
                 spacing: 8
                 ComboBox {
+                    id: chAthlete
                     implicitWidth: 180
                     model: Store.selectableAthletes
                     textRole: "displayName"
                     valueRole: "id"
-                    currentIndex: indexOfValue(page.athleteId)
+                    currentIndex: (chAthlete.count, chAthlete.indexOfValue(page.athleteId))
                     onActivated: { page.athleteId = currentValue; chartTab.reload() }
                 }
                 ComboBox {
@@ -367,7 +371,7 @@ Page {
                     id: chMaz2
                     enabled: chCompare.checked
                     implicitWidth: 200
-                    model: [{ id: "", displayName: "gleiche Wochen" }].concat(chAthlete2.currentIndex >= 0 ? Plan.mazForAthlete(chAthlete2.currentValue) : [])
+                    model: [{ id: "", displayName: "gleiche Wochen" }].concat(chAthlete2.currentIndex >= 0 ? (Plan.mazList, Plan.mazForAthlete(chAthlete2.currentValue)) : [])
                     textRole: "displayName"
                     valueRole: "id"
                     onActivated: chartTab.reload()

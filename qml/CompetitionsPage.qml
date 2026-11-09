@@ -117,11 +117,12 @@ Page {
             anchors.leftMargin: 8
             anchors.rightMargin: 8
             ComboBox {
+                id: compAthleteBox
                 Layout.preferredWidth: 220
                 model: Store.selectableAthletes
                 textRole: "displayName"
                 valueRole: "id"
-                currentIndex: indexOfValue(page.athleteId)
+                currentIndex: (compAthleteBox.count, compAthleteBox.indexOfValue(page.athleteId))
                 displayText: currentIndex < 0 ? "Sportler wählen" : currentText
                 onActivated: page.athleteId = currentValue
             }

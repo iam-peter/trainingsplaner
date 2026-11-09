@@ -21,7 +21,10 @@ Page {
     readonly property string fromMonday: maz ? maz.fromMonday : ownFrom
     readonly property int weeks: maz ? maz.weeks : ownWeeks
     readonly property var exercises: Plan.exerciseSets[setIndex].exercises
-    readonly property var mazChoices: roMode ? Plan.mazList : (athleteId !== "" ? Plan.mazForAthlete(athleteId) : [])
+    // Plan.mazList (notified on every change of the plans) makes the
+    // athlete's list follow changes too; a call alone is read once
+    readonly property var mazChoices: roMode ? Plan.mazList
+                                             : (athleteId !== "" ? (Plan.mazList, Plan.mazForAthlete(athleteId)) : [])
 
     // For start options: "maz", "itp", "ro", "laststufen"
     function showTab(name) {
@@ -32,8 +35,25 @@ Page {
 
     function openFramework(id) {
         roMode = true
-        mazId = id
+        chooseMaz(id)
         tabs.currentIndex = 1
+    }
+
+    // The period chosen for ITP and for RO, kept apart, so switching
+    // between them comes back to what was chosen: for ITP a MAZ of the
+    // athlete or "" (own range), for RO a MAZ
+    property string itpMazId: ""
+    property bool itpMazChosen: false
+    property string roMazId: ""
+
+    function chooseMaz(id) {
+        mazId = id
+        if (roMode) {
+            roMazId = id
+        } else {
+            itpMazId = id
+            itpMazChosen = true
+        }
     }
 
     // Picks the first athlete while none is chosen; off in the window,
@@ -43,13 +63,20 @@ Page {
     function selectDefaults() {
         if (choosesAthlete && athleteId === "" && Store.selectableAthletes.length > 0)
             athleteId = Store.selectableAthletes[0].id
-        if (mazId !== "" && !mazChoices.some(m => m.id === mazId))
-            mazId = ""
-        if (mazId === "" && mazChoices.length > 0)
-            mazId = mazChoices[0].id
+        // The mode's own choice; a MAZ no longer there (or not the
+        // athlete's) gives way to the first one, an own range chosen for
+        // ITP stays
+        let id = roMode ? roMazId : itpMazId
+        const ownRange = !roMode && itpMazChosen && id === ""
+        if (id !== "" && !mazChoices.some(m => m.id === id))
+            id = ""
+        if (id === "" && !ownRange && mazChoices.length > 0)
+            id = mazChoices[0].id
+        mazId = id
     }
 
-    onRoModeChanged: { mazId = ""; selectDefaults() }
+    onRoModeChanged: selectDefaults()
+    onMazChoicesChanged: selectDefaults()
     onAthleteIdChanged: selectDefaults()
     Component.onCompleted: selectDefaults()
     Connections {
@@ -84,26 +111,43 @@ Page {
         RowLayout {
             visible: tabs.currentIndex > 0
             spacing: 8
-            RadioButton { text: "ITP"; checked: !page.roMode; onToggled: if (checked) page.roMode = false }
-            RadioButton { text: "Rahmenorientierung"; checked: page.roMode; onToggled: if (checked) page.roMode = true }
+            RadioButton {
+                id: itpRadio
+                objectName: "itpRadio"
+                text: "ITP"
+                checked: !page.roMode
+                onToggled: if (checked) page.roMode = false
+            }
+            RadioButton {
+                id: roRadio
+                objectName: "roRadio"
+                text: "Rahmenorientierung"
+                checked: page.roMode
+                onToggled: if (checked) page.roMode = true
+            }
             ComboBox {
+                id: planAthleteBox
                 visible: !page.roMode
                 implicitWidth: 200
                 model: Store.selectableAthletes
                 textRole: "displayName"
                 valueRole: "id"
-                currentIndex: indexOfValue(page.athleteId)
+                currentIndex: (planAthleteBox.count, planAthleteBox.indexOfValue(page.athleteId))
                 onActivated: page.athleteId = currentValue
             }
             ComboBox {
                 id: mazBox
+                objectName: "mazBox"
                 implicitWidth: 260
                 model: (page.roMode ? [] : [{ id: "", displayName: "eigener Zeitraum" }]).concat(page.mazChoices)
                 textRole: "displayName"
                 valueRole: "id"
-                currentIndex: indexOfValue(page.mazId)
+                // Also computed again once the list has changed: switching
+                // ITP/RO chose the period before the list had switched, the
+                // MAZ was not found, and the box showed "eigener Zeitraum"
+                currentIndex: (mazBox.count, mazBox.indexOfValue(page.mazId))
                 displayText: currentIndex < 0 ? (page.roMode ? "MAZ wählen" : "eigener Zeitraum") : currentText
-                onActivated: page.mazId = currentValue
+                onActivated: page.chooseMaz(currentValue)
             }
             Label { visible: page.maz === null && !page.roMode; text: "ab" }
             TextField {
@@ -114,7 +158,8 @@ Page {
             }
             SpinBox {
                 visible: page.maz === null && !page.roMode
-                from: 1; to: 104; value: page.ownWeeks; editable: true
+                from: 1; to: 104; editable: true
+                value: page.ownWeeks
                 onValueModified: page.ownWeeks = value
             }
             Label { visible: page.maz === null && !page.roMode; text: "Wochen" }
@@ -272,6 +317,7 @@ Page {
                 id: fromRo
                 visible: !page.roMode
                 enabled: page.maz !== null
+                checked: !(page.roMode || page.maz === null)
                 text: "Rahmenorientierung des MAZ (Prozente mit den Zielleistungen umgerechnet)"
             }
             RadioButton {
@@ -296,7 +342,7 @@ Page {
                     implicitWidth: 260
                     model: page.roMode ? Plan.mazList.filter(m => m.id !== page.mazId)
                                        : [{ id: "", displayName: "gleicher Zeitraum", fromMonday: page.fromMonday, weeks: page.weeks }]
-                                         .concat(otherAthlete.currentIndex >= 0 ? Plan.mazForAthlete(otherAthlete.currentValue) : [])
+                                         .concat(otherAthlete.currentIndex >= 0 ? (Plan.mazList, Plan.mazForAthlete(otherAthlete.currentValue)) : [])
                     textRole: "displayName"
                     valueRole: "id"
                 }

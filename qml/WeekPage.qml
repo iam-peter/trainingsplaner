@@ -196,7 +196,7 @@ Page {
                 model: Store.selectableAthletes
                 textRole: "displayName"
                 valueRole: "id"
-                currentIndex: indexOfValue(page.athleteId)
+                currentIndex: (athleteBox.count, athleteBox.indexOfValue(page.athleteId))
                 displayText: currentIndex < 0 ? "Sportler wählen" : currentText
                 onActivated: page.athleteId = currentValue
             }
@@ -256,16 +256,22 @@ Page {
             ToolSeparator {}
 
             RadioButton {
+                id: planRadio
+                objectName: "planRadio"
                 text: "Plan"
                 checked: page.variant === "P"
                 onToggled: if (checked) page.variant = "P"
             }
             RadioButton {
+                id: actualRadio
+                objectName: "actualRadio"
                 text: "Ist"
                 checked: page.variant === "I"
                 onToggled: if (checked) page.variant = "I"
             }
             CheckBox {
+                id: threeBox
+                objectName: "threeBox"
                 text: "3 TE"
                 checked: page.threeSessions
                 onToggled: page.threeSessions = checked

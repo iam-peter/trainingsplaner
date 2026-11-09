@@ -270,7 +270,7 @@ EditorDialog {
             Label { text: "Tonnage " + ((dialog.weekStats.tonnage || 0) / 1000).toLocaleString(Qt.locale("de_DE"), "f", 1) + " t" }
             Item { Layout.fillWidth: true }
             Label {
-                readonly property var itp: dialog.valid ? (Plan.changed, Plan.itpForWeek(dialog.athleteId, dialog.monday, dialog.exercise)) : null
+                readonly property var itp: dialog.valid ? (Plan.mazList, Plan.itpForWeek(dialog.athleteId, dialog.monday, dialog.exercise)) : null
                 visible: itp !== null && itp.has
                 text: itp ? "ITP:  WH " + itp.wh + "  MHG " + itp.mhg + "  BW " + itp.bw
                             + (itp.steps !== "" ? "   Laststufen ITP: " + itp.steps : "") : ""
