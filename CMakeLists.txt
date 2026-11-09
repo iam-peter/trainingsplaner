@@ -148,6 +148,9 @@ add_test(NAME tst_core COMMAND tst_core)
 set_tests_properties(tst_core PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
 qt_add_executable(tst_qml tests/tst_qml.cpp)
+# Console programs: qt_standard_project_setup makes GUI programs on
+# Windows, which print nothing, so a failing test left an empty log
+set_target_properties(tst_core tst_qml PROPERTIES WIN32_EXECUTABLE FALSE MACOSX_BUNDLE FALSE)
 target_compile_definitions(tst_qml PRIVATE
     QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests")
 target_link_libraries(tst_qml PRIVATE tpqml tpqmlplugin Qt6::QuickTest)
