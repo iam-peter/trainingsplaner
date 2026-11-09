@@ -309,10 +309,6 @@ ApplicationWindow {
         id: settingsDialog
         objectName: "settingsDialog"
         onStyleChanged: restartConfirm.open()
-        onCheckUpdatesRequested: {
-            Updater.check()
-            updateDialog.open()
-        }
     }
 
     UpdateDialog {

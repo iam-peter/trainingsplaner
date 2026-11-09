@@ -113,6 +113,13 @@ AppDialog {
                     onToggled: Updater.autoCheck = checked
                     padding: 0
                 }
+                Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                    font.pixelSize: 11
+                    color: palette.placeholderText
+                    text: "Höchstens einmal am Tag fragt das Programm bei GitHub nach der neuesten Version. GitHub erfährt dabei die Programmversion und, wie bei jedem Abruf einer Webseite, die IP-Adresse; Trainingsdaten werden nie übertragen."
+                }
             }
         }
 

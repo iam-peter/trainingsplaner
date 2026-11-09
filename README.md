@@ -189,7 +189,7 @@ do not attach a real database or export.
 
 The only network access is the update check, which sends no training data:
 GitHub sees the program version (as user agent) and the IP address. It can
-be switched off under Einstellungen › Allgemein.
+be switched off under Hilfe › Über den Trainingsplaner.
 
 ## Licence
 

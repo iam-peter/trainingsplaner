@@ -56,7 +56,6 @@ AppDialog {
             categoryModel.append({ name: c.name, code: c.code, unit: c.unit, decimals: c.decimals, aggregate: c.aggregate })
         step25.checked = Store.weightStep !== 1
         step10.checked = Store.weightStep === 1
-        autoUpdate.checked = Updater.autoCheck
         schemeBefore = Store.colorScheme
         styleBox.currentIndex = Math.max(0, styleBox.indexOfValue(Store.uiStyle))
     }
@@ -67,8 +66,6 @@ AppDialog {
     // The colours change at once as a preview; Abbrechen goes back
     property string schemeBefore: "system"
     onRejected: Store.colorScheme = schemeBefore
-
-    signal checkUpdatesRequested()
 
     onAccepted: {
         Store.trainer = trainerField.text.trim()
@@ -104,7 +101,6 @@ AppDialog {
         Store.infoCategories = cats
         Store.filterKader = kaderFilter.currentIndex > 0 ? kaderFilter.currentText : ""
         Store.filterSex = sexMen.checked ? 0 : sexWomen.checked ? 1 : -1
-        Updater.autoCheck = autoUpdate.checked
         if (styleBox.currentValue !== Store.uiStyle) {
             Store.uiStyle = styleBox.currentValue
             if (Store.uiStyle !== Store.activeStyle)
@@ -404,26 +400,13 @@ AppDialog {
                         }
                     }
                 }
-                Label { text: "Version:" }
-                RowLayout {
-                    Label { text: Updater.currentVersion }
-                    Button {
-                        text: "Nach neuer Version suchen…"
-                        onClicked: dialog.checkUpdatesRequested()
-                    }
-                }
-                Item { implicitWidth: 1 }
-                CheckBox {
-                    id: autoUpdate
-                    text: "Beim Start nach neuen Versionen suchen"
-                }
                 Label {
                     Layout.columnSpan: 2
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                     font.pixelSize: 11
                     color: palette.placeholderText
-                    text: "Höchstens einmal am Tag fragt das Programm bei GitHub nach der neuesten Version. GitHub erfährt dabei die Programmversion und, wie bei jedem Abruf einer Webseite, die IP-Adresse; Trainingsdaten werden nie übertragen."
+                    text: "Version und Updates: Hilfe › Über den Trainingsplaner."
                 }
             }
         }
