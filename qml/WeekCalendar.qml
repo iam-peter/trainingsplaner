@@ -30,12 +30,20 @@ Popup {
         year = y
     }
 
-    // The Monday of a row of the month grid: the grid starts with the week
-    // of the 1st
-    function rowMonday(row) {
-        const d = new Date(year, month, 1, 12)
-        d.setDate(d.getDate() - (d.getDay() + 6) % 7 + 7 * row)
-        return d.toISOString().slice(0, 10)
+    // The Monday of an ISO week shown for this month (week 1 holds 4
+    // January), from the week number, not from the row: where the grid
+    // starts differs between Qt versions. Week 1 in December belongs to
+    // the next year, week 52 or 53 in January to the last.
+    function weekMonday(week) {
+        const middle = new Date(year, month, 15, 12)
+        let best = null
+        for (const y of [year - 1, year, year + 1]) {
+            const d = new Date(y, 0, 4, 12)
+            d.setDate(d.getDate() - (d.getDay() + 6) % 7 + 7 * (week - 1))
+            if (!best || Math.abs(d - middle) < Math.abs(best - middle))
+                best = d
+        }
+        return best.toISOString().slice(0, 10)
     }
 
     function pick(m) {
@@ -95,8 +103,7 @@ Popup {
                 Layout.preferredWidth: 28
                 delegate: Label {
                     required property int weekNumber
-                    required property int index
-                    readonly property string week: popup.rowMonday(index)
+                    readonly property string week: popup.weekMonday(weekNumber)
                     objectName: "week" + weekNumber
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter

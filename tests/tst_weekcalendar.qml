@@ -28,10 +28,17 @@ Item {
         function test_hoverAndWeekNumber() {
             calendar.open()
             tryCompare(calendar, "opened", true)
-            // November 2026 starts on a Sunday: the grid's first row is the
-            // week of Monday, 26 October
-            compare(calendar.rowMonday(0), "2026-10-26")
-            compare(calendar.rowMonday(4), "2026-11-23")
+            // The Monday from the week number, also across the year's end
+            compare(calendar.weekMonday(44), "2026-10-26")
+            compare(calendar.weekMonday(48), "2026-11-23")
+            calendar.month = 0
+            calendar.year = 2027
+            compare(calendar.weekMonday(53), "2026-12-28")   // 2026 has 53 weeks
+            compare(calendar.weekMonday(1), "2027-01-04")
+            calendar.month = 11
+            calendar.year = 2026
+            compare(calendar.weekMonday(1), "2027-01-04")
+            calendar.month = 10
 
             const week48 = findChild(calendar.contentItem, "week48")
             verify(week48)
