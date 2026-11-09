@@ -56,6 +56,17 @@ Popup {
                 year: popup.year
                 locale: Qt.locale("de_DE")
                 Layout.fillHeight: true
+                // Rows as high as the days', without gaps, so the numbers
+                // stay on their weeks' lines
+                spacing: 0
+                Layout.preferredWidth: 28
+                delegate: Label {
+                    required property int weekNumber
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    text: weekNumber
+                    font.bold: true
+                }
             }
             MonthGrid {
                 id: grid
@@ -64,16 +75,28 @@ Popup {
                 locale: Qt.locale("de_DE")
                 Layout.fillWidth: true
                 implicitWidth: 260
+                // Six rows of 28 px
+                implicitHeight: 168
+                // No gaps: the chosen week is one band across its days
+                spacing: 0
                 delegate: Label {
                     required property var model
+                    required property int index
                     readonly property bool inWeek: popup.mondayOf(model.date) === popup.monday
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                     opacity: model.month === popup.month ? 1 : 0.4
                     text: model.day
                     font.bold: model.today
-                    color: inWeek ? palette.highlightedText : palette.text
-                    background: Rectangle { color: inWeek ? palette.highlight : "transparent"; radius: Theme.radius(3) }
+                    color: palette.text
+                    // A light band, rounded at Monday and Sunday only
+                    background: Rectangle {
+                        color: inWeek ? Theme.sh.accent : "transparent"
+                        topLeftRadius: index % 7 === 0 ? Theme.radius(4) : 0
+                        bottomLeftRadius: topLeftRadius
+                        topRightRadius: index % 7 === 6 ? Theme.radius(4) : 0
+                        bottomRightRadius: topRightRadius
+                    }
                 }
                 onClicked: (date) => { popup.picked(popup.mondayOf(date)); popup.close() }
             }
