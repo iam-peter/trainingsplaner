@@ -105,6 +105,19 @@ Dialog {
             layoutHidden(item.children[i])
         if (typeof item.forceLayout === "function")
             item.forceLayout()
+        // A layout whose items changed while the dialog was hidden keeps
+        // its old size (Qt does not lay it out again on showing): a change
+        // of the spacing makes it measure anew
+        const kind = String(item)
+        if (kind.startsWith("QQuickColumnLayout") || kind.startsWith("QQuickRowLayout")) {
+            const spacing = item.spacing
+            item.spacing = spacing + 1
+            item.spacing = spacing
+        } else if (kind.startsWith("QQuickGridLayout")) {
+            const spacing = item.rowSpacing
+            item.rowSpacing = spacing + 1
+            item.rowSpacing = spacing
+        }
         // A StackLayout reports only its current page's height; it gets the
         // tallest page's, also when a page grows later
         if (stack) {
@@ -122,7 +135,10 @@ Dialog {
 
     onAboutToShow: {
         layoutHidden(contentItem)
-        keptHeight = implicitHeight
+        // From nothing: content changed while the dialog was hidden is not
+        // laid out yet, so its height now can still be the last opening's
+        // (a dialog reused for another athlete or attribute kept it)
+        keptHeight = 0
         nested = DialogStack.open > 0
         if (!counted) {
             DialogStack.open += 1
