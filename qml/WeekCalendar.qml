@@ -30,20 +30,22 @@ Popup {
         year = y
     }
 
-    // The Monday of an ISO week shown for this month (week 1 holds 4
-    // January), from the week number, not from the row: where the grid
-    // starts differs between Qt versions. Week 1 in December belongs to
-    // the next year, week 52 or 53 in January to the last.
-    function weekMonday(week) {
-        const middle = new Date(year, month, 15, 12)
-        let best = null
-        for (const y of [year - 1, year, year + 1]) {
-            const d = new Date(y, 0, 4, 12)
-            d.setDate(d.getDate() - (d.getDay() + 6) % 7 + 7 * (week - 1))
-            if (!best || Math.abs(d - middle) < Math.abs(best - middle))
-                best = d
-        }
-        return best.toISOString().slice(0, 10)
+    // The grid's six weeks begin with the week of the 1st
+    readonly property string firstMonday: mondayOf(new Date(year, month, 1, 12))
+
+    // The date "yyyy-MM-dd" n days after the given one
+    function addDays(iso, n) {
+        const d = new Date(iso + "T12:00:00")
+        d.setDate(d.getDate() + n)
+        return d.toISOString().slice(0, 10)
+    }
+
+    // The ISO week number of a Monday (week 1 holds 4 January)
+    function weekNumber(iso) {
+        const d = new Date(iso + "T12:00:00")
+        d.setDate(d.getDate() + 3)          // the Thursday decides the year
+        const jan4 = new Date(d.getFullYear(), 0, 4, 12)
+        return 1 + Math.round((d - jan4) / 86400000 / 7 + ((jan4.getDay() + 6) % 7 - 3) / 7)
     }
 
     function pick(m) {
@@ -76,88 +78,74 @@ Popup {
             }
             IconToolButton { iconName: "chevron-right"; onClicked: popup.shift(1) }
         }
-        GridLayout {
-            columns: 2
-            // The week number and its days make one band
-            columnSpacing: 0
-            Item {}
-            DayOfWeekRow {
-                locale: Qt.locale("de_DE")
-                Layout.fillWidth: true
-                // Over the day columns, which have no padding either
-                padding: 0
-            }
-            WeekNumberColumn {
-                month: popup.month
-                year: popup.year
-                locale: Qt.locale("de_DE")
-                Layout.fillHeight: true
-                // Rows as high as the days', without gaps, so the numbers
-                // stay on their weeks' lines; no padding, so the band runs
-                // on into the days
-                spacing: 0
-                padding: 0
-                // The style sets the sides on their own
-                leftPadding: 0
-                rightPadding: 0
-                Layout.preferredWidth: 28
-                delegate: Label {
-                    required property int weekNumber
-                    readonly property string week: popup.weekMonday(weekNumber)
-                    objectName: "week" + weekNumber
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    text: weekNumber
-                    font.bold: true
-                    // The band's left end
-                    background: Rectangle {
-                        color: popup.bandColor(week)
-                        topLeftRadius: Theme.radius(4)
-                        bottomLeftRadius: Theme.radius(4)
+        // Our own grid rather than Qt's DayOfWeekRow, WeekNumberColumn and
+        // MonthGrid: they start and space their rows differently between Qt
+        // versions, and the week numbers then missed their days. Each week
+        // is one row, its number and seven days on one band.
+        Column {
+            spacing: 0
+            Row {
+                Item { width: 28; height: 24 }
+                Repeater {
+                    model: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+                    Label {
+                        required property string modelData
+                        width: 37
+                        height: 24
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        text: modelData
+                        font.bold: true
                     }
-                    HoverHandler {
-                        cursorShape: Qt.PointingHandCursor
-                        onHoveredChanged: if (hovered) popup.hovered = week
-                                          else if (popup.hovered === week) popup.hovered = ""
-                    }
-                    TapHandler { onTapped: popup.pick(week) }
                 }
             }
-            MonthGrid {
-                id: grid
-                month: popup.month
-                year: popup.year
-                locale: Qt.locale("de_DE")
-                Layout.fillWidth: true
-                implicitWidth: 260
-                // Six rows of 28 px
-                implicitHeight: 168
-                // No gaps: the chosen week is one band across its days
-                spacing: 0
-                padding: 0
-                delegate: Label {
-                    required property var model
+            Repeater {
+                model: 6
+                Item {
+                    id: weekRow
                     required property int index
-                    readonly property string week: popup.mondayOf(model.date)
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    opacity: model.month === popup.month ? 1 : 0.4
-                    text: model.day
-                    font.bold: model.today
-                    color: palette.text
-                    // The band, its right end at Sunday
-                    background: Rectangle {
-                        color: popup.bandColor(week)
-                        topRightRadius: index % 7 === 6 ? Theme.radius(4) : 0
-                        bottomRightRadius: topRightRadius
+                    readonly property string week: popup.addDays(popup.firstMonday, 7 * index)
+                    readonly property int number: popup.weekNumber(week)
+                    objectName: "week" + number
+                    width: 28 + 7 * 37
+                    height: 28
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: Theme.radius(4)
+                        color: popup.bandColor(weekRow.week)
+                    }
+                    Row {
+                        Label {
+                            width: 28
+                            height: 28
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            text: weekRow.number
+                            font.bold: true
+                        }
+                        Repeater {
+                            model: 7
+                            Label {
+                                required property int index
+                                readonly property date day: new Date(popup.addDays(weekRow.week, index) + "T12:00:00")
+                                width: 37
+                                height: 28
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                opacity: day.getMonth() === popup.month ? 1 : 0.4
+                                text: day.getDate()
+                                font.bold: popup.addDays(weekRow.week, index) === Store.today()
+                            }
+                        }
                     }
                     HoverHandler {
                         cursorShape: Qt.PointingHandCursor
-                        onHoveredChanged: if (hovered) popup.hovered = week
-                                          else if (popup.hovered === week) popup.hovered = ""
+                        onHoveredChanged: if (hovered) popup.hovered = weekRow.week
+                                          else if (popup.hovered === weekRow.week) popup.hovered = ""
                     }
+                    TapHandler { onTapped: popup.pick(weekRow.week) }
                 }
-                onClicked: (date) => popup.pick(popup.mondayOf(date))
             }
         }
     }
