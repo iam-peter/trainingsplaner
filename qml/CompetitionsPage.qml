@@ -214,7 +214,7 @@ Page {
                     }
                     Label { text: "Datum / Zeit:" }
                     RowLayout {
-                        TextField { id: dateField; implicitWidth: 110; placeholderText: "TT.MM.JJJJ"; onTextEdited: page.dirty = true }
+                        DateField { id: dateField; onTextEdited: page.dirty = true }
                         TextField { id: timeField; implicitWidth: 70; placeholderText: "HH:MM"; onTextEdited: page.dirty = true }
                     }
                     Label { text: "Art:" }
@@ -257,7 +257,7 @@ Page {
                             }
                         }
                         Label {
-                            text: "Leertaste: gültig/ungültig"
+                            text: "Fehlversuch: Leertaste oder Rechtsklick im Feld (rot, durchgestrichen)"
                             font.pixelSize: 11
                             color: palette.placeholderText
                         }

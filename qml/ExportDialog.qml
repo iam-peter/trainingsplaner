@@ -39,7 +39,7 @@ AppDialog {
         RowLayout {
             Layout.leftMargin: 24
             enabled: modeSince.checked
-            TextField { id: sinceDate; implicitWidth: 110; placeholderText: "TT.MM.JJJJ" }
+            DateField { id: sinceDate }
             TextField { id: sinceTime; implicitWidth: 70; placeholderText: "HH:MM" }
             Label {
                 text: Store.lastExport() !== "" ? "letzter Export: " + Store.lastExport() : ""

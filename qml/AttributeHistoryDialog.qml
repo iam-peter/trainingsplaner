@@ -27,7 +27,7 @@ AppDialog {
         error = ""
     }
 
-    title: "Verlauf " + art
+    title: art + " mit Zeiträumen"
     width: 560
     standardButtons: Dialog.Close
 
@@ -36,8 +36,8 @@ AppDialog {
 
         RowLayout {
             spacing: 8
-            Label { text: "von"; Layout.preferredWidth: 110; font.bold: true }
-            Label { text: "bis"; Layout.preferredWidth: 110; font.bold: true }
+            Label { text: "von"; Layout.preferredWidth: 136; font.bold: true }
+            Label { text: "bis"; Layout.preferredWidth: 136; font.bold: true }
             Label { text: dialog.art; Layout.fillWidth: true; font.bold: true }
             Item { Layout.preferredWidth: 72 }
         }
@@ -48,15 +48,15 @@ AppDialog {
                 id: row
                 required property var modelData
                 spacing: 8
-                TextField {
+                DateField {
                     id: fromField
-                    Layout.preferredWidth: 110
+                    Layout.preferredWidth: 136
                     text: row.modelData.from
                     placeholderText: row.modelData.isNew ? "TT.MM.JJJJ" : ""
                 }
-                TextField {
+                DateField {
                     id: toField
-                    Layout.preferredWidth: 110
+                    Layout.preferredWidth: 136
                     text: row.modelData.to
                     placeholderText: "offen"
                 }

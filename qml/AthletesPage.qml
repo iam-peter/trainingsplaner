@@ -200,10 +200,9 @@ Page {
 
                 Label { text: "geb.:" }
                 RowLayout {
-                    TextField {
+                    DateField {
                         id: bornField
-                        Layout.preferredWidth: 120
-                        placeholderText: "TT.MM.JJJJ"
+                        Layout.preferredWidth: 136
                         onTextEdited: page.dirty = true
                         color: page.bornValid ? palette.text : Theme.error
                     }
@@ -268,8 +267,10 @@ Page {
                                     }
                                 }
                                 IconToolButton {
-                                    iconName: "history"
-                                    toolTip: "Verlauf " + attribute.art
+                                    // As in the old program: edit the values
+                                    // with their time ranges
+                                    iconName: "square-pen"
+                                    toolTip: attribute.art + " mit Zeiträumen bearbeiten"
                                     enabled: page.selectedId !== ""
                                     onClicked: historyDialog.edit(page.selectedId, attribute.art)
                                 }
