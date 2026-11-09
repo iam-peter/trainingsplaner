@@ -107,6 +107,10 @@ ApplicationWindow {
                 onClicked: dataMenu.open()
                 Menu {
                     id: dataMenu
+                    objectName: "dataMenu"
+                    // Right edge on the button's, as the button sits at the
+                    // window's right
+                    x: dataButton.width - dataMenu.width
                     y: dataButton.height
                     MenuItem {
                         text: "Importieren…"
@@ -148,6 +152,10 @@ ApplicationWindow {
                 onClicked: helpMenu.open()
                 Menu {
                     id: helpMenu
+                    objectName: "helpMenu"
+                    // Right edge on the button's, as the button sits at the
+                    // window's right
+                    x: helpButton.width - helpMenu.width
                     y: helpButton.height
                     // As wide as the longest entry (Menu's own width is fixed)
                     width: {

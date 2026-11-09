@@ -58,6 +58,22 @@ Item {
             tryVerify(() => buttons.every(b => b.display === AbstractButton.TextBesideIcon))
         }
 
+        // The menus of Daten and Hilfe end where their buttons end
+        function test_menusAlignRight() {
+            const w = createTemporaryObject(mainComponent, null)
+            waitForRendering(w.contentItem)
+            for (const [button, menu] of [["dataButton", "dataMenu"], ["helpButton", "helpMenu"]]) {
+                const b = findChild(w, button), m = findChild(w, menu)
+                m.open()
+                tryCompare(m, "opened", true)
+                const right = b.mapToItem(null, b.width, 0).x
+                const menuRight = m.background.mapToItem(null, m.background.width, 0).x
+                verify(Math.abs(menuRight - right) <= 1, button + ": menu ends at " + menuRight + ", button at " + right)
+                m.close()
+                tryCompare(m, "visible", false)
+            }
+        }
+
         function test_choosingOnOnePageSelectsEverywhere() {
             const w = createTemporaryObject(mainComponent, null)
             const pages = ["weekPage", "planningPage", "analysisPage", "competitionsPage"]
