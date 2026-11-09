@@ -33,7 +33,7 @@ T.Menu {
     }
 
     background: Rectangle {
-        implicitWidth: 200
+        implicitWidth: 128
         implicitHeight: 40
         color: Tokens.popover
         radius: Tokens.radiusMd

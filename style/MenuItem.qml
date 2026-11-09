@@ -63,7 +63,9 @@ T.MenuItem {
     }
 
     background: Rectangle {
-        implicitWidth: 192
+        // A minimum only: entries are as wide as their text needs, and a
+        // menu as wide as its longest entry
+        implicitWidth: 120
         implicitHeight: Tokens.controlHeight
         radius: Tokens.radiusSm
         color: control.highlighted || control.down ? Tokens.accent : "transparent"
