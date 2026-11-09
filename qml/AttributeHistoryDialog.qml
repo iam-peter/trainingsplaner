@@ -41,6 +41,22 @@ EditorDialog {
     function addRow() {
         rows.append({ from: "", to: "", text: "" })
         dirty = true
+        toNewRow = true
+    }
+
+    // The new row into view, at the end of the scrolled rows, once the
+    // rows are laid out with it
+    property bool toNewRow: false
+    Connections {
+        target: dialog.contentItem
+        ignoreUnknownSignals: true
+        function onContentHeightChanged() {
+            if (!dialog.toNewRow)
+                return
+            dialog.toNewRow = false
+            const scroller = dialog.contentItem
+            scroller.contentY = Math.max(0, scroller.contentHeight - scroller.height)
+        }
     }
 
     function save() {
@@ -147,13 +163,6 @@ EditorDialog {
             color: palette.placeholderText
         }
 
-        IconButton {
-            objectName: "addButton"
-            iconName: "plus"
-            text: dialog.art
-            onClicked: dialog.addRow()
-        }
-
         Label {
             Layout.fillWidth: true
             visible: dialog.error !== ""
@@ -164,6 +173,13 @@ EditorDialog {
     }
 
     footer: DialogButtons {
+        // In the footer, not below the rows: there it scrolled out of view
+        leading: IconButton {
+            objectName: "addButton"
+            iconName: "plus"
+            text: dialog.art
+            onClicked: dialog.addRow()
+        }
         Button {
             objectName: "cancelButton"
             text: "Abbrechen"
