@@ -73,6 +73,8 @@ QtObject {
         switchThumbChecked: "#f8f8f8"
         scrollThumb: "#d4d4d4"
         chartMuted: "#d4d4d4"
+        pickerChosen: "#e4e4e4"
+        pickerHover: "#f0f0f0"
         shadowStrength: 0.06
         chart: ["#f54a00", "#009689", "#104e64", "#ffb900", "#fe9a00"]
     }
@@ -112,6 +114,8 @@ QtObject {
         switchThumbChecked: "#1e1e1e"
         scrollThumb: "#40ffffff"
         chartMuted: "#525252"
+        pickerChosen: "#3a3a3a"
+        pickerHover: "#2e2e2e"
         shadowStrength: 0.3
         chart: ["#1447e6", "#00bc7d", "#fe9a00", "#ad46ff", "#ff2056"]
     }
@@ -153,6 +157,8 @@ QtObject {
         switchThumbChecked: "#ffffff"
         scrollThumb: "#c1d2ee"
         chartMuted: "#aca899"
+        pickerChosen: "#c1d2ee"
+        pickerHover: "#e3ecfa"
         shadowStrength: 0.06
         chart: ["#f54a00", "#009689", "#104e64", "#ffb900", "#fe9a00"]
     }
@@ -194,6 +200,8 @@ QtObject {
     readonly property color switchThumb: current.switchThumb
     readonly property color switchThumbChecked: current.switchThumbChecked
     readonly property color scrollThumb: current.scrollThumb
+    readonly property color pickerChosen: current.pickerChosen
+    readonly property color pickerHover: current.pickerHover
     readonly property real shadowStrength: current.shadowStrength
     readonly property var chart: current.chart
     readonly property color chartMuted: current.chartMuted

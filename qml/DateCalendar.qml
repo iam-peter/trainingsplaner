@@ -67,6 +67,8 @@ Popup {
             locale: Qt.locale("de_DE")
             Layout.fillWidth: true
             implicitWidth: 280
+            // Six rows of 28 px, like the week calendar
+            implicitHeight: 6 * 28 + 5 * spacing
             delegate: Label {
                 required property var model
                 readonly property bool chosen: popup.iso(model.date) === popup.date
@@ -75,8 +77,16 @@ Popup {
                 opacity: model.month === popup.month ? 1 : 0.4
                 text: model.day
                 font.bold: model.today
-                color: chosen ? palette.highlightedText : palette.text
-                background: Rectangle { color: chosen ? palette.highlight : "transparent"; radius: Theme.radius(3) }
+                color: palette.text
+                // Chosen and under the pointer as in the other pickers
+                background: Rectangle {
+                    color: chosen ? Theme.sh.pickerChosen : dayHover.hovered ? Theme.sh.pickerHover : "transparent"
+                    radius: Theme.radius(4)
+                }
+                HoverHandler {
+                    id: dayHover
+                    cursorShape: Qt.PointingHandCursor
+                }
             }
             onClicked: (d) => { popup.picked(popup.iso(d)); popup.close() }
         }

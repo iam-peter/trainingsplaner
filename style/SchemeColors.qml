@@ -41,6 +41,10 @@ QtObject {
     property color switchThumb
     property color switchThumbChecked
     property color scrollThumb
+    // The pickers (date, week, time): the chosen entry and the one under
+    // the pointer
+    property color pickerChosen
+    property color pickerHover
     property real shadowStrength
     property var chart
     property color chartMuted

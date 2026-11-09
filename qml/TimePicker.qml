@@ -22,7 +22,11 @@ Popup {
         return (n < 10 ? "0" : "") + n
     }
 
+    // An hour or a minute: the chosen one and the one under the pointer
+    // as in the other pickers
     component Cell: Button {
+        id: cell
+        property bool chosen: false
         implicitWidth: 40
         implicitHeight: 32
         // Small square buttons: no style padding, so two digits fit
@@ -30,7 +34,11 @@ Popup {
         rightPadding: 0
         topPadding: 0
         bottomPadding: 0
-        flat: !highlighted
+        flat: true
+        background: Rectangle {
+            color: cell.chosen ? Theme.sh.pickerChosen : cell.hovered ? Theme.sh.pickerHover : "transparent"
+            radius: Theme.radius(4)
+        }
     }
 
     contentItem: ColumnLayout {
@@ -54,7 +62,7 @@ Popup {
                             required property int index
                             objectName: "hour" + index
                             text: picker.two(index)
-                            highlighted: index === picker.hour
+                            chosen: index === picker.hour
                             onClicked: {
                                 picker.hour = index
                                 picker.picked(index, Math.max(0, picker.minute))
@@ -74,7 +82,7 @@ Popup {
                         required property int modelData
                         objectName: "minute" + modelData
                         text: ":" + picker.two(modelData)
-                        highlighted: modelData === picker.minute
+                        chosen: modelData === picker.minute
                         onClicked: {
                             picker.minute = modelData
                             picker.picked(Math.max(0, picker.hour), modelData)
