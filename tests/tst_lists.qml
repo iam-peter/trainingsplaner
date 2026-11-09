@@ -64,6 +64,8 @@ Item {
             search.forceActiveFocus()
             keyClick(Qt.Key_T)
             verify(clear.visible)
+            // The trailing row places the button on its next layout pass
+            waitForItemPolished(clear.parent)
             const all = Store.athletes.length
             mouseClick(clear)
             compare(search.text, "")

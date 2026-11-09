@@ -81,6 +81,7 @@ QtObject {
         readonly property int sp050: 4
         readonly property int sp075: 6
         readonly property int sp100: 8
+        readonly property int sp125: 10
         readonly property int sp150: 12
         readonly property int sp200: 16
     }

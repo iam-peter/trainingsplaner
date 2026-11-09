@@ -8,10 +8,10 @@ T.ToolButton {
     id: control
 
     property list<Style> styles
-    readonly property alias styleCascade: cascade
+    readonly property alias styleCascade: _style
 
     StyleCascade {
-        id: cascade
+        id: _style
         base: [ButtonStyle.base, ButtonStyle.tool]
         styles: control.styles
         overrides: [control.visualFocus ? ButtonStyle.focus : null,
@@ -27,17 +27,17 @@ T.ToolButton {
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding)
 
-    topPadding: cascade.padding.top
-    bottomPadding: cascade.padding.bottom
-    leftPadding: cascade.padding.left
-    rightPadding: cascade.padding.right
-    spacing: cascade.spacing
+    topPadding: _style.padding.top
+    bottomPadding: _style.padding.bottom
+    leftPadding: _style.padding.left
+    rightPadding: _style.padding.right
+    spacing: _style.spacing
     hoverEnabled: true
-    opacity: cascade.opacity
-    font.weight: cascade.text.weight
+    opacity: _style.opacity
+    font.weight: _style.text.weight
 
-    icon.width: cascade.icon.size
-    icon.height: cascade.icon.size
+    icon.width: _style.icon.size
+    icon.height: _style.icon.size
 
     contentItem: IconLabel {
         spacing: control.spacing
@@ -48,18 +48,18 @@ T.ToolButton {
         icon.name: control.icon.name
         icon.width: control.icon.width
         icon.height: control.icon.height
-        icon.color: cascade.icon.color
+        icon.color: _style.icon.color
         text: control.text
         font: control.font
-        color: cascade.text.color
+        color: _style.text.color
     }
 
     background: Rectangle {
-        implicitWidth: cascade.width
-        implicitHeight: cascade.height
-        radius: cascade.radius.value
-        color: cascade.background
-        border.width: cascade.border.width
-        border.color: cascade.border.color
+        implicitWidth: _style.width
+        implicitHeight: _style.height
+        radius: _style.radius.value
+        color: _style.background
+        border.width: _style.border.width
+        border.color: _style.border.color
     }
 }

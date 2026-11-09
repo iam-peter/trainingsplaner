@@ -23,6 +23,16 @@ QtObject {
             state: StyleState.Disable
             opacity: 0.5
         }
+        // An icon before the label (icon.source): spacing is its gap to
+        // the text
+        Style {
+            part: StylePart.Icon
+            icon {
+                size: Primitives.size.s16
+                color: root.s.text_default
+            }
+            spacing: Primitives.spacing.sp075
+        }
     }
 
     readonly property Style checkBox: Style {

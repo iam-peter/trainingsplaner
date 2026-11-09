@@ -27,31 +27,31 @@ Rectangle {
     readonly property bool filled: session !== null
 
     Styles.StyleCascade {
-        id: cellStyle
+        id: _cellStyle
         base: [CellStyle.base]
         overrides: [cell.today ? CellStyle.today : null, cell.activeFocus ? CellStyle.focus : null]
         state: hover.hovered ? Styles.StyleState.Hover : Styles.StyleState.Idle
     }
     Styles.StyleCascade {
-        id: numberStyle
-        parentCascade: cellStyle
+        id: _numberStyle
+        parentCascade: _cellStyle
         part: Styles.StylePart.Label
     }
     Styles.StyleCascade {
-        id: plusStyle
-        parentCascade: cellStyle
+        id: _plusStyle
+        parentCascade: _cellStyle
         part: Styles.StylePart.Icon
     }
     Styles.StyleCascade {
-        id: lineStyle
-        parentCascade: cellStyle
+        id: _lineStyle
+        parentCascade: _cellStyle
         part: Styles.StylePart.Indicator
     }
 
-    radius: cellStyle.radius.value
-    color: cellStyle.background
-    border.color: cellStyle.border.color
-    border.width: cellStyle.border.width
+    radius: _cellStyle.radius.value
+    color: _cellStyle.background
+    border.color: _cellStyle.border.color
+    border.width: _cellStyle.border.width
     clip: true
 
     // The whole cell, lines included: the cell's MouseArea loses the hover
@@ -102,7 +102,7 @@ Rectangle {
         anchors.margins: 4
         text: cell.sessionNumber + ". TE"
         font.pixelSize: 10
-        color: numberStyle.text.color
+        color: _numberStyle.text.color
     }
 
     IconImage {
@@ -110,7 +110,7 @@ Rectangle {
         visible: !cell.filled && hover.hovered
         source: "qrc:/qt/qml/Trainingsplaner/icons/plus.svg"
         sourceSize: Qt.size(28, 28)
-        color: plusStyle.icon.color
+        color: _plusStyle.icon.color
     }
 
     ColumnLayout {
@@ -140,8 +140,8 @@ Rectangle {
                     anchors.margins: -3
                     radius: height / 2
                     color: "transparent"
-                    border.color: lineStyle.border.color
-                    border.width: lineStyle.border.width
+                    border.color: _lineStyle.border.color
+                    border.width: _lineStyle.border.width
                     visible: line.weights && lineMouse.containsMouse
                 }
                 MouseArea {
@@ -193,7 +193,7 @@ Rectangle {
                     text: line.modelData.exercise
                     font.bold: true
                     font.pixelSize: 13
-                    color: cellStyle.text.color
+                    color: _cellStyle.text.color
                 }
                 Label {
                     Layout.fillWidth: true
@@ -201,7 +201,7 @@ Rectangle {
                     elide: Text.ElideRight
                     font.pixelSize: 12
                     font.italic: line.modelData.kind === 2
-                    color: cellStyle.text.color
+                    color: _cellStyle.text.color
                 }
                 }
             }
@@ -215,7 +215,7 @@ Rectangle {
         visible: cell.filled && cell.session.from !== ""
         text: cell.filled ? cell.session.from + " Uhr" : ""
         font.pixelSize: 11
-        color: cellStyle.text.color
+        color: _cellStyle.text.color
     }
 
     ToolTip.visible: mouse.containsMouse && filled && session.note !== ""

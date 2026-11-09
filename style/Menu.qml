@@ -7,10 +7,10 @@ T.Menu {
     id: control
 
     property list<Style> styles
-    readonly property alias styleCascade: cascade
+    readonly property alias styleCascade: _style
 
     StyleCascade {
-        id: cascade
+        id: _style
         base: [PopupStyle.menu]
         styles: control.styles
     }
@@ -27,7 +27,7 @@ T.Menu {
 
     margins: 0
     overlap: 1
-    padding: cascade.padding.value
+    padding: _style.padding.value
 
     delegate: MenuItem {}
 
@@ -42,12 +42,12 @@ T.Menu {
     }
 
     background: Rectangle {
-        implicitWidth: cascade.width
-        implicitHeight: cascade.height
-        color: cascade.background
-        radius: cascade.radius.value
-        border.width: cascade.border.width
-        border.color: cascade.border.color
+        implicitWidth: _style.width
+        implicitHeight: _style.height
+        color: _style.background
+        radius: _style.radius.value
+        border.width: _style.border.width
+        border.color: _style.border.color
         Shadow {
             z: -1
             anchors.fill: parent
@@ -57,6 +57,6 @@ T.Menu {
     }
 
     T.Overlay.modal: Rectangle {
-        color: cascade.dim
+        color: _style.dim
     }
 }

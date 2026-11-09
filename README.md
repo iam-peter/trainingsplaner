@@ -165,6 +165,7 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `src/weekreport.*` | printed / PDF week plan |
 | `src/store.*`, `src/planstore.*`, `src/analysisapi.*`, `src/itpmodel.*` | APIs and models for the QML user interface |
 | `qml/` | user interface |
+| `style/` | the controls' style: `Primitives` (every colour and size once), `TokenInterface` (their roles per colour scheme), `Style` and `StyleCascade` (rules by state and part), and a `*Style` singleton per kind of control with its variants, e.g. `ButtonStyle.ghost` |
 | `tests/` | unit tests (`tst_core`) and UI tests (`tst_qml`) |
 | `logo/` | icon and desktop entry |
 | `fonts/`, `icons/` | Inter, JetBrains Mono and Lucide icons, built into the program |
@@ -202,6 +203,8 @@ MIT, see [LICENSE](LICENSE). The bundled assets keep their own licences:
 - The program's style (`style/`) started out after
   [shadcn/ui](https://ui.shadcn.com/) (MIT) and its neutral theme tokens;
   it is not affiliated with the shadcn/ui project.
+  Its structure (primitives, roles, styles resolved in a cascade) follows
+  the controls of Qt Design Studio; the code is this project's own.
 
 The program uses [Qt](https://www.qt.io/) under the LGPL v3. When handing
 out a Windows build made with `windeployqt`, Qt stays in separate DLLs as the

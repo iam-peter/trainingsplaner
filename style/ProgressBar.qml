@@ -7,18 +7,18 @@ T.ProgressBar {
     property list<Style> styles
 
     StyleCascade {
-        id: cascade
+        id: _style
         base: [ProgressBarStyle.base]
         styles: control.styles
     }
     StyleCascade {
-        id: track
-        parentCascade: cascade
+        id: _trackStyle
+        parentCascade: _style
         part: StylePart.Track
     }
     StyleCascade {
-        id: progress
-        parentCascade: cascade
+        id: _progressStyle
+        parentCascade: _style
         part: StylePart.Progress
     }
 
@@ -28,14 +28,14 @@ T.ProgressBar {
                              implicitContentHeight + topPadding + bottomPadding)
 
     contentItem: Item {
-        implicitWidth: cascade.width
-        implicitHeight: cascade.height
+        implicitWidth: _style.width
+        implicitHeight: _style.height
         clip: true
         Rectangle {
             width: control.indeterminate ? parent.width / 4 : control.visualPosition * parent.width
             height: parent.height
-            radius: cascade.radius.value
-            color: progress.background
+            radius: _style.radius.value
+            color: _progressStyle.background
             NumberAnimation on x {
                 running: control.indeterminate && control.visible
                 loops: Animation.Infinite
@@ -47,11 +47,11 @@ T.ProgressBar {
     }
 
     background: Rectangle {
-        implicitWidth: cascade.width
-        implicitHeight: cascade.height
+        implicitWidth: _style.width
+        implicitHeight: _style.height
         y: (control.height - height) / 2
-        height: cascade.height
-        radius: cascade.radius.value
-        color: track.background
+        height: _style.height
+        radius: _style.radius.value
+        color: _trackStyle.background
     }
 }

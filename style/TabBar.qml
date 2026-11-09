@@ -8,7 +8,7 @@ T.TabBar {
     property list<Style> styles
 
     StyleCascade {
-        id: cascade
+        id: _style
         base: [TabStyle.bar]
         styles: control.styles
     }
@@ -18,8 +18,8 @@ T.TabBar {
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              contentHeight + topPadding + bottomPadding)
 
-    spacing: cascade.spacing
-    padding: cascade.padding.value
+    spacing: _style.spacing
+    padding: _style.padding.value
 
     contentItem: ListView {
         model: control.contentModel
@@ -36,7 +36,7 @@ T.TabBar {
     }
 
     background: Rectangle {
-        color: cascade.background
-        radius: cascade.radius.value
+        color: _style.background
+        radius: _style.radius.value
     }
 }

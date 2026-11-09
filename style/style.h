@@ -30,7 +30,21 @@ namespace StylePart {
 Q_NAMESPACE
 QML_ELEMENT
 
-enum Part { None, Indicator, Handle, Label, Icon, Popup, Track, Progress, Separator, Arrow };
+enum Part {
+    None,
+    Indicator, // a check box's box, a switch's track, a spin box's step
+    Handle,    // a switch's or scroll bar's thumb
+    Label,     // a title
+    Icon,      // an icon beside a label
+    Popup,
+    Track,
+    Progress,
+    Separator,
+    Arrow,     // a combo box's chevron
+    Leading,   // what stands before a field's text: an icon, items
+    Trailing,  // what stands after it: buttons, items
+    Unit,      // the unit after a value, "cm"
+};
 Q_ENUM_NS(Part)
 } // namespace StylePart
 

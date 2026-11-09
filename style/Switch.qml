@@ -6,10 +6,10 @@ T.Switch {
     id: control
 
     property list<Style> styles
-    readonly property alias styleCascade: cascade
+    readonly property alias styleCascade: _style
 
     StyleCascade {
-        id: cascade
+        id: _style
         base: [ToggleStyle.base, ToggleStyle.switchControl]
         styles: control.styles
         overrides: [control.visualFocus ? ToggleStyle.focus : null,
@@ -24,39 +24,39 @@ T.Switch {
                              implicitContentHeight + topPadding + bottomPadding,
                              implicitIndicatorHeight + topPadding + bottomPadding)
 
-    padding: cascade.padding.value
-    spacing: cascade.spacing
-    opacity: cascade.opacity
+    padding: _style.padding.value
+    spacing: _style.spacing
+    opacity: _style.opacity
 
     indicator: Rectangle {
-        implicitWidth: track.width
-        implicitHeight: track.height
+        implicitWidth: _trackStyle.width
+        implicitHeight: _trackStyle.height
         x: control.text ? (control.mirrored ? control.width - width - control.rightPadding : control.leftPadding)
                         : control.leftPadding + (control.availableWidth - width) / 2
         y: control.topPadding + (control.availableHeight - height) / 2
         radius: height / 2
-        color: track.background
-        border.width: track.border.width
-        border.color: track.border.color
+        color: _trackStyle.background
+        border.width: _trackStyle.border.width
+        border.color: _trackStyle.border.color
 
         StyleCascade {
-            id: track
-            parentCascade: cascade
+            id: _trackStyle
+            parentCascade: _style
             part: StylePart.Indicator
         }
         StyleCascade {
-            id: thumb
-            parentCascade: cascade
+            id: _handleStyle
+            parentCascade: _style
             part: StylePart.Handle
         }
 
         Rectangle {
             x: Math.max(1, Math.min(parent.width - width - 1, control.visualPosition * parent.width - width / 2))
             y: 1
-            width: thumb.width
-            height: thumb.width
+            width: _handleStyle.width
+            height: _handleStyle.width
             radius: width / 2
-            color: thumb.background
+            color: _handleStyle.background
             Behavior on x { enabled: !control.down; NumberAnimation { duration: 110 } }
         }
     }
@@ -66,6 +66,6 @@ T.Switch {
         rightPadding: control.indicator && control.mirrored ? control.indicator.width + control.spacing : 0
         text: control.text
         font: control.font
-        color: cascade.text.color
+        color: _style.text.color
     }
 }

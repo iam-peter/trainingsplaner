@@ -9,7 +9,7 @@ AppDialog {
     id: dialog
     title: "Einstellungen"
     // Wide enough for the grid of Leerzeilen, Schriftgröße and Seitenränder
-    width: Math.min(parent ? parent.width - 40 : 840, 840)
+    width: Math.min(parent ? parent.width - 40 : 880, 880)
     standardButtons: Dialog.Save | Dialog.Cancel
 
     property var printOpts: ({})
@@ -20,11 +20,9 @@ AppDialog {
     readonly property real col2: Math.max(col2a.implicitWidth, col2b.implicitWidth, col2c.implicitWidth)
     readonly property real col3: Math.max(col3a.implicitWidth, col3b.implicitWidth, col3c.implicitWidth)
 
-    function cm(mm) { return (mm / 10).toLocaleString(Qt.locale("de_DE"), "f", 1) }
-    function mm(text) {
-        const v = Number.fromLocaleString(Qt.locale("de_DE"), text.trim() === "" ? "0" : text)
-        return isNaN(v) ? 0 : v * 10
-    }
+    // Every field of Leerzeilen, Schriftgröße and Seitenränder, so they
+    // stand in columns from row to row; room for a value with its unit
+    readonly property int fieldWidth: 108
 
     onAboutToShow: {
         trainerField.text = Store.trainer
@@ -43,10 +41,10 @@ AppDialog {
         fontSmall.value = printOpts.fontSmall
         fontNormal.value = printOpts.fontNormal
         fontLarge.value = printOpts.fontLarge
-        marginTop.text = cm(printOpts.marginTop)
-        marginLeft.text = cm(printOpts.marginLeft)
-        marginRight.text = cm(printOpts.marginRight)
-        marginBottom.text = cm(printOpts.marginBottom)
+        marginTop.value = Math.round(printOpts.marginTop)
+        marginLeft.value = Math.round(printOpts.marginLeft)
+        marginRight.value = Math.round(printOpts.marginRight)
+        marginBottom.value = Math.round(printOpts.marginBottom)
         landscape.checked = printOpts.landscape
         logoPath.text = printOpts.logoPath
         sessionColor.color = printOpts.sessionColor
@@ -87,10 +85,10 @@ AppDialog {
             fontSmall: fontSmall.value,
             fontNormal: fontNormal.value,
             fontLarge: fontLarge.value,
-            marginTop: mm(marginTop.text),
-            marginLeft: mm(marginLeft.text),
-            marginRight: mm(marginRight.text),
-            marginBottom: mm(marginBottom.text),
+            marginTop: marginTop.value,
+            marginLeft: marginLeft.value,
+            marginRight: marginRight.value,
+            marginBottom: marginBottom.value,
             landscape: landscape.checked,
             logoPath: logoPath.text,
             sessionColor: sessionColor.color.toString()
@@ -154,41 +152,41 @@ AppDialog {
                 }
 
                 // Leerzeilen, Schriftgröße and Seitenränder as one grid: each
-                // label column as wide as its widest label, every field 90 px,
-                // so the fields stand in columns from row to row
+                // label column as wide as its widest label, every field as
+                // wide, so the fields stand in columns from row to row
                 Label { text: "Leerzeilen:" }
                 RowLayout {
                     spacing: 8
                     Label { id: col1a; text: "Kopf"; Layout.preferredWidth: dialog.col1 }
-                    SpinBox { id: blankHeader; from: 0; to: 20; editable: true; Layout.preferredWidth: 90 }
+                    SpinBox { id: blankHeader; from: 0; to: 20; editable: true; Layout.preferredWidth: dialog.fieldWidth }
                     Label { id: col2a; text: "je TE"; Layout.preferredWidth: dialog.col2 }
-                    SpinBox { id: blankPerSession; from: 0; to: 20; editable: true; Layout.preferredWidth: 90 }
+                    SpinBox { id: blankPerSession; from: 0; to: 20; editable: true; Layout.preferredWidth: dialog.fieldWidth }
                     Label { id: col3a; text: "nach Bemerkung"; Layout.preferredWidth: dialog.col3 }
-                    SpinBox { id: blankAfterNote; from: 0; to: 40; editable: true; Layout.preferredWidth: 90 }
+                    SpinBox { id: blankAfterNote; from: 0; to: 40; editable: true; Layout.preferredWidth: dialog.fieldWidth }
                 }
 
-                Label { text: "Schriftgröße (pt):" }
+                Label { text: "Schriftgröße:" }
                 RowLayout {
                     spacing: 8
                     Label { id: col1b; text: "klein"; Layout.preferredWidth: dialog.col1 }
-                    SpinBox { id: fontSmall; from: 5; to: 24; editable: true; Layout.preferredWidth: 90 }
+                    SpinBox { id: fontSmall; unit: "pt"; from: 5; to: 24; editable: true; Layout.preferredWidth: dialog.fieldWidth }
                     Label { id: col2b; text: "normal"; Layout.preferredWidth: dialog.col2 }
-                    SpinBox { id: fontNormal; from: 6; to: 28; editable: true; Layout.preferredWidth: 90 }
+                    SpinBox { id: fontNormal; unit: "pt"; from: 6; to: 28; editable: true; Layout.preferredWidth: dialog.fieldWidth }
                     Label { id: col3b; text: "groß"; Layout.preferredWidth: dialog.col3 }
-                    SpinBox { id: fontLarge; from: 6; to: 36; editable: true; Layout.preferredWidth: 90 }
+                    SpinBox { id: fontLarge; unit: "pt"; from: 6; to: 36; editable: true; Layout.preferredWidth: dialog.fieldWidth }
                 }
 
-                Label { text: "Seitenränder (cm):" }
+                Label { text: "Seitenränder:" }
                 RowLayout {
                     spacing: 8
                     Label { id: col1c; text: "oben"; Layout.preferredWidth: dialog.col1 }
-                    TextField { id: marginTop; Layout.preferredWidth: 90; horizontalAlignment: TextInput.AlignHCenter }
+                    SpinBox { id: marginTop; unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.fieldWidth }
                     Label { id: col2c; text: "links"; Layout.preferredWidth: dialog.col2 }
-                    TextField { id: marginLeft; Layout.preferredWidth: 90; horizontalAlignment: TextInput.AlignHCenter }
+                    SpinBox { id: marginLeft; unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.fieldWidth }
                     Label { id: col3c; text: "rechts"; Layout.preferredWidth: dialog.col3 }
-                    TextField { id: marginRight; Layout.preferredWidth: 90; horizontalAlignment: TextInput.AlignHCenter }
+                    SpinBox { id: marginRight; unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.fieldWidth }
                     Label { text: "unten" }
-                    TextField { id: marginBottom; Layout.preferredWidth: 90; horizontalAlignment: TextInput.AlignHCenter }
+                    SpinBox { id: marginBottom; unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.fieldWidth }
                 }
                 Item { implicitWidth: 1 }
                 CheckBox { id: landscape; text: "Querformat" }
@@ -230,21 +228,21 @@ AppDialog {
                     model: 3
                     RowLayout {
                         required property int index
-                        readonly property alias fromField: fromField
-                        readonly property alias toField: toField
+                        readonly property alias fromField: _fromField
+                        readonly property alias toField: _toField
                         // What is no time is not kept
-                        readonly property string fromTime: fromField.valid ? fromField.time : ""
-                        readonly property string toTime: toField.valid ? toField.time : ""
+                        readonly property string fromTime: _fromField.valid ? _fromField.time : ""
+                        readonly property string toTime: _toField.valid ? _toField.time : ""
                         spacing: 8
                         Label { text: (index + 1) + ". TE"; Layout.preferredWidth: 50 }
                         Label { text: "von:" }
                         TimeField {
-                            id: fromField
+                            id: _fromField
                             objectName: "fromTime" + index
                         }
                         Label { text: "bis:" }
                         TimeField {
-                            id: toField
+                            id: _toField
                             objectName: "toTime" + index
                         }
                     }

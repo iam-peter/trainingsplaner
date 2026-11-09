@@ -8,10 +8,10 @@ T.ComboBox {
     id: control
 
     property list<Style> styles
-    readonly property alias styleCascade: cascade
+    readonly property alias styleCascade: _style
 
     StyleCascade {
-        id: cascade
+        id: _style
         base: [FieldStyle.base, FieldStyle.comboBox]
         styles: control.styles
         overrides: [control.activeFocus ? FieldStyle.focus : null,
@@ -26,10 +26,10 @@ T.ComboBox {
                              implicitContentHeight + topPadding + bottomPadding,
                              implicitIndicatorHeight + topPadding + bottomPadding)
 
-    leftPadding: cascade.padding.left
-    rightPadding: cascade.padding.right + (indicator ? indicator.width + cascade.spacing : 0)
+    leftPadding: _style.padding.left
+    rightPadding: _style.padding.right + (indicator ? indicator.width + _style.spacing : 0)
     hoverEnabled: true
-    opacity: cascade.opacity
+    opacity: _style.opacity
 
     delegate: T.ItemDelegate {
         id: item
@@ -39,16 +39,16 @@ T.ComboBox {
         // Lights up only as the list's highlighted row, which follows
         // the pointer and the keys
         StyleCascade {
-            id: itemStyle
+            id: _itemStyle
             base: [ItemStyle.base, ItemStyle.comboItem]
             overrides: [item.highlighted ? ItemStyle.highlighted : null]
             state: !item.enabled ? StyleState.Disable : StyleState.Idle
         }
 
         width: ListView.view.width
-        implicitHeight: itemStyle.height
-        leftPadding: itemStyle.padding.left
-        rightPadding: itemStyle.padding.right
+        implicitHeight: _itemStyle.height
+        leftPadding: _itemStyle.padding.left
+        rightPadding: _itemStyle.padding.right
         hoverEnabled: control.hoverEnabled
         highlighted: control.highlightedIndex === index
         text: model[control.textRole] ?? ""
@@ -58,34 +58,34 @@ T.ComboBox {
             font: item.font
             elide: Text.ElideRight
             verticalAlignment: Text.AlignVCenter
-            color: itemStyle.text.color
+            color: _itemStyle.text.color
         }
         background: Rectangle {
-            radius: itemStyle.radius.value
-            color: itemStyle.background
+            radius: _itemStyle.radius.value
+            color: _itemStyle.background
             ColorImage {
                 anchors.right: parent.right
-                anchors.rightMargin: itemStyle.spacing
+                anchors.rightMargin: _itemStyle.spacing
                 anchors.verticalCenter: parent.verticalCenter
                 visible: control.currentIndex === item.index
                 source: "qrc:/qt/qml/TrainingsplanerStyle/images/check.svg"
-                sourceSize: Qt.size(itemStyle.icon.size, itemStyle.icon.size)
-                color: itemStyle.icon.color
+                sourceSize: Qt.size(_itemStyle.icon.size, _itemStyle.icon.size)
+                color: _itemStyle.icon.color
             }
         }
     }
 
     indicator: ColorImage {
-        x: control.mirrored ? cascade.padding.right : control.width - width - cascade.padding.right
+        x: control.mirrored ? _style.padding.right : control.width - width - _style.padding.right
         y: (control.height - height) / 2
         source: "qrc:/qt/qml/TrainingsplanerStyle/images/chevron-down.svg"
-        sourceSize: Qt.size(arrowStyle.icon.size, arrowStyle.icon.size)
-        color: arrowStyle.icon.color
-        opacity: arrowStyle.opacity
+        sourceSize: Qt.size(_arrowStyle.icon.size, _arrowStyle.icon.size)
+        color: _arrowStyle.icon.color
+        opacity: _arrowStyle.opacity
 
         StyleCascade {
-            id: arrowStyle
-            parentCascade: cascade
+            id: _arrowStyle
+            parentCascade: _style
             part: StylePart.Arrow
         }
         // Points up while the list is open
@@ -93,9 +93,9 @@ T.ComboBox {
     }
 
     contentItem: T.TextField {
-        leftPadding: control.editable ? cascade.padding.right : 0
-        topPadding: cascade.padding.top
-        bottomPadding: cascade.padding.bottom
+        leftPadding: control.editable ? _style.padding.right : 0
+        topPadding: _style.padding.top
+        bottomPadding: _style.padding.bottom
 
         text: control.editable ? control.editText : control.displayText
 
@@ -107,19 +107,19 @@ T.ComboBox {
         selectByMouse: control.selectTextByMouse
 
         font: control.font
-        color: cascade.text.color
-        selectionColor: cascade.selection
-        selectedTextColor: cascade.selectedText
+        color: _style.text.color
+        selectionColor: _style.selection
+        selectedTextColor: _style.selectedText
         verticalAlignment: Text.AlignVCenter
     }
 
     background: Rectangle {
-        implicitWidth: cascade.width
-        implicitHeight: cascade.height
-        radius: cascade.radius.value
-        color: cascade.background
-        border.width: cascade.border.width
-        border.color: cascade.border.color
+        implicitWidth: _style.width
+        implicitHeight: _style.height
+        radius: _style.radius.value
+        color: _style.background
+        border.width: _style.border.width
+        border.color: _style.border.color
     }
 
     // Nothing to choose: the list does not show at all
@@ -128,16 +128,16 @@ T.ComboBox {
         modal: true
         dim: false
         onOpened: if (control.count === 0) close()
-        y: control.height + listStyle.spacing
+        y: control.height + _listStyle.spacing
         width: control.width
         height: Math.min(contentItem.implicitHeight + topPadding + bottomPadding,
                          control.Window.height - topMargin - bottomMargin)
-        topMargin: 2 * listStyle.spacing
-        bottomMargin: 2 * listStyle.spacing
-        padding: listStyle.padding.value
+        topMargin: 2 * _listStyle.spacing
+        bottomMargin: 2 * _listStyle.spacing
+        padding: _listStyle.padding.value
 
         StyleCascade {
-            id: listStyle
+            id: _listStyle
             base: [PopupStyle.list]
         }
 
@@ -153,10 +153,10 @@ T.ComboBox {
 
         background: Rectangle {
             visible: control.count > 0
-            color: listStyle.background
-            radius: listStyle.radius.value
-            border.width: listStyle.border.width
-            border.color: listStyle.border.color
+            color: _listStyle.background
+            radius: _listStyle.radius.value
+            border.width: _listStyle.border.width
+            border.color: _listStyle.border.color
             Shadow {
                 z: -1
                 anchors.fill: parent

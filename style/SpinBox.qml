@@ -3,21 +3,38 @@ import QtQuick.Controls.impl
 import QtQuick.Templates as T
 
 // An input with small minus and plus buttons inside on the right; each
-// button is a part of the field's style with its own state
+// button is a part of the field's style with its own state.
+//
+// leadingIcon (an SVG) or leadingItem stands before the value, unit right
+// after it, toned down ("pt"); both parts of the field's style.
 T.SpinBox {
     id: control
 
     property list<Style> styles
-    readonly property alias styleCascade: cascade
-    readonly property int stepWidth: upStyle.width
+    readonly property alias styleCascade: _style
+    readonly property int stepWidth: _upStyle.width
+
+    property url leadingIcon
+    property alias leadingItem: _leadingItems.data
+    property string unit
 
     StyleCascade {
-        id: cascade
+        id: _style
         base: [FieldStyle.base, FieldStyle.spinBox]
         styles: control.styles
         overrides: [control.activeFocus ? FieldStyle.focus : null]
         state: !control.enabled ? StyleState.Disable
                : control.hovered ? StyleState.Hover : StyleState.Idle
+    }
+    StyleCascade {
+        id: _leadingStyle
+        parentCascade: _style
+        part: StylePart.Leading
+    }
+    StyleCascade {
+        id: _unitStyle
+        parentCascade: _style
+        part: StylePart.Unit
     }
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
@@ -26,10 +43,13 @@ T.SpinBox {
                              implicitContentHeight + topPadding + bottomPadding,
                              up.implicitIndicatorHeight, down.implicitIndicatorHeight)
 
-    leftPadding: cascade.padding.left
+    leftPadding: _leading.visible
+                 ? _leadingStyle.padding.left + _leading.width + _leadingStyle.padding.right
+                 : _style.padding.left
     rightPadding: 2 * stepWidth + 2 * Primitives.spacing.sp050
+                  + (_unit.visible ? _unitStyle.padding.left + _unit.implicitWidth : 0)
     hoverEnabled: true
-    opacity: cascade.opacity
+    opacity: _style.opacity
 
     validator: IntValidator {
         locale: control.locale.name
@@ -42,9 +62,9 @@ T.SpinBox {
         text: control.displayText
         clip: width < implicitWidth
         font: control.font
-        color: cascade.text.color
-        selectionColor: cascade.selection
-        selectedTextColor: cascade.selectedText
+        color: _style.text.color
+        selectionColor: _style.selection
+        selectedTextColor: _style.selectedText
         horizontalAlignment: Qt.AlignLeft
         verticalAlignment: Qt.AlignVCenter
         readOnly: !control.editable
@@ -57,14 +77,14 @@ T.SpinBox {
         x: control.mirrored ? control.stepWidth + Primitives.spacing.sp050
                             : control.width - 2 * control.stepWidth - Primitives.spacing.sp050
         y: (control.height - height) / 2
-        implicitWidth: downStyle.width
-        implicitHeight: downStyle.width
-        radius: downStyle.radius.value
-        color: downStyle.background
+        implicitWidth: _downStyle.width
+        implicitHeight: _downStyle.width
+        radius: _downStyle.radius.value
+        color: _downStyle.background
 
         StyleCascade {
-            id: downStyle
-            parentCascade: cascade
+            id: _downStyle
+            parentCascade: _style
             part: StylePart.Indicator
             state: !downIndicator.enabled ? StyleState.Disable
                    : control.down.pressed ? StyleState.Active
@@ -76,7 +96,7 @@ T.SpinBox {
             width: 10
             height: 1.5
             radius: 1
-            color: downStyle.text.color
+            color: _downStyle.text.color
         }
     }
 
@@ -84,14 +104,14 @@ T.SpinBox {
         id: upIndicator
         x: control.mirrored ? Primitives.spacing.sp050 : control.width - control.stepWidth - Primitives.spacing.sp050
         y: (control.height - height) / 2
-        implicitWidth: upStyle.width
-        implicitHeight: upStyle.width
-        radius: upStyle.radius.value
-        color: upStyle.background
+        implicitWidth: _upStyle.width
+        implicitHeight: _upStyle.width
+        radius: _upStyle.radius.value
+        color: _upStyle.background
 
         StyleCascade {
-            id: upStyle
-            parentCascade: cascade
+            id: _upStyle
+            parentCascade: _style
             part: StylePart.Indicator
             state: !upIndicator.enabled ? StyleState.Disable
                    : control.up.pressed ? StyleState.Active
@@ -103,23 +123,57 @@ T.SpinBox {
             width: 10
             height: 1.5
             radius: 1
-            color: upStyle.text.color
+            color: _upStyle.text.color
         }
         Rectangle {
             anchors.centerIn: parent
             width: 1.5
             height: 10
             radius: 1
-            color: upStyle.text.color
+            color: _upStyle.text.color
         }
     }
 
+    Item {
+        id: _leading
+        x: control.mirrored ? control.width - width - _leadingStyle.padding.left : _leadingStyle.padding.left
+        anchors.verticalCenter: parent.verticalCenter
+        width: _leadingStyle.width
+        height: _leadingStyle.icon.size
+        visible: control.leadingIcon.toString() !== "" || _leadingItems.children.length > 0
+
+        IconImage {
+            anchors.centerIn: parent
+            width: _leadingStyle.icon.size
+            height: _leadingStyle.icon.size
+            visible: control.leadingIcon.toString() !== ""
+            source: control.leadingIcon
+            color: _leadingStyle.icon.color
+        }
+        Item {
+            id: _leadingItems
+            anchors.fill: parent
+        }
+    }
+
+    // Right after the value
+    Text {
+        id: _unit
+        visible: control.unit !== ""
+        text: control.unit
+        font: control.font
+        color: _unitStyle.text.color
+        anchors.verticalCenter: parent.verticalCenter
+        x: control.leftPadding + Math.min(control.contentItem.contentWidth, control.availableWidth)
+           + _unitStyle.padding.left
+    }
+
     background: Rectangle {
-        implicitWidth: cascade.width
-        implicitHeight: cascade.height
-        radius: cascade.radius.value
-        color: cascade.background
-        border.width: cascade.border.width
-        border.color: cascade.border.color
+        implicitWidth: _style.width
+        implicitHeight: _style.height
+        radius: _style.radius.value
+        color: _style.background
+        border.width: _style.border.width
+        border.color: _style.border.color
     }
 }

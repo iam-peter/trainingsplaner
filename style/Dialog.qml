@@ -7,17 +7,17 @@ T.Dialog {
     id: control
 
     property list<Style> styles
-    readonly property alias styleCascade: cascade
+    readonly property alias styleCascade: _style
 
     StyleCascade {
-        id: cascade
+        id: _style
         base: [PopupStyle.dialog]
         styles: control.styles
         overrides: [control.modal ? null : PopupStyle.modeless]
     }
     StyleCascade {
-        id: titleStyle
-        parentCascade: cascade
+        id: _titleStyle
+        parentCascade: _style
         part: StylePart.Label
     }
 
@@ -30,16 +30,16 @@ T.Dialog {
                              + (implicitHeaderHeight > 0 ? implicitHeaderHeight + spacing : 0)
                              + (implicitFooterHeight > 0 ? implicitFooterHeight + spacing : 0))
 
-    leftPadding: cascade.padding.left
-    rightPadding: cascade.padding.right
-    topPadding: cascade.padding.top
-    bottomPadding: cascade.padding.bottom
+    leftPadding: _style.padding.left
+    rightPadding: _style.padding.right
+    topPadding: _style.padding.top
+    bottomPadding: _style.padding.bottom
 
     background: Rectangle {
-        color: cascade.background
-        radius: cascade.radius.value
-        border.width: cascade.border.width
-        border.color: cascade.border.color
+        color: _style.background
+        radius: _style.radius.value
+        border.width: _style.border.width
+        border.color: _style.border.color
         Shadow {
             z: -1
             anchors.fill: parent
@@ -52,13 +52,13 @@ T.Dialog {
         text: control.title
         visible: parent?.parent === T.Overlay.overlay && control.title
         elide: Text.ElideRight
-        font.pixelSize: titleStyle.text.size
-        font.weight: titleStyle.text.weight
-        color: titleStyle.text.color
-        leftPadding: titleStyle.padding.left
-        rightPadding: titleStyle.padding.right
-        topPadding: titleStyle.padding.top
-        bottomPadding: titleStyle.padding.bottom
+        font.pixelSize: _titleStyle.text.size
+        font.weight: _titleStyle.text.weight
+        color: _titleStyle.text.color
+        leftPadding: _titleStyle.padding.left
+        rightPadding: _titleStyle.padding.right
+        topPadding: _titleStyle.padding.top
+        bottomPadding: _titleStyle.padding.bottom
     }
 
     footer: DialogButtonBox {
@@ -66,10 +66,10 @@ T.Dialog {
     }
 
     T.Overlay.modal: Rectangle {
-        color: cascade.dim
+        color: _style.dim
     }
 
     T.Overlay.modeless: Rectangle {
-        color: cascade.dim
+        color: _style.dim
     }
 }

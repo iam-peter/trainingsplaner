@@ -111,7 +111,7 @@ Item {
             required property int column
             required property string display
             required property bool average
-            readonly property alias editor: editor
+            readonly property alias editor: _editor
             implicitHeight: grid.rowHeight
             color: average ? Styles.TokenInterface.semantics.background_muted : Styles.TokenInterface.semantics.background_elevated
             // The grid: a line below and to the right of every cell, a
@@ -141,7 +141,7 @@ Item {
                 font.bold: true
             }
             TextField {
-                id: editor
+                id: _editor
                 anchors.fill: parent
                 anchors.margins: 1
                 visible: !cell.average

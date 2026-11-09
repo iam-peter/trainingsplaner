@@ -5,15 +5,15 @@ T.ScrollBar {
     id: control
 
     StyleCascade {
-        id: cascade
+        id: _style
         base: [ScrollBarStyle.base]
         overrides: [control.interactive ? null : ScrollBarStyle.thin]
         state: control.pressed ? StyleState.Active
                : control.hovered ? StyleState.Hover : StyleState.Idle
     }
     StyleCascade {
-        id: thumb
-        parentCascade: cascade
+        id: _handleStyle
+        parentCascade: _style
         part: StylePart.Handle
     }
 
@@ -22,15 +22,15 @@ T.ScrollBar {
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding)
 
-    padding: cascade.padding.value
+    padding: _style.padding.value
     visible: control.policy !== T.ScrollBar.AlwaysOff
     minimumSize: orientation === Qt.Horizontal ? height / width : width / height
 
     contentItem: Rectangle {
-        implicitWidth: thumb.width
-        implicitHeight: thumb.width
+        implicitWidth: _handleStyle.width
+        implicitHeight: _handleStyle.width
         radius: width / 2
-        color: thumb.background
+        color: _handleStyle.background
         opacity: control.policy === T.ScrollBar.AlwaysOn || (control.active && control.size < 1.0) ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: 200 } }
     }

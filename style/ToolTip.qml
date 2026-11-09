@@ -6,10 +6,10 @@ T.ToolTip {
     id: control
 
     property list<Style> styles
-    readonly property alias styleCascade: cascade
+    readonly property alias styleCascade: _style
 
     StyleCascade {
-        id: cascade
+        id: _style
         base: [PopupStyle.toolTip]
         styles: control.styles
     }
@@ -22,12 +22,12 @@ T.ToolTip {
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding)
 
-    margins: cascade.spacing
-    topPadding: cascade.padding.top
-    bottomPadding: cascade.padding.bottom
-    leftPadding: cascade.padding.left
-    rightPadding: cascade.padding.right
-    font.pixelSize: cascade.text.size
+    margins: _style.spacing
+    topPadding: _style.padding.top
+    bottomPadding: _style.padding.bottom
+    leftPadding: _style.padding.left
+    rightPadding: _style.padding.right
+    font.pixelSize: _style.text.size
 
     closePolicy: T.Popup.CloseOnEscape | T.Popup.CloseOnPressOutsideParent | T.Popup.CloseOnReleaseOutsideParent
 
@@ -35,11 +35,11 @@ T.ToolTip {
         text: control.text
         font: control.font
         wrapMode: Text.Wrap
-        color: cascade.text.color
+        color: _style.text.color
     }
 
     background: Rectangle {
-        color: cascade.background
-        radius: cascade.radius.value
+        color: _style.background
+        radius: _style.radius.value
     }
 }

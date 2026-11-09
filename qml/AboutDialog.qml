@@ -9,8 +9,9 @@ import Trainingsplaner
 AppDialog {
     id: dialog
 
-    readonly property string state: Updater.state
-    readonly property bool busy: state === "checking" || state === "downloading" || state === "installing"
+    // Not "state": that is every item's own (its States)
+    readonly property string updateState: Updater.state
+    readonly property bool busy: updateState === "checking" || updateState === "downloading" || updateState === "installing"
 
     signal showUpdateDetails()
 
@@ -63,10 +64,10 @@ AppDialog {
                     Layout.fillWidth: true
                     objectName: "updateStatus"
                     wrapMode: Text.Wrap
-                    font.bold: dialog.state === "available"
-                    color: dialog.state === "error" ? Styles.TokenInterface.semantics.danger_default : Styles.TokenInterface.semantics.text_default
+                    font.bold: dialog.updateState === "available"
+                    color: dialog.updateState === "error" ? Styles.TokenInterface.semantics.danger_default : Styles.TokenInterface.semantics.text_default
                     text: {
-                        switch (dialog.state) {
+                        switch (dialog.updateState) {
                         case "checking": return "Suche nach einer neuen Version …"
                         case "upToDate": return "Sie verwenden die neueste Version."
                         case "available": return "Version " + Updater.latestVersion + " ist verfügbar."
@@ -79,7 +80,7 @@ AppDialog {
                 }
                 ProgressBar {
                     Layout.fillWidth: true
-                    visible: dialog.state === "downloading" || dialog.state === "installing"
+                    visible: dialog.updateState === "downloading" || dialog.updateState === "installing"
                     value: Updater.progress
                 }
                 RowLayout {
@@ -92,18 +93,18 @@ AppDialog {
                     }
                     Button {
                         objectName: "installButton"
-                        visible: dialog.state === "available"
+                        visible: dialog.updateState === "available"
                         highlighted: true
                         text: Updater.installsItself ? "Jetzt aktualisieren" : "Herunterladen"
                         onClicked: Updater.install()
                     }
                     Button {
-                        visible: dialog.state === "available" && Updater.notes !== ""
+                        visible: dialog.updateState === "available" && Updater.notes !== ""
                         text: "Was ist neu?"
                         onClicked: dialog.showUpdateDetails()
                     }
                     Button {
-                        visible: dialog.state === "downloading"
+                        visible: dialog.updateState === "downloading"
                         text: "Abbrechen"
                         onClicked: Updater.cancel()
                     }

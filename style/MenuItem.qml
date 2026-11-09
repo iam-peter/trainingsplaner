@@ -6,10 +6,10 @@ T.MenuItem {
     id: control
 
     property list<Style> styles
-    readonly property alias styleCascade: cascade
+    readonly property alias styleCascade: _style
 
     StyleCascade {
-        id: cascade
+        id: _style
         base: [ItemStyle.base, ItemStyle.menuItem]
         styles: control.styles
         overrides: [control.highlighted ? ItemStyle.highlighted : null]
@@ -24,16 +24,16 @@ T.MenuItem {
                              implicitContentHeight + topPadding + bottomPadding,
                              implicitIndicatorHeight + topPadding + bottomPadding)
 
-    topPadding: cascade.padding.top
-    bottomPadding: cascade.padding.bottom
-    leftPadding: cascade.padding.left
-    rightPadding: cascade.padding.right
-    spacing: cascade.spacing
+    topPadding: _style.padding.top
+    bottomPadding: _style.padding.bottom
+    leftPadding: _style.padding.left
+    rightPadding: _style.padding.right
+    spacing: _style.spacing
     hoverEnabled: true
-    opacity: cascade.opacity
+    opacity: _style.opacity
 
-    icon.width: cascade.icon.size
-    icon.height: cascade.icon.size
+    icon.width: _style.icon.size
+    icon.height: _style.icon.size
 
     contentItem: IconLabel {
         readonly property real arrowPadding: control.subMenu && control.arrow ? control.arrow.width + control.spacing : 0
@@ -49,10 +49,10 @@ T.MenuItem {
         icon.source: control.icon.source
         icon.width: control.icon.width
         icon.height: control.icon.height
-        icon.color: cascade.icon.color
+        icon.color: _style.icon.color
         text: control.text
         font: control.font
-        color: cascade.text.color
+        color: _style.text.color
     }
 
     indicator: ColorImage {
@@ -61,7 +61,7 @@ T.MenuItem {
         visible: control.checked
         source: control.checkable ? "qrc:/qt/qml/TrainingsplanerStyle/images/check.svg" : ""
         sourceSize: Qt.size(16, 16)
-        color: cascade.text.color
+        color: _style.text.color
     }
 
     arrow: ColorImage {
@@ -71,15 +71,15 @@ T.MenuItem {
         mirror: control.mirrored
         source: control.subMenu ? "qrc:/qt/qml/TrainingsplanerStyle/images/chevron-right.svg" : ""
         sourceSize: Qt.size(16, 16)
-        color: cascade.text.color
+        color: _style.text.color
     }
 
     background: Rectangle {
         // A minimum only: entries are as wide as their text needs, and a
         // menu as wide as its longest entry
-        implicitWidth: cascade.width
-        implicitHeight: cascade.height
-        radius: cascade.radius.value
-        color: cascade.background
+        implicitWidth: _style.width
+        implicitHeight: _style.height
+        radius: _style.radius.value
+        color: _style.background
     }
 }

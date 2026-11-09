@@ -6,10 +6,10 @@ T.TextArea {
     id: control
 
     property list<Style> styles
-    readonly property alias styleCascade: cascade
+    readonly property alias styleCascade: _style
 
     StyleCascade {
-        id: cascade
+        id: _style
         base: [FieldStyle.base, FieldStyle.textArea]
         styles: control.styles
         overrides: [control.activeFocus && !control.readOnly ? FieldStyle.focus : null,
@@ -25,17 +25,17 @@ T.TextArea {
                              implicitBackgroundHeight + topInset + bottomInset,
                              placeholder.implicitHeight + topPadding + bottomPadding)
 
-    topPadding: cascade.padding.top
-    bottomPadding: cascade.padding.bottom
-    leftPadding: cascade.padding.left
-    rightPadding: cascade.padding.right
+    topPadding: _style.padding.top
+    bottomPadding: _style.padding.bottom
+    leftPadding: _style.padding.left
+    rightPadding: _style.padding.right
     hoverEnabled: true
-    opacity: cascade.opacity
+    opacity: _style.opacity
 
-    color: cascade.text.color
-    selectionColor: cascade.selection
-    selectedTextColor: cascade.selectedText
-    placeholderTextColor: cascade.placeholder
+    color: _style.text.color
+    selectionColor: _style.selection
+    selectedTextColor: _style.selectedText
+    placeholderTextColor: _style.placeholder
 
     PlaceholderText {
         id: placeholder
@@ -54,13 +54,13 @@ T.TextArea {
     }
 
     background: Rectangle {
-        implicitWidth: cascade.width
+        implicitWidth: _style.width
         // One control high: a taller minimum made a text area in a lower
         // scroll view scroll with nothing in it
-        implicitHeight: cascade.height
-        radius: cascade.radius.value
-        color: cascade.background
-        border.width: cascade.border.width
-        border.color: cascade.border.color
+        implicitHeight: _style.height
+        radius: _style.radius.value
+        color: _style.background
+        border.width: _style.border.width
+        border.color: _style.border.color
     }
 }

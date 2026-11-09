@@ -2,15 +2,24 @@ import QtQuick
 import QtQuick.Controls.impl
 import QtQuick.Templates as T
 
-// Input: bordered, rounded, the focus colour on the border when focused
+// Input: bordered, rounded, the focus colour on the border when focused.
+//
+// leadingIcon (an SVG) or leadingItem stands before the text, trailingItems
+// after it (a clear button), unit right after the value ("cm"); each is a
+// part of the field's style with its own margins.
 T.TextField {
     id: control
 
     property list<Style> styles
-    readonly property alias styleCascade: cascade
+    readonly property alias styleCascade: _style
+
+    property url leadingIcon
+    property alias leadingItem: _leadingItems.data
+    property alias trailingItems: _trailing.data
+    property string unit
 
     StyleCascade {
-        id: cascade
+        id: _style
         base: [FieldStyle.base, FieldStyle.textField]
         styles: control.styles
         overrides: [control.activeFocus && !control.readOnly ? FieldStyle.focus : null,
@@ -19,29 +28,51 @@ T.TextField {
         state: !control.enabled ? StyleState.Disable
                : control.hovered ? StyleState.Hover : StyleState.Idle
     }
+    StyleCascade {
+        id: _leadingStyle
+        parentCascade: _style
+        part: StylePart.Leading
+    }
+    StyleCascade {
+        id: _trailingStyle
+        parentCascade: _style
+        part: StylePart.Trailing
+    }
+    StyleCascade {
+        id: _unitStyle
+        parentCascade: _style
+        part: StylePart.Unit
+    }
 
     // With the normal padding, not the actual one, which depends on the width
     implicitWidth: implicitBackgroundWidth + leftInset + rightInset
-                   || Math.max(contentWidth, placeholder.implicitWidth) + 24
+                   || Math.max(contentWidth, _placeholder.implicitWidth) + 24
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              contentHeight + topPadding + bottomPadding,
-                             placeholder.implicitHeight + topPadding + bottomPadding)
+                             _placeholder.implicitHeight + topPadding + bottomPadding)
 
-    leftPadding: cascade.padding.left
-    rightPadding: cascade.padding.right
-    topPadding: cascade.padding.top
-    bottomPadding: cascade.padding.bottom
+    leftPadding: _leading.visible
+                 ? _leadingStyle.padding.left + _leading.width + _leadingStyle.padding.right
+                 : _style.padding.left
+    // A trailing item can hide itself (a clear button without text): the
+    // row is then 0 px wide
+    rightPadding: (_trailing.width > 0
+                   ? _trailingStyle.padding.left + _trailing.width + _trailingStyle.padding.right
+                   : _style.padding.right)
+                  + (_unit.visible ? _unitStyle.padding.left + _unit.implicitWidth : 0)
+    topPadding: _style.padding.top
+    bottomPadding: _style.padding.bottom
     verticalAlignment: TextInput.AlignVCenter
     hoverEnabled: true
-    opacity: cascade.opacity
+    opacity: _style.opacity
 
-    color: cascade.text.color
-    selectionColor: cascade.selection
-    selectedTextColor: cascade.selectedText
-    placeholderTextColor: cascade.placeholder
+    color: _style.text.color
+    selectionColor: _style.selection
+    selectedTextColor: _style.selectedText
+    placeholderTextColor: _style.placeholder
 
     PlaceholderText {
-        id: placeholder
+        id: _placeholder
         x: control.leftPadding
         y: control.topPadding
         width: control.width - (control.leftPadding + control.rightPadding)
@@ -56,12 +87,59 @@ T.TextField {
         renderType: control.renderType
     }
 
+    Item {
+        id: _leading
+        x: control.mirrored ? control.width - width - _leadingStyle.padding.left : _leadingStyle.padding.left
+        anchors.verticalCenter: parent.verticalCenter
+        width: _leadingStyle.width
+        height: _leadingStyle.icon.size
+        visible: control.leadingIcon.toString() !== "" || _leadingItems.children.length > 0
+
+        IconImage {
+            anchors.centerIn: parent
+            width: _leadingStyle.icon.size
+            height: _leadingStyle.icon.size
+            visible: control.leadingIcon.toString() !== ""
+            source: control.leadingIcon
+            color: _leadingStyle.icon.color
+        }
+        Item {
+            id: _leadingItems
+            anchors.fill: parent
+        }
+    }
+
+    Row {
+        id: _trailing
+        anchors.right: parent.right
+        anchors.rightMargin: _trailingStyle.padding.right
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: _trailingStyle.spacing
+    }
+
+    // Right after the text, wherever the alignment puts it
+    Text {
+        id: _unit
+        visible: control.unit !== ""
+        text: control.unit
+        font: control.font
+        color: _unitStyle.text.color
+        anchors.verticalCenter: parent.verticalCenter
+        // A text field is no Control: no availableWidth of its own
+        readonly property real room: control.width - control.leftPadding - control.rightPadding
+        x: control.leftPadding + _unitStyle.padding.left
+           + (control.effectiveHorizontalAlignment === TextInput.AlignHCenter
+              ? (room + Math.min(control.contentWidth, room)) / 2
+              : control.effectiveHorizontalAlignment === TextInput.AlignRight
+                ? room : Math.min(control.contentWidth, room))
+    }
+
     background: Rectangle {
-        implicitWidth: cascade.width
-        implicitHeight: cascade.height
-        radius: cascade.radius.value
-        color: cascade.background
-        border.width: cascade.border.width
-        border.color: cascade.border.color
+        implicitWidth: _style.width
+        implicitHeight: _style.height
+        radius: _style.radius.value
+        color: _style.background
+        border.width: _style.border.width
+        border.color: _style.border.color
     }
 }

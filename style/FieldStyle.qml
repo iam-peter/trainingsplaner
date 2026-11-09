@@ -28,6 +28,37 @@ QtObject {
             state: StyleState.Disable
             opacity: 0.5
         }
+
+        // An icon or items before the text: padding is their margin to
+        // the border (left) and to the text (right)
+        Style {
+            part: StylePart.Leading
+            width: Primitives.size.s16
+            icon {
+                size: Primitives.size.s16
+                color: root.s.text_muted
+            }
+            padding {
+                left: Primitives.spacing.sp125
+                right: Primitives.spacing.sp075
+            }
+        }
+        // Items after the text, e.g. a clear button: padding is their
+        // margin to the text (left) and to the border (right)
+        Style {
+            part: StylePart.Trailing
+            spacing: Primitives.spacing.sp050
+            padding {
+                left: Primitives.spacing.sp025
+                right: Primitives.spacing.sp025
+            }
+        }
+        // The unit right after the value, toned down
+        Style {
+            part: StylePart.Unit
+            text.color: root.s.text_muted
+            padding.left: Primitives.spacing.sp050
+        }
     }
 
     readonly property Style textField: Style {

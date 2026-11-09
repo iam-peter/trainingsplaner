@@ -6,10 +6,10 @@ T.RadioButton {
     id: control
 
     property list<Style> styles
-    readonly property alias styleCascade: cascade
+    readonly property alias styleCascade: _style
 
     StyleCascade {
-        id: cascade
+        id: _style
         base: [ToggleStyle.base, ToggleStyle.radioButton]
         styles: control.styles
         overrides: [control.visualFocus ? ToggleStyle.focus : null]
@@ -23,24 +23,24 @@ T.RadioButton {
                              implicitContentHeight + topPadding + bottomPadding,
                              implicitIndicatorHeight + topPadding + bottomPadding)
 
-    padding: cascade.padding.value
-    spacing: cascade.spacing
-    opacity: cascade.opacity
+    padding: _style.padding.value
+    spacing: _style.spacing
+    opacity: _style.opacity
 
     indicator: Rectangle {
-        implicitWidth: circle.width
-        implicitHeight: circle.width
+        implicitWidth: _indicatorStyle.width
+        implicitHeight: _indicatorStyle.width
         x: control.text ? (control.mirrored ? control.width - width - control.rightPadding : control.leftPadding)
                         : control.leftPadding + (control.availableWidth - width) / 2
         y: control.topPadding + (control.availableHeight - height) / 2
-        radius: circle.radius.value
-        color: circle.background
-        border.width: circle.border.width
-        border.color: circle.border.color
+        radius: _indicatorStyle.radius.value
+        color: _indicatorStyle.background
+        border.width: _indicatorStyle.border.width
+        border.color: _indicatorStyle.border.color
 
         StyleCascade {
-            id: circle
-            parentCascade: cascade
+            id: _indicatorStyle
+            parentCascade: _style
             part: StylePart.Indicator
         }
 
@@ -49,16 +49,39 @@ T.RadioButton {
             width: 8
             height: 8
             radius: 4
-            color: circle.accent
+            color: _indicatorStyle.accent
             visible: control.checked
         }
     }
 
+    // The room an icon before the label takes, with its gap to the text
+    readonly property real _iconRoom: control.icon.source.toString() !== ""
+                                      ? _iconStyle.icon.size + _iconStyle.spacing : 0
+
+    StyleCascade {
+        id: _iconStyle
+        parentCascade: _style
+        part: StylePart.Icon
+    }
+
     contentItem: CheckLabel {
-        leftPadding: control.indicator && !control.mirrored ? control.indicator.width + control.spacing : 0
-        rightPadding: control.indicator && control.mirrored ? control.indicator.width + control.spacing : 0
+        leftPadding: (control.indicator && !control.mirrored ? control.indicator.width + control.spacing : 0)
+                     + (control.mirrored ? 0 : control._iconRoom)
+        rightPadding: (control.indicator && control.mirrored ? control.indicator.width + control.spacing : 0)
+                      + (control.mirrored ? control._iconRoom : 0)
         text: control.text
         font: control.font
-        color: cascade.text.color
+        color: _style.text.color
+
+        IconImage {
+            visible: control._iconRoom > 0
+            x: control.mirrored ? parent.width - parent.rightPadding + _iconStyle.spacing
+                                : parent.leftPadding - control._iconRoom
+            anchors.verticalCenter: parent.verticalCenter
+            width: _iconStyle.icon.size
+            height: _iconStyle.icon.size
+            source: control.icon.source
+            color: _iconStyle.icon.color
+        }
     }
 }
