@@ -7,13 +7,9 @@ import TrainingsplanerStyle as Style
 // Colours and shapes of the program's own elements (the week grid, lists,
 // tabs, highlights) for light and dark mode, from the style's tokens.
 QtObject {
-    // Dark when the window colour is dark: works whether the system reports
-    // a colour scheme or only sets a dark palette
-    readonly property SystemPalette system: SystemPalette {}
-    readonly property bool dark: Qt.styleHints.colorScheme === Qt.ColorScheme.Dark
-                                 || system.window.hslLightness < 0.5
-
     readonly property var sh: Style.Tokens
+    // As the style decides it
+    readonly property bool dark: sh.dark
 
     // Toolbars are as high on every page: a control and 6 px around it
     readonly property int toolBarHeight: sh.controlHeight + 12

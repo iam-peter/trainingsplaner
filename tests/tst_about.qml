@@ -5,6 +5,7 @@ import Trainingsplaner
 // The about dialog shows the version and checks for updates; the colour
 // scheme setting switches the colours while the program runs
 Item {
+    SystemPalette { id: systemPalette }
     width: 900
     height: 700
 
@@ -40,10 +41,10 @@ Item {
             Store.colorScheme = "dark"
             compare(Store.colorScheme, "dark")
             tryVerify(() => Theme.dark)
-            verify(Theme.system.window.hslLightness < 0.5)
+            verify(systemPalette.window.hslLightness < 0.5)   // the widgets follow too
             Store.colorScheme = "light"
             tryVerify(() => !Theme.dark)
-            verify(Theme.system.window.hslLightness > 0.5)
+            verify(systemPalette.window.hslLightness > 0.5)
         }
     }
 }

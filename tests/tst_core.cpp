@@ -494,6 +494,31 @@ void TestCore::attributesWithHistory()
     QVERIFY(!Database::infoAt(r, QDate(2026, 10, 1)));
     QCOMPARE(Database::infoValues(QStringLiteral("Kader")),
              (QStringList{QStringLiteral("NK2"), QStringLiteral("OK")}));
+
+    // The whole history at once (Erfassung): a kept record keeps its time
+    // of day, as imported records have one; a left-out one goes
+    Database::InfoRecord imported;
+    imported.athleteId = id;
+    imported.art = QStringLiteral("Verein");
+    imported.from = jan;
+    imported.time = QStringLiteral("08:30:00");
+    imported.text = QStringLiteral("SV Alt");
+    QVERIFY(Database::saveInfoRecord(imported));
+    Database::InfoRecord changed;
+    changed.from = jan;
+    changed.text = QStringLiteral("SV Neu");
+    Database::InfoRecord added;
+    added.from = jun;
+    added.text = QStringLiteral("TSV");
+    QVERIFY(Database::replaceInfoRecords(id, QStringLiteral("Verein"), {changed, added}));
+    r = Database::infoRecords(id, QStringLiteral("Verein"));
+    QCOMPARE(r.size(), 2);
+    QCOMPARE(r[0].time, QStringLiteral("08:30:00"));
+    QCOMPARE(r[0].text, QStringLiteral("SV Neu"));
+    QVERIFY(Database::replaceInfoRecords(id, QStringLiteral("Verein"), {added}));
+    r = Database::infoRecords(id, QStringLiteral("Verein"));
+    QCOMPARE(r.size(), 1);
+    QCOMPARE(r[0].text, QStringLiteral("TSV"));
 }
 
 void TestCore::competitions()

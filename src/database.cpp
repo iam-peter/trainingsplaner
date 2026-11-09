@@ -465,13 +465,18 @@ bool replaceInfoRecords(const QString &athleteId, const QString &art,
     QSqlDatabase d = db();
     d.transaction();
     const QString stamp = now();
-    for (const InfoRecord &old : infoRecords(athleteId, art)) {
-        const bool kept = std::any_of(records.begin(), records.end(), [&](const InfoRecord &r) {
-            return r.from == old.from && r.time == old.time;
-        });
-        if (!kept && !deleteRows(QStringLiteral("spinfo"),
-                                 QStringLiteral("spid = ? AND art = ? AND von = ? AND zeit = ?"),
-                                 {athleteId, art, old.from.toString(Qt::ISODate), old.time}, stamp)) {
+    const QList<InfoRecord> before = infoRecords(athleteId, art);
+    // A record is the same one when it starts on the same day; it keeps
+    // its stored time of day and number (imported records can have both)
+    const auto sameDay = [](const QList<InfoRecord> &list, const QDate &from) {
+        const auto it = std::find_if(list.begin(), list.end(), [&](const InfoRecord &r) { return r.from == from; });
+        return it == list.end() ? nullptr : &*it;
+    };
+    for (const InfoRecord &old : before) {
+        if (!sameDay(records, old.from)
+            && !deleteRows(QStringLiteral("spinfo"),
+                           QStringLiteral("spid = ? AND art = ? AND von = ? AND zeit = ?"),
+                           {athleteId, art, old.from.toString(Qt::ISODate), old.time}, stamp)) {
             d.rollback();
             return false;
         }
@@ -479,6 +484,15 @@ bool replaceInfoRecords(const QString &athleteId, const QString &art,
     for (InfoRecord r : records) {
         r.athleteId = athleteId;
         r.art = art;
+        if (const InfoRecord *old = sameDay(before, r.from)) {
+            // Unchanged records are not written again, so an export of the
+            // changes since a date leaves them out
+            if (old->to == r.to && old->text == r.text)
+                continue;
+            r.time = old->time;
+            r.number = old->number;
+            r.hasNumber = old->hasNumber;
+        }
         if (!saveInfoRecord(r)) {
             d.rollback();
             return false;
