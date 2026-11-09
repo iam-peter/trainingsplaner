@@ -31,6 +31,10 @@ T.Button {
                              implicitContentHeight + topPadding + bottomPadding)
 
     padding: Tokens.space2
+    // Text and icons fit in one control height (32 px) like the fields:
+    // 8 px above and below made a button with text 33 px high
+    topPadding: 6
+    bottomPadding: 6
     leftPadding: text !== "" ? Tokens.space3 : Tokens.space2
     rightPadding: leftPadding
     spacing: Tokens.space2

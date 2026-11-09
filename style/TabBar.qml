@@ -11,7 +11,8 @@ T.TabBar {
                              contentHeight + topPadding + bottomPadding)
 
     spacing: 0
-    padding: Tokens.space1
+    // As high as the fields with its 28 px tabs
+    padding: 2
 
     contentItem: ListView {
         model: control.contentModel

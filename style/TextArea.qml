@@ -41,7 +41,9 @@ T.TextArea {
 
     background: Rectangle {
         implicitWidth: 200
-        implicitHeight: 64
+        // One control high: a taller minimum made a text area in a lower
+        // scroll view scroll with nothing in it
+        implicitHeight: Tokens.controlHeight
         radius: Tokens.radiusMd
         color: control.readOnly ? "transparent" : Tokens.inputBackground
         border.color: control.activeFocus && !control.readOnly ? Tokens.ring : Tokens.input

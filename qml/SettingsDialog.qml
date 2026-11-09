@@ -7,11 +7,17 @@ import Trainingsplaner
 AppDialog {
     id: dialog
     title: "Einstellungen"
-    width: Math.min(parent ? parent.width - 40 : 720, 720)
+    // Wide enough for the grid of Leerzeilen, Schriftgröße and Seitenränder
+    width: Math.min(parent ? parent.width - 40 : 840, 840)
     standardButtons: Dialog.Save | Dialog.Cancel
 
     property var printOpts: ({})
     property var times: []
+
+    // The label columns of Leerzeilen, Schriftgröße and Seitenränder
+    readonly property real col1: Math.max(col1a.implicitWidth, col1b.implicitWidth, col1c.implicitWidth)
+    readonly property real col2: Math.max(col2a.implicitWidth, col2b.implicitWidth, col2c.implicitWidth)
+    readonly property real col3: Math.max(col3a.implicitWidth, col3b.implicitWidth, col3c.implicitWidth)
 
     function cm(mm) { return (mm / 10).toLocaleString(Qt.locale("de_DE"), "f", 1) }
     function mm(text) {
@@ -146,41 +152,45 @@ AppDialog {
                     RadioButton { id: slash; text: "100/2/2" }
                 }
 
+                // Leerzeilen, Schriftgröße and Seitenränder as one grid: each
+                // label column as wide as its widest label, every field 90 px,
+                // so the fields stand in columns from row to row
                 Label { text: "Leerzeilen:" }
                 RowLayout {
                     spacing: 8
-                    Label { text: "Kopf" }
-                    SpinBox { id: blankHeader; from: 0; to: 20; editable: true; implicitWidth: 90 }
-                    Label { text: "je TE" }
-                    SpinBox { id: blankPerSession; from: 0; to: 20; editable: true; implicitWidth: 90 }
-                    Label { text: "nach Bemerkung" }
-                    SpinBox { id: blankAfterNote; from: 0; to: 40; editable: true; implicitWidth: 90 }
+                    Label { id: col1a; text: "Kopf"; Layout.preferredWidth: dialog.col1 }
+                    SpinBox { id: blankHeader; from: 0; to: 20; editable: true; Layout.preferredWidth: 90 }
+                    Label { id: col2a; text: "je TE"; Layout.preferredWidth: dialog.col2 }
+                    SpinBox { id: blankPerSession; from: 0; to: 20; editable: true; Layout.preferredWidth: 90 }
+                    Label { id: col3a; text: "nach Bemerkung"; Layout.preferredWidth: dialog.col3 }
+                    SpinBox { id: blankAfterNote; from: 0; to: 40; editable: true; Layout.preferredWidth: 90 }
                 }
 
                 Label { text: "Schriftgröße (pt):" }
                 RowLayout {
                     spacing: 8
-                    Label { text: "klein" }
-                    SpinBox { id: fontSmall; from: 5; to: 24; editable: true; implicitWidth: 90 }
-                    Label { text: "normal" }
-                    SpinBox { id: fontNormal; from: 6; to: 28; editable: true; implicitWidth: 90 }
-                    Label { text: "groß" }
-                    SpinBox { id: fontLarge; from: 6; to: 36; editable: true; implicitWidth: 90 }
+                    Label { id: col1b; text: "klein"; Layout.preferredWidth: dialog.col1 }
+                    SpinBox { id: fontSmall; from: 5; to: 24; editable: true; Layout.preferredWidth: 90 }
+                    Label { id: col2b; text: "normal"; Layout.preferredWidth: dialog.col2 }
+                    SpinBox { id: fontNormal; from: 6; to: 28; editable: true; Layout.preferredWidth: 90 }
+                    Label { id: col3b; text: "groß"; Layout.preferredWidth: dialog.col3 }
+                    SpinBox { id: fontLarge; from: 6; to: 36; editable: true; Layout.preferredWidth: 90 }
                 }
 
                 Label { text: "Seitenränder (cm):" }
                 RowLayout {
                     spacing: 8
-                    Label { text: "oben" }
-                    TextField { id: marginTop; implicitWidth: 50; horizontalAlignment: TextInput.AlignHCenter }
-                    Label { text: "links" }
-                    TextField { id: marginLeft; implicitWidth: 50; horizontalAlignment: TextInput.AlignHCenter }
-                    Label { text: "rechts" }
-                    TextField { id: marginRight; implicitWidth: 50; horizontalAlignment: TextInput.AlignHCenter }
+                    Label { id: col1c; text: "oben"; Layout.preferredWidth: dialog.col1 }
+                    TextField { id: marginTop; Layout.preferredWidth: 90; horizontalAlignment: TextInput.AlignHCenter }
+                    Label { id: col2c; text: "links"; Layout.preferredWidth: dialog.col2 }
+                    TextField { id: marginLeft; Layout.preferredWidth: 90; horizontalAlignment: TextInput.AlignHCenter }
+                    Label { id: col3c; text: "rechts"; Layout.preferredWidth: dialog.col3 }
+                    TextField { id: marginRight; Layout.preferredWidth: 90; horizontalAlignment: TextInput.AlignHCenter }
                     Label { text: "unten" }
-                    TextField { id: marginBottom; implicitWidth: 50; horizontalAlignment: TextInput.AlignHCenter }
-                    CheckBox { id: landscape; text: "Querformat" }
+                    TextField { id: marginBottom; Layout.preferredWidth: 90; horizontalAlignment: TextInput.AlignHCenter }
                 }
+                Item { implicitWidth: 1 }
+                CheckBox { id: landscape; text: "Querformat" }
 
                 Label { text: "Farbe TE-Zeile:" }
                 RowLayout {

@@ -11,6 +11,13 @@ Item {
         name: "WeekRows"
         when: windowShown
 
+        // Also when a check fails: the example data must not stay for the
+        // tests that follow
+        function cleanup() {
+            if (Store.hasDemoData)
+                Store.removeDemoData()
+        }
+
         function test_equalRows() {
             const w = createTemporaryObject(mainWindow, null)
             const athlete = Store.createDemoData()

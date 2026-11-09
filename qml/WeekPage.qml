@@ -334,63 +334,82 @@ Page {
         spacing: 8
         visible: page.hasAthlete
 
-        // Day columns with one row per session number
-        GridLayout {
-            id: grid
+        // Day columns with one row per session number, in an area that takes
+        // the room left: the rows get its share in whole pixels, so all are
+        // exactly as high (shared out by the layout, an odd height made one
+        // row a pixel higher). The area, not the grid, fills: a grid fills
+        // only as far as its cells do, which then set their heights apart.
+        Item {
+            id: gridArea
             Layout.fillWidth: true
             Layout.fillHeight: true
-            columns: 7
-            rowSpacing: 4
-            columnSpacing: 4
+            Layout.minimumHeight: grid.minimumRows
 
-            Repeater {
-                model: 7
-                ColumnLayout {
-                    required property int index
-                    Layout.fillWidth: true
-                    Layout.preferredWidth: 1
-                    spacing: 0
-                    Label {
-                        Layout.alignment: Qt.AlignHCenter
-                        text: Store.dayName(index + 1)
-                        font.bold: true
-                        color: page.todayDay === index + 1 ? Theme.accent : palette.windowText
-                    }
-                    Label {
-                        Layout.alignment: Qt.AlignHCenter
-                        text: page.todayDay === index + 1 ? "heute, " + Store.dayDate(page.monday, index + 1)
-                                                           : Store.dayDate(page.monday, index + 1)
-                        font.pixelSize: 11
-                        color: page.todayDay === index + 1 ? Theme.accent : palette.placeholderText
+            GridLayout {
+                id: grid
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                columns: 7
+                rowSpacing: 4
+                columnSpacing: 4
+
+                readonly property real headHeight: dayHeads.count > 0 && dayHeads.itemAt(0) ? dayHeads.itemAt(0).implicitHeight : 0
+                readonly property int rows: page.threeSessions ? 3 : 2
+                readonly property real minimumRows: headHeight + rows * (44 + rowSpacing)
+                readonly property int rowHeight: Math.max(44, Math.floor((gridArea.height - headHeight - rows * rowSpacing) / rows))
+
+                Repeater {
+                    id: dayHeads
+                    model: 7
+                    ColumnLayout {
+                        required property int index
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 1
+                        spacing: 0
+                        Label {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: Store.dayName(index + 1)
+                            font.bold: true
+                            color: page.todayDay === index + 1 ? Theme.accent : palette.windowText
+                        }
+                        Label {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: page.todayDay === index + 1 ? "heute, " + Store.dayDate(page.monday, index + 1)
+                                                               : Store.dayDate(page.monday, index + 1)
+                            font.pixelSize: 11
+                            color: page.todayDay === index + 1 ? Theme.accent : palette.placeholderText
+                        }
                     }
                 }
-            }
 
-            Repeater {
-                id: cells
-                model: page.threeSessions ? 21 : 14
-                SessionCell {
-                    required property int index
-                    readonly property int day: index % 7 + 1
-                    readonly property int number: Math.floor(index / 7) + 1
-                    objectName: "cell" + day + "_" + number
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Layout.preferredWidth: 1
-                    Layout.preferredHeight: 1
-                    // Every row of sessions as high as the others, as in the
-                    // old program, so the grid keeps its shape from week to week
-                    Layout.minimumHeight: 44
-                    today: page.todayDay === day
-                    sessionNumber: number
-                    session: page.sessionAt(day, number)
-                    onClicked: page.openSession(day, number)
-                    onExerciseClicked: (exercise) => page.openExercise(exercise)
-                    onDeleteRequested: page.askRemoveSession(day, number)
-                    onMoveRequested: (days, sessions) => page.focusSession(day + days, number + sessions)
-                    onCopyRequested: page.copySession(day, number)
-                    onPasteRequested: page.pasteSession(day, number)
-                    onMenuRequested: (exercise, x, y) => sessionMenu.show(this, day, number, exercise, x, y)
+                Repeater {
+                    id: cells
+                    model: page.threeSessions ? 21 : 14
+                    SessionCell {
+                        required property int index
+                        readonly property int day: index % 7 + 1
+                        readonly property int number: Math.floor(index / 7) + 1
+                        objectName: "cell" + day + "_" + number
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 1
+                        // Every row of sessions as high as the others, as in the
+                        // old program, so the grid keeps its shape from week to
+                        // week: exactly the rows' share, set rather than filled
+                        // (a maximum would also cap the grid, which then shrank)
+                        Layout.preferredHeight: grid.rowHeight
+                        Layout.minimumHeight: 44
+                        today: page.todayDay === day
+                        sessionNumber: number
+                        session: page.sessionAt(day, number)
+                        onClicked: page.openSession(day, number)
+                        onExerciseClicked: (exercise) => page.openExercise(exercise)
+                        onDeleteRequested: page.askRemoveSession(day, number)
+                        onMoveRequested: (days, sessions) => page.focusSession(day + days, number + sessions)
+                        onCopyRequested: page.copySession(day, number)
+                        onPasteRequested: page.pasteSession(day, number)
+                        onMenuRequested: (exercise, x, y) => sessionMenu.show(this, day, number, exercise, x, y)
+                    }
                 }
             }
         }
@@ -409,6 +428,9 @@ Page {
 
         RowLayout {
             Layout.fillWidth: true
+            // Only as high as its content: the note's fillHeight would
+            // otherwise make the row take room from the week
+            Layout.fillHeight: false
             spacing: 8
             Label {
                 text: "Bemerkung:"
@@ -418,6 +440,8 @@ Page {
                 // No overshoot at the ends
                 Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds
                 Layout.fillWidth: true
+                // As high as the row: its bottom on the line of Zusatzinfo's
+                Layout.fillHeight: true
                 Layout.preferredHeight: 56
                 TextArea {
                     id: noteField
@@ -428,13 +452,18 @@ Page {
             }
             ColumnLayout {
                 Layout.alignment: Qt.AlignTop
-                spacing: 2
+                // As wide as its widest item; the button's fillWidth would
+                // otherwise make it share the width with the note
+                Layout.fillWidth: false
+                spacing: 4
                 CheckBox {
                     id: injuredBox
                     text: "verletzt/krank"
                     onToggled: page.saveNote()
                 }
+                // As wide as the column: its right edge on the page's
                 IconButton {
+                    Layout.fillWidth: true
                     iconName: "clipboard-list"
                     text: "Zusatzinfo"
                     toolTip: "Körpergewicht, Körperfett, Nahrungsergänzung …"
@@ -568,10 +597,12 @@ Page {
 
     SessionDialog {
         id: sessionDialog
+        objectName: "sessionDialog"
     }
 
     ExerciseWeekDialog {
         id: exerciseDialog
+        objectName: "exerciseDialog"
     }
 
     DayInfoDialog {

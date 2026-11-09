@@ -193,6 +193,7 @@ Page {
                     }
                     Label { text: "Datum / Zeit:" }
                     RowLayout {
+                        id: dateRow
                         spacing: 8
                         DateField { id: dateField; onTextEdited: page.dirty = true }
                         TimeField { id: timeField; objectName: "timeField"; onTextEdited: page.dirty = true }
@@ -200,7 +201,8 @@ Page {
                     Label { text: "Art:" }
                     ComboBox {
                         id: typeBox
-                        implicitWidth: 240
+                        // Ends with Datum / Zeit above it
+                        implicitWidth: dateRow.implicitWidth
                         model: Store.competitionTypes
                         onActivated: page.dirty = true
                     }

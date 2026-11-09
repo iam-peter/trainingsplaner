@@ -8,7 +8,8 @@ TabBar {
     id: control
 
     spacing: 0
-    padding: 4
+    // 28 px tabs in 2 px: as high as the fields beside it (32 px)
+    padding: 2
 
     background: Rectangle {
         color: Theme.sh.muted

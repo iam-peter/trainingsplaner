@@ -12,6 +12,9 @@ T.ToolButton {
                              implicitContentHeight + topPadding + bottomPadding)
 
     padding: Tokens.space2
+    // One control height with text, like the fields
+    topPadding: 6
+    bottomPadding: 6
     leftPadding: text !== "" && display !== T.AbstractButton.IconOnly ? Tokens.space3 : Tokens.space2
     rightPadding: leftPadding
     spacing: Tokens.space2
