@@ -33,6 +33,17 @@ Item {
         Label { id: messageLabel }
     }
 
+    // A status line that goes away while the dialog is open
+    AppDialog {
+        id: status
+        title: "Status"
+        standardButtons: Dialog.Close
+        Column {
+            Label { text: "Erste Zeile" }
+            Label { id: statusLine; objectName: "statusLine"; text: "Wird geladen …\nnoch eine Zeile" }
+        }
+    }
+
     AppDialog {
         id: question
         title: "Frage"
@@ -120,6 +131,25 @@ Item {
             tryCompare(inner, "opened", true)
             verify(!inner.nested)
             compare(dims().filter(d => d.color.a > 0).length, 1)
+        }
+
+        // Content that goes away while open does not shrink the dialog,
+        // also when that is the first change after opening
+        function test_keepsHeightWhenContentGoes() {
+            statusLine.visible = true
+            status.open()
+            tryCompare(status, "settled", true)
+            const tall = status.height
+            statusLine.visible = false
+            waitForRendering(status.contentItem)
+            compare(status.height, tall)
+            status.close()
+            tryCompare(status, "visible", false)
+            // Opened again without it: as low as its content
+            status.open()
+            tryVerify(() => status.settled && status.height < tall)
+            status.close()
+            tryCompare(status, "visible", false)
         }
     }
 }

@@ -89,8 +89,11 @@ Dialog {
     // A dialog keeps its size while open: tab pages that are not shown are
     // laid out before it opens, so the tallest one counts from the start,
     // and it does not shrink when content goes away (a status line, a
-    // progress bar). It grows when content needs more room.
+    // progress bar). It grows when content needs more room. Until its
+    // first frame is drawn it follows its content, which may still be laid
+    // out for the last opening (a dialog reused for another athlete).
     property real keptHeight: 0
+    property bool settled: false
 
     function layoutHidden(item) {
         // Hidden pages of a StackLayout have no width yet, so wrapped text
@@ -106,19 +109,6 @@ Dialog {
             layoutHidden(item.children[i])
         if (typeof item.forceLayout === "function")
             item.forceLayout()
-        // A layout whose items changed while the dialog was hidden keeps
-        // its old size (Qt does not lay it out again on showing): a change
-        // of the spacing makes it measure anew
-        const kind = String(item)
-        if (kind.startsWith("QQuickColumnLayout") || kind.startsWith("QQuickRowLayout")) {
-            const spacing = item.spacing
-            item.spacing = spacing + 1
-            item.spacing = spacing
-        } else if (kind.startsWith("QQuickGridLayout")) {
-            const spacing = item.rowSpacing
-            item.rowSpacing = spacing + 1
-            item.rowSpacing = spacing
-        }
         // A StackLayout reports only its current page's height; it gets the
         // tallest page's, also when a page grows later
         if (stack) {
@@ -131,15 +121,22 @@ Dialog {
         }
     }
 
-    onImplicitHeightChanged: if (visible) keptHeight = Math.max(keptHeight, implicitHeight)
+    onImplicitHeightChanged: if (visible && settled) keptHeight = Math.max(keptHeight, implicitHeight)
     height: Math.min(parent ? parent.height - 40 : 100000, Math.max(implicitHeight, keptHeight))
+    // The first frame after opening: the layouts are done, the height
+    // from now on only grows
+    Connections {
+        target: root.visible && !root.settled && root.contentItem ? root.contentItem.Window.window : null
+        function onFrameSwapped() {
+            root.keptHeight = root.implicitHeight
+            root.settled = true
+        }
+    }
 
     onAboutToShow: {
         layoutHidden(contentItem)
-        // From nothing: content changed while the dialog was hidden is not
-        // laid out yet, so its height now can still be the last opening's
-        // (a dialog reused for another athlete or attribute kept it)
         keptHeight = 0
+        settled = false
         nested = DialogStack.open > 0
         if (!counted) {
             DialogStack.open += 1
