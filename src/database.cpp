@@ -49,9 +49,10 @@ bool execSql(const QString &sql)
 // The tables' layout; meta.schema says which one a database file has.
 // sql/schema.sql creates the current one, sql/migrate-<n>.sql turns
 // layout n - 1 into n.
-// 1: up to version 0.3.0. 2: maz_sp.auswahl is 0/1 instead of 'Y'/'N',
-// sessions without a time have NULL, change stamps one form.
-constexpr int kSchemaVersion = 2;
+// 1: up to version 0.3.0. 2: maz_sp.auswahl (selected) is 0/1, not 'Y'/'N',
+// sessions without a time have NULL, change stamps one form. 3: English
+// names for all tables and columns.
+constexpr int kSchemaVersion = 3;
 
 // The statements of an SQL file, without comments, split at the
 // semicolons outside of quotes (Qt runs one statement at a time)
@@ -152,7 +153,7 @@ QString variantString(Variant v)
 
 QString noteColumn(Variant v)
 {
-    return v == Variant::Plan ? QStringLiteral("bem_plan") : QStringLiteral("bem_ist");
+    return v == Variant::Plan ? QStringLiteral("plan_note") : QStringLiteral("actual_note");
 }
 
 // A session's start or end; none is NULL (the old program wrote 00:00:00)
@@ -177,7 +178,7 @@ QString makeAthleteId(const QString &last, const QString &first)
     QString id = base;
     for (int n = 2;; ++n) {
         QSqlQuery q(db());
-        q.prepare(QStringLiteral("SELECT 1 FROM sp WHERE spid = ?"));
+        q.prepare(QStringLiteral("SELECT 1 FROM athletes WHERE id = ?"));
         q.addBindValue(id);
         if (!exec(q) || !q.next())
             return id;
@@ -191,16 +192,17 @@ bool deleteLogged(const QString &table, const QString &where, const QVariantList
 {
     const TableSpec *spec = Tables::find(table);
     if (spec) {
+        const QStringList keys = spec->keys();
         QSqlQuery sel(db());
         sel.prepare(QStringLiteral("SELECT %1 FROM %2 WHERE %3")
-                        .arg(spec->keys.join(QStringLiteral(", ")), table, where));
+                        .arg(keys.join(QStringLiteral(", ")), table, where));
         for (const QVariant &b : binds)
             sel.addBindValue(b);
         if (!exec(sel))
             return false;
         while (sel.next()) {
             QVariantList key;
-            for (int i = 0; i < spec->keys.size(); ++i)
+            for (int i = 0; i < keys.size(); ++i)
                 key.append(sel.value(i));
             if (!Database::recordDeletion(table, key, stamp))
                 return false;
@@ -218,7 +220,8 @@ bool insertSession(const QString &athleteId, const QDate &monday, Variant varian
 {
     QSqlQuery q(db());
     q.prepare(QStringLiteral(
-        "INSERT OR REPLACE INTO te (spid, wodate, tag, te, spi, art, von, bis, bem, user, korrektur)"
+        "INSERT OR REPLACE INTO sessions (athlete_id, monday, day, number, variant, kind, start_time, end_time, note,"
+        " changed_by, changed_at)"
         " VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)"));
     q.addBindValue(athleteId);
     q.addBindValue(dateString(monday));
@@ -234,15 +237,15 @@ bool insertSession(const QString &athleteId, const QDate &monday, Variant varian
         return false;
 
     // Lines beyond the new count are gone; the others are written again.
-    if (!deleteLogged(QStringLiteral("te_ueb"),
-                    QStringLiteral("spid = ? AND wodate = ? AND tag = ? AND te = ? AND spi = ? AND pos > ?"),
+    if (!deleteLogged(QStringLiteral("session_entries"),
+                    QStringLiteral("athlete_id = ? AND monday = ? AND day = ? AND number = ? AND variant = ? AND position > ?"),
                     {athleteId, dateString(monday), s.day, s.number, variantString(variant),
                      int(s.entries.size())},
                     stamp))
         return false;
     QSqlQuery del(db());
     del.prepare(QStringLiteral(
-        "DELETE FROM te_ueb WHERE spid = ? AND wodate = ? AND tag = ? AND te = ? AND spi = ?"));
+        "DELETE FROM session_entries WHERE athlete_id = ? AND monday = ? AND day = ? AND number = ? AND variant = ?"));
     del.addBindValue(athleteId);
     del.addBindValue(dateString(monday));
     del.addBindValue(s.day);
@@ -255,8 +258,8 @@ bool insertSession(const QString &athleteId, const QDate &monday, Variant varian
     for (const Entry &e : s.entries) {
         QSqlQuery ins(db());
         ins.prepare(QStringLiteral(
-            "INSERT INTO te_ueb (spid, wodate, tag, te, pos, spi, ueb, lststbem, art, kombi,"
-            " user, korrektur) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
+            "INSERT INTO session_entries (athlete_id, monday, day, number, position, variant, exercise,"
+            " content, kind, combination, changed_by, changed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
         ins.addBindValue(athleteId);
         ins.addBindValue(dateString(monday));
         ins.addBindValue(s.day);
@@ -326,27 +329,22 @@ bool open(const QString &path, QString *error)
         return false;
     }
     execSql(QStringLiteral("PRAGMA foreign_keys = ON"));
-    // Missing tables are created, existing ones stay as they are
-    if (!runSqlFile(QStringLiteral("schema.sql"))) {
-        if (error)
-            *error = g_lastError;
-        d = QSqlDatabase();
-        close();
-        return false;
-    }
-    // A new file has the current tables; an older one is brought up to date
-    // once, one from a newer program is left alone
+    // A file of an older layout is brought up to date first, so its rows
+    // move with their tables; one from a newer program is left alone. A
+    // new file has no layout yet (0).
     const int version = fileSchemaVersion();
-    if (version > kSchemaVersion) {
-        g_lastError = QStringLiteral("Die Datenbank stammt von einer neueren Version des Trainingsplaners.");
+    QString failure;
+    if (version > kSchemaVersion)
+        failure = QStringLiteral("Die Datenbank stammt von einer neueren Version des Trainingsplaners.");
+    else if (version > 0 && version < kSchemaVersion && !(keepCopy(path, version) && migrate(version)))
+        failure = QStringLiteral("Die Datenbank ließ sich nicht aktualisieren: ") + g_lastError;
+    // Then missing tables are created, existing ones stay as they are
+    else if (!runSqlFile(QStringLiteral("schema.sql")))
+        failure = g_lastError;
+    if (!failure.isEmpty()) {
+        g_lastError = failure;
         if (error)
-            *error = g_lastError;
-        d = QSqlDatabase();
-        close();
-        return false;
-    } else if (version < kSchemaVersion && !(keepCopy(path, version) && migrate(version))) {
-        if (error)
-            *error = QStringLiteral("Die Datenbank ließ sich nicht aktualisieren: ") + g_lastError;
+            *error = failure;
         d = QSqlDatabase();
         close();
         return false;
@@ -371,8 +369,8 @@ QList<Athlete> athletes()
     QList<Athlete> list;
     QSqlQuery q(db());
     q.prepare(QStringLiteral(
-        "SELECT spid, name, vorname, sex, geb, adresse, telefon FROM sp"
-        " ORDER BY name COLLATE NOCASE, vorname COLLATE NOCASE"));
+        "SELECT id, last_name, first_name, sex, born, address, phone FROM athletes"
+        " ORDER BY last_name COLLATE NOCASE, first_name COLLATE NOCASE"));
     if (!exec(q))
         return list;
     while (q.next()) {
@@ -403,8 +401,8 @@ QString saveAthlete(const Athlete &a)
     const QString id = a.id.isEmpty() ? makeAthleteId(a.lastName, a.firstName) : a.id;
     QSqlQuery q(db());
     q.prepare(QStringLiteral(
-        "INSERT OR REPLACE INTO sp (spid, name, vorname, sex, geb, adresse, telefon, user,"
-        " korrektur) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"));
+        "INSERT OR REPLACE INTO athletes (id, last_name, first_name, sex, born, address, phone,"
+        " changed_by, changed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"));
     q.addBindValue(id);
     q.addBindValue(a.lastName.trimmed());
     q.addBindValue(a.firstName.trimmed());
@@ -422,8 +420,13 @@ bool removeAthlete(const QString &id)
     QSqlDatabase d = db();
     d.transaction();
     const QDateTime stamp = now();
-    for (const char *table : {"te_ueb", "te", "wo", "spinfo", "wk", "maz_sp", "ueb", "itp_ls", "sp"}) {
-        if (!deleteRows(QLatin1String(table), QStringLiteral("spid = ?"), {id}, stamp)) {
+    // Everything of the athlete, then the athlete
+    const std::pair<const char *, const char *> owned[] = {
+        {"session_entries", "athlete_id"}, {"sessions", "athlete_id"}, {"weeks", "owner"},
+        {"athlete_info", "athlete_id"}, {"competitions", "athlete_id"}, {"macrocycle_athletes", "athlete_id"},
+        {"week_targets", "owner"}, {"planned_steps", "owner"}, {"athletes", "id"}};
+    for (const auto &[table, column] : owned) {
+        if (!deleteRows(QLatin1String(table), QStringLiteral("%1 = ?").arg(QLatin1String(column)), {id}, stamp)) {
             d.rollback();
             return false;
         }
@@ -451,14 +454,14 @@ QList<InfoRecord> readInfo(QSqlQuery &q)
     return list;
 }
 
-const QString kInfoColumns = QStringLiteral("spid, art, von, zeit, bis, info_text, info_zahl");
+const QString kInfoColumns = QStringLiteral("athlete_id, kind, from_date, time, to_date, text, number");
 
 } // namespace
 
 QList<InfoRecord> infoRecords(const QString &athleteId, const QString &art)
 {
     QSqlQuery q(db());
-    q.prepare(QStringLiteral("SELECT %1 FROM spinfo WHERE spid = ? AND art = ? ORDER BY von, zeit")
+    q.prepare(QStringLiteral("SELECT %1 FROM athlete_info WHERE athlete_id = ? AND kind = ? ORDER BY from_date, time")
                   .arg(kInfoColumns));
     q.addBindValue(athleteId);
     q.addBindValue(art);
@@ -475,7 +478,7 @@ QList<InfoRecord> infoRecords(const QStringList &arts)
     for (int i = 0; i < arts.size(); ++i)
         marks.append(QStringLiteral("?"));
     QSqlQuery q(db());
-    q.prepare(QStringLiteral("SELECT %1 FROM spinfo WHERE art IN (%2) ORDER BY spid, art, von, zeit")
+    q.prepare(QStringLiteral("SELECT %1 FROM athlete_info WHERE kind IN (%2) ORDER BY athlete_id, kind, from_date, time")
                   .arg(kInfoColumns, marks.join(QLatin1Char(','))));
     for (const QString &a : arts)
         q.addBindValue(a);
@@ -493,8 +496,8 @@ QList<InfoRecord> infoRecordsBetween(const QString &athleteId, const QStringList
     for (int i = 0; i < arts.size(); ++i)
         marks.append(QStringLiteral("?"));
     QSqlQuery q(db());
-    q.prepare(QStringLiteral("SELECT %1 FROM spinfo WHERE spid = ? AND art IN (%2) AND von BETWEEN ? AND ?"
-                             " ORDER BY von, zeit, art")
+    q.prepare(QStringLiteral("SELECT %1 FROM athlete_info WHERE athlete_id = ? AND kind IN (%2)"
+                             " AND from_date BETWEEN ? AND ? ORDER BY from_date, time, kind")
                   .arg(kInfoColumns, marks.join(QLatin1Char(','))));
     q.addBindValue(athleteId);
     for (const QString &a : arts)
@@ -511,8 +514,8 @@ bool saveInfoRecord(const InfoRecord &r)
     if (r.athleteId.isEmpty() || r.art.isEmpty() || !r.from.isValid())
         return false;
     QSqlQuery q(db());
-    q.prepare(QStringLiteral("INSERT OR REPLACE INTO spinfo (spid, art, von, zeit, bis, info_text,"
-                             " info_zahl, user, korrektur) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"));
+    q.prepare(QStringLiteral("INSERT OR REPLACE INTO athlete_info (athlete_id, kind, from_date, time, to_date,"
+                             " text, number, changed_by, changed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"));
     q.addBindValue(r.athleteId);
     q.addBindValue(r.art);
     q.addBindValue(r.from.toString(Qt::ISODate));
@@ -528,7 +531,7 @@ bool saveInfoRecord(const InfoRecord &r)
 bool removeInfoRecord(const QString &athleteId, const QString &art, const QDate &from,
                       const QTime &time)
 {
-    return deleteRows(QStringLiteral("spinfo"), QStringLiteral("spid = ? AND art = ? AND von = ? AND zeit = ?"),
+    return deleteRows(QStringLiteral("athlete_info"), QStringLiteral("athlete_id = ? AND kind = ? AND from_date = ? AND time = ?"),
                       {athleteId, art, from.toString(Qt::ISODate), Times::stored(time)}, now());
 }
 
@@ -547,8 +550,8 @@ bool replaceInfoRecords(const QString &athleteId, const QString &art,
     };
     for (const InfoRecord &old : before) {
         if (!sameDay(records, old.from)
-            && !deleteRows(QStringLiteral("spinfo"),
-                           QStringLiteral("spid = ? AND art = ? AND von = ? AND zeit = ?"),
+            && !deleteRows(QStringLiteral("athlete_info"),
+                           QStringLiteral("athlete_id = ? AND kind = ? AND from_date = ? AND time = ?"),
                            {athleteId, art, old.from.toString(Qt::ISODate), Times::stored(old.time)}, stamp)) {
             d.rollback();
             return false;
@@ -577,8 +580,8 @@ bool replaceInfoRecords(const QString &athleteId, const QString &art,
 QStringList infoValues(const QString &art)
 {
     QSqlQuery q(db());
-    q.prepare(QStringLiteral("SELECT DISTINCT info_text FROM spinfo WHERE art = ? AND info_text <> ''"
-                             " ORDER BY info_text COLLATE NOCASE"));
+    q.prepare(QStringLiteral("SELECT DISTINCT text FROM athlete_info WHERE kind = ? AND text <> ''"
+                             " ORDER BY text COLLATE NOCASE"));
     q.addBindValue(art);
     QStringList list;
     if (exec(q)) {
@@ -593,8 +596,9 @@ QList<ExerciseUse> exerciseUses(const QString &athleteId, Variant variant, int e
 {
     QList<ExerciseUse> list;
     QSqlQuery q(db());
-    q.prepare(QStringLiteral("SELECT wodate, tag, te, lststbem FROM te_ueb WHERE spid = ? AND spi = ?"
-                             " AND ueb = ? AND art = 0 AND wodate BETWEEN ? AND ? ORDER BY wodate, tag, te, pos"));
+    q.prepare(QStringLiteral("SELECT monday, day, number, content FROM session_entries WHERE athlete_id = ?"
+                             " AND variant = ? AND exercise = ? AND kind = 0 AND monday BETWEEN ? AND ?"
+                             " ORDER BY monday, day, number, position"));
     q.addBindValue(athleteId);
     q.addBindValue(variantString(variant));
     q.addBindValue(exercise);
@@ -619,8 +623,9 @@ QList<WeightLine> weightLines(const QString &athleteId, Variant variant, const Q
 {
     QList<WeightLine> list;
     QSqlQuery q(db());
-    q.prepare(QStringLiteral("SELECT wodate, tag, ueb, lststbem FROM te_ueb WHERE spid = ? AND spi = ?"
-                             " AND art = 0 AND ueb > 0 AND wodate BETWEEN ? AND ? ORDER BY wodate, tag, te, pos"));
+    q.prepare(QStringLiteral("SELECT monday, day, exercise, content FROM session_entries WHERE athlete_id = ?"
+                             " AND variant = ? AND kind = 0 AND exercise > 0 AND monday BETWEEN ? AND ?"
+                             " ORDER BY monday, day, number, position"));
     q.addBindValue(athleteId);
     q.addBindValue(variantString(variant));
     q.addBindValue(dateString(fromMonday));
@@ -710,7 +715,7 @@ bool recordDeletion(const QString &table, const QVariantList &key, const QDateTi
     for (const QVariant &v : key)
         parts.append(v.toString());
     QSqlQuery q(db());
-    q.prepare(QStringLiteral("INSERT OR REPLACE INTO geloescht (tabelle, schluessel, korrektur)"
+    q.prepare(QStringLiteral("INSERT OR REPLACE INTO deletions (table_name, row_key, deleted_at)"
                              " VALUES (?, ?, ?)"));
     q.addBindValue(table);
     q.addBindValue(parts.join(QChar(0x1f)));
@@ -722,9 +727,9 @@ QList<Deletion> deletions(const QString &table, const QDateTime &since)
 {
     QList<Deletion> list;
     QSqlQuery q(db());
-    q.prepare(QStringLiteral("SELECT schluessel, korrektur FROM geloescht WHERE tabelle = ?%1"
-                             " ORDER BY korrektur")
-                  .arg(since.isValid() ? QStringLiteral(" AND korrektur >= ?") : QString()));
+    q.prepare(QStringLiteral("SELECT row_key, deleted_at FROM deletions WHERE table_name = ?%1"
+                             " ORDER BY deleted_at")
+                  .arg(since.isValid() ? QStringLiteral(" AND deleted_at >= ?") : QString()));
     q.addBindValue(table);
     if (since.isValid())
         q.addBindValue(stampText(since));
@@ -738,7 +743,7 @@ QList<Deletion> deletions(const QString &table, const QDateTime &since)
 int sessionCount(const QString &athleteId)
 {
     QSqlQuery q(db());
-    q.prepare(QStringLiteral("SELECT COUNT(*) FROM te WHERE spid = ?"));
+    q.prepare(QStringLiteral("SELECT COUNT(*) FROM sessions WHERE athlete_id = ?"));
     q.addBindValue(athleteId);
     if (!exec(q) || !q.next())
         return 0;
@@ -755,8 +760,8 @@ Week loadWeek(const QString &athleteId, const QDate &monday, Variant variant)
     QMap<QPair<int, int>, Session> sessions;
 
     QSqlQuery q(db());
-    q.prepare(QStringLiteral("SELECT tag, te, von, bis, bem FROM te"
-                             " WHERE spid = ? AND wodate = ? AND spi = ?"));
+    q.prepare(QStringLiteral("SELECT day, number, start_time, end_time, note FROM sessions"
+                             " WHERE athlete_id = ? AND monday = ? AND variant = ?"));
     q.addBindValue(athleteId);
     q.addBindValue(dateString(monday));
     q.addBindValue(variantString(variant));
@@ -773,8 +778,8 @@ Week loadWeek(const QString &athleteId, const QDate &monday, Variant variant)
     }
 
     QSqlQuery e(db());
-    e.prepare(QStringLiteral("SELECT tag, te, ueb, lststbem, art, kombi FROM te_ueb"
-                             " WHERE spid = ? AND wodate = ? AND spi = ? ORDER BY tag, te, pos"));
+    e.prepare(QStringLiteral("SELECT day, number, exercise, content, kind, combination FROM session_entries"
+                             " WHERE athlete_id = ? AND monday = ? AND variant = ? ORDER BY day, number, position"));
     e.addBindValue(athleteId);
     e.addBindValue(dateString(monday));
     e.addBindValue(variantString(variant));
@@ -791,7 +796,7 @@ Week loadWeek(const QString &athleteId, const QDate &monday, Variant variant)
     w.sessions = sessions.values();
 
     QSqlQuery n(db());
-    n.prepare(QStringLiteral("SELECT %1, verletzt FROM wo WHERE spid = ? AND wodate = ?")
+    n.prepare(QStringLiteral("SELECT %1, injured FROM weeks WHERE owner = ? AND monday = ?")
                   .arg(noteColumn(variant)));
     n.addBindValue(athleteId);
     n.addBindValue(dateString(monday));
@@ -820,9 +825,9 @@ bool removeSession(const QString &athleteId, const QDate &monday, Variant varian
     QSqlDatabase d = db();
     d.transaction();
     const QDateTime stamp = now();
-    for (const char *table : {"te_ueb", "te"}) {
+    for (const char *table : {"session_entries", "sessions"}) {
         if (!deleteRows(QLatin1String(table),
-                        QStringLiteral("spid = ? AND wodate = ? AND tag = ? AND te = ? AND spi = ?"),
+                        QStringLiteral("athlete_id = ? AND monday = ? AND day = ? AND number = ? AND variant = ?"),
                         {athleteId, dateString(monday), day, number, variantString(variant)}, stamp)) {
             d.rollback();
             return false;
@@ -837,12 +842,12 @@ bool saveWeekNote(const QString &athleteId, const QDate &monday, Variant variant
     QSqlDatabase d = db();
     d.transaction();
     QSqlQuery ins(d);
-    ins.prepare(QStringLiteral("INSERT OR IGNORE INTO wo (spid, wodate) VALUES (?, ?)"));
+    ins.prepare(QStringLiteral("INSERT OR IGNORE INTO weeks (owner, monday) VALUES (?, ?)"));
     ins.addBindValue(athleteId);
     ins.addBindValue(dateString(monday));
     QSqlQuery upd(d);
-    upd.prepare(QStringLiteral("UPDATE wo SET %1 = ?, verletzt = ?, user = ?, korrektur = ?"
-                               " WHERE spid = ? AND wodate = ?")
+    upd.prepare(QStringLiteral("UPDATE weeks SET %1 = ?, injured = ?, changed_by = ?, changed_at = ?"
+                               " WHERE owner = ? AND monday = ?")
                     .arg(noteColumn(variant)));
     upd.addBindValue(note);
     upd.addBindValue(injured ? 1 : 0);
@@ -874,9 +879,9 @@ bool replaceSessions(const QString &toAthlete, const QDate &toMonday, Variant to
     d.transaction();
     const QDateTime stamp = now();
     for (const Session &s : target.sessions) {
-        for (const char *table : {"te_ueb", "te"}) {
+        for (const char *table : {"session_entries", "sessions"}) {
             if (!deleteRows(QLatin1String(table),
-                            QStringLiteral("spid = ? AND wodate = ? AND tag = ? AND te = ? AND spi = ?"),
+                            QStringLiteral("athlete_id = ? AND monday = ? AND day = ? AND number = ? AND variant = ?"),
                             {toAthlete, dateString(toMonday), s.day, s.number, variantString(toVariant)},
                             stamp)) {
                 d.rollback();

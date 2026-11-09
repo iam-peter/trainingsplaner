@@ -6,195 +6,208 @@
 -- created, existing ones stay as they are. A file of an older layout is
 -- then brought up to date by sql/migrate-<n>.sql.
 --
--- The tables and columns follow the old program's database, so imported
--- data maps one to one. Dates are ISO text ("2026-11-09"), times of day
--- "15:30:00", and `korrektur` is every row's last change
--- ("2026-11-09 15:30:00"); the importer compares it to decide whether an
--- incoming row is newer.
+-- Dates are ISO text ("2026-11-09"), times of day "15:30:00". Every table
+-- has changed_at, the row's last change ("2026-11-09 15:30:00"), which the
+-- import compares to decide whether an incoming row is newer, and
+-- changed_by. The old program's data files name tables and columns in
+-- German (sp, te, wodate, ...); src/tables.cpp maps them to these.
+--
+-- Codes stored in columns keep the old program's letters: variant is
+-- P (plan), I (actual, "Ist") or S (target, "Soll"). An owner is an
+-- athlete's id, or '#' and a macrocycle's id for its framework plan.
 
 -- Which layout the file has; the program refuses a file of a newer one
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
-INSERT OR IGNORE INTO meta (key, value) VALUES ('schema', '2');
+INSERT OR IGNORE INTO meta (key, value) VALUES ('schema', '3');
 
--- Athletes ("Sportler"); sex 0 male, 1 female
-CREATE TABLE IF NOT EXISTS sp (
-    spid TEXT PRIMARY KEY,
-    name TEXT NOT NULL DEFAULT '',
-    vorname TEXT NOT NULL DEFAULT '',
+-- sex 0 male, 1 female
+CREATE TABLE IF NOT EXISTS athletes (
+    id TEXT PRIMARY KEY,
+    last_name TEXT NOT NULL DEFAULT '',
+    first_name TEXT NOT NULL DEFAULT '',
     sex INTEGER NOT NULL DEFAULT 0,
-    geb TEXT,
-    adresse TEXT,
-    telefon TEXT,
-    user TEXT,
-    korrektur TEXT
+    born TEXT,
+    address TEXT,
+    phone TEXT,
+    changed_by TEXT,
+    changed_at TEXT
 );
 
--- Training sessions ("Trainingseinheiten"): wodate is the Monday of the
--- week, tag 1-7 the weekday, te the session number, spi P (plan) or
--- I (actual); von/bis NULL when no time is given
-CREATE TABLE IF NOT EXISTS te (
-    spid TEXT NOT NULL,
-    wodate TEXT NOT NULL,
-    tag INTEGER NOT NULL,
-    te INTEGER NOT NULL,
-    spi TEXT NOT NULL,
-    art INTEGER DEFAULT 0,
-    von TEXT,
-    bis TEXT,
-    bem TEXT,
-    user TEXT,
-    korrektur TEXT,
-    PRIMARY KEY (spid, wodate, tag, te, spi)
+-- Training sessions: monday is the week's, day 1-7 the weekday, number
+-- the 1st to 3rd session of the day; start_time and end_time NULL when
+-- not given
+CREATE TABLE IF NOT EXISTS sessions (
+    athlete_id TEXT NOT NULL,
+    monday TEXT NOT NULL,
+    day INTEGER NOT NULL,
+    number INTEGER NOT NULL,
+    variant TEXT NOT NULL,
+    kind INTEGER DEFAULT 0,
+    start_time TEXT,
+    end_time TEXT,
+    note TEXT,
+    changed_by TEXT,
+    changed_at TEXT,
+    PRIMARY KEY (athlete_id, monday, day, number, variant)
 );
 
--- Lines of a session; lststbem holds the encoded content (see
--- Entry::encode)
-CREATE TABLE IF NOT EXISTS te_ueb (
-    spid TEXT NOT NULL,
-    wodate TEXT NOT NULL,
-    tag INTEGER NOT NULL,
-    te INTEGER NOT NULL,
-    pos INTEGER NOT NULL,
-    spi TEXT NOT NULL,
-    ueb INTEGER DEFAULT 0,
-    lststbem TEXT,
-    art INTEGER DEFAULT 0,
-    kombi INTEGER DEFAULT 0,
-    user TEXT,
-    korrektur TEXT,
-    PRIMARY KEY (spid, wodate, tag, te, pos, spi)
+-- The lines of a session in order; content holds the weight steps or
+-- the text, encoded as the old program did (see Entry::encode); kind
+-- 0 weights, 1 exercise as text, 2 free text
+CREATE TABLE IF NOT EXISTS session_entries (
+    athlete_id TEXT NOT NULL,
+    monday TEXT NOT NULL,
+    day INTEGER NOT NULL,
+    number INTEGER NOT NULL,
+    position INTEGER NOT NULL,
+    variant TEXT NOT NULL,
+    exercise INTEGER DEFAULT 0,
+    content TEXT,
+    kind INTEGER DEFAULT 0,
+    combination INTEGER DEFAULT 0,
+    changed_by TEXT,
+    changed_at TEXT,
+    PRIMARY KEY (athlete_id, monday, day, number, position, variant)
 );
 
--- Week notes
-CREATE TABLE IF NOT EXISTS wo (
-    spid TEXT NOT NULL,
-    wodate TEXT NOT NULL,
-    bel INTEGER,
-    wklg TEXT,
-    verletzt INTEGER,
-    bem_soll TEXT,
-    bem_plan TEXT,
-    bem_ist TEXT,
-    user TEXT,
-    korrektur TEXT,
-    PRIMARY KEY (spid, wodate)
+-- Per week of an owner: the athlete's notes on plan and actual training,
+-- and the framework plan's load and competition position with its note
+CREATE TABLE IF NOT EXISTS weeks (
+    owner TEXT NOT NULL,
+    monday TEXT NOT NULL,
+    load INTEGER,
+    competition_position TEXT,
+    injured INTEGER,
+    target_note TEXT,
+    plan_note TEXT,
+    actual_note TEXT,
+    changed_by TEXT,
+    changed_at TEXT,
+    PRIMARY KEY (owner, monday)
 );
 
 -- Reference totals by sex, age class and weight class (from the old
--- program)
-CREATE TABLE IF NOT EXISTS normen (
+-- program); a weight class named with a + has no upper limit
+CREATE TABLE IF NOT EXISTS reference_totals (
     sex INTEGER NOT NULL,
-    akl INTEGER NOT NULL,
-    gkl INTEGER NOT NULL,
-    gklbez TEXT,
-    zk INTEGER,
-    user TEXT,
-    korrektur TEXT,
-    PRIMARY KEY (sex, akl, gkl)
+    age_class INTEGER NOT NULL,
+    weight_class INTEGER NOT NULL,
+    weight_class_name TEXT,
+    total INTEGER,
+    changed_by TEXT,
+    changed_at TEXT,
+    PRIMARY KEY (sex, age_class, weight_class)
 );
 
--- Athlete attributes with a time range (art = Kader, Verein, ...) and
--- extra info per day (art = KG, KF, ...: info_zahl at von/zeit); zeit
--- 00:00:00 when no time is given, as it is part of the key
-CREATE TABLE IF NOT EXISTS spinfo (
-    spid TEXT NOT NULL,
-    art TEXT NOT NULL,
-    von TEXT NOT NULL,
-    zeit TEXT NOT NULL DEFAULT '00:00:00',
-    bis TEXT,
-    info_text TEXT,
-    info_zahl REAL,
-    user TEXT,
-    korrektur TEXT,
-    PRIMARY KEY (spid, art, von, zeit)
+-- Athlete attributes valid from_date to to_date (kind Kader, Verein, ...;
+-- the value in text) and extra info per day (kind KG, KF, ...; the value
+-- in number at from_date and time); time 00:00:00 when not given, as it
+-- is part of the key
+CREATE TABLE IF NOT EXISTS athlete_info (
+    athlete_id TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    from_date TEXT NOT NULL,
+    time TEXT NOT NULL DEFAULT '00:00:00',
+    to_date TEXT,
+    text TEXT,
+    number REAL,
+    changed_by TEXT,
+    changed_at TEXT,
+    PRIMARY KEY (athlete_id, kind, from_date, time)
 );
 
--- Competitions; a negative attempt was invalid at that weight
-CREATE TABLE IF NOT EXISTS wk (
-    spid TEXT NOT NULL,
-    datum TEXT NOT NULL,
-    zeit TEXT NOT NULL DEFAULT '00:00:00',
-    wkart INTEGER,
-    wk TEXT,
-    ort TEXT,
-    gew REAL,
-    rei1 INTEGER,
-    rei2 INTEGER,
-    rei3 INTEGER,
-    sto1 INTEGER,
-    sto2 INTEGER,
-    sto3 INTEGER,
-    zk INTEGER,
-    bem TEXT,
-    user TEXT,
-    korrektur TEXT,
-    PRIMARY KEY (spid, datum, zeit)
+-- Competition results; an attempt is the weight, negative when invalid,
+-- NULL when not taken; time 00:00:00 when not given
+CREATE TABLE IF NOT EXISTS competitions (
+    athlete_id TEXT NOT NULL,
+    date TEXT NOT NULL,
+    time TEXT NOT NULL DEFAULT '00:00:00',
+    type INTEGER,
+    name TEXT,
+    place TEXT,
+    body_weight REAL,
+    snatch1 INTEGER,
+    snatch2 INTEGER,
+    snatch3 INTEGER,
+    clean_jerk1 INTEGER,
+    clean_jerk2 INTEGER,
+    clean_jerk3 INTEGER,
+    total INTEGER,
+    note TEXT,
+    changed_by TEXT,
+    changed_at TEXT,
+    PRIMARY KEY (athlete_id, date, time)
 );
 
--- Macrocycles (MAZ); von/bis/abp_von/lap_von are Mondays
-CREATE TABLE IF NOT EXISTS maz (
+-- Macrocycles (MAZ), from the first to the last week, with the Mondays
+-- their build-up and peak phases begin
+CREATE TABLE IF NOT EXISTS macrocycles (
     id TEXT PRIMARY KEY,
     sex INTEGER DEFAULT 0,
-    bez TEXT,
-    kbez TEXT,
-    von TEXT,
-    bis TEXT,
-    abp_von TEXT,
-    lap_von TEXT,
-    bem TEXT,
-    user TEXT,
-    korrektur TEXT
+    name TEXT,
+    short_name TEXT,
+    first_monday TEXT,
+    last_monday TEXT,
+    build_up_monday TEXT,
+    peak_monday TEXT,
+    note TEXT,
+    changed_by TEXT,
+    changed_at TEXT
 );
 
--- The athletes of a MAZ; auswahl 1 selected, 0 not
-CREATE TABLE IF NOT EXISTS maz_sp (
-    mazid TEXT NOT NULL,
-    spid TEXT NOT NULL,
-    gew INTEGER,
-    ziel_rei INTEGER,
-    ziel_sto INTEGER,
-    wk_rei INTEGER,
-    wk_sto INTEGER,
-    auswahl INTEGER NOT NULL DEFAULT 1,
-    bem TEXT,
-    user TEXT,
-    korrektur TEXT,
-    PRIMARY KEY (mazid, spid)
+-- The athletes of a macrocycle with their targets and results; selected
+-- 1 or 0
+CREATE TABLE IF NOT EXISTS macrocycle_athletes (
+    macrocycle_id TEXT NOT NULL,
+    athlete_id TEXT NOT NULL,
+    weight_class INTEGER,
+    target_snatch INTEGER,
+    target_clean_jerk INTEGER,
+    competition_snatch INTEGER,
+    competition_clean_jerk INTEGER,
+    selected INTEGER NOT NULL DEFAULT 1,
+    note TEXT,
+    changed_by TEXT,
+    changed_at TEXT,
+    PRIMARY KEY (macrocycle_id, athlete_id)
 );
 
--- Week targets per exercise: ITP (spid = athlete) or framework plan
--- (spid = '#' + MAZ id); ueb -1..-7 stand for the groups K1..K7
-CREATE TABLE IF NOT EXISTS ueb (
-    spid TEXT NOT NULL,
-    wodate TEXT NOT NULL,
-    ueb INTEGER NOT NULL,
-    spi TEXT NOT NULL DEFAULT 'S',
-    wh INTEGER,
-    mhg INTEGER,
-    bw INTEGER,
-    bwsg INTEGER,
-    bwsganz INTEGER,
-    user TEXT,
-    korrektur TEXT,
-    PRIMARY KEY (spid, wodate, ueb, spi)
+-- Week targets per exercise of an owner (the athlete's ITP or the
+-- framework plan); exercise -1..-7 stands for the groups K1..K7. reps:
+-- repetitions (WH), mean_weight (MHG), top_weight (BW) with its reps and
+-- sets
+CREATE TABLE IF NOT EXISTS week_targets (
+    owner TEXT NOT NULL,
+    monday TEXT NOT NULL,
+    exercise INTEGER NOT NULL,
+    variant TEXT NOT NULL DEFAULT 'S',
+    reps INTEGER,
+    mean_weight INTEGER,
+    top_weight INTEGER,
+    top_weight_reps INTEGER,
+    top_weight_sets INTEGER,
+    changed_by TEXT,
+    changed_at TEXT,
+    PRIMARY KEY (owner, monday, exercise, variant)
 );
 
--- Planned weight steps per week and exercise (new in this program)
-CREATE TABLE IF NOT EXISTS itp_ls (
-    spid TEXT NOT NULL,
-    wodate TEXT NOT NULL,
-    ueb INTEGER NOT NULL,
-    lststbem TEXT,
-    user TEXT,
-    korrektur TEXT,
-    PRIMARY KEY (spid, wodate, ueb)
+-- Planned weight steps per week and exercise of an owner, encoded as in
+-- session_entries (new in this program)
+CREATE TABLE IF NOT EXISTS planned_steps (
+    owner TEXT NOT NULL,
+    monday TEXT NOT NULL,
+    exercise INTEGER NOT NULL,
+    steps TEXT,
+    changed_by TEXT,
+    changed_at TEXT,
+    PRIMARY KEY (owner, monday, exercise)
 );
 
--- Deleted rows, so an export of changes can pass deletions on;
--- schluessel is the row's key, its parts joined by U+001F
-CREATE TABLE IF NOT EXISTS geloescht (
-    tabelle TEXT NOT NULL,
-    schluessel TEXT NOT NULL,
-    korrektur TEXT,
-    PRIMARY KEY (tabelle, schluessel)
+-- Deleted rows, so an export of changes can pass deletions on; row_key
+-- is the row's key, its parts joined by U+001F
+CREATE TABLE IF NOT EXISTS deletions (
+    table_name TEXT NOT NULL,
+    row_key TEXT NOT NULL,
+    deleted_at TEXT,
+    PRIMARY KEY (table_name, row_key)
 );

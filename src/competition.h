@@ -8,7 +8,7 @@
 #include <QStringList>
 #include <QTime>
 
-// A competition result (table wk). Attempts: positive = valid, negative =
+// A competition result (table competitions). Attempts: positive = valid, negative =
 // invalid at that weight, 0 = not taken.
 struct Competition
 {
@@ -52,7 +52,7 @@ struct Point
 };
 QList<Point> bestResults(const QList<Competition> &list, int period);
 
-// Reference total (IAT "normen") for sex, age and body weight; 0 if unknown
+// Reference total (IAT norms, table reference_totals) for sex, age and body weight; 0 if unknown
 int norm(Sex sex, int age, double bodyWeight);
 
 } // namespace Competitions

@@ -11,6 +11,7 @@ CMakeLists.txt.user*
 # except the program's own table layout, which holds no data
 !/sql/schema.sql
 !/sql/migrate-*.sql
+!/tests/layout-*.sql
 *.sqlite
 *.sqlite-journal
 *.sqlite-wal

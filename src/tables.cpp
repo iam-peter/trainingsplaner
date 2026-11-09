@@ -2,28 +2,25 @@
 
 #include "model.h"
 
+#include <utility>
+
 namespace {
 
-QStringList withMeta(const QStringList &keys, const QStringList &data)
-{
-    // keys, then del/korrektur/korrektur2/user, then the data columns
-    return keys + QStringList{QStringLiteral("del"), QStringLiteral("korrektur"),
-                              QStringLiteral("korrektur2"), QStringLiteral("user")}
-           + data;
-}
+using Pairs = QList<std::pair<const char *, const char *>>;
 
-TableSpec spec(const char *name, const QStringList &columns, const QStringList &keys,
+TableSpec spec(const char *fileName, const char *name, const Pairs &columns, const QStringList &fileKeys,
                const QMap<QString, ColumnFormat> &formats = {})
 {
     TableSpec s;
     s.name = QString::fromLatin1(name);
-    s.columns = columns;
-    s.keys = keys;
-    s.formats = formats;
-    for (const QString &c : columns) {
-        if (c != QLatin1String("del") && c != QLatin1String("korrektur2"))
-            s.stored.append(c);
+    s.fileName = QString::fromLatin1(fileName);
+    for (const auto &[file, stored] : columns) {
+        s.fileColumns.append(QString::fromLatin1(file));
+        if (*stored)
+            s.columnOf.insert(QString::fromLatin1(file), QString::fromLatin1(stored));
     }
+    s.fileKeys = fileKeys;
+    s.formats = formats;
     return s;
 }
 
@@ -33,6 +30,24 @@ bool isNone(const QVariant &v)
 }
 
 } // namespace
+
+QStringList TableSpec::keys() const
+{
+    QStringList list;
+    for (const QString &k : fileKeys)
+        list.append(column(k));
+    return list;
+}
+
+QStringList TableSpec::stored() const
+{
+    QStringList list;
+    for (const QString &c : fileColumns) {
+        if (!column(c).isEmpty())
+            list.append(column(c));
+    }
+    return list;
+}
 
 QVariant TableSpec::toStored(const QString &column, const QVariant &v) const
 {
@@ -73,55 +88,118 @@ namespace Tables {
 
 const QList<TableSpec> &all()
 {
-    using L = QStringList;
+    // Each: the files' table name, the database's, the columns in the
+    // files' order with their database names, the files' key columns
     static const QList<TableSpec> specs = {
-        // As in the old program
-        spec("sp", L{"spid", "del", "korrektur", "korrektur2", "user", "name", "vorname", "sex", "geb",
-                     "adresse", "telefon"},
+        // Athletes
+        spec("sp", "athletes",
+             {{"spid", "id"}, {"del", ""}, {"korrektur", "changed_at"}, {"korrektur2", ""},
+              {"user", "changed_by"}, {"name", "last_name"}, {"vorname", "first_name"}, {"sex", "sex"},
+              {"geb", "born"}, {"adresse", "address"}, {"telefon", "phone"}},
              {"spid"}),
-        spec("te", L{"spid", "wodate", "tag", "te", "spi", "del", "korrektur", "korrektur2", "user", "art",
-                     "von", "bis", "bem"},
+        // Training sessions
+        spec("te", "sessions",
+             {{"spid", "athlete_id"}, {"wodate", "monday"}, {"tag", "day"}, {"te", "number"},
+              {"spi", "variant"}, {"del", ""}, {"korrektur", "changed_at"}, {"korrektur2", ""},
+              {"user", "changed_by"}, {"art", "kind"}, {"von", "start_time"}, {"bis", "end_time"},
+              {"bem", "note"}},
              {"spid", "wodate", "tag", "te", "spi"},
-             {{QStringLiteral("von"), ColumnFormat::OptionalTime},
-              {QStringLiteral("bis"), ColumnFormat::OptionalTime}}),
-        spec("te_ueb", L{"spid", "wodate", "tag", "te", "pos", "spi", "del", "korrektur", "korrektur2", "user",
-                         "ueb", "lststbem", "art", "kombi"},
+             {{QStringLiteral("start_time"), ColumnFormat::OptionalTime}, {QStringLiteral("end_time"), ColumnFormat::OptionalTime}}),
+        // The lines of a session
+        spec("te_ueb", "session_entries",
+             {{"spid", "athlete_id"}, {"wodate", "monday"}, {"tag", "day"}, {"te", "number"},
+              {"pos", "position"}, {"spi", "variant"}, {"del", ""}, {"korrektur", "changed_at"},
+              {"korrektur2", ""}, {"user", "changed_by"}, {"ueb", "exercise"}, {"lststbem", "content"},
+              {"art", "kind"}, {"kombi", "combination"}},
              {"spid", "wodate", "tag", "te", "pos", "spi"}),
-        spec("wo", L{"spid", "wodate", "del", "korrektur", "korrektur2", "user", "bel", "wklg", "verletzt",
-                     "bem_soll", "bem_plan", "bem_ist"},
+        // Week notes, and the framework plan's week data
+        spec("wo", "weeks",
+             {{"spid", "owner"}, {"wodate", "monday"}, {"del", ""}, {"korrektur", "changed_at"},
+              {"korrektur2", ""}, {"user", "changed_by"}, {"bel", "load"}, {"wklg", "competition_position"},
+              {"verletzt", "injured"}, {"bem_soll", "target_note"}, {"bem_plan", "plan_note"}, {"bem_ist", "actual_note"}},
              {"spid", "wodate"}),
-        spec("normen", L{"sex", "akl", "gkl", "del", "korrektur", "korrektur2", "user", "gklbez", "zk"},
+        // Reference totals
+        spec("normen", "reference_totals",
+             {{"sex", "sex"}, {"akl", "age_class"}, {"gkl", "weight_class"}, {"del", ""},
+              {"korrektur", "changed_at"}, {"korrektur2", ""}, {"user", "changed_by"}, {"gklbez", "weight_class_name"},
+              {"zk", "total"}},
              {"sex", "akl", "gkl"}),
         // Athlete attributes and extra info per day
-        spec("spinfo", L{"spid", "art", "von", "zeit", "del", "korrektur", "korrektur2", "user", "bis",
-                         "info_text", "info_zahl"},
+        spec("spinfo", "athlete_info",
+             {{"spid", "athlete_id"}, {"art", "kind"}, {"von", "from_date"}, {"zeit", "time"},
+              {"del", ""}, {"korrektur", "changed_at"}, {"korrektur2", ""}, {"user", "changed_by"},
+              {"bis", "to_date"}, {"info_text", "text"}, {"info_zahl", "number"}},
              {"spid", "art", "von", "zeit"}),
         // Competitions
-        spec("wk", L{"spid", "datum", "zeit", "del", "korrektur", "korrektur2", "user", "wkart", "wk", "ort",
-                     "gew", "rei1", "rei2", "rei3", "sto1", "sto2", "sto3", "zk", "bem"},
+        spec("wk", "competitions",
+             {{"spid", "athlete_id"}, {"datum", "date"}, {"zeit", "time"}, {"del", ""},
+              {"korrektur", "changed_at"}, {"korrektur2", ""}, {"user", "changed_by"}, {"wkart", "type"},
+              {"wk", "name"}, {"ort", "place"}, {"gew", "body_weight"}, {"rei1", "snatch1"},
+              {"rei2", "snatch2"}, {"rei3", "snatch3"}, {"sto1", "clean_jerk1"}, {"sto2", "clean_jerk2"},
+              {"sto3", "clean_jerk3"}, {"zk", "total"}, {"bem", "note"}},
              {"spid", "datum", "zeit"}),
-        // Macrocycles and their athletes
-        spec("maz", L{"id", "del", "korrektur", "korrektur2", "user", "sex", "bez", "kbez", "von", "bis",
-                      "abp_von", "lap_von", "bem"},
+        // Macrocycles
+        spec("maz", "macrocycles",
+             {{"id", "id"}, {"del", ""}, {"korrektur", "changed_at"}, {"korrektur2", ""},
+              {"user", "changed_by"}, {"sex", "sex"}, {"bez", "name"}, {"kbez", "short_name"},
+              {"von", "first_monday"}, {"bis", "last_monday"}, {"abp_von", "build_up_monday"}, {"lap_von", "peak_monday"},
+              {"bem", "note"}},
              {"id"}),
-        spec("maz_sp", L{"mazid", "spid", "del", "korrektur", "korrektur2", "user", "gew", "ziel_rei",
-                         "ziel_sto", "wk_rei", "wk_sto", "auswahl", "bem"},
-             {"mazid", "spid"}, {{QStringLiteral("auswahl"), ColumnFormat::YesNo}}),
-        // Week targets per exercise: ITP of an athlete, or framework plan of
-        // a MAZ (spid "#<mazid>")
-        spec("ueb", L{"spid", "wodate", "ueb", "spi", "del", "korrektur", "korrektur2", "user", "wh", "mhg",
-                      "bw", "bwsg", "bwsganz"},
+        // The athletes of a macrocycle
+        spec("maz_sp", "macrocycle_athletes",
+             {{"mazid", "macrocycle_id"}, {"spid", "athlete_id"}, {"del", ""}, {"korrektur", "changed_at"},
+              {"korrektur2", ""}, {"user", "changed_by"}, {"gew", "weight_class"}, {"ziel_rei", "target_snatch"},
+              {"ziel_sto", "target_clean_jerk"}, {"wk_rei", "competition_snatch"}, {"wk_sto", "competition_clean_jerk"}, {"auswahl", "selected"},
+              {"bem", "note"}},
+             {"mazid", "spid"},
+             {{QStringLiteral("selected"), ColumnFormat::YesNo}}),
+        // Week targets: ITP of an athlete, or framework plan of a macrocycle
+        spec("ueb", "week_targets",
+             {{"spid", "owner"}, {"wodate", "monday"}, {"ueb", "exercise"}, {"spi", "variant"},
+              {"del", ""}, {"korrektur", "changed_at"}, {"korrektur2", ""}, {"user", "changed_by"},
+              {"wh", "reps"}, {"mhg", "mean_weight"}, {"bw", "top_weight"}, {"bwsg", "top_weight_reps"},
+              {"bwsganz", "top_weight_sets"}},
              {"spid", "wodate", "ueb", "spi"}),
-        // Planned weight steps per week and exercise (new in this program)
-        spec("itp_ls", withMeta({"spid", "wodate", "ueb"}, {"lststbem"}), {"spid", "wodate", "ueb"}),
+        // Planned weight steps (new in this program)
+        spec("itp_ls", "planned_steps",
+             {{"spid", "owner"}, {"wodate", "monday"}, {"ueb", "exercise"}, {"del", ""},
+              {"korrektur", "changed_at"}, {"korrektur2", ""}, {"user", "changed_by"}, {"lststbem", "steps"}},
+             {"spid", "wodate", "ueb"}),
     };
     return specs;
+}
+
+QString label(const QString &name)
+{
+    static const QMap<QString, QString> names = {
+        {QStringLiteral("athletes"), QStringLiteral("Sportler")},
+        {QStringLiteral("sessions"), QStringLiteral("Trainingseinheiten")},
+        {QStringLiteral("session_entries"), QStringLiteral("Übungen")},
+        {QStringLiteral("weeks"), QStringLiteral("Wochen")},
+        {QStringLiteral("reference_totals"), QStringLiteral("Normen")},
+        {QStringLiteral("athlete_info"), QStringLiteral("Sportlerinfos")},
+        {QStringLiteral("competitions"), QStringLiteral("Wettkämpfe")},
+        {QStringLiteral("macrocycles"), QStringLiteral("MAZ")},
+        {QStringLiteral("macrocycle_athletes"), QStringLiteral("MAZ-Sportler")},
+        {QStringLiteral("week_targets"), QStringLiteral("ITP/RO-Werte")},
+        {QStringLiteral("planned_steps"), QStringLiteral("ITP-Laststufen")},
+    };
+    return names.value(name, name);
 }
 
 const TableSpec *find(const QString &name)
 {
     for (const TableSpec &s : all()) {
-        if (name.compare(s.name, Qt::CaseInsensitive) == 0)
+        if (s.name == name)
+            return &s;
+    }
+    return nullptr;
+}
+
+const TableSpec *findFile(const QString &fileName)
+{
+    for (const TableSpec &s : all()) {
+        if (fileName.compare(s.fileName, Qt::CaseInsensitive) == 0)
             return &s;
     }
     return nullptr;

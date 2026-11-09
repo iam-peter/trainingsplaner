@@ -11,8 +11,9 @@
 // The file is a list of MySQL statements: for every row a conditional
 // DELETE followed by an "INSERT IGNORE INTO <table> VALUES (...)". Rows are
 // merged by primary key; an incoming row only replaces a local row when it
-// is at least as new (column `korrektur`). Rows marked deleted (del = "Y")
-// remove the local row.
+// is at least as new (the files' column `korrektur`, changed_at here).
+// Rows marked deleted (del = "Y") remove the local row. Tables and columns
+// map to the database's by src/tables.cpp.
 namespace BakImport {
 
 struct TableCount

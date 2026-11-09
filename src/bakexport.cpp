@@ -44,39 +44,43 @@ bool whereFor(const TableSpec &t, const BakExport::Filter &f, QString *where, QV
         *where = QStringLiteral("1");
         return true;
     case F::ChangedSince:
-        *where = QStringLiteral("korrektur >= ?");
+        *where = QStringLiteral("changed_at >= ?");
         binds->append(Database::stampText(f.since));
         return true;
     case F::AthleteWeeks: {
         const QString from = f.fromMonday.toString(Qt::ISODate);
         const QString to = f.toMonday.addDays(6).toString(Qt::ISODate);
-        if (t.name == QLatin1String("sp")) {
-            *where = QStringLiteral("spid = ?");
+        if (t.name == QLatin1String("athletes")) {
+            *where = QStringLiteral("id = ?");
             *binds = {f.athleteId};
-        } else if (t.columns.contains(QLatin1String("wodate"))) {
-            *where = QStringLiteral("spid = ? AND wodate BETWEEN ? AND ?");
+        } else if (t.name == QLatin1String("sessions") || t.name == QLatin1String("session_entries")) {
+            *where = QStringLiteral("athlete_id = ? AND monday BETWEEN ? AND ?");
             *binds = {f.athleteId, from, to};
-        } else if (t.name == QLatin1String("wk")) {
-            *where = QStringLiteral("spid = ? AND datum BETWEEN ? AND ?");
+        } else if (t.name == QLatin1String("weeks") || t.name == QLatin1String("week_targets")
+                   || t.name == QLatin1String("planned_steps")) {
+            *where = QStringLiteral("owner = ? AND monday BETWEEN ? AND ?");
             *binds = {f.athleteId, from, to};
-        } else if (t.name == QLatin1String("spinfo")) {
-            *where = QStringLiteral("spid = ?"); // attributes span weeks; all of them
+        } else if (t.name == QLatin1String("competitions")) {
+            *where = QStringLiteral("athlete_id = ? AND date BETWEEN ? AND ?");
+            *binds = {f.athleteId, from, to};
+        } else if (t.name == QLatin1String("athlete_info")) {
+            *where = QStringLiteral("athlete_id = ?"); // attributes span weeks; all of them
             *binds = {f.athleteId};
         } else {
-            return false; // normen, maz, ... are not one athlete's data
+            return false; // reference totals, macrocycles, ... are not one athlete's data
         }
         return true;
     }
     case F::Maz:
-        if (t.name == QLatin1String("maz")) {
+        if (t.name == QLatin1String("macrocycles")) {
             *where = QStringLiteral("id = ?");
             *binds = {f.mazId};
-        } else if (t.name == QLatin1String("maz_sp")) {
-            *where = QStringLiteral("mazid = ?");
+        } else if (t.name == QLatin1String("macrocycle_athletes")) {
+            *where = QStringLiteral("macrocycle_id = ?");
             *binds = {f.mazId};
-        } else if (t.name == QLatin1String("ueb") || t.name == QLatin1String("itp_ls")
-                   || t.name == QLatin1String("wo")) {
-            *where = QStringLiteral("spid = ?");
+        } else if (t.name == QLatin1String("week_targets") || t.name == QLatin1String("planned_steps")
+                   || t.name == QLatin1String("weeks")) {
+            *where = QStringLiteral("owner = ?");
             *binds = {QLatin1Char('#') + f.mazId};
         } else {
             return false;
@@ -103,7 +107,7 @@ QString Result::summary() const
         total += it.value();
         const int del = deleted.value(it.key());
         lines.append(QStringLiteral("%1: %2 Zeilen%3")
-                         .arg(it.key())
+                         .arg(Tables::label(it.key()))
                          .arg(it.value())
                          .arg(del > 0 ? QStringLiteral(", davon %1 gelöscht").arg(del) : QString()));
     }
@@ -148,39 +152,41 @@ QString exportText(const Filter &filter, Result *result)
         if (!whereFor(t, filter, &where, &binds))
             continue;
 
+        const QStringList stored = t.stored();
         QSqlQuery q;
         q.prepare(QStringLiteral("SELECT %1 FROM %2 WHERE %3")
-                      .arg(t.stored.join(QStringLiteral(", ")), t.name, where));
+                      .arg(stored.join(QStringLiteral(", ")), t.name, where));
         for (const QVariant &b : binds)
             q.addBindValue(b);
         if (!q.exec()) {
             r.error = Database::lastError();
             continue;
         }
+        // Rows go out with the files' table and column names
         QSet<QString> liveKeys;
         while (q.next()) {
-            QVariantMap row;
-            for (int i = 0; i < t.stored.size(); ++i)
-                row.insert(t.stored[i], q.value(i));
+            QVariantMap row; // by database column
+            for (int i = 0; i < stored.size(); ++i)
+                row.insert(stored[i], q.value(i));
             QStringList keyCond, values, keyParts;
-            for (const QString &k : t.keys) {
-                keyCond.append(QStringLiteral("%1=%2").arg(k, quote(row.value(k))));
-                keyParts.append(row.value(k).toString());
+            for (const QString &k : t.fileKeys) {
+                keyCond.append(QStringLiteral("%1=%2").arg(k, quote(row.value(t.column(k)))));
+                keyParts.append(row.value(t.column(k)).toString());
             }
             liveKeys.insert(keyParts.join(QChar(0x1f)));
-            const QString stamp = row.value(QStringLiteral("korrektur")).toString();
-            for (const QString &c : t.columns) {
+            const QString stamp = row.value(QStringLiteral("changed_at")).toString();
+            for (const QString &c : t.fileColumns) {
                 if (c == QLatin1String("del"))
                     values.append(QStringLiteral("\"N\""));
                 else if (c == QLatin1String("korrektur2"))
                     values.append(QStringLiteral("NOW()"));
                 else
-                    values.append(quote(t.toFile(c, row.value(c))));
+                    values.append(quote(t.toFile(t.column(c), row.value(t.column(c)))));
             }
             lines.append(QStringLiteral("DELETE FROM %1 WHERE %2 AND korrektur<%3")
-                             .arg(t.name, keyCond.join(QStringLiteral(" AND ")), quote(stamp)));
+                             .arg(t.fileName, keyCond.join(QStringLiteral(" AND ")), quote(stamp)));
             lines.append(QStringLiteral("INSERT IGNORE INTO %1 VALUES (%2)")
-                             .arg(t.name, values.join(QLatin1Char(','))));
+                             .arg(t.fileName, values.join(QLatin1Char(','))));
             ++r.rows[t.name];
         }
 
@@ -189,28 +195,29 @@ QString exportText(const Filter &filter, Result *result)
             continue;
         const QDateTime since = filter.mode == Filter::ChangedSince ? filter.since : QDateTime();
         for (const Database::Deletion &d : Database::deletions(t.name, since)) {
-            if (d.key.size() != t.keys.size() || liveKeys.contains(d.key.join(QChar(0x1f))))
+            if (d.key.size() != t.fileKeys.size() || liveKeys.contains(d.key.join(QChar(0x1f))))
                 continue;
+            const QString stamp = Database::stampText(d.stamp);
             QStringList keyCond, values;
-            for (int i = 0; i < t.keys.size(); ++i)
-                keyCond.append(QStringLiteral("%1=%2").arg(t.keys[i], quote(d.key[i])));
-            for (const QString &c : t.columns) {
-                const int k = t.keys.indexOf(c);
+            for (int i = 0; i < t.fileKeys.size(); ++i)
+                keyCond.append(QStringLiteral("%1=%2").arg(t.fileKeys[i], quote(d.key[i])));
+            for (const QString &c : t.fileColumns) {
+                const int k = t.fileKeys.indexOf(c);
                 if (k >= 0)
                     values.append(quote(d.key[k]));
                 else if (c == QLatin1String("del"))
                     values.append(QStringLiteral("\"Y\""));
                 else if (c == QLatin1String("korrektur"))
-                    values.append(quote(Database::stampText(d.stamp)));
+                    values.append(quote(stamp));
                 else if (c == QLatin1String("korrektur2"))
                     values.append(QStringLiteral("NOW()"));
                 else
                     values.append(QStringLiteral("NULL"));
             }
             lines.append(QStringLiteral("DELETE FROM %1 WHERE %2 AND korrektur<%3")
-                             .arg(t.name, keyCond.join(QStringLiteral(" AND ")), quote(Database::stampText(d.stamp))));
+                             .arg(t.fileName, keyCond.join(QStringLiteral(" AND ")), quote(stamp)));
             lines.append(QStringLiteral("INSERT IGNORE INTO %1 VALUES (%2)")
-                             .arg(t.name, values.join(QLatin1Char(','))));
+                             .arg(t.fileName, values.join(QLatin1Char(','))));
             ++r.rows[t.name];
             ++r.deleted[t.name];
         }

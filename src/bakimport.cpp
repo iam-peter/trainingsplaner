@@ -165,24 +165,11 @@ namespace BakImport {
 
 QString Result::summary() const
 {
-    static const QMap<QString, QString> names = {
-        {QStringLiteral("sp"), QStringLiteral("Sportler")},
-        {QStringLiteral("te"), QStringLiteral("Trainingseinheiten")},
-        {QStringLiteral("te_ueb"), QStringLiteral("Übungen")},
-        {QStringLiteral("wo"), QStringLiteral("Wochen")},
-        {QStringLiteral("normen"), QStringLiteral("Normen")},
-        {QStringLiteral("spinfo"), QStringLiteral("Sportlerinfos")},
-        {QStringLiteral("wk"), QStringLiteral("Wettkämpfe")},
-        {QStringLiteral("maz"), QStringLiteral("MAZ")},
-        {QStringLiteral("maz_sp"), QStringLiteral("MAZ-Sportler")},
-        {QStringLiteral("ueb"), QStringLiteral("ITP/RO-Werte")},
-        {QStringLiteral("itp_ls"), QStringLiteral("ITP-Laststufen")},
-    };
     QStringList lines;
     for (auto it = tables.cbegin(); it != tables.cend(); ++it) {
         const TableCount &c = it.value();
         lines.append(QStringLiteral("%1: %2 neu, %3 aktualisiert, %4 entfernt, %5 unverändert")
-                         .arg(names.value(it.key(), it.key()))
+                         .arg(Tables::label(it.key()))
                          .arg(c.added)
                          .arg(c.updated)
                          .arg(c.removed)
@@ -289,34 +276,38 @@ Result importText(const QString &text, bool ignoreTimestamps)
     QSqlDatabase d = QSqlDatabase::database();
     d.transaction();
     for (const Row &row : rows) {
-        const TableSpec *spec = Tables::find(row.table);
+        const TableSpec *spec = Tables::findFile(row.table);
         if (!spec) {
             ++r.ignoredStatements;
             continue;
         }
-        if (row.values.size() != spec->columns.size()) {
+        if (row.values.size() != spec->fileColumns.size()) {
             r.errors.append(QStringLiteral("%1: %2 Werte statt %3")
                                 .arg(row.table)
                                 .arg(row.values.size())
-                                .arg(spec->columns.size()));
+                                .arg(spec->fileColumns.size()));
             continue;
         }
+        // The row by the files' column names
         QVariantMap v;
-        for (int i = 0; i < spec->columns.size(); ++i)
-            v.insert(spec->columns[i], row.values[i]);
+        for (int i = 0; i < spec->fileColumns.size(); ++i)
+            v.insert(spec->fileColumns[i], row.values[i]);
         if (v.contains(QStringLiteral("art")) && !v.value(QStringLiteral("art")).isValid())
             v.insert(QStringLiteral("art"), 0);
 
         TableCount &count = r.tables[spec->name];
         QStringList where;
-        for (const QString &k : spec->keys)
+        for (const QString &k : spec->keys())
             where.append(k + QStringLiteral(" = ?"));
         const QString whereSql = where.join(QStringLiteral(" AND "));
+        QVariantList key;
+        for (const QString &k : spec->fileKeys)
+            key.append(v.value(k));
 
         QSqlQuery sel(d);
-        sel.prepare(QStringLiteral("SELECT korrektur FROM %1 WHERE %2").arg(spec->name, whereSql));
-        for (const QString &k : spec->keys)
-            sel.addBindValue(v.value(k));
+        sel.prepare(QStringLiteral("SELECT changed_at FROM %1 WHERE %2").arg(spec->name, whereSql));
+        for (const QVariant &k : std::as_const(key))
+            sel.addBindValue(k);
         if (!execQuery(sel, &r.errors))
             continue;
         const bool exists = sel.next();
@@ -333,9 +324,6 @@ Result importText(const QString &text, bool ignoreTimestamps)
 
         if (v.value(QStringLiteral("del")).toString() == QLatin1String("Y")) {
             if (exists) {
-                QVariantList key;
-                for (const QString &k : spec->keys)
-                    key.append(v.value(k));
                 if (Database::deleteRows(spec->name, whereSql, key, incoming))
                     ++count.removed;
                 else
@@ -346,15 +334,18 @@ Result importText(const QString &text, bool ignoreTimestamps)
             continue;
         }
 
+        const QStringList columns = spec->stored();
         QStringList marks;
-        for (int i = 0; i < spec->stored.size(); ++i)
+        for (int i = 0; i < columns.size(); ++i)
             marks.append(QStringLiteral("?"));
         QSqlQuery ins(d);
         ins.prepare(QStringLiteral("INSERT OR REPLACE INTO %1 (%2) VALUES (%3)")
-                        .arg(spec->name, spec->stored.join(QStringLiteral(", ")),
-                             marks.join(QStringLiteral(", "))));
-        for (const QString &c : spec->stored)
-            ins.addBindValue(spec->toStored(c, v.value(c)));
+                        .arg(spec->name, columns.join(QStringLiteral(", ")), marks.join(QStringLiteral(", "))));
+        for (const QString &c : spec->fileColumns) {
+            const QString column = spec->column(c);
+            if (!column.isEmpty())
+                ins.addBindValue(spec->toStored(column, v.value(c)));
+        }
         if (execQuery(ins, &r.errors)) {
             if (exists)
                 ++count.updated;

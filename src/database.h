@@ -9,10 +9,10 @@
 
 // Storage in a single SQLite file.
 //
-// The tables and columns follow the old program's database (sp, te, te_ueb,
-// wo, normen) so imported data maps one to one. Every row carries a
-// `korrektur` timestamp (last change); the importer uses it to decide
-// whether an incoming row is newer than the local one.
+// The layout is sql/schema.sql. Its tables hold the old program's data one
+// to one, under English names (src/tables.cpp maps them to the old ones).
+// Every row carries its last change in changed_at; the importer uses it to
+// decide whether an incoming row is newer than the local one.
 namespace Database {
 
 bool open(const QString &path, QString *error = nullptr);
@@ -23,7 +23,7 @@ QString path();
 int schemaVersion();
 int latestSchemaVersion();
 
-// Every row's last change (`korrektur`), in whole seconds. Stored and
+// Every row's last change (changed_at), in whole seconds. Stored and
 // exported as "yyyy-MM-dd HH:mm:ss".
 QDateTime now();
 QString stampText(const QDateTime &time);
@@ -54,9 +54,9 @@ bool replaceSessions(const QString &athleteId, const QDate &monday, Variant vari
 int copyWeek(const QString &fromAthlete, const QDate &fromMonday, Variant fromVariant,
              const QString &toAthlete, const QDate &toMonday, Variant toVariant);
 
-// Records of an athlete with a time range or a date (table spinfo):
-// attributes such as Kader or Verein (art = attribute name, info_text =
-// value), and extra info per day (art = category code, info_zahl = value).
+// Records of an athlete with a time range or a date (table athlete_info):
+// attributes such as Kader or Verein (art = attribute name, text = value),
+// and extra info per day (art = category code, number = value).
 struct InfoRecord
 {
     QString athleteId;

@@ -11,8 +11,9 @@
 // plan of a MAZ (Rahmenorientierung, RO) and the individual training plan
 // of an athlete (ITP).
 //
-// RO and ITP share their storage: week targets per exercise in table ueb
-// (spi "S") and planned weight steps in table itp_ls. The owner is the
+// RO and ITP share their storage: week targets per exercise in table
+// week_targets (variant "S") and planned weight steps in table
+// planned_steps. The owner is the
 // athlete id for an ITP and "#" + MAZ id for a RO. In a RO, MHG and BW (and
 // the kg of weight steps) are percent of the athlete's target performance.
 // Exercise numbers -1..-7 stand for the groups K1..K7.

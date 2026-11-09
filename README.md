@@ -158,7 +158,8 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `src/database.*` | SQLite storage |
 | `sql/schema.sql` | the database layout; `sqlite3 neu.sqlite < sql/schema.sql` makes an empty database |
 | `sql/migrate-<n>.sql` | brings a database of layout n - 1 to layout n |
-| `src/tables.*` | table definitions shared by import, export and the deletion log |
+| `tests/layout-1.sql` | the layout of version 0.3.0, to test the migrations |
+| `src/tables.*` | the old program's table and column names for each table, for import, export and the deletion log |
 | `src/bakimport.*`, `src/bakexport.*` | import and export in the old program's format |
 | `src/exerciseweek.*` | one exercise across a week (Erfassung TÜ) |
 | `src/competition.*` | competitions, totals, best results, reference totals |

@@ -15,6 +15,7 @@
 
 #include <QSettings>
 #include <QSqlDatabase>
+#include <QSqlError>
 #include <QSqlQuery>
 #include <QTemporaryDir>
 #include <QtTest>
@@ -170,11 +171,11 @@ void TestCore::importAndMerge()
         "\"P\",\"N\",\"2024-03-02 10:05:00\",NOW(),\"trainer\",\"13\",\"070003020\",\"0\",\"0\")\n");
     BakImport::Result r = BakImport::importText(v1);
     QVERIFY2(r.ok && r.errors.isEmpty(), qPrintable(r.summary()));
-    QCOMPARE(r.tables.value(QStringLiteral("te_ueb")).added, 2);
+    QCOMPARE(r.tables.value(QStringLiteral("session_entries")).added, 2);
 
     // Importing the same file again changes nothing.
     r = BakImport::importText(v1);
-    QCOMPARE(r.tables.value(QStringLiteral("te_ueb")).skipped, 2);
+    QCOMPARE(r.tables.value(QStringLiteral("session_entries")).skipped, 2);
 
     // A newer export deletes position 2 and changes position 1.
     const QString v2 = QStringLiteral(
@@ -183,8 +184,8 @@ void TestCore::importAndMerge()
         "INSERT IGNORE INTO te_ueb VALUES (\"müßig_jörg\",\"2024-03-04\",\"1\",\"2\",\"2\","
         "\"P\",\"Y\",\"2024-03-03 10:00:00\",NOW(),\"trainer\",\"13\",\"070003020\",NULL,NULL)\n");
     r = BakImport::importText(v2);
-    QCOMPARE(r.tables.value(QStringLiteral("te_ueb")).updated, 1);
-    QCOMPARE(r.tables.value(QStringLiteral("te_ueb")).removed, 1);
+    QCOMPARE(r.tables.value(QStringLiteral("session_entries")).updated, 1);
+    QCOMPARE(r.tables.value(QStringLiteral("session_entries")).removed, 1);
 
     const Week w = Database::loadWeek(QStringLiteral("müßig_jörg"), QDate(2024, 3, 4),
                                       Variant::Plan);
@@ -212,9 +213,9 @@ void TestCore::oldFormatColumns()
 
     // Stored: no time as NULL, the choice as 0
     QSqlQuery q;
-    QVERIFY(q.exec(QStringLiteral("SELECT von, bis FROM te WHERE spid = 'alt_otto'")) && q.next());
+    QVERIFY(q.exec(QStringLiteral("SELECT start_time, end_time FROM sessions WHERE athlete_id = 'alt_otto'")) && q.next());
     QVERIFY(q.value(0).isNull() && q.value(1).isNull());
-    QVERIFY(q.exec(QStringLiteral("SELECT auswahl FROM maz_sp WHERE spid = 'alt_otto'")) && q.next());
+    QVERIFY(q.exec(QStringLiteral("SELECT selected FROM macrocycle_athletes WHERE athlete_id = 'alt_otto'")) && q.next());
     QCOMPARE(q.value(0).toInt(), 0);
     const Week w = Database::loadWeek(QStringLiteral("alt_otto"), QDate(2024, 5, 6), Variant::Plan);
     QVERIFY(!w.sessions.value(0).from.isValid());
@@ -244,13 +245,13 @@ void TestCore::oldFormatColumns()
     r = BakImport::importText(QStringLiteral(
         "INSERT IGNORE INTO te VALUES (\"alt_otto\",\"2024-05-06\",\"2\",\"1\",\"P\",\"N\","
         "\"2024-05-02T09:00:00\",NOW(),\"trainer\",\"0\",\"16:00:00\",\"18:00:00\",\"älter\")\n"));
-    QCOMPARE(r.tables.value(QStringLiteral("te")).skipped, 1);
+    QCOMPARE(r.tables.value(QStringLiteral("sessions")).skipped, 1);
     // A newer one does, and its stamp is stored in the usual form
     r = BakImport::importText(QStringLiteral(
         "INSERT IGNORE INTO te VALUES (\"alt_otto\",\"2024-05-06\",\"2\",\"1\",\"P\",\"N\","
         "\"2024-05-02T11:00:00\",NOW(),\"trainer\",\"0\",\"16:00:00\",\"18:00:00\",\"neuer\")\n"));
-    QCOMPARE(r.tables.value(QStringLiteral("te")).updated, 1);
-    QVERIFY(q.exec(QStringLiteral("SELECT korrektur, von FROM te WHERE spid = 'alt_otto'")) && q.next());
+    QCOMPARE(r.tables.value(QStringLiteral("sessions")).updated, 1);
+    QVERIFY(q.exec(QStringLiteral("SELECT changed_at, start_time FROM sessions WHERE athlete_id = 'alt_otto'")) && q.next());
     QCOMPARE(q.value(0).toString(), QStringLiteral("2024-05-02 11:00:00"));
     QCOMPARE(q.value(1).toString(), QStringLiteral("16:00:00"));
 
@@ -278,7 +279,7 @@ static QStringList tableLayout()
     return layout;
 }
 
-// A database file of version 0.3.0 (schema 1) opens up to date, with a
+// A database file of version 0.3.0 (layout 1) opens up to date, with a
 // copy of the old file; one of a newer program is not touched
 void TestCore::migrateDatabase()
 {
@@ -287,29 +288,39 @@ void TestCore::migrateDatabase()
     const QStringList fresh = tableLayout();
     QVERIFY(fresh.size() > 100);
 
+    // An old file: the layout of 0.3.0 with a few rows as it wrote them
+    QFile layout(QFINDTESTDATA("layout-1.sql"));
+    QVERIFY(layout.open(QIODevice::ReadOnly));
     const QString old = m_dir.filePath(QStringLiteral("old.sqlite"));
     {
         QSqlDatabase d = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), QStringLiteral("old"));
         d.setDatabaseName(old);
         QVERIFY(d.open());
         QSqlQuery q(d);
-        for (const char *sql : {
-                 "CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT)",
-                 "INSERT INTO meta VALUES ('schema', '1')",
-                 "CREATE TABLE te (spid TEXT NOT NULL, wodate TEXT NOT NULL, tag INTEGER NOT NULL,"
-                 " te INTEGER NOT NULL, spi TEXT NOT NULL, art INTEGER DEFAULT 0, von TEXT, bis TEXT, bem TEXT,"
-                 " user TEXT, korrektur TEXT, PRIMARY KEY (spid, wodate, tag, te, spi))",
-                 "INSERT INTO te VALUES ('alt', '2024-05-06', 1, 1, 'P', 0, '00:00:00', '', 'a', 'u',"
-                 " '2024-05-02T09:00:00')",
-                 "INSERT INTO te VALUES ('alt', '2024-05-06', 2, 1, 'P', 0, '15:30', '17:30:00', 'b', 'u',"
-                 " '2024-05-02 10:00:00')",
-                 "CREATE TABLE maz_sp (mazid TEXT NOT NULL, spid TEXT NOT NULL, gew INTEGER, ziel_rei INTEGER,"
-                 " ziel_sto INTEGER, wk_rei INTEGER, wk_sto INTEGER, auswahl TEXT DEFAULT 'Y', bem TEXT,"
-                 " user TEXT, korrektur TEXT, PRIMARY KEY (mazid, spid))",
-                 "INSERT INTO maz_sp VALUES ('m', 'alt', 73, 80, 100, NULL, NULL, 'N', 'x', 'u', '2024-05-01 10:00:00')",
-                 "INSERT INTO maz_sp VALUES ('m', 'neu', 81, 90, 110, NULL, NULL, 'Y', NULL, 'u', NULL)",
-             })
-            QVERIFY2(q.exec(QString::fromLatin1(sql)), sql);
+        QStringList statements;
+        for (const QString &line : QString::fromUtf8(layout.readAll()).split(QLatin1Char('\n'))) {
+            if (line.startsWith(QLatin1String("CREATE")) || line.startsWith(QLatin1String("INSERT")))
+                statements.append(line);
+        }
+        statements += {
+            QStringLiteral("INSERT INTO sp (spid, name, vorname, sex, korrektur) VALUES"
+                           " ('alt', 'Alt', 'Otto', 0, '2024-05-01T08:00:00')"),
+            QStringLiteral("INSERT INTO te VALUES ('alt', '2024-05-06', 1, 1, 'P', 0, '00:00:00', '', 'a', 'u',"
+                           " '2024-05-02T09:00:00')"),
+            QStringLiteral("INSERT INTO te VALUES ('alt', '2024-05-06', 2, 1, 'P', 0, '15:30', '17:30:00', 'b', 'u',"
+                           " '2024-05-02 10:00:00')"),
+            QStringLiteral("INSERT INTO te_ueb VALUES ('alt', '2024-05-06', 2, 1, 1, 'P', 6, '060004010', 0, 0, 'u',"
+                           " '2024-05-02 10:00:00')"),
+            QStringLiteral("INSERT INTO maz VALUES ('m', 0, 'Alt-MAZ', 'AM', '2024-05-06', '2024-06-24', NULL, NULL,"
+                           " NULL, 'u', '2024-05-01 10:00:00')"),
+            QStringLiteral("INSERT INTO maz_sp VALUES ('m', 'alt', 73, 80, 100, NULL, NULL, 'N', 'x', 'u',"
+                           " '2024-05-01 10:00:00')"),
+            QStringLiteral("INSERT INTO maz_sp VALUES ('m', 'neu', 81, 90, 110, NULL, NULL, 'Y', NULL, 'u', NULL)"),
+            QStringLiteral("INSERT INTO geloescht VALUES ('te', 'alt\u001f2024-05-06\u001f3\u001f1\u001fP',"
+                           " '2024-05-03 10:00:00')"),
+        };
+        for (const QString &sql : std::as_const(statements))
+            QVERIFY2(q.exec(sql), qPrintable(sql + QLatin1Char('\n') + q.lastError().text()));
         d.close();
     }
     QSqlDatabase::removeDatabase(QStringLiteral("old"));
@@ -318,29 +329,40 @@ void TestCore::migrateDatabase()
     QString error;
     QVERIFY2(Database::open(old, &error), qPrintable(error));
     QVERIFY(QFileInfo::exists(m_dir.filePath(QStringLiteral("old.schema1.sqlite"))));
-    {
-    QSqlQuery q;
     QCOMPARE(Database::schemaVersion(), Database::latestSchemaVersion());
     // The same tables and columns as a new file
     QCOMPARE(tableLayout(), fresh);
-    // auswahl: an integer column with 0/1, the rest of the rows unchanged
-    QVERIFY(q.exec(QStringLiteral("SELECT type FROM pragma_table_info('maz_sp') WHERE name = 'auswahl'")) && q.next());
-    QCOMPARE(q.value(0).toString(), QStringLiteral("INTEGER"));
-    const QList<MazAthlete> athletes = Planning::mazAthletes(QStringLiteral("m"));
-    QCOMPARE(athletes.size(), 2);
-    for (const MazAthlete &a : athletes) {
-        QCOMPARE(a.selected, a.athleteId == QLatin1String("neu"));
-        if (a.athleteId == QLatin1String("alt"))
-            QCOMPARE(a.note, QStringLiteral("x"));
-    }
-    // Times: none is NULL, the others in one form; stamps in one form
-    QVERIFY(q.exec(QStringLiteral("SELECT von, bis, korrektur FROM te ORDER BY tag")));
-    QVERIFY(q.next());
-    QVERIFY(q.value(0).isNull() && q.value(1).isNull());
-    QCOMPARE(q.value(2).toString(), QStringLiteral("2024-05-02 09:00:00"));
-    QVERIFY(q.next());
-    QCOMPARE(q.value(0).toString(), QStringLiteral("15:30:00"));
-    QCOMPARE(q.value(1).toString(), QStringLiteral("17:30:00"));
+    {
+        QSqlQuery q;
+        // Rows kept under the new names
+        QVERIFY(q.exec(QStringLiteral("SELECT last_name, changed_at FROM athletes WHERE id = 'alt'")) && q.next());
+        QCOMPARE(q.value(0).toString(), QStringLiteral("Alt"));
+        QCOMPARE(q.value(1).toString(), QStringLiteral("2024-05-01 08:00:00"));
+        const Week w = Database::loadWeek(QStringLiteral("alt"), QDate(2024, 5, 6), Variant::Plan);
+        QCOMPARE(w.sessions.size(), 2);
+        QVERIFY(!w.sessions[0].from.isValid());
+        QCOMPARE(w.sessions[1].from, QTime(15, 30));
+        QCOMPARE(w.sessions[1].entries.value(0).steps.value(0), (Step{60, 4, 1, 0}));
+        const QList<MazAthlete> athletes = Planning::mazAthletes(QStringLiteral("m"));
+        QCOMPARE(athletes.size(), 2);
+        for (const MazAthlete &a : athletes) {
+            QCOMPARE(a.selected, a.athleteId == QLatin1String("neu"));
+            if (a.athleteId == QLatin1String("alt"))
+                QCOMPARE(a.note, QStringLiteral("x"));
+        }
+        // Times: none is NULL, the others in one form; stamps in one form
+        QVERIFY(q.exec(QStringLiteral("SELECT start_time, end_time, changed_at FROM sessions ORDER BY day")));
+        QVERIFY(q.next());
+        QVERIFY(q.value(0).isNull() && q.value(1).isNull());
+        QCOMPARE(q.value(2).toString(), QStringLiteral("2024-05-02 09:00:00"));
+        QVERIFY(q.next());
+        QCOMPARE(q.value(0).toString(), QStringLiteral("15:30:00"));
+        QCOMPARE(q.value(1).toString(), QStringLiteral("17:30:00"));
+        // The deletion log names the new table, and exports it as the old one
+        const QList<Database::Deletion> deleted = Database::deletions(QStringLiteral("sessions"));
+        QCOMPARE(deleted.size(), 1);
+        QCOMPARE(deleted[0].key.value(2), QStringLiteral("3"));
+        QVERIFY(BakExport::exportText({}).contains(QStringLiteral("INSERT IGNORE INTO te VALUES (\"alt\",\"2024-05-06\",\"3\"")));
     }
 
     // Opening again changes nothing more
@@ -348,7 +370,7 @@ void TestCore::migrateDatabase()
     QVERIFY(Database::open(old));
     {
         QSqlQuery count;
-        QVERIFY(count.exec(QStringLiteral("SELECT COUNT(*) FROM maz_sp")) && count.next());
+        QVERIFY(count.exec(QStringLiteral("SELECT COUNT(*) FROM macrocycle_athletes")) && count.next());
         QCOMPARE(count.value(0).toInt(), 2);
         // A file from a newer program is refused, not changed
         QVERIFY(count.exec(QStringLiteral("UPDATE meta SET value = '99' WHERE key = 'schema'")));
@@ -622,7 +644,7 @@ void TestCore::exportRoundTrip()
     BakExport::Result all;
     const QString full = BakExport::exportText({BakExport::Filter::All, {}, {}, {}, {}}, &all);
     QVERIFY(all.ok);
-    QVERIFY(all.rows.value(QStringLiteral("te_ueb")) >= 4);
+    QVERIFY(all.rows.value(QStringLiteral("session_entries")) >= 4);
 
     BakExport::Filter weeks;
     weeks.mode = BakExport::Filter::AthleteWeeks;
@@ -631,8 +653,8 @@ void TestCore::exportRoundTrip()
     weeks.toMonday = monday;
     BakExport::Result one;
     BakExport::exportText(weeks, &one);
-    QCOMPARE(one.rows.value(QStringLiteral("te")), 2);
-    QCOMPARE(one.rows.value(QStringLiteral("sp")), 1);
+    QCOMPARE(one.rows.value(QStringLiteral("sessions")), 2);
+    QCOMPARE(one.rows.value(QStringLiteral("athletes")), 1);
 
     // Remove Wednesday, then export the changes since just before
     QTest::qWait(1100); // timestamps have whole seconds; keep earlier changes out
@@ -640,8 +662,8 @@ void TestCore::exportRoundTrip()
     QVERIFY(Database::removeSession(id, monday, Variant::Plan, 3, 2));
     BakExport::Result changed;
     const QString delta = BakExport::exportText({BakExport::Filter::ChangedSince, since, {}, {}, {}}, &changed);
-    QCOMPARE(changed.deleted.value(QStringLiteral("te")), 1);
-    QCOMPARE(changed.deleted.value(QStringLiteral("te_ueb")), 2);
+    QCOMPARE(changed.deleted.value(QStringLiteral("sessions")), 1);
+    QCOMPARE(changed.deleted.value(QStringLiteral("session_entries")), 2);
 
     // Into a second database: the full export, then the changes
     const QString first = Database::path();
@@ -761,7 +783,7 @@ void TestCore::competitions()
 
     // Reference totals by age and weight class
     QSqlQuery q;
-    QVERIFY(q.exec(QStringLiteral("INSERT INTO normen (sex, akl, gkl, gklbez, zk) VALUES"
+    QVERIFY(q.exec(QStringLiteral("INSERT INTO reference_totals (sex, age_class, weight_class, weight_class_name, total) VALUES"
                                   " (1, 16, 55, '-55', 120), (1, 16, 59, '-59', 130), (1, 16, 60, '+59', 140),"
                                   " (1, 18, 59, '-59', 150)")));
     QCOMPARE(Competitions::norm(Sex::Female, 16, 58.4), 130);

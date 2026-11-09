@@ -47,7 +47,8 @@ QList<Competition> read(QSqlQuery &q)
 }
 
 const QString kColumns = QStringLiteral(
-    "spid, datum, zeit, wkart, wk, ort, gew, rei1, rei2, rei3, sto1, sto2, sto3, bem");
+    "athlete_id, date, time, type, name, place, body_weight, snatch1, snatch2, snatch3, clean_jerk1,"
+    " clean_jerk2, clean_jerk3, note");
 
 } // namespace
 
@@ -90,7 +91,7 @@ const QStringList &typeShortNames()
 QList<Competition> forAthlete(const QString &athleteId)
 {
     QSqlQuery q;
-    q.prepare(QStringLiteral("SELECT %1 FROM wk WHERE spid = ? ORDER BY datum DESC, zeit DESC").arg(kColumns));
+    q.prepare(QStringLiteral("SELECT %1 FROM competitions WHERE athlete_id = ? ORDER BY date DESC, time DESC").arg(kColumns));
     q.addBindValue(athleteId);
     if (!q.exec())
         return {};
@@ -100,7 +101,7 @@ QList<Competition> forAthlete(const QString &athleteId)
 QList<Competition> between(const QString &athleteId, const QDate &from, const QDate &to)
 {
     QSqlQuery q;
-    q.prepare(QStringLiteral("SELECT %1 FROM wk WHERE spid = ? AND datum BETWEEN ? AND ? ORDER BY datum, zeit")
+    q.prepare(QStringLiteral("SELECT %1 FROM competitions WHERE athlete_id = ? AND date BETWEEN ? AND ? ORDER BY date, time")
                   .arg(kColumns));
     q.addBindValue(athleteId);
     q.addBindValue(from.toString(Qt::ISODate));
@@ -115,7 +116,7 @@ bool save(const Competition &c)
     if (c.athleteId.isEmpty() || !c.date.isValid())
         return false;
     QSqlQuery q;
-    q.prepare(QStringLiteral("INSERT OR REPLACE INTO wk (%1, zk, user, korrektur)"
+    q.prepare(QStringLiteral("INSERT OR REPLACE INTO competitions (%1, total, changed_by, changed_at)"
                              " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
                   .arg(kColumns));
     q.addBindValue(c.athleteId);
@@ -138,14 +139,14 @@ bool save(const Competition &c)
 
 bool remove(const QString &athleteId, const QDate &date, const QTime &time)
 {
-    return Database::deleteRows(QStringLiteral("wk"), QStringLiteral("spid = ? AND datum = ? AND zeit = ?"),
+    return Database::deleteRows(QStringLiteral("competitions"), QStringLiteral("athlete_id = ? AND date = ? AND time = ?"),
                                 {athleteId, date.toString(Qt::ISODate), Times::stored(time)}, Database::now());
 }
 
 bool inWeek(const QString &athleteId, const QDate &monday)
 {
     QSqlQuery q;
-    q.prepare(QStringLiteral("SELECT 1 FROM wk WHERE spid = ? AND datum BETWEEN ? AND ? LIMIT 1"));
+    q.prepare(QStringLiteral("SELECT 1 FROM competitions WHERE athlete_id = ? AND date BETWEEN ? AND ? LIMIT 1"));
     q.addBindValue(athleteId);
     q.addBindValue(monday.toString(Qt::ISODate));
     q.addBindValue(monday.addDays(6).toString(Qt::ISODate));
@@ -194,7 +195,7 @@ int norm(Sex sex, int age, double bodyWeight)
         return 0;
     // The IAT table starts at age class 14 and ends with the oldest class
     QSqlQuery q;
-    q.prepare(QStringLiteral("SELECT akl FROM normen WHERE sex = ? ORDER BY akl"));
+    q.prepare(QStringLiteral("SELECT age_class FROM reference_totals WHERE sex = ? ORDER BY age_class"));
     q.addBindValue(int(sex));
     if (!q.exec())
         return 0;
@@ -212,7 +213,8 @@ int norm(Sex sex, int age, double bodyWeight)
     }
     // Weight class: the lightest class the body weight fits in; "+" classes last
     QSqlQuery w;
-    w.prepare(QStringLiteral("SELECT gkl, gklbez, zk FROM normen WHERE sex = ? AND akl = ? ORDER BY gkl"));
+    w.prepare(QStringLiteral("SELECT weight_class, weight_class_name, total FROM reference_totals WHERE sex = ? AND age_class = ?"
+                             " ORDER BY weight_class"));
     w.addBindValue(int(sex));
     w.addBindValue(akl);
     if (!w.exec())

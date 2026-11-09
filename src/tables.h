@@ -14,16 +14,23 @@ enum class ColumnFormat {
     OptionalTime, // file 00:00:00 for none, stored NULL
 };
 
-// The tables as they appear in data exports: column order of the old
-// program's statements, the primary key, and the columns the new database
-// keeps. Shared by the importer, the exporter and the deletion log.
+// A table of the database and how it appears in the old program's data
+// files, which name tables and columns in German (sp, te, wodate, ...).
+// Shared by the importer, the exporter and the deletion log.
 struct TableSpec
 {
-    QString name;
-    QStringList columns; // order in exported statements
-    QStringList keys;
-    QStringList stored;  // columns of the SQLite table
-    QMap<QString, ColumnFormat> formats; // columns that are not Plain
+    QString name;            // in the database, e.g. "sessions"
+    QString fileName;        // in the files, e.g. "te"
+    QStringList fileColumns; // in the order of the files' statements
+    QStringList fileKeys;    // the files' key columns
+    QMap<QString, QString> columnOf;     // file column -> database column
+    QMap<QString, ColumnFormat> formats; // database columns that are not Plain
+
+    // The database column of a file column; empty for the files' own
+    // columns del and korrektur2, which are not stored
+    QString column(const QString &fileColumn) const { return columnOf.value(fileColumn); }
+    QStringList keys() const;   // database key columns, in the files' order
+    QStringList stored() const; // database columns, in the files' order
 
     QVariant toStored(const QString &column, const QVariant &fileValue) const;
     QVariant toFile(const QString &column, const QVariant &storedValue) const;
@@ -32,6 +39,8 @@ struct TableSpec
 namespace Tables {
 
 const QList<TableSpec> &all();
-const TableSpec *find(const QString &name);
+const TableSpec *find(const QString &name);         // by database name
+const TableSpec *findFile(const QString &fileName); // by the files' name
+QString label(const QString &name); // for people: "Trainingseinheiten"
 
 } // namespace Tables

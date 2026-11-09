@@ -251,8 +251,8 @@ QList<int> sessionCounts(const QString &athleteId, const QDate &from, int weeks,
     if (weeks <= 0)
         return counts;
     QSqlQuery q;
-    q.prepare(QStringLiteral("SELECT wodate, COUNT(DISTINCT tag || '-' || te) FROM te_ueb WHERE spid = ? AND spi = ?"
-                             " AND wodate BETWEEN ? AND ? GROUP BY wodate"));
+    q.prepare(QStringLiteral("SELECT monday, COUNT(DISTINCT day || '-' || number) FROM session_entries"
+                             " WHERE athlete_id = ? AND variant = ? AND monday BETWEEN ? AND ? GROUP BY monday"));
     q.addBindValue(athleteId);
     q.addBindValue(QString(variantCode(variant)));
     q.addBindValue(from.toString(Qt::ISODate));

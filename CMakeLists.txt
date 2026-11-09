@@ -35,6 +35,7 @@ target_include_directories(tpcore PUBLIC src)
 qt_add_resources(tpcore "sql" PREFIX "/" FILES
     sql/schema.sql
     sql/migrate-2.sql
+    sql/migrate-3.sql
 )
 target_link_libraries(tpcore PUBLIC Qt6::Core Qt6::Gui Qt6::Sql)
 

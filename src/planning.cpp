@@ -62,8 +62,8 @@ QList<Maz> mazList()
 {
     QList<Maz> list;
     QSqlQuery q;
-    if (!q.exec(QStringLiteral("SELECT id, sex, bez, kbez, von, bis, abp_von, lap_von, bem FROM maz"
-                               " ORDER BY von DESC, bez")))
+    if (!q.exec(QStringLiteral("SELECT id, sex, name, short_name, first_monday, last_monday, build_up_monday,"
+                               " peak_monday, note FROM macrocycles ORDER BY first_monday DESC, name")))
         return list;
     while (q.next()) {
         Maz m;
@@ -96,8 +96,8 @@ QString saveMaz(const Maz &m)
                            ? QStringLiteral("maz_") + QString::number(QDateTime::currentMSecsSinceEpoch())
                            : m.id;
     QSqlQuery q;
-    q.prepare(QStringLiteral("INSERT OR REPLACE INTO maz (id, sex, bez, kbez, von, bis, abp_von, lap_von, bem,"
-                             " user, korrektur) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
+    q.prepare(QStringLiteral("INSERT OR REPLACE INTO macrocycles (id, sex, name, short_name, first_monday,"
+                             " last_monday, build_up_monday, peak_monday, note, changed_by, changed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
     q.addBindValue(id);
     q.addBindValue(int(m.sex));
     q.addBindValue(m.name);
@@ -117,11 +117,11 @@ bool removeMaz(const QString &id)
     QSqlDatabase d = QSqlDatabase::database();
     d.transaction();
     const QDateTime stamp = Database::now();
-    const bool ok = Database::deleteRows(QStringLiteral("maz_sp"), QStringLiteral("mazid = ?"), {id}, stamp)
-                    && Database::deleteRows(QStringLiteral("ueb"), QStringLiteral("spid = ?"), {roOwner(id)}, stamp)
-                    && Database::deleteRows(QStringLiteral("itp_ls"), QStringLiteral("spid = ?"), {roOwner(id)}, stamp)
-                    && Database::deleteRows(QStringLiteral("wo"), QStringLiteral("spid = ?"), {roOwner(id)}, stamp)
-                    && Database::deleteRows(QStringLiteral("maz"), QStringLiteral("id = ?"), {id}, stamp);
+    const bool ok = Database::deleteRows(QStringLiteral("macrocycle_athletes"), QStringLiteral("macrocycle_id = ?"), {id}, stamp)
+                    && Database::deleteRows(QStringLiteral("week_targets"), QStringLiteral("owner = ?"), {roOwner(id)}, stamp)
+                    && Database::deleteRows(QStringLiteral("planned_steps"), QStringLiteral("owner = ?"), {roOwner(id)}, stamp)
+                    && Database::deleteRows(QStringLiteral("weeks"), QStringLiteral("owner = ?"), {roOwner(id)}, stamp)
+                    && Database::deleteRows(QStringLiteral("macrocycles"), QStringLiteral("id = ?"), {id}, stamp);
     if (!ok) {
         d.rollback();
         return false;
@@ -133,10 +133,11 @@ QList<MazAthlete> mazAthletes(const QString &mazId)
 {
     QList<MazAthlete> list;
     QSqlQuery q;
-    q.prepare(QStringLiteral("SELECT m.mazid, m.spid, m.gew, m.ziel_rei, m.ziel_sto, m.wk_rei, m.wk_sto, m.bem,"
-                             " m.auswahl"
-                             " FROM maz_sp m LEFT JOIN sp s ON s.spid = m.spid WHERE m.mazid = ?"
-                             " ORDER BY s.name COLLATE NOCASE, s.vorname COLLATE NOCASE"));
+    q.prepare(QStringLiteral("SELECT m.macrocycle_id, m.athlete_id, m.weight_class, m.target_snatch,"
+                             " m.target_clean_jerk, m.competition_snatch, m.competition_clean_jerk, m.note,"
+                             " m.selected FROM macrocycle_athletes m LEFT JOIN athletes a ON a.id = m.athlete_id"
+                             " WHERE m.macrocycle_id = ?"
+                             " ORDER BY a.last_name COLLATE NOCASE, a.first_name COLLATE NOCASE"));
     q.addBindValue(mazId);
     if (!exec(q))
         return list;
@@ -159,8 +160,9 @@ QList<MazAthlete> mazAthletes(const QString &mazId)
 bool saveMazAthlete(const MazAthlete &a)
 {
     QSqlQuery q;
-    q.prepare(QStringLiteral("INSERT OR REPLACE INTO maz_sp (mazid, spid, gew, ziel_rei, ziel_sto, wk_rei, wk_sto,"
-                             " auswahl, bem, user, korrektur) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
+    q.prepare(QStringLiteral("INSERT OR REPLACE INTO macrocycle_athletes (macrocycle_id, athlete_id, weight_class,"
+                             " target_snatch, target_clean_jerk, competition_snatch, competition_clean_jerk,"
+                             " selected, note, changed_by, changed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
     q.addBindValue(a.mazId);
     q.addBindValue(a.athleteId);
     q.addBindValue(intOrNull(a.weightClass));
@@ -177,7 +179,7 @@ bool saveMazAthlete(const MazAthlete &a)
 
 bool removeMazAthlete(const QString &mazId, const QString &athleteId)
 {
-    return Database::deleteRows(QStringLiteral("maz_sp"), QStringLiteral("mazid = ? AND spid = ?"),
+    return Database::deleteRows(QStringLiteral("macrocycle_athletes"), QStringLiteral("macrocycle_id = ? AND athlete_id = ?"),
                                 {mazId, athleteId}, Database::now());
 }
 
@@ -199,8 +201,9 @@ QList<WeekTarget> targets(const QString &owner, const QDate &fromMonday, const Q
 {
     QList<WeekTarget> list;
     QSqlQuery q;
-    q.prepare(QStringLiteral("SELECT wodate, ueb, wh, mhg, bw, bwsg, bwsganz FROM ueb WHERE spid = ? AND spi = 'S'"
-                             " AND wodate BETWEEN ? AND ? ORDER BY wodate, ueb"));
+    q.prepare(QStringLiteral("SELECT monday, exercise, reps, mean_weight, top_weight, top_weight_reps, top_weight_sets"
+                             " FROM week_targets WHERE owner = ? AND variant = 'S' AND monday BETWEEN ? AND ?"
+                             " ORDER BY monday, exercise"));
     q.addBindValue(owner);
     q.addBindValue(iso(fromMonday));
     q.addBindValue(iso(toMonday));
@@ -223,13 +226,13 @@ QList<WeekTarget> targets(const QString &owner, const QDate &fromMonday, const Q
 bool setTarget(const QString &owner, const WeekTarget &t)
 {
     if (t.isEmpty()) {
-        return Database::deleteRows(QStringLiteral("ueb"),
-                                    QStringLiteral("spid = ? AND wodate = ? AND ueb = ? AND spi = 'S'"),
+        return Database::deleteRows(QStringLiteral("week_targets"),
+                                    QStringLiteral("owner = ? AND monday = ? AND exercise = ? AND variant = 'S'"),
                                     {owner, iso(t.monday), t.exercise}, Database::now());
     }
     QSqlQuery q;
-    q.prepare(QStringLiteral("INSERT OR REPLACE INTO ueb (spid, wodate, ueb, spi, wh, mhg, bw, bwsg, bwsganz,"
-                             " user, korrektur) VALUES (?, ?, ?, 'S', ?, ?, ?, ?, ?, ?, ?)"));
+    q.prepare(QStringLiteral("INSERT OR REPLACE INTO week_targets (owner, monday, exercise, variant, reps, mean_weight,"
+                             " top_weight, top_weight_reps, top_weight_sets, changed_by, changed_at) VALUES (?, ?, ?, 'S', ?, ?, ?, ?, ?, ?, ?)"));
     q.addBindValue(owner);
     q.addBindValue(iso(t.monday));
     q.addBindValue(t.exercise);
@@ -247,8 +250,8 @@ QList<WeekMeta> meta(const QString &owner, const QDate &fromMonday, const QDate 
 {
     QList<WeekMeta> list;
     QSqlQuery q;
-    q.prepare(QStringLiteral("SELECT wodate, bel, wklg, bem_soll FROM wo WHERE spid = ? AND wodate BETWEEN ? AND ?"
-                             " ORDER BY wodate"));
+    q.prepare(QStringLiteral("SELECT monday, load, competition_position, target_note FROM weeks"
+                             " WHERE owner = ? AND monday BETWEEN ? AND ? ORDER BY monday"));
     q.addBindValue(owner);
     q.addBindValue(iso(fromMonday));
     q.addBindValue(iso(toMonday));
@@ -262,12 +265,12 @@ QList<WeekMeta> meta(const QString &owner, const QDate &fromMonday, const QDate 
 bool setMeta(const QString &owner, const WeekMeta &m)
 {
     QSqlQuery ins;
-    ins.prepare(QStringLiteral("INSERT OR IGNORE INTO wo (spid, wodate) VALUES (?, ?)"));
+    ins.prepare(QStringLiteral("INSERT OR IGNORE INTO weeks (owner, monday) VALUES (?, ?)"));
     ins.addBindValue(owner);
     ins.addBindValue(iso(m.monday));
     QSqlQuery upd;
-    upd.prepare(QStringLiteral("UPDATE wo SET bel = ?, wklg = ?, bem_soll = ?, user = ?, korrektur = ?"
-                               " WHERE spid = ? AND wodate = ?"));
+    upd.prepare(QStringLiteral("UPDATE weeks SET load = ?, competition_position = ?, target_note = ?, changed_by = ?,"
+                               " changed_at = ? WHERE owner = ? AND monday = ?"));
     upd.addBindValue(intOrNull(m.load));
     upd.addBindValue(m.position);
     upd.addBindValue(m.note);
@@ -283,8 +286,8 @@ QMap<QDate, QList<Step>> plannedSteps(const QString &owner, int exercise, const 
 {
     QMap<QDate, QList<Step>> map;
     QSqlQuery q;
-    q.prepare(QStringLiteral("SELECT wodate, lststbem FROM itp_ls WHERE spid = ? AND ueb = ?"
-                             " AND wodate BETWEEN ? AND ?"));
+    q.prepare(QStringLiteral("SELECT monday, steps FROM planned_steps WHERE owner = ? AND exercise = ?"
+                             " AND monday BETWEEN ? AND ?"));
     q.addBindValue(owner);
     q.addBindValue(exercise);
     q.addBindValue(iso(fromMonday));
@@ -299,11 +302,11 @@ QMap<QDate, QList<Step>> plannedSteps(const QString &owner, int exercise, const 
 bool setPlannedSteps(const QString &owner, int exercise, const QDate &monday, const QList<Step> &steps)
 {
     if (steps.isEmpty()) {
-        return Database::deleteRows(QStringLiteral("itp_ls"), QStringLiteral("spid = ? AND wodate = ? AND ueb = ?"),
+        return Database::deleteRows(QStringLiteral("planned_steps"), QStringLiteral("owner = ? AND monday = ? AND exercise = ?"),
                                     {owner, iso(monday), exercise}, Database::now());
     }
     QSqlQuery q;
-    q.prepare(QStringLiteral("INSERT OR REPLACE INTO itp_ls (spid, wodate, ueb, lststbem, user, korrektur)"
+    q.prepare(QStringLiteral("INSERT OR REPLACE INTO planned_steps (owner, monday, exercise, steps, changed_by, changed_at)"
                              " VALUES (?, ?, ?, ?, ?, ?)"));
     q.addBindValue(owner);
     q.addBindValue(iso(monday));
@@ -325,9 +328,10 @@ bool copyPlan(const QString &fromOwner, const QDate &fromMonday, const QString &
     QSqlDatabase d = QSqlDatabase::database();
     d.transaction();
     const QDateTime stamp = Database::now();
-    bool ok = Database::deleteRows(QStringLiteral("ueb"), QStringLiteral("spid = ? AND spi = 'S' AND wodate BETWEEN ? AND ?"),
+    bool ok = Database::deleteRows(QStringLiteral("week_targets"),
+                                   QStringLiteral("owner = ? AND variant = 'S' AND monday BETWEEN ? AND ?"),
                                    {toOwner, iso(toMonday), iso(toEnd)}, stamp)
-              && Database::deleteRows(QStringLiteral("itp_ls"), QStringLiteral("spid = ? AND wodate BETWEEN ? AND ?"),
+              && Database::deleteRows(QStringLiteral("planned_steps"), QStringLiteral("owner = ? AND monday BETWEEN ? AND ?"),
                                       {toOwner, iso(toMonday), iso(toEnd)}, stamp);
     for (WeekTarget t : targets(fromOwner, fromMonday, fromEnd)) {
         t.monday = t.monday.addDays(offset);
@@ -338,7 +342,7 @@ bool copyPlan(const QString &fromOwner, const QDate &fromMonday, const QString &
         ok = ok && setMeta(toOwner, m);
     }
     QSqlQuery q;
-    q.prepare(QStringLiteral("SELECT wodate, ueb, lststbem FROM itp_ls WHERE spid = ? AND wodate BETWEEN ? AND ?"));
+    q.prepare(QStringLiteral("SELECT monday, exercise, steps FROM planned_steps WHERE owner = ? AND monday BETWEEN ? AND ?"));
     q.addBindValue(fromOwner);
     q.addBindValue(iso(fromMonday));
     q.addBindValue(iso(fromEnd));
@@ -399,7 +403,7 @@ bool itpFromRo(const QString &mazId, const QString &athleteId, double weightStep
         ok = ok && setTarget(athleteId, t);
     }
     QSqlQuery q;
-    q.prepare(QStringLiteral("SELECT wodate, ueb, lststbem FROM itp_ls WHERE spid = ? AND wodate BETWEEN ? AND ?"));
+    q.prepare(QStringLiteral("SELECT monday, exercise, steps FROM planned_steps WHERE owner = ? AND monday BETWEEN ? AND ?"));
     q.addBindValue(athleteId);
     q.addBindValue(iso(m.from));
     q.addBindValue(iso(m.to));
