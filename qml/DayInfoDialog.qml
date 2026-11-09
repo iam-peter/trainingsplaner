@@ -71,7 +71,8 @@ AppDialog {
     }
 
     title: "Zusatzinfo  –  Woche " + Store.weekLabel(monday)
-    width: 640
+    // As wide as its row of fields needs, at least 640 px
+    width: Math.min(parent ? parent.width - 40 : 100000, Math.max(640, implicitWidth))
     height: Math.min(parent ? parent.height - 60 : 600, 620)
     // Fixed height; scrolls its content itself
     scrollsContent: false
@@ -122,7 +123,10 @@ AppDialog {
                     onClicked: dialog.save()
                 }
                 IconToolButton {
-                    visible: dialog.editing !== null
+                    // Keeps its room while hidden, so the dialog does not
+                    // widen when an entry is edited
+                    opacity: dialog.editing !== null ? 1 : 0
+                    enabled: dialog.editing !== null
                     iconName: "x"
                     toolTip: "Bearbeiten abbrechen"
                     onClicked: dialog.resetForm()
