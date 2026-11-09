@@ -65,6 +65,12 @@ Item {
             implicitWidth: 90
             implicitHeight: grid.rowHeight
             color: palette.window
+            Rectangle { // row line, continued by the cells
+                anchors.bottom: parent.bottom
+                width: parent.width
+                height: 1
+                color: Theme.line
+            }
             Label {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left
@@ -77,6 +83,7 @@ Item {
 
     TableView {
         id: table
+        objectName: "itpTable"
         anchors.left: rows.right
         anchors.top: header.bottom
         anchors.right: parent.right
@@ -86,8 +93,11 @@ Item {
         columnSpacing: 0
         rowSpacing: 0
         boundsBehavior: Flickable.StopAtBounds
-        ScrollBar.horizontal: ScrollBar {}
-        ScrollBar.vertical: ScrollBar {}
+        ScrollBar.horizontal: AppScrollBar { id: hbar }
+        ScrollBar.vertical: AppScrollBar { id: vbar }
+        // The bars beside the cells, not over the last row and column
+        rightMargin: vbar.room
+        bottomMargin: hbar.room
         columnWidthProvider: column => itp.columnInfo(column).sub === "" ? 60 : grid.cellWidth
 
         delegate: Rectangle {
@@ -97,11 +107,24 @@ Item {
             required property int column
             required property string display
             required property bool average
+            readonly property alias editor: editor
             implicitHeight: grid.rowHeight
             color: average ? palette.alternateBase : palette.base
-            border.color: palette.mid
-            border.width: 0
-            Rectangle { // column group separator
+            // The grid: a line below and to the right of every cell, a
+            // stronger one before each exercise
+            Rectangle {
+                anchors.bottom: parent.bottom
+                width: parent.width
+                height: 1
+                color: Theme.line
+            }
+            Rectangle {
+                anchors.right: parent.right
+                width: 1
+                height: parent.height
+                color: Theme.line
+            }
+            Rectangle {
                 visible: itp.columnInfo(cell.column).first
                 width: 1
                 height: parent.height
@@ -114,6 +137,7 @@ Item {
                 font.bold: true
             }
             TextField {
+                id: editor
                 anchors.fill: parent
                 anchors.margins: 1
                 visible: !cell.average
@@ -124,18 +148,34 @@ Item {
                 onEditingFinished: if (text !== cell.display) cell.model.edit = text
                 Keys.onUpPressed: table.focusCell(cell.row - 1, cell.column)
                 Keys.onDownPressed: table.focusCell(cell.row + 1, cell.column)
+                // Left and right move the cursor inside the number first,
+                // then on to the next cell (a cell is entered all selected)
+                Keys.onLeftPressed: (event) => {
+                    if (selectedText === text || cursorPosition === 0)
+                        table.focusCell(cell.row, cell.column - 1)
+                    else
+                        event.accepted = false
+                }
+                Keys.onRightPressed: (event) => {
+                    if (selectedText === text || cursorPosition === text.length)
+                        table.focusCell(cell.row, cell.column + 1)
+                    else
+                        event.accepted = false
+                }
                 Keys.onReturnPressed: { editingFinished(); table.focusCell(cell.row + 1, cell.column) }
             }
         }
 
         function focusCell(r, c) {
-            if (r < 0 || r >= itp.weeks)
+            if (r < 0 || r >= itp.weeks || c < 0 || c >= columns)
                 return
             positionViewAtCell(Qt.point(c, r), TableView.Contain)
             Qt.callLater(() => {
                 const item = itemAtCell(Qt.point(c, r))
-                if (item)
-                    item.children[2].forceActiveFocus()
+                if (item) {
+                    item.editor.forceActiveFocus()
+                    item.editor.selectAll()
+                }
             })
         }
     }
