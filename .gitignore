@@ -8,6 +8,9 @@ CMakeLists.txt.user*
 *.bak
 *.BAK
 *.sql
+# except the program's own table layout, which holds no data
+!/sql/schema.sql
+!/sql/migrate-*.sql
 *.sqlite
 *.sqlite-journal
 *.sqlite-wal

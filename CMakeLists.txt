@@ -30,6 +30,12 @@ add_library(tpcore STATIC
     src/settings.cpp    src/settings.h
 )
 target_include_directories(tpcore PUBLIC src)
+# The database layout: sql/schema.sql creates it, sql/migrate-<n>.sql
+# brings an older file up to date
+qt_add_resources(tpcore "sql" PREFIX "/" FILES
+    sql/schema.sql
+    sql/migrate-2.sql
+)
 target_link_libraries(tpcore PUBLIC Qt6::Core Qt6::Gui Qt6::Sql)
 
 # Fonts (Inter, JetBrains Mono) and Lucide icons go into the resources.

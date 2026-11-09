@@ -18,6 +18,10 @@ namespace Database {
 bool open(const QString &path, QString *error = nullptr);
 void close();
 QString path();
+// The open file's table layout (meta.schema), and the one this program
+// writes (sql/schema.sql)
+int schemaVersion();
+int latestSchemaVersion();
 
 // Every row's last change (`korrektur`), in whole seconds. Stored and
 // exported as "yyyy-MM-dd HH:mm:ss".

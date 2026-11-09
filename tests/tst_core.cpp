@@ -258,10 +258,35 @@ void TestCore::oldFormatColumns()
     QVERIFY(Database::removeAthlete(QStringLiteral("alt_otto")));
 }
 
+// Every table's columns with type, NOT NULL, default and key position
+static QStringList tableLayout()
+{
+    QStringList layout;
+    QSqlQuery tables;
+    if (!tables.exec(QStringLiteral("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")))
+        return layout;
+    while (tables.next()) {
+        QSqlQuery c;
+        c.exec(QStringLiteral("SELECT name, type, \"notnull\", dflt_value, pk FROM pragma_table_info('%1')")
+                   .arg(tables.value(0).toString()));
+        while (c.next()) {
+            layout.append(QStringLiteral("%1.%2 %3 %4 %5 %6")
+                              .arg(tables.value(0).toString(), c.value(0).toString(), c.value(1).toString(),
+                                   c.value(2).toString(), c.value(3).toString(), c.value(4).toString()));
+        }
+    }
+    return layout;
+}
+
 // A database file of version 0.3.0 (schema 1) opens up to date, with a
 // copy of the old file; one of a newer program is not touched
 void TestCore::migrateDatabase()
 {
+    // The test database is new: made by sql/schema.sql, of the latest layout
+    QCOMPARE(Database::schemaVersion(), Database::latestSchemaVersion());
+    const QStringList fresh = tableLayout();
+    QVERIFY(fresh.size() > 100);
+
     const QString old = m_dir.filePath(QStringLiteral("old.sqlite"));
     {
         QSqlDatabase d = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), QStringLiteral("old"));
@@ -295,8 +320,9 @@ void TestCore::migrateDatabase()
     QVERIFY(QFileInfo::exists(m_dir.filePath(QStringLiteral("old.schema1.sqlite"))));
     {
     QSqlQuery q;
-    QVERIFY(q.exec(QStringLiteral("SELECT value FROM meta WHERE key = 'schema'")) && q.next());
-    QCOMPARE(q.value(0).toString(), QStringLiteral("2"));
+    QCOMPARE(Database::schemaVersion(), Database::latestSchemaVersion());
+    // The same tables and columns as a new file
+    QCOMPARE(tableLayout(), fresh);
     // auswahl: an integer column with 0/1, the rest of the rows unchanged
     QVERIFY(q.exec(QStringLiteral("SELECT type FROM pragma_table_info('maz_sp') WHERE name = 'auswahl'")) && q.next());
     QCOMPARE(q.value(0).toString(), QStringLiteral("INTEGER"));

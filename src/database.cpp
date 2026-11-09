@@ -17,68 +17,6 @@ namespace {
 
 QString g_lastError;
 
-const char *kSchema[] = {
-    "CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)",
-    // Athletes ("Sportler")
-    "CREATE TABLE IF NOT EXISTS sp ("
-    " spid TEXT PRIMARY KEY, name TEXT NOT NULL DEFAULT '', vorname TEXT NOT NULL DEFAULT '',"
-    " sex INTEGER NOT NULL DEFAULT 0, geb TEXT, adresse TEXT, telefon TEXT,"
-    " user TEXT, korrektur TEXT)",
-    // Training sessions ("Trainingseinheiten"); wodate is the Monday of the week,
-    // tag 1-7 the weekday, te the session number, spi P (plan) or I (actual).
-    "CREATE TABLE IF NOT EXISTS te ("
-    " spid TEXT NOT NULL, wodate TEXT NOT NULL, tag INTEGER NOT NULL, te INTEGER NOT NULL,"
-    " spi TEXT NOT NULL, art INTEGER DEFAULT 0, von TEXT, bis TEXT, bem TEXT,"
-    " user TEXT, korrektur TEXT, PRIMARY KEY (spid, wodate, tag, te, spi))",
-    // Lines of a session; lststbem holds the encoded content (see Entry::encode).
-    "CREATE TABLE IF NOT EXISTS te_ueb ("
-    " spid TEXT NOT NULL, wodate TEXT NOT NULL, tag INTEGER NOT NULL, te INTEGER NOT NULL,"
-    " pos INTEGER NOT NULL, spi TEXT NOT NULL, ueb INTEGER DEFAULT 0, lststbem TEXT,"
-    " art INTEGER DEFAULT 0, kombi INTEGER DEFAULT 0, user TEXT, korrektur TEXT,"
-    " PRIMARY KEY (spid, wodate, tag, te, pos, spi))",
-    // Week notes
-    "CREATE TABLE IF NOT EXISTS wo ("
-    " spid TEXT NOT NULL, wodate TEXT NOT NULL, bel INTEGER, wklg TEXT, verletzt INTEGER,"
-    " bem_soll TEXT, bem_plan TEXT, bem_ist TEXT, user TEXT, korrektur TEXT,"
-    " PRIMARY KEY (spid, wodate))",
-    // Reference totals by sex, age class and weight class (from the old program)
-    "CREATE TABLE IF NOT EXISTS normen ("
-    " sex INTEGER NOT NULL, akl INTEGER NOT NULL, gkl INTEGER NOT NULL, gklbez TEXT,"
-    " zk INTEGER, user TEXT, korrektur TEXT, PRIMARY KEY (sex, akl, gkl))",
-    // Athlete attributes with a time range (art = Kader, Verein, ...) and
-    // extra info per day (art = KG, KF, ...: info_zahl at von/zeit)
-    "CREATE TABLE IF NOT EXISTS spinfo ("
-    " spid TEXT NOT NULL, art TEXT NOT NULL, von TEXT NOT NULL, zeit TEXT NOT NULL DEFAULT '00:00:00',"
-    " bis TEXT, info_text TEXT, info_zahl REAL, user TEXT, korrektur TEXT,"
-    " PRIMARY KEY (spid, art, von, zeit))",
-    // Competitions; a negative attempt was invalid
-    "CREATE TABLE IF NOT EXISTS wk ("
-    " spid TEXT NOT NULL, datum TEXT NOT NULL, zeit TEXT NOT NULL DEFAULT '00:00:00',"
-    " wkart INTEGER, wk TEXT, ort TEXT, gew REAL, rei1 INTEGER, rei2 INTEGER, rei3 INTEGER,"
-    " sto1 INTEGER, sto2 INTEGER, sto3 INTEGER, zk INTEGER, bem TEXT, user TEXT, korrektur TEXT,"
-    " PRIMARY KEY (spid, datum, zeit))",
-    // Macrocycles (MAZ); von/bis/abp_von/lap_von are Mondays
-    "CREATE TABLE IF NOT EXISTS maz ("
-    " id TEXT PRIMARY KEY, sex INTEGER DEFAULT 0, bez TEXT, kbez TEXT, von TEXT, bis TEXT,"
-    " abp_von TEXT, lap_von TEXT, bem TEXT, user TEXT, korrektur TEXT)",
-    "CREATE TABLE IF NOT EXISTS maz_sp ("
-    " mazid TEXT NOT NULL, spid TEXT NOT NULL, gew INTEGER, ziel_rei INTEGER, ziel_sto INTEGER,"
-    " wk_rei INTEGER, wk_sto INTEGER, auswahl INTEGER NOT NULL DEFAULT 1, bem TEXT, user TEXT, korrektur TEXT,"
-    " PRIMARY KEY (mazid, spid))",
-    // Week targets per exercise: ITP (spid = athlete) or framework plan (spid = '#' + MAZ id);
-    // ueb -1..-7 stand for the groups K1..K7
-    "CREATE TABLE IF NOT EXISTS ueb ("
-    " spid TEXT NOT NULL, wodate TEXT NOT NULL, ueb INTEGER NOT NULL, spi TEXT NOT NULL DEFAULT 'S',"
-    " wh INTEGER, mhg INTEGER, bw INTEGER, bwsg INTEGER, bwsganz INTEGER, user TEXT, korrektur TEXT,"
-    " PRIMARY KEY (spid, wodate, ueb, spi))",
-    "CREATE TABLE IF NOT EXISTS itp_ls ("
-    " spid TEXT NOT NULL, wodate TEXT NOT NULL, ueb INTEGER NOT NULL, lststbem TEXT, user TEXT,"
-    " korrektur TEXT, PRIMARY KEY (spid, wodate, ueb))",
-    // Deleted rows, so an export of changes can pass deletions on
-    "CREATE TABLE IF NOT EXISTS geloescht ("
-    " tabelle TEXT NOT NULL, schluessel TEXT NOT NULL, korrektur TEXT,"
-    " PRIMARY KEY (tabelle, schluessel))",
-};
 
 const QString kUser = QStringLiteral("local");
 
@@ -109,63 +47,66 @@ bool execSql(const QString &sql)
 }
 
 // The tables' layout; meta.schema says which one a database file has.
+// sql/schema.sql creates the current one, sql/migrate-<n>.sql turns
+// layout n - 1 into n.
 // 1: up to version 0.3.0. 2: maz_sp.auswahl is 0/1 instead of 'Y'/'N',
 // sessions without a time have NULL, change stamps one form.
 constexpr int kSchemaVersion = 2;
 
-const char *const kStampedTables[] = {"sp", "te", "te_ueb", "wo", "normen", "spinfo", "wk",
-                                      "maz", "maz_sp", "ueb", "itp_ls", "geloescht"};
-
-QString createStatement(const char *table)
+// The statements of an SQL file, without comments, split at the
+// semicolons outside of quotes (Qt runs one statement at a time)
+QStringList sqlStatements(const QString &text)
 {
-    const QString head = QStringLiteral("CREATE TABLE IF NOT EXISTS %1 (").arg(QLatin1String(table));
-    for (const char *sql : kSchema) {
-        if (QString::fromLatin1(sql).startsWith(head))
-            return QString::fromLatin1(sql);
+    QStringList list;
+    QString current;
+    QChar quote;
+    for (qsizetype i = 0; i < text.size(); ++i) {
+        const QChar c = text.at(i);
+        if (!quote.isNull()) {
+            current += c;
+            if (c == quote)
+                quote = QChar();
+        } else if (c == QLatin1Char('\'') || c == QLatin1Char('"')) {
+            quote = c;
+            current += c;
+        } else if (c == QLatin1Char('-') && text.mid(i, 2) == QLatin1String("--")) {
+            while (i < text.size() && text.at(i) != QLatin1Char('\n'))
+                ++i;
+            current += QLatin1Char('\n');
+        } else if (c == QLatin1Char(';')) {
+            if (!current.trimmed().isEmpty())
+                list.append(current.trimmed());
+            current.clear();
+        } else {
+            current += c;
+        }
     }
-    return QString();
+    if (!current.trimmed().isEmpty())
+        list.append(current.trimmed());
+    return list;
 }
 
-int schemaVersion()
+// Runs one of the SQL files built into the program (sql/)
+bool runSqlFile(const QString &name)
+{
+    QFile f(QStringLiteral(":/sql/") + name);
+    if (!f.open(QIODevice::ReadOnly)) {
+        g_lastError = QStringLiteral("%1 fehlt im Programm").arg(name);
+        return false;
+    }
+    for (const QString &sql : sqlStatements(QString::fromUtf8(f.readAll()))) {
+        if (!execSql(sql))
+            return false;
+    }
+    return true;
+}
+
+int fileSchemaVersion()
 {
     QSqlQuery q(db());
     if (!q.exec(QStringLiteral("SELECT value FROM meta WHERE key = 'schema'")) || !q.next())
         return 0;
     return q.value(0).toInt();
-}
-
-bool migrateTo2()
-{
-    QStringList steps = {
-        // SQLite cannot change a column's type: the table is built anew
-        QStringLiteral("ALTER TABLE maz_sp RENAME TO maz_sp_v1"),
-        createStatement("maz_sp"),
-        QStringLiteral("INSERT INTO maz_sp (mazid, spid, gew, ziel_rei, ziel_sto, wk_rei, wk_sto, auswahl,"
-                       " bem, user, korrektur)"
-                       " SELECT mazid, spid, gew, ziel_rei, ziel_sto, wk_rei, wk_sto,"
-                       " CASE WHEN upper(trim(coalesce(auswahl, ''))) IN ('N', '0') THEN 0 ELSE 1 END,"
-                       " bem, user, korrektur FROM maz_sp_v1"),
-        QStringLiteral("DROP TABLE maz_sp_v1"),
-    };
-    // One form of "no time" (NULL) and of a time (15:30:00)
-    for (const char *column : {"von", "bis"}) {
-        steps.append(QStringLiteral("UPDATE te SET %1 = NULL WHERE trim(%1) IN ('', '00:00:00')")
-                         .arg(QLatin1String(column)));
-        steps.append(QStringLiteral("UPDATE te SET %1 = strftime('%H:%M:%S', %1)"
-                                    " WHERE strftime('%H:%M:%S', %1) IS NOT NULL")
-                         .arg(QLatin1String(column)));
-    }
-    // Imported stamps came as the file had them, e.g. with a T
-    for (const char *table : kStampedTables) {
-        steps.append(QStringLiteral("UPDATE %1 SET korrektur = strftime('%Y-%m-%d %H:%M:%S', korrektur)"
-                                    " WHERE strftime('%Y-%m-%d %H:%M:%S', korrektur) IS NOT NULL")
-                         .arg(QLatin1String(table)));
-    }
-    for (const QString &sql : std::as_const(steps)) {
-        if (!execSql(sql))
-            return false;
-    }
-    return true;
 }
 
 // A copy of the file as the older program left it, before changing it:
@@ -183,15 +124,15 @@ bool keepCopy(const QString &path, int version)
     return false;
 }
 
-// Brings a database file from an older program up to date, all or nothing
+// Brings a database file from an older program up to date, one layout
+// after the other, all or nothing
 bool migrate(int from)
 {
     QSqlDatabase d = db();
     d.transaction();
     bool ok = true;
-    if (from < 2)
-        ok = migrateTo2();
-    ok = ok && execSql(QStringLiteral("UPDATE meta SET value = '%1' WHERE key = 'schema'").arg(kSchemaVersion));
+    for (int to = from + 1; ok && to <= kSchemaVersion; ++to)
+        ok = runSqlFile(QStringLiteral("migrate-%1.sql").arg(to)) && fileSchemaVersion() == to;
     if (!ok) {
         d.rollback();
         return false;
@@ -343,6 +284,16 @@ QString lastError()
     return g_lastError;
 }
 
+int schemaVersion()
+{
+    return fileSchemaVersion();
+}
+
+int latestSchemaVersion()
+{
+    return kSchemaVersion;
+}
+
 QDateTime now()
 {
     QDateTime t = QDateTime::currentDateTime();
@@ -375,19 +326,18 @@ bool open(const QString &path, QString *error)
         return false;
     }
     execSql(QStringLiteral("PRAGMA foreign_keys = ON"));
-    for (const char *sql : kSchema) {
-        if (!execSql(QString::fromLatin1(sql))) {
-            if (error)
-                *error = g_lastError;
-            return false;
-        }
+    // Missing tables are created, existing ones stay as they are
+    if (!runSqlFile(QStringLiteral("schema.sql"))) {
+        if (error)
+            *error = g_lastError;
+        d = QSqlDatabase();
+        close();
+        return false;
     }
     // A new file has the current tables; an older one is brought up to date
     // once, one from a newer program is left alone
-    const int version = schemaVersion();
-    if (version == 0) {
-        execSql(QStringLiteral("INSERT INTO meta (key, value) VALUES ('schema', '%1')").arg(kSchemaVersion));
-    } else if (version > kSchemaVersion) {
+    const int version = fileSchemaVersion();
+    if (version > kSchemaVersion) {
         g_lastError = QStringLiteral("Die Datenbank stammt von einer neueren Version des Trainingsplaners.");
         if (error)
             *error = g_lastError;

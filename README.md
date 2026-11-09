@@ -119,7 +119,7 @@ The database is stored at
 `%APPDATA%\Trainingsplaner\Trainingsplaner\trainingsplaner.sqlite`
 (shown under *Einstellungen*). To back up, close the program and copy that
 file. When a new version changes the tables, it updates the file on the
-first start and keeps the old one beside it, e.g.
+first start (`sql/migrate-<n>.sql`) and keeps the old one beside it, e.g.
 `trainingsplaner.schema1.sqlite`. A file from a newer version is not opened.
 
 ## Releases
@@ -156,6 +156,8 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `src/steps.*` | weight step encoding and the load figures |
 | `src/model.h` | athletes, sessions, entries, weeks, weekly summary |
 | `src/database.*` | SQLite storage |
+| `sql/schema.sql` | the database layout; `sqlite3 neu.sqlite < sql/schema.sql` makes an empty database |
+| `sql/migrate-<n>.sql` | brings a database of layout n - 1 to layout n |
 | `src/tables.*` | table definitions shared by import, export and the deletion log |
 | `src/bakimport.*`, `src/bakexport.*` | import and export in the old program's format |
 | `src/exerciseweek.*` | one exercise across a week (Erfassung TÜ) |
