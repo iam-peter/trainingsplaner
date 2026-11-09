@@ -95,6 +95,9 @@ T.ComboBox {
 
     // Nothing to choose: the list does not show at all
     popup: T.Popup {
+        // A click outside only closes the list
+        modal: true
+        dim: false
         onOpened: if (control.count === 0) close()
         y: control.height + Tokens.space1
         width: control.width

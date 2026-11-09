@@ -1,5 +1,6 @@
 import QtQuick
 import QtTest
+import QtQuick.Controls
 import Trainingsplaner
 
 // A time typed in short forms is written out, one picked from the clock
@@ -12,6 +13,20 @@ Item {
         id: field
         x: 20
         y: 20
+    }
+
+    // Something behind the picker that must not get the click
+    Button {
+        id: behind
+        x: 400
+        y: 300
+        text: "Dahinter"
+    }
+
+    SignalSpy {
+        id: behindClicks
+        target: behind
+        signalName: "clicked"
     }
 
     SignalSpy {
@@ -82,6 +97,18 @@ Item {
             compare(field.text, "06:00")
             picker.close()
             tryCompare(picker, "visible", false)
+        }
+
+        // A click beside the open picker closes it, and nothing else
+        function test_clickOutsideOnlyCloses() {
+            const picker = findChild(field, "timePicker")
+            mouseClick(findChild(field, "clockButton"))
+            tryCompare(picker, "opened", true)
+            mouseClick(behind)
+            tryCompare(picker, "visible", false)
+            compare(behindClicks.count, 0)
+            mouseClick(behind)               // closed: the button works again
+            compare(behindClicks.count, 1)
         }
     }
 }

@@ -12,6 +12,11 @@ T.Popup {
 
     padding: Tokens.space3
 
+    // Blocks the window behind it, without dimming it: a click outside
+    // only closes it, and does not also press what lies below
+    modal: true
+    dim: false
+
     background: Rectangle {
         color: Tokens.popover
         radius: Tokens.radiusMd

@@ -86,7 +86,9 @@ Popup {
         }
         RowLayout {
             spacing: 8
-            Button {
+            IconButton {
+                objectName: "clearButton"
+                iconName: "brush-cleaning"
                 text: "Leeren"
                 flat: true
                 onClicked: {

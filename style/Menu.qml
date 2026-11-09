@@ -6,6 +6,11 @@ import QtQuick.Templates as T
 T.Menu {
     id: control
 
+    // Blocks the window behind it, without dimming it: a click outside
+    // only closes it, and does not also press what lies below
+    modal: true
+    dim: false
+
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
                             implicitContentWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,

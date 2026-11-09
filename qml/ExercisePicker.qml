@@ -30,7 +30,6 @@ Popup {
     }
 
     padding: 12
-    modal: false
     focus: true
     onOpened: hovered = 0
 
