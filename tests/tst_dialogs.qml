@@ -50,6 +50,23 @@ Item {
         standardButtons: Dialog.Yes | Dialog.No | Dialog.Cancel
     }
 
+    // More content than the window has room for
+    AppDialog {
+        id: tall
+        title: "Lang"
+        width: 300
+        contentItem: DialogScroll {
+            Column {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                Repeater {
+                    model: 40
+                    Label { text: "Zeile " + (index + 1) }
+                }
+            }
+        }
+    }
+
     TestCase {
         name: "Dialogs"
         when: windowShown
@@ -147,6 +164,27 @@ Item {
             tryCompare(status, "height", tall)
             status.close()
             tryCompare(status, "visible", false)
+        }
+
+        // Taller content scrolls inside a dialog that stays in the window,
+        // with the bar beside the content, not over it
+        function test_tallContentScrolls() {
+            const win = root.Window.window
+            const before = win.height
+            win.height = 400
+            tall.open()
+            tryCompare(tall, "opened", true)
+            tryCompare(tall, "height", 360)
+            const scroller = tall.contentItem
+            const bar = scroller.ScrollBar.vertical
+            verify(scroller.contentHeight > scroller.height)
+            verify(bar.visible)
+            verify(bar.x >= scroller.x + scroller.width)
+            mouseWheel(scroller, 50, 50, 0, -600)
+            tryVerify(() => scroller.contentY > 0)
+            tall.close()
+            tryCompare(tall, "visible", false)
+            win.height = before
         }
     }
 }

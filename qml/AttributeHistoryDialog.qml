@@ -64,9 +64,6 @@ EditorDialog {
     // The old program's title for this window
     title: "Erfassung " + art
     width: parent ? Math.min(parent.width - 40, 640) : 640
-    // The rows scroll in their own list, below headings that stay, as in
-    // Einstellungen › Zusatzinfo
-    scrollsContent: false
     discardText: "Die Änderungen an „" + art + "“ gehen verloren."
 
     Shortcut {

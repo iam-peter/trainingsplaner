@@ -21,9 +21,19 @@ T.Dialog {
         part: StylePart.Label
     }
 
+    // The title's width from its text: an elided label's own natural
+    // width follows the width it gets, from here, which made a loop
+    TextMetrics {
+        id: titleMetrics
+        font: control.header ? control.header.font : control.font
+        text: control.title
+    }
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
                             implicitContentWidth + leftPadding + rightPadding,
-                            implicitHeaderWidth,
+                            control.header?.visible
+                                ? Math.ceil(titleMetrics.advanceWidth) + control.header.leftPadding
+                                  + control.header.rightPadding
+                                : 0,
                             implicitFooterWidth)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding

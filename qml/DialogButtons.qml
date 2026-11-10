@@ -15,15 +15,8 @@ Item {
 
     default property alias buttons: box.contentData
     property alias leading: leadingRow.data
-    // What AppDialog reads for its natural width
-    readonly property alias count: box.count
-    readonly property alias spacing: box.spacing
-    readonly property alias leftPadding: box.leftPadding
-    readonly property alias rightPadding: box.rightPadding
-    readonly property real leadingWidth: leadingRow.implicitWidth > 0 ? leadingRow.implicitWidth + 2 * box.spacing : 0
-    function itemAt(i) { return box.itemAt(i) }
-
-    implicitWidth: box.implicitWidth + leadingWidth
+    implicitWidth: box.implicitWidth
+                   + (leadingRow.implicitWidth > 0 ? leadingRow.implicitWidth + 2 * box.spacing : 0)
     implicitHeight: box.implicitHeight
 
     DialogButtonBox {

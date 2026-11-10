@@ -31,57 +31,61 @@ AppDialog {
             athleteBox.currentIndex = 0
     }
 
-    contentItem: ColumnLayout {
-        spacing: 8
-
-        RadioButton { id: modeAll; text: "Alle Daten"; checked: true }
-
-        RadioButton { id: modeSince; text: "Änderungen seit" }
-        RowLayout {
+    contentItem: DialogScroll {
+        ColumnLayout {
+            anchors.left: parent.left
+            anchors.right: parent.right
             spacing: 8
-            Layout.leftMargin: 24
-            enabled: modeSince.checked
-            DateField { id: sinceDate }
-            TimeField { id: sinceTime; objectName: "sinceTime" }
+
+            RadioButton { id: modeAll; text: "Alle Daten"; checked: true }
+
+            RadioButton { id: modeSince; text: "Änderungen seit" }
+            RowLayout {
+                spacing: 8
+                Layout.leftMargin: 24
+                enabled: modeSince.checked
+                DateField { id: sinceDate }
+                TimeField { id: sinceTime; objectName: "sinceTime" }
+                Label {
+                    text: Store.lastExport() !== "" ? "letzter Export: " + Store.lastExport() : ""
+                    color: Styles.TokenInterface.semantics.text_muted
+                    font.pixelSize: 11
+                }
+            }
+
+            RadioButton { id: modeAthlete; text: "Trainingswochen eines Sportlers" }
+            RowLayout {
+                spacing: 8
+                Layout.leftMargin: 24
+                enabled: modeAthlete.checked
+                ComboBox {
+                    id: athleteBox
+                    implicitWidth: 200
+                    model: Store.athletes
+                    textRole: "displayName"
+                    valueRole: "id"
+                }
+                Label { text: "von" }
+                WeekField { id: fromWeek }
+                Label { text: "bis" }
+                WeekField { id: toWeek }
+            }
+
             Label {
-                text: Store.lastExport() !== "" ? "letzter Export: " + Store.lastExport() : ""
-                color: Styles.TokenInterface.semantics.text_muted
+                Layout.fillWidth: true
+                Layout.topMargin: 8
+                wrapMode: Text.Wrap
                 font.pixelSize: 11
+                color: Styles.TokenInterface.semantics.text_muted
+                text: "Die Datei lässt sich auf einem anderen Rechner über „Daten“ › „Importieren“ einlesen. Gelöschte Einträge werden dabei ebenfalls entfernt."
             }
-        }
 
-        RadioButton { id: modeAthlete; text: "Trainingswochen eines Sportlers" }
-        RowLayout {
-            spacing: 8
-            Layout.leftMargin: 24
-            enabled: modeAthlete.checked
-            ComboBox {
-                id: athleteBox
-                implicitWidth: 200
-                model: Store.athletes
-                textRole: "displayName"
-                valueRole: "id"
+            Label {
+                Layout.fillWidth: true
+                visible: dialog.summary !== ""
+                text: dialog.summary
+                wrapMode: Text.Wrap
             }
-            Label { text: "von" }
-            WeekField { id: fromWeek }
-            Label { text: "bis" }
-            WeekField { id: toWeek }
-        }
-
-        Label {
-            Layout.fillWidth: true
-            Layout.topMargin: 8
-            wrapMode: Text.Wrap
-            font.pixelSize: 11
-            color: Styles.TokenInterface.semantics.text_muted
-            text: "Die Datei lässt sich auf einem anderen Rechner über „Daten“ › „Importieren“ einlesen. Gelöschte Einträge werden dabei ebenfalls entfernt."
-        }
-
-        Label {
-            Layout.fillWidth: true
-            visible: dialog.summary !== ""
-            text: dialog.summary
-            wrapMode: Text.Wrap
         }
     }
 

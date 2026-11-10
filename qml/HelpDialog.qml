@@ -11,8 +11,6 @@ AppDialog {
     standardButtons: Dialog.Close
     width: parent ? Math.min(parent.width - 40, 760) : 760
     height: parent ? Math.min(parent.height - 40, 620) : 620
-    // Fixed height; scrolls its content itself
-    scrollsContent: false
 
     readonly property var keys: [
         ["Strg+← / Strg+→", "Vorige / nächste Woche"],

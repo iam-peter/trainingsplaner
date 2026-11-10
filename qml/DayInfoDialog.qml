@@ -75,8 +75,6 @@ AppDialog {
     // As wide as its row of fields needs, at least 640 px
     width: Math.min(parent ? parent.width - 40 : 100000, Math.max(640, implicitWidth))
     height: Math.min(parent ? parent.height - 60 : 600, 620)
-    // Fixed height; scrolls its content itself
-    scrollsContent: false
     standardButtons: Dialog.Close
 
     contentItem: ColumnLayout {
