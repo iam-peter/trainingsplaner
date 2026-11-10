@@ -34,7 +34,9 @@ public:
 
     // A report from the functions above, on A4 landscape
     Q_INVOKABLE bool printReport(const QVariantMap &report) const;
-    Q_INVOKABLE QString saveReportPdf(const QVariantMap &report, const QUrl &file) const;
+    // As a PDF, or as CSV when the file ends in .csv; opened afterwards.
+    // Returns an error message, empty on success.
+    Q_INVOKABLE QString saveReport(const QVariantMap &report, const QUrl &file) const;
     // Onto the clipboard as text for a spreadsheet (Report::toText)
     Q_INVOKABLE void copyReport(const QVariantMap &report) const;
 };

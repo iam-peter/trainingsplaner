@@ -549,6 +549,15 @@ void TestCore::reportRoundTripAndPdf()
     QCOMPARE(Report::toText(small),
              QStringLiteral("Gruppenanalyse\nGesamtübersicht\nSportler\tWh/Wo\nTest, Tina\t5,5\n\neins\nzwei\n"));
 
+    // As CSV for a German spreadsheet: semicolons, a cell holding one in
+    // quotes, CR LF, UTF-8 with a byte order mark
+    Report::Document csv;
+    csv.title = QStringLiteral("Wettkämpfe");
+    csv.table({Report::cells({QStringLiteral("Sportler"), QStringLiteral("KG")}),
+               Report::cells({QStringLiteral("Test; \"Tina\""), QStringLiteral("64,5")})});
+    QCOMPARE(Report::toCsv(csv),
+             QByteArray("\xEF\xBB\xBF") + QStringLiteral("Wettkämpfe\r\nSportler;KG\r\n\"Test; \"\"Tina\"\"\";64,5\r\n\r\n").toUtf8());
+
     const QString path = m_dir.filePath(QStringLiteral("report.pdf"));
     {
         QPdfWriter writer(path);

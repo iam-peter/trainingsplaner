@@ -58,7 +58,7 @@ Item {
             compare(table.itemAtCell(Qt.point(0, 3)).display, "1 Reißen WKÜ")
             verify(table.itemAtCell(Qt.point(0, 3)).bold)
             // Kopieren: the tables for a spreadsheet, cells split by tabs
-            mouseClick(findChild(report, "copyButton"))
+            mouseClick(findChild(page, "copyButton"))
             pasted.text = ""
             pasted.paste()
             verify(pasted.text.indexOf("Abschnittsanalyse") === 0, pasted.text.slice(0, 80))

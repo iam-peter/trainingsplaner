@@ -21,7 +21,6 @@ ColumnLayout {
     property string emptyText: "Keine Daten."
     property var report: ({})
     readonly property bool hasReport: !reportModel.empty
-    property string title
 
     property bool stale: true
     property double builtAt: 0
@@ -68,32 +67,10 @@ ColumnLayout {
 
     spacing: 8
 
-    RowLayout {
-        spacing: 8
-        // On the line of the first heading beside it (Sportler, MAZ), not
-        // centred on the buttons
-        Label { text: view.title; font.bold: true; Layout.fillWidth: true; Layout.alignment: Qt.AlignTop }
-        // For a spreadsheet: the cells separated by tabs
-        IconButton {
-            objectName: "copyButton"
-            iconName: "copy"
-            text: "Kopieren"
-            enabled: view.hasReport
-            onClicked: Analysis.copyReport(view.report)
-        }
-        IconButton {
-            iconName: "printer"
-            text: "Drucken"
-            enabled: view.hasReport
-            onClicked: Analysis.printReport(view.report)
-        }
-        IconButton {
-            iconName: "file-down"
-            text: "PDF"
-            enabled: view.hasReport
-            onClicked: pdfDialog.open()
-        }
-    }
+    // What the page's toolbar offers for the report it shows
+    function copyTables() { Analysis.copyReport(report) }
+    function printReport() { Analysis.printReport(report) }
+    function saveAs() { saveDialog.open() }
 
     ReportModel {
         id: reportModel
@@ -195,12 +172,14 @@ ColumnLayout {
         }
     }
 
+    // A PDF to pass on, or CSV for a spreadsheet; the format by the
+    // file's ending, which the chosen filter adds
     FileDialog {
-        id: pdfDialog
-        title: "Als PDF speichern"
+        id: saveDialog
+        title: "Speichern unter"
         fileMode: FileDialog.SaveFile
-        defaultSuffix: "pdf"
-        nameFilters: ["PDF (*.pdf)"]
-        onAccepted: Analysis.saveReportPdf(view.report, selectedFile)
+        nameFilters: ["PDF (*.pdf)", "CSV für Tabellenkalkulation (*.csv)"]
+        defaultSuffix: selectedNameFilter.extensions.length > 0 ? selectedNameFilter.extensions[0] : "pdf"
+        onAccepted: Analysis.saveReport(view.report, selectedFile)
     }
 }

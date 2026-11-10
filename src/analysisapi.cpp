@@ -9,6 +9,7 @@
 
 #include <QClipboard>
 #include <QDesktopServices>
+#include <QFile>
 #include <QGuiApplication>
 #include <QLocale>
 #include <QPageLayout>
@@ -549,13 +550,17 @@ bool AnalysisApi::printReport(const QVariantMap &report) const
     return true;
 }
 
-QString AnalysisApi::saveReportPdf(const QVariantMap &report, const QUrl &file) const
+QString AnalysisApi::saveReport(const QVariantMap &report, const QUrl &file) const
 {
     const QString path = file.toLocalFile();
     if (path.isEmpty())
         return QStringLiteral("Kein Dateiname angegeben.");
     const Report::Document doc = Report::fromVariant(report);
-    {
+    if (path.endsWith(QLatin1String(".csv"), Qt::CaseInsensitive)) {
+        QFile out(path);
+        if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate) || out.write(Report::toCsv(doc)) < 0)
+            return QStringLiteral("Die Datei kann nicht geschrieben werden: ") + out.errorString();
+    } else {
         QPdfWriter writer(path);
         writer.setResolution(300);
         writer.setTitle(doc.title);

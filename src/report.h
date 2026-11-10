@@ -55,6 +55,12 @@ Document fromVariant(const QVariantMap &v);
 // decimal commas (5,5), and spreadsheets split pasted text at tabs.
 QString toText(const Document &d);
 
+// The same as a CSV file for German spreadsheets: separated by semicolons
+// (as Excel expects them with a decimal comma), quoted where a cell holds
+// one, lines ending in CR LF, UTF-8 with a byte order mark so Excel reads
+// the umlauts
+QByteArray toCsv(const Document &d);
+
 // Paints the report onto a device already set up with its page layout. A
 // table wider than the page is drawn smaller; a long one goes on over the
 // next page, its header row repeated there.

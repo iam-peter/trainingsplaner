@@ -55,6 +55,7 @@ Page {
             spacing: 8
             anchors.fill: parent
             anchors.leftMargin: 8
+            anchors.rightMargin: 8
             AppTabBar {
                 id: tabs
                 objectName: "analysisTabs"
@@ -65,8 +66,35 @@ Page {
                 AppTabButton { text: "Grafik" }
             }
             Item { Layout.fillWidth: true }
+            // For what the tab shows: its report, or the chart
+            IconButton {
+                objectName: "copyButton"
+                visible: page.report !== null
+                enabled: page.report?.hasReport ?? false
+                iconName: "copy"
+                text: "Kopieren"
+                toolTip: "Die Tabellen für eine Tabellenkalkulation kopieren"
+                onClicked: page.report.copyTables()
+            }
+            IconButton {
+                iconName: "printer"
+                text: "Drucken"
+                enabled: page.report === null || page.report.hasReport
+                onClicked: page.report ? page.report.printReport() : analysisChart.printChart()
+            }
+            IconButton {
+                objectName: "saveAsButton"
+                iconName: "file-down"
+                text: "Speichern unter"
+                toolTip: page.report ? "Als PDF oder als CSV für eine Tabellenkalkulation" : "Die Grafik als PNG-Bild"
+                enabled: page.report === null || page.report.hasReport
+                onClicked: page.report ? page.report.saveAs() : analysisChart.saveImage()
+            }
         }
     }
+
+    // The report of the tab shown, null on the chart
+    readonly property ReportView report: [individualReport, groupReport, checkReport][tabs.currentIndex] ?? null
 
     StackLayout {
         anchors.fill: parent
@@ -152,7 +180,6 @@ Page {
                 objectName: "individualReport"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                title: "Abschnittsanalyse"
                 request: page.athleteId !== "" ? page.individualParams() : null
                 build: (p) => Analysis.individual(p)
                 ready: iMaz.currentIndex > 0 || iFrom.monday !== ""
@@ -203,7 +230,6 @@ Page {
                 objectName: "groupReport"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                title: "Gruppenanalyse"
                 request: gMaz.currentIndex >= 0 ? {
                     mazId: gMaz.currentValue, mode: gVolume.checked ? 1 : gIntensity.checked ? 2 : 0,
                     exercise: parseInt(gExercise.text) || 1,
@@ -248,7 +274,6 @@ Page {
                 objectName: "checkReport"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                title: "Datenprüfung"
                 request: ({
                     from: cFrom.text, weeks: cWeeks.value, mode: cTraining.checked ? 0 : 1,
                     athletes: Store.selectableAthletes
@@ -304,18 +329,6 @@ Page {
                     onEditingFinished: chartTab.reload()
                 }
                 Label { text: Store.exerciseName(parseInt(chEx.text) || 0); color: Styles.TokenInterface.semantics.text_muted }
-                Item { Layout.fillWidth: true }
-                IconButton {
-                    iconName: "file-down"
-                    text: "Bild"
-                    toolTip: "Grafik als PNG-Bild speichern"
-                    onClicked: analysisChart.saveImage()
-                }
-                IconButton {
-                    iconName: "printer"
-                    text: "Drucken"
-                    onClicked: analysisChart.printChart()
-                }
             }
             RowLayout {
                 spacing: 8

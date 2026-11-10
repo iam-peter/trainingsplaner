@@ -125,6 +125,36 @@ QString toText(const Document &d)
     return lines.join(QLatin1Char('\n')) + QLatin1Char('\n');
 }
 
+QByteArray toCsv(const Document &d)
+{
+    auto field = [](const QString &t) {
+        if (!t.contains(QLatin1Char(';')) && !t.contains(QLatin1Char('"')) && !t.contains(QLatin1Char('\n')))
+            return t;
+        QString q = t;
+        q.replace(QLatin1Char('"'), QStringLiteral("\"\""));
+        return QLatin1Char('"') + q + QLatin1Char('"');
+    };
+    QStringList lines;
+    if (!d.title.isEmpty())
+        lines.append(field(d.title));
+    for (const Block &b : d.blocks) {
+        if (b.kind != Block::Table) {
+            for (const QString &l : b.text.split(QLatin1Char('\n')))
+                lines.append(field(l));
+            continue;
+        }
+        for (const Cells &row : b.rows) {
+            QStringList fields;
+            fields.reserve(row.size());
+            for (const Cell &c : row)
+                fields.append(field(c.text));
+            lines.append(fields.join(QLatin1Char(';')));
+        }
+        lines.append(QString());
+    }
+    return QByteArray("\xEF\xBB\xBF") + lines.join(QStringLiteral("\r\n")).toUtf8() + "\r\n";
+}
+
 namespace {
 
 QFont font(double pt, bool bold = false)
