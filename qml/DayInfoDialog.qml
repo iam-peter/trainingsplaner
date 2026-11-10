@@ -4,186 +4,213 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
 
-// Extra info per day (Zusatzinfo): body weight, body fat, supplements ...
-// for the days of one week.
-AppDialog {
+// Extra info per day (Zusatzinfo) for the days of one week: body weight,
+// body fat, supplements ... Every entry is a row of fields, edited in
+// place and saved together, as in Erfassung Kader; Abbrechen leaves the
+// week as it was.
+EditorDialog {
     id: dialog
 
     property string athleteId
     property string monday
-    property var entries: []
     property string error
-    // The entry being edited, null for a new one
-    property var editing: null
+    // The week's days ("yyyy-MM-dd") and their names, for every row's box
+    property var days: []
+    property var dayNames: []
+
+    // Shared by the headings and the rows; the category takes the rest
+    readonly property int wDay: 150
+    readonly property int wTime: 96
+    readonly property int wValue: 104
+    readonly property int wRemove: 32
 
     function edit(a, m) {
         athleteId = a
         monday = m
-        editing = null
-        reload()
-        resetForm()
-        open()
-    }
-
-    function reload() {
-        entries = Store.dayInfo(athleteId, monday)
-        summary.text = Store.weekInfoSummary(athleteId, monday)
-    }
-
-    function resetForm() {
-        editing = null
         error = ""
-        const today = Store.today()
-        const dayIndex = Store.mondayOf(today) === monday ? (new Date(today).getDay() + 6) % 7 : 0
-        dayBox.currentIndex = dayIndex
-        valueField.text = ""
-        timeField.text = ""
-    }
-
-    function startEdit(e) {
-        editing = e
-        error = ""
-        for (let i = 0; i < 7; ++i) {
-            if (dayDate(i) === e.date)
-                dayBox.currentIndex = i
+        const list = []
+        const names = []
+        for (let d = 1; d <= 7; ++d) {
+            const date = new Date(monday + "T12:00:00")
+            date.setDate(date.getDate() + d - 1)
+            list.push(date.toISOString().slice(0, 10))
+            names.push(Store.dayName(d) + ", " + Store.dayDate(monday, d))
         }
-        categoryBox.currentIndex = Math.max(0, Store.infoCategories.findIndex(c => c.code === e.code))
-        timeField.text = e.time
-        valueField.text = e.valueText
-        valueField.forceActiveFocus()
+        days = list
+        dayNames = names
+        // The rows after opening, as in Erfassung Kader: rows changed
+        // while the dialog is hidden keep the last opening's layout
+        open()
+        rows.clear()
+        for (const e of Store.dayInfo(athleteId, monday))
+            rows.append({ date: e.date, time: e.time, code: e.code, value: e.valueText })
+        // Nothing entered yet: a row to start typing in
+        if (rows.count === 0)
+            addRow()
+        dirty = false
     }
 
-    function dayDate(i) {
-        const d = new Date(monday + "T12:00:00")
-        d.setDate(d.getDate() + i)
-        return d.toISOString().slice(0, 10)
+    function addRow() {
+        // Today in this week, else its Monday; the category of the row above
+        const today = days.indexOf(Store.today())
+        const above = rows.count > 0 ? rows.get(rows.count - 1).code : ""
+        const first = Store.infoCategories.length > 0 ? Store.infoCategories[0].code : ""
+        rows.append({ date: days[Math.max(0, today)], time: "", code: above || first, value: "" })
+        dirty = true
+        Qt.callLater(() => { rowList.forceLayout(); rowList.positionViewAtEnd() })
     }
 
     function save() {
-        const cat = Store.infoCategories[categoryBox.currentIndex]
-        error = Store.saveDayInfo(athleteId, dayDate(dayBox.currentIndex), timeField.time, cat ? cat.code : "",
-                                  valueField.text,
-                                  editing ? editing.date : "", editing ? editing.time : "", editing ? editing.code : "")
-        if (error === "") {
-            reload()
-            resetForm()
-            valueField.forceActiveFocus()
+        const list = []
+        // Plain objects: the model's own elements reach C++ as empty maps
+        for (let i = 0; i < rows.count; ++i) {
+            const r = rows.get(i)
+            list.push({ date: r.date, time: r.time, code: r.code, value: r.value })
         }
+        error = Store.saveWeekInfo(athleteId, monday, list)
+        if (error !== "")
+            return
+        dirty = false
+        close()
     }
 
     title: "Zusatzinfo  –  Woche " + Store.weekLabel(monday)
-    // As wide as its row of fields needs, at least 640 px
-    width: Math.min(parent ? parent.width - 40 : 100000, Math.max(640, implicitWidth))
-    height: Math.min(parent ? parent.height - 60 : 600, 620)
-    standardButtons: Dialog.Close
+    width: parent ? Math.min(parent.width - 40, 700) : 700
+    discardText: "Die Änderungen an der Zusatzinfo gehen verloren."
+
+    Shortcut {
+        sequence: "Ctrl+S"
+        enabled: dialog.onTop
+        onActivated: dialog.save()
+    }
+
+    ListModel { id: rows }
 
     contentItem: ColumnLayout {
         spacing: 8
 
-        GridLayout {
-            columns: 5
-            columnSpacing: 8
-            rowSpacing: 4
-            Label { text: "Tag"; font.pixelSize: 11 }
-            Label { text: "Zeit"; font.pixelSize: 11 }
-            Label { text: "Kategorie"; font.pixelSize: 11 }
-            Label { text: "Wert"; font.pixelSize: 11 }
-            Item {}
-            ComboBox {
-                id: dayBox
-                implicitWidth: 150
-                model: [1, 2, 3, 4, 5, 6, 7].map(d => Store.dayName(d) + ", " + Store.dayDate(dialog.monday, d))
-            }
-            TimeField { id: timeField; objectName: "timeField" }
-            ComboBox {
-                id: categoryBox
-                implicitWidth: 170
-                model: Store.infoCategories.map(c => c.name)
-            }
-            RowLayout {
-                spacing: 4
-                TextField {
-                    id: valueField
-                    objectName: "valueField"
-                    implicitWidth: 80
-                    horizontalAlignment: TextInput.AlignRight
-                    onAccepted: dialog.save()
-                }
-                Label {
-                    text: Store.infoCategories[categoryBox.currentIndex]
-                          ? Store.infoCategories[categoryBox.currentIndex].unit : ""
-                }
-            }
-            RowLayout {
-                spacing: 8
-                IconButton {
-                    iconName: dialog.editing ? "save" : "plus"
-                    text: dialog.editing ? "Speichern" : "Hinzufügen"
-                    onClicked: dialog.save()
-                }
-                IconToolButton {
-                    // Keeps its room while hidden, so the dialog does not
-                    // widen when an entry is edited
-                    opacity: dialog.editing !== null ? 1 : 0
-                    enabled: dialog.editing !== null
-                    iconName: "x"
-                    toolTip: "Bearbeiten abbrechen"
-                    onClicked: dialog.resetForm()
-                }
-            }
+        RowLayout {
+            spacing: 8
+            Layout.rightMargin: dialog.wRemove + 8 + rowBar.room
+            Label { text: "Tag"; Layout.preferredWidth: dialog.wDay; font.bold: true }
+            Label { text: "Zeit"; Layout.preferredWidth: dialog.wTime; font.bold: true }
+            Label { text: "Kategorie"; Layout.fillWidth: true; font.bold: true }
+            Label { text: "Wert"; Layout.preferredWidth: dialog.wValue; font.bold: true }
         }
 
-        Label {
-            visible: dialog.error !== ""
-            text: dialog.error
-            color: Styles.TokenInterface.semantics.danger_default
-        }
-
-        Rectangle { Layout.fillWidth: true; height: 1; color: Styles.TokenInterface.semantics.stroke_subtle }
-
+        // As high as its rows, until the dialog reaches the window's height;
+        // then it scrolls
         ListView {
-            boundsBehavior: Flickable.StopAtBounds
+            id: rowList
+            objectName: "rowList"
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.minimumHeight: Math.min(contentHeight, 80)
             clip: true
-            model: dialog.entries
-            ScrollBar.vertical: AppScrollBar {}
-            delegate: ItemDelegate {
-                required property var modelData
-                width: ListView.view.width - (ListView.view.ScrollBar.vertical?.room ?? 0)
-                highlighted: dialog.editing && dialog.editing.date === modelData.date
-                             && dialog.editing.code === modelData.code && dialog.editing.time === modelData.time
-                onClicked: dialog.startEdit(modelData)
-                contentItem: RowLayout {
-                    spacing: 8
-                    Label { text: modelData.dateText; Layout.preferredWidth: 150 }
-                    Label { text: modelData.time; Layout.preferredWidth: 60; color: Styles.TokenInterface.semantics.text_muted }
-                    Label { text: modelData.name; Layout.fillWidth: true }
-                    Label { text: modelData.valueText + " " + modelData.unit; font.bold: true }
-                    IconToolButton {
-                        iconName: "trash-2"
-                        toolTip: "Löschen"
-                        onClicked: {
-                            Store.removeDayInfo(dialog.athleteId, modelData.code, modelData.date, modelData.time)
-                            dialog.reload()
-                            dialog.resetForm()
-                        }
+            // The fields' borders sit on the edge: without a pixel around,
+            // the clip cut the first row's top line
+            topMargin: 1
+            bottomMargin: 1
+            Layout.preferredHeight: contentHeight + topMargin + bottomMargin
+            boundsBehavior: Flickable.StopAtBounds
+            spacing: 8
+            model: rows
+            ScrollBar.vertical: AppScrollBar { id: rowBar }
+            delegate: RowLayout {
+                id: row
+                objectName: "infoRow"
+                required property int index
+                required property string date
+                required property string time
+                required property string code
+                required property string value
+                readonly property var category: Store.infoCategories.find(c => c.code === code) ?? null
+                width: ListView.view.width - rowBar.room
+                spacing: 8
+                ComboBox {
+                    objectName: "dayBox"
+                    Layout.preferredWidth: dialog.wDay
+                    model: dialog.dayNames
+                    currentIndex: dialog.days.indexOf(row.date)
+                    onActivated: { rows.setProperty(row.index, "date", dialog.days[currentIndex]); dialog.dirty = true }
+                }
+                TimeField {
+                    objectName: "timeField"
+                    Layout.preferredWidth: dialog.wTime
+                    text: row.time
+                    onTextEdited: { rows.setProperty(row.index, "time", time); dialog.dirty = true }
+                }
+                ComboBox {
+                    objectName: "categoryBox"
+                    Layout.fillWidth: true
+                    model: Store.infoCategories.map(c => c.name)
+                    currentIndex: Store.infoCategories.findIndex(c => c.code === row.code)
+                    onActivated: {
+                        rows.setProperty(row.index, "code", Store.infoCategories[currentIndex].code)
+                        dialog.dirty = true
+                    }
+                }
+                TextField {
+                    objectName: "valueField"
+                    Layout.preferredWidth: dialog.wValue
+                    horizontalAlignment: TextInput.AlignRight
+                    unit: row.category ? row.category.unit : ""
+                    text: row.value
+                    onTextEdited: { rows.setProperty(row.index, "value", text); dialog.dirty = true }
+                    onAccepted: dialog.save()
+                }
+                IconToolButton {
+                    objectName: "removeButton"
+                    Layout.preferredWidth: dialog.wRemove
+                    Layout.preferredHeight: dialog.wRemove
+                    iconName: "trash-2"
+                    toolTip: "Entfernen"
+                    // Removing destroys this row, so it comes last
+                    onClicked: {
+                        dialog.dirty = true
+                        rows.remove(row.index)
                     }
                 }
             }
-            Label {
-                anchors.centerIn: parent
-                visible: dialog.entries.length === 0
-                text: "Keine Einträge in dieser Woche."
-                color: Styles.TokenInterface.semantics.text_muted
-            }
         }
 
         Label {
-            id: summary
+            visible: rows.count === 0
+            text: "Keine Einträge in dieser Woche."
+            color: Styles.TokenInterface.semantics.text_muted
+        }
+
+        Label {
             Layout.fillWidth: true
+            visible: dialog.error !== ""
             wrapMode: Text.Wrap
-            font.bold: true
+            text: dialog.error
+            color: Styles.TokenInterface.semantics.danger_default
+        }
+    }
+
+    footer: DialogButtons {
+        // On the line of the dialog's buttons, at the left; never part of
+        // the scrolled rows
+        leading: IconButton {
+            objectName: "addButton"
+            iconName: "plus"
+            text: "Hinzufügen"
+            onClicked: dialog.addRow()
+        }
+        Button {
+            objectName: "cancelButton"
+            text: "Abbrechen"
+            DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
+            onClicked: dialog.cancel()
+        }
+        IconButton {
+            objectName: "saveButton"
+            iconName: "save"
+            text: "Speichern"
+            highlighted: true
+            DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
+            onClicked: dialog.save()
         }
     }
 }

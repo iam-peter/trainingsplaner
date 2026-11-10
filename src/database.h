@@ -82,6 +82,11 @@ QStringList infoValues(const QString &art); // distinct texts, sorted
 // Records of the given kinds dated from..to (inclusive)
 QList<InfoRecord> infoRecordsBetween(const QString &athleteId, const QStringList &arts,
                                      const QDate &from, const QDate &to);
+// Makes `records` all records of these kinds dated from..to in one step:
+// the others in that range are removed, unchanged ones not written again
+bool replaceInfoRecordsBetween(const QString &athleteId, const QStringList &arts,
+                               const QDate &from, const QDate &to,
+                               const QList<InfoRecord> &records);
 // The record valid on `date` (from <= date <= to), or nullptr
 const InfoRecord *infoAt(const QList<InfoRecord> &records, const QDate &date);
 // Sets an attribute from `date` on: the record valid until then ends the day

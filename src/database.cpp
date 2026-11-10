@@ -473,6 +473,47 @@ QList<InfoRecord> infoRecordsBetween(const QString &athleteId, const QStringList
     return readInfo(q);
 }
 
+bool replaceInfoRecordsBetween(const QString &athleteId, const QStringList &arts,
+                               const QDate &from, const QDate &to,
+                               const QList<InfoRecord> &records)
+{
+    QSqlDatabase d = db();
+    d.transaction();
+    const QDateTime stamp = now();
+    const QList<InfoRecord> before = infoRecordsBetween(athleteId, arts, from, to);
+    // The same record: same kind, day and time of day (the key)
+    const auto same = [](const QList<InfoRecord> &list, const InfoRecord &key) -> const InfoRecord * {
+        for (const InfoRecord &r : list) {
+            if (r.art == key.art && r.from == key.from && r.time == key.time)
+                return &r;
+        }
+        return nullptr;
+    };
+    for (const InfoRecord &old : before) {
+        if (!same(records, old)
+            && !deleteRows(QStringLiteral("athlete_info"),
+                           QStringLiteral("athlete_id = ? AND kind = ? AND from_date = ? AND time = ?"),
+                           {athleteId, old.art, old.from.toString(Qt::ISODate), Times::stored(old.time)}, stamp)) {
+            d.rollback();
+            return false;
+        }
+    }
+    for (InfoRecord r : records) {
+        r.athleteId = athleteId;
+        // Unchanged records are not written again, so an export of the
+        // changes since a date leaves them out
+        const InfoRecord *old = same(before, r);
+        if (old && old->hasNumber == r.hasNumber && old->number == r.number && old->text == r.text
+            && old->to == r.to)
+            continue;
+        if (!saveInfoRecord(r)) {
+            d.rollback();
+            return false;
+        }
+    }
+    return d.commit();
+}
+
 bool saveInfoRecord(const InfoRecord &r)
 {
     if (r.athleteId.isEmpty() || r.art.isEmpty() || !r.from.isValid())

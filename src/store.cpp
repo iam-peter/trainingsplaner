@@ -379,47 +379,49 @@ QVariantList Store::dayInfo(const QString &athleteId, const QString &monday) con
     return list;
 }
 
-QString Store::saveDayInfo(const QString &athleteId, const QString &date, const QString &time,
-                           const QString &code, const QString &value, const QString &oldDate,
-                           const QString &oldTime, const QString &oldCode)
+QString Store::saveWeekInfo(const QString &athleteId, const QString &monday,
+                            const QVariantList &rows)
 {
-    bool ok = false;
-    const double number = QLocale(QLocale::German).toDouble(value.trimmed(), &ok);
-    const double number2 = ok ? number : value.trimmed().toDouble(&ok);
-    if (!ok)
-        return QStringLiteral("Bitte eine Zahl eingeben.");
-    const QDate d = QDate::fromString(date, Qt::ISODate);
-    if (!d.isValid() || code.isEmpty())
-        return QStringLiteral("Bitte Tag und Kategorie wählen.");
-    const QTime t = keyTime(time);
-    if (!t.isValid())
-        return QStringLiteral("Zeit ungültig: ") + time.trimmed();
-
-    if (!oldDate.isEmpty()) {
-        const QTime ot = keyTime(oldTime);
-        if (oldDate != date || ot != t || oldCode != code)
-            Database::removeInfoRecord(athleteId, oldCode, QDate::fromString(oldDate, Qt::ISODate), ot);
+    const QDate from = QDate::fromString(monday, Qt::ISODate);
+    const QDate to = from.addDays(6);
+    QStringList codes;
+    for (const QVariant &c : infoCategories())
+        codes.append(c.toMap().value(QStringLiteral("code")).toString());
+    QList<Database::InfoRecord> records;
+    for (int i = 0; i < rows.size(); ++i) {
+        const QVariantMap row = rows.at(i).toMap();
+        const QString value = row.value(QStringLiteral("value")).toString().trimmed();
+        if (value.isEmpty())
+            continue;
+        const QString line = QStringLiteral("Zeile %1: ").arg(i + 1);
+        Database::InfoRecord r;
+        bool ok = false;
+        r.number = QLocale(QLocale::German).toDouble(value, &ok);
+        if (!ok)
+            r.number = value.toDouble(&ok);
+        if (!ok)
+            return line + QStringLiteral("Bitte eine Zahl eingeben.");
+        r.hasNumber = true;
+        r.from = QDate::fromString(row.value(QStringLiteral("date")).toString(), Qt::ISODate);
+        if (!r.from.isValid() || r.from < from || r.from > to)
+            return line + QStringLiteral("Bitte einen Tag der Woche wählen.");
+        r.art = row.value(QStringLiteral("code")).toString();
+        if (!codes.contains(r.art))
+            return line + QStringLiteral("Bitte eine Kategorie wählen.");
+        const QString time = row.value(QStringLiteral("time")).toString();
+        r.time = keyTime(time);
+        if (!r.time.isValid())
+            return line + QStringLiteral("Zeit ungültig: ") + time.trimmed();
+        for (const Database::InfoRecord &other : std::as_const(records)) {
+            if (other.art == r.art && other.from == r.from && other.time == r.time)
+                return line + QStringLiteral("Dieselbe Kategorie steht schon für diesen Tag und diese Zeit da.");
+        }
+        records.append(r);
     }
-    Database::InfoRecord r;
-    r.athleteId = athleteId;
-    r.art = code;
-    r.from = d;
-    r.time = t;
-    r.number = number2;
-    r.hasNumber = true;
-    if (!Database::saveInfoRecord(r))
+    if (!Database::replaceInfoRecordsBetween(athleteId, codes, from, to, records))
         return QStringLiteral("Speichern fehlgeschlagen: ") + Database::lastError();
     bump();
     return QString();
-}
-
-bool Store::removeDayInfo(const QString &athleteId, const QString &code, const QString &date,
-                          const QString &time)
-{
-    const bool ok = Database::removeInfoRecord(athleteId, code, QDate::fromString(date, Qt::ISODate),
-                                               keyTime(time));
-    bump();
-    return ok;
 }
 
 QString Store::weekInfoSummary(const QString &athleteId, const QString &monday) const

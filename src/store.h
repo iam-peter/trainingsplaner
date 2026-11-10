@@ -171,12 +171,12 @@ public:
     // Extra info per day (Zusatzinfo)
     // [{date ("yyyy-MM-dd"), dateText, time ("HH:mm"), code, name, unit, value (number), valueText}]
     Q_INVOKABLE QVariantList dayInfo(const QString &athleteId, const QString &monday) const;
-    // Returns an error message, empty on success. old* identify an edited entry.
-    Q_INVOKABLE QString saveDayInfo(const QString &athleteId, const QString &date, const QString &time,
-                                    const QString &code, const QString &value, const QString &oldDate,
-                                    const QString &oldTime, const QString &oldCode);
-    Q_INVOKABLE bool removeDayInfo(const QString &athleteId, const QString &code, const QString &date,
-                                   const QString &time);
+    // Saves all entries of the week [{date ("yyyy-MM-dd"), time ("HH:mm" or
+    // empty), code, value (text, "74,5")}] after checking every row (rows
+    // without a value are left out); the error names the row, nothing is
+    // saved then
+    Q_INVOKABLE QString saveWeekInfo(const QString &athleteId, const QString &monday,
+                                     const QVariantList &rows);
     // "Körpergewicht 74,5 kg · Creatin 15 g" for the week (aggregated per category)
     Q_INVOKABLE QString weekInfoSummary(const QString &athleteId, const QString &monday) const;
     // Sets the given attributes from today on, keeping the history
