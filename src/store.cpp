@@ -570,6 +570,9 @@ const char *kPrintBool[] = {"weekNote", "weekNoteCentered", "figures", "sessionN
 const char *kPrintInt[] = {"blankHeader", "blankPerSession", "blankAfterNote", "marginTop", "marginLeft",
                            "marginRight", "marginBottom"};
 const char *kPrintReal[] = {"fontSmall", "fontNormal", "fontLarge"};
+// The paper sizes offered, by the name stored and shown
+const QList<std::pair<QString, QPageSize::PageSizeId>> kPapers = {
+    {QStringLiteral("A4"), QPageSize::A4}, {QStringLiteral("A5"), QPageSize::A5}, {QStringLiteral("A3"), QPageSize::A3}};
 
 WeekReport::Options readPrintOptions()
 {
@@ -581,6 +584,11 @@ WeekReport::Options readPrintOptions()
     o.figures = s.value(QStringLiteral("figures"), o.figures).toBool();
     o.sessionNoteCentered = s.value(QStringLiteral("sessionNoteCentered"), o.sessionNoteCentered).toBool();
     o.landscape = s.value(QStringLiteral("landscape"), o.landscape).toBool();
+    const QString paper = s.value(QStringLiteral("paper")).toString();
+    for (const auto &[name, id] : kPapers) {
+        if (name == paper)
+            o.paper = id;
+    }
     o.notation = s.value(QStringLiteral("notation")).toString() == QLatin1String("slash")
                      ? WeekReport::Options::Slash : WeekReport::Options::Fraction;
     o.blankHeader = qBound(0, s.value(QStringLiteral("blankHeader"), 0).toInt(), 20);
@@ -610,6 +618,9 @@ QVariantMap Store::printOptions() const
         {QStringLiteral("figures"), o.figures},
         {QStringLiteral("sessionNoteCentered"), o.sessionNoteCentered},
         {QStringLiteral("landscape"), o.landscape},
+        {QStringLiteral("paper"), std::find_if(kPapers.begin(), kPapers.end(), [&](const auto &p) {
+                                      return p.second == o.paper;
+                                  })->first},
         {QStringLiteral("notation"), o.notation == WeekReport::Options::Slash ? QStringLiteral("slash")
                                                                               : QStringLiteral("fraction")},
         {QStringLiteral("blankHeader"), o.blankHeader},
@@ -643,7 +654,7 @@ void Store::setPrintOptions(const QVariantMap &v)
         if (v.contains(QLatin1String(k)))
             s.setValue(QLatin1String(k), v.value(QLatin1String(k)).toDouble());
     }
-    for (const char *k : {"notation", "logoPath", "sessionColor"}) {
+    for (const char *k : {"notation", "logoPath", "sessionColor", "paper"}) {
         if (v.contains(QLatin1String(k)))
             s.setValue(QLatin1String(k), v.value(QLatin1String(k)).toString());
     }

@@ -297,7 +297,7 @@ namespace WeekReport {
 
 QPageLayout Options::pageLayout() const
 {
-    return QPageLayout(QPageSize(QPageSize::A4),
+    return QPageLayout(QPageSize(paper),
                        landscape ? QPageLayout::Landscape : QPageLayout::Portrait,
                        QMarginsF(marginLeft, marginTop, marginRight, marginBottom),
                        QPageLayout::Millimeter);

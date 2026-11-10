@@ -11,6 +11,7 @@
 #include "weekreport.h"
 
 #include <QFileInfo>
+#include <QPageLayout>
 #include <QTimeZone>
 
 #include <QSqlDatabase>
@@ -500,6 +501,10 @@ void TestCore::printWithAllOptions()
     o.blankAfterNote = 4;
     o.fontNormal = 12;
     o.sessionColor = QColor(QStringLiteral("#ffeeaa"));
+    o.paper = QPageSize::A5;
+    QCOMPARE(o.pageLayout().pageSize().id(), QPageSize::A5);
+    QCOMPARE(o.pageLayout().orientation(), QPageLayout::Landscape);
+    QCOMPARE(WeekReport::Options().pageLayout().pageSize().id(), QPageSize::A4);
     const QString path = m_dir.filePath(QStringLiteral("all.pdf"));
     QVERIFY(WeekReport::writePdf(path, w, {QStringLiteral("T"), QStringLiteral("V"), QStringLiteral("A B")}, o));
     QVERIFY(QFileInfo(path).size() > 1000);

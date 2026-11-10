@@ -32,5 +32,16 @@ Item {
             settings.reject()
             tryCompare(settings, "visible", false)
         }
+
+        // The paper is A4 unless chosen; what is no paper size reads as A4
+        function test_paper() {
+            compare(Store.printOptions.paper, "A4")
+            Store.printOptions = { paper: "A5", landscape: true }
+            compare(Store.printOptions.paper, "A5")
+            compare(Store.printOptions.landscape, true)
+            Store.printOptions = { paper: "B7" }
+            compare(Store.printOptions.paper, "A4")
+            Store.printOptions = { paper: "A4", landscape: false }
+        }
     }
 }

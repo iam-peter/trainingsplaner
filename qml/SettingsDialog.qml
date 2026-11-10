@@ -18,6 +18,9 @@ AppDialog {
     // The spin boxes of the print settings, all as wide, room for a value
     // with its unit
     readonly property int fieldWidth: 108
+    // A margin field has its edge icon before the value as well
+    readonly property int marginWidth: fieldWidth + 28
+    readonly property var papers: ["A4", "A5", "A3"]
 
     onAboutToShow: {
         trainerField.text = Store.trainer
@@ -41,6 +44,8 @@ AppDialog {
         marginRight.value = printOpts.marginRight
         marginBottom.value = printOpts.marginBottom
         landscape.checked = printOpts.landscape
+        portrait.checked = !printOpts.landscape
+        paper.currentIndex = Math.max(0, papers.indexOf(printOpts.paper))
         logoPath.text = printOpts.logoPath
         sessionColor.color = printOpts.sessionColor
         for (let i = 0; i < 3; ++i) {
@@ -85,6 +90,7 @@ AppDialog {
             marginRight: marginRight.value,
             marginBottom: marginBottom.value,
             landscape: landscape.checked,
+            paper: paper.currentText,
             logoPath: logoPath.text,
             sessionColor: sessionColor.color.toString()
         }
@@ -182,19 +188,31 @@ AppDialog {
                     Label { text: "groß" }
                     SpinBox { id: fontLarge; unit: "pt"; from: 6; to: 36; editable: true; Layout.preferredWidth: dialog.fieldWidth; Layout.columnSpan: 4 }
 
+                    // The page: its size, A4 unless chosen, and which way up
+                    Label { text: "Papier:"; Layout.rightMargin: 8 }
+                    Label { text: "Format" }
+                    ComboBox { id: paper; model: dialog.papers; Layout.preferredWidth: dialog.fieldWidth }
+                    RowLayout {
+                        Layout.columnSpan: 7
+                        spacing: 16
+                        RadioButton { id: portrait; text: "Hochformat"; icon.source: Theme.icon("rectangle-vertical") }
+                        RadioButton { id: landscape; text: "Querformat"; icon.source: Theme.icon("rectangle-horizontal") }
+                    }
+
+                    // Left and right, then top and bottom, each with the edge
+                    // it keeps free
                     Label { text: "Seitenränder:"; Layout.rightMargin: 8 }
-                    Label { text: "oben" }
-                    SpinBox { id: marginTop; unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.fieldWidth }
                     Label { text: "links" }
-                    SpinBox { id: marginLeft; unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.fieldWidth }
+                    SpinBox { id: marginLeft; leadingIcon: Theme.icon("panel-left"); unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.marginWidth }
                     Label { text: "rechts" }
-                    SpinBox { id: marginRight; unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.fieldWidth }
-                    Label { text: "unten" }
-                    SpinBox { id: marginBottom; unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.fieldWidth }
+                    SpinBox { id: marginRight; leadingIcon: Theme.icon("panel-right"); unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.marginWidth; Layout.columnSpan: 5 }
                     Item { Layout.fillWidth: true }
 
                     Item {}
-                    CheckBox { id: landscape; text: "Querformat"; Layout.columnSpan: 9 }
+                    Label { text: "oben" }
+                    SpinBox { id: marginTop; leadingIcon: Theme.icon("panel-top"); unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.marginWidth }
+                    Label { text: "unten" }
+                    SpinBox { id: marginBottom; leadingIcon: Theme.icon("panel-bottom"); unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.marginWidth; Layout.columnSpan: 6 }
 
                     Label { text: "Farbe TE-Zeile:"; Layout.rightMargin: 8 }
                     RowLayout {

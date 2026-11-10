@@ -3,6 +3,7 @@
 #include "model.h"
 
 #include <QColor>
+#include <QPageSize>
 #include <QString>
 
 class QPagedPaintDevice;
@@ -42,6 +43,7 @@ struct Options
     int marginLeft = 12;
     int marginRight = 12;
     int marginBottom = 12;
+    QPageSize::PageSizeId paper = QPageSize::A4; // A4, A5 or A3
     bool landscape = false;
     QString logoPath;               // drawn faintly behind the content
     QColor sessionColor = Qt::white; // background of the session header rows
