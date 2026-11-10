@@ -100,11 +100,13 @@ qreal ReportModel::rowHeight(int row) const
         return 0;
     const qreal h = std::ceil(m_lineHeight);
     switch (m_lines[row].kind) {
+    // As the first reports had them: the title with 4 px below it, a
+    // heading with 14 px above and 4 px below; their fonts are 1.45 and
+    // 1.17 times the cells' (ReportView)
     case Title:
-        return std::ceil(h * 2.2);
+        return std::ceil(h * 1.45) + 4;
     case Heading:
-        // With the room above it that sets it apart from what is before
-        return std::ceil(h * 2.4);
+        return 14 + std::ceil(h * 1.17) + 4;
     case Note:
         return h * m_lines[row].lines + 6;
     case Blank:
