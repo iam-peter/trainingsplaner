@@ -1,5 +1,6 @@
 import QtQuick
 import QtTest
+import QtQuick.Controls
 import Trainingsplaner
 
 // The plan grid: the arrow keys move between the cells in all four
@@ -119,6 +120,28 @@ Item {
             grid.owner = "test_tina"
             tryVerify(() => !header.itemAtCell(Qt.point(1, 0)).info.sub.endsWith("%"))
             Plan.removeMaz(r.id)
+        }
+
+        // Scrolled to the end in a narrow grid, then widened: everything
+        // fits, so there is nothing to scroll and no bar
+        function test_noBarOnceItFits() {
+            const table = findChild(grid, "itpTable")
+            let bar = null
+            for (const c of table.children)
+                if (c.room !== undefined && c.orientation === Qt.Horizontal)
+                    bar = c
+            grid.anchors.fill = undefined
+            grid.width = 260
+            grid.height = 400
+            waitForRendering(table)
+            verify(table.visibleArea.widthRatio < 1)
+            table.contentX = table.contentWidth + table.rightMargin - table.width
+            waitForRendering(table)
+            grid.width = 1100
+            tryCompare(table.visibleArea, "widthRatio", 1)
+            compare(bar.policy, ScrollBar.AlwaysOff)
+            table.contentX = 0
+            grid.anchors.fill = grid.parent
         }
     }
 }

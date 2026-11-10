@@ -107,7 +107,11 @@ Item {
         // shows once the grid scrolls, at its end.
         rightMargin: vbar.width + 4
         bottomMargin: hbar.height + 4
-        columnWidthProvider: column => itp.columnInfo(column).sub === "" ? 60 : grid.cellWidth
+        // All columns alike, Bel. and WK too: the table estimates the room
+        // of the columns it has not loaded from the average width, and
+        // wider ones made it count room that is not there, so a bar stayed
+        // when the window grew
+        columnWidthProvider: () => grid.cellWidth
 
         // The cell being edited; only it has a text field. A field in
         // every cell made each reload of the grid take a quarter second.
