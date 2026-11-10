@@ -58,6 +58,8 @@ signals:
     void configChanged();
 
 private:
+    // Reads the plan for the current owner, weeks and MAZ (no signals)
+    void load();
     enum Kind { Wh, Mhg, Bw, Load, Position };
     Kind kindOf(int column) const;
     int exerciseOf(int column) const;

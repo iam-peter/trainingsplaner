@@ -26,8 +26,11 @@ void ItpModel::setWeeks(int v)
     v = qBound(0, v, 260);
     if (v == m_weeks)
         return;
+    beginResetModel();
     m_weeks = v;
-    reload();
+    load();
+    endResetModel();
+    emit configChanged();
 }
 
 QVariantList ItpModel::exercises() const
@@ -45,8 +48,11 @@ void ItpModel::setExercises(const QVariantList &v)
         list.append(e.toInt());
     if (list == m_exercises)
         return;
+    beginResetModel();
     m_exercises = list;
-    reload();
+    load();
+    endResetModel();
+    emit configChanged();
 }
 
 void ItpModel::setMazId(const QString &v)
@@ -65,9 +71,19 @@ void ItpModel::setAverageAllWeeks(bool v)
     reload();
 }
 
+// New numbers in the same grid (only the weeks and the exercises change
+// its shape): the cells stay and read them anew instead of being built
+// again
 void ItpModel::reload()
 {
-    beginResetModel();
+    load();
+    if (rowCount() > 0 && columnCount() > 0)
+        emit dataChanged(index(0, 0), index(rowCount() - 1, columnCount() - 1));
+    emit configChanged();
+}
+
+void ItpModel::load()
+{
     m_targets.clear();
     m_meta.clear();
     m_maz = m_mazId.isEmpty() ? Maz() : Planning::maz(m_mazId);
@@ -78,8 +94,6 @@ void ItpModel::reload()
         for (const WeekMeta &m : Planning::meta(m_owner, m_from, to))
             m_meta.insert(m.monday, m);
     }
-    endResetModel();
-    emit configChanged();
 }
 
 int ItpModel::rowCount(const QModelIndex &parent) const
