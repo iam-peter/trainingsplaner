@@ -11,11 +11,12 @@ Button {
     icon.width: 16
     icon.height: 16
     display: text === "" ? AbstractButton.IconOnly : AbstractButton.TextBesideIcon
-    // Square when there is no text, instead of the style's minimum width
-    implicitWidth: text === ""
-                   ? Math.max(implicitHeight, implicitContentWidth + leftPadding + rightPadding)
-                   : Math.max(implicitBackgroundWidth + leftInset + rightInset,
-                              implicitContentWidth + leftPadding + rightPadding)
+    // Square when there is no text, instead of the style's minimum width;
+    // whole pixels, as the style's
+    implicitWidth: Math.ceil(text === ""
+                             ? Math.max(implicitHeight, implicitContentWidth + leftPadding + rightPadding)
+                             : Math.max(implicitBackgroundWidth + leftInset + rightInset,
+                                        implicitContentWidth + leftPadding + rightPadding))
 
     ToolTip.visible: toolTip !== "" && hovered
     ToolTip.text: toolTip

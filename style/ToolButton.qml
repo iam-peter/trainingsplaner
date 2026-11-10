@@ -21,10 +21,12 @@ T.ToolButton {
         state: ControlState.pressable(control)
     }
 
-    implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
-                            implicitContentWidth + leftPadding + rightPadding)
-    implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
-                             implicitContentHeight + topPadding + bottomPadding)
+    // Whole pixels: the text's width is fractional, and in a row (the
+    // dialog buttons) every button after it would stand between pixels
+    implicitWidth: Math.ceil(Math.max(implicitBackgroundWidth + leftInset + rightInset,
+                                      implicitContentWidth + leftPadding + rightPadding))
+    implicitHeight: Math.ceil(Math.max(implicitBackgroundHeight + topInset + bottomInset,
+                                       implicitContentHeight + topPadding + bottomPadding))
 
     topPadding: _style.padding.top
     bottomPadding: _style.padding.bottom

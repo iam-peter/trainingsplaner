@@ -67,6 +67,18 @@ Item {
         }
     }
 
+    // A font whose lines are fractional pixels high, as Inter unhinted
+    AppDialog {
+        id: crisp
+        title: "Scharf"
+        font.pointSize: 10.3
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        Column {
+            Label { text: "Eine Zeile" }
+            TextField { objectName: "crispField"; text: "Text" }
+        }
+    }
+
     TestCase {
         name: "Dialogs"
         when: windowShown
@@ -185,6 +197,28 @@ Item {
             tall.close()
             tryCompare(tall, "visible", false)
             win.height = before
+        }
+
+        // Every control stands on whole pixels, or its lines blur, also
+        // with an odd room around the dialog and fractional line heights
+        function test_wholePixels() {
+            const win = root.Window.window
+            const before = [win.width, win.height]
+            win.width = 1001
+            win.height = 681
+            crisp.open()
+            tryCompare(crisp, "opened", true)
+            waitForRendering(crisp.contentItem)
+            const controls = [findChild(crisp.contentItem, "crispField"),
+                              crisp.standardButton(Dialog.Ok), crisp.standardButton(Dialog.Cancel)]
+            for (const c of controls) {
+                const p = c.mapToItem(null, 0, 0)
+                verify(p.x % 1 === 0 && p.y % 1 === 0, c + " at " + p.x + ", " + p.y)
+            }
+            crisp.close()
+            tryCompare(crisp, "visible", false)
+            win.width = before[0]
+            win.height = before[1]
         }
     }
 }

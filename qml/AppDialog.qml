@@ -44,7 +44,10 @@ Dialog {
     onStandardButtonsChanged: labelButtons()
 
     parent: Overlay.overlay
-    anchors.centerIn: parent
+    // Centred on whole pixels: anchors.centerIn leaves half a pixel when
+    // the room around is odd, which blurs every line in the dialog
+    x: parent ? Math.round((parent.width - width) / 2) : 0
+    y: parent ? Math.round((parent.height - height) / 2) : 0
 
     modal: true
     // Blocking: a click on the dimmed window does nothing (Qt's dialogs

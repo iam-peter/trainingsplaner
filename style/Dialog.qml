@@ -35,10 +35,13 @@ T.Dialog {
                                   + control.header.rightPadding
                                 : 0,
                             implicitFooterWidth)
-    implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
-                             implicitContentHeight + topPadding + bottomPadding
-                             + (implicitHeaderHeight > 0 ? implicitHeaderHeight + spacing : 0)
-                             + (implicitFooterHeight > 0 ? implicitFooterHeight + spacing : 0))
+    // Whole pixels, like the title's height below: the buttons stand at
+    // the dialog's height less theirs, and between pixels every line in
+    // them is blurred
+    implicitHeight: Math.ceil(Math.max(implicitBackgroundHeight + topInset + bottomInset,
+                                       implicitContentHeight + topPadding + bottomPadding
+                                       + (implicitHeaderHeight > 0 ? implicitHeaderHeight + spacing : 0)
+                                       + (implicitFooterHeight > 0 ? implicitFooterHeight + spacing : 0)))
 
     leftPadding: _style.padding.left
     rightPadding: _style.padding.right
@@ -62,6 +65,9 @@ T.Dialog {
         text: control.title
         visible: parent?.parent === T.Overlay.overlay && control.title
         elide: Text.ElideRight
+        // Whole pixels: the content starts below it, and a fractional line
+        // height (Inter, unhinted) put all of it between pixels
+        height: Math.ceil(implicitHeight)
         font.pixelSize: _titleStyle.text.size
         font.weight: _titleStyle.text.weight
         color: _titleStyle.text.color
