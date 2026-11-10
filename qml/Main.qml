@@ -135,13 +135,13 @@ ApplicationWindow {
                     y: dataButton.height
                     MenuItem {
                         text: "Importieren"
-                        icon.source: "qrc:/qt/qml/Trainingsplaner/icons/import.svg"
+                        icon.source: Theme.icon("import")
                         icon.color: Styles.TokenInterface.semantics.text_default
                         onTriggered: importDialog.open()
                     }
                     MenuItem {
                         text: "Exportieren"
-                        icon.source: "qrc:/qt/qml/Trainingsplaner/icons/file-down.svg"
+                        icon.source: Theme.icon("file-down")
                         icon.color: Styles.TokenInterface.semantics.text_default
                         onTriggered: exportDialog.open()
                     }
@@ -149,7 +149,7 @@ ApplicationWindow {
                         visible: Store.hasDemoData
                         height: visible ? implicitHeight : 0
                         text: "Beispieldaten entfernen"
-                        icon.source: "qrc:/qt/qml/Trainingsplaner/icons/trash-2.svg"
+                        icon.source: Theme.icon("trash-2")
                         icon.color: Styles.TokenInterface.semantics.text_default
                         onTriggered: removeDemoConfirm.open()
                     }

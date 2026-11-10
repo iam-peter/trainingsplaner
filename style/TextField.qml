@@ -11,6 +11,9 @@ T.TextField {
     id: control
 
     property list<Style> styles
+    property int groupPosition: GroupStyle.Position.None
+    // The input cannot be used: shown in the border
+    property bool error: false
     readonly property alias styleCascade: _style
 
     property url leadingIcon
@@ -24,9 +27,10 @@ T.TextField {
         styles: control.styles
         overrides: [control.activeFocus && !control.readOnly ? FieldStyle.focus : null,
                     control.readOnly ? FieldStyle.readOnly : null,
-                    control.width > 0 && control.width < 64 ? FieldStyle.narrow : null]
-        state: !control.enabled ? StyleState.Disable
-               : control.hovered ? StyleState.Hover : StyleState.Idle
+                    control.width > 0 && control.width < 64 ? FieldStyle.narrow : null,
+                    control.error ? FieldStyle.error : null,
+                    GroupStyle.of(control.groupPosition)]
+        state: ControlState.hoverable(control)
     }
     StyleCascade {
         id: _leadingStyle
@@ -65,6 +69,8 @@ T.TextField {
     verticalAlignment: TextInput.AlignVCenter
     hoverEnabled: true
     opacity: _style.opacity
+    // In a group over its neighbours while focused, so its border shows
+    z: activeFocus ? 2 : 0
 
     color: _style.text.color
     selectionColor: _style.selection
@@ -89,7 +95,9 @@ T.TextField {
 
     Item {
         id: _leading
-        x: control.mirrored ? control.width - width - _leadingStyle.padding.left : _leadingStyle.padding.left
+        // Left to right only, as the program is German: a text field is
+        // no Control and has no mirrored
+        x: _leadingStyle.padding.left
         anchors.verticalCenter: parent.verticalCenter
         width: _leadingStyle.width
         height: _leadingStyle.icon.size
@@ -134,12 +142,7 @@ T.TextField {
                 ? room : Math.min(control.contentWidth, room))
     }
 
-    background: Rectangle {
-        implicitWidth: _style.width
-        implicitHeight: _style.height
-        radius: _style.radius.value
-        color: _style.background
-        border.width: _style.border.width
-        border.color: _style.border.color
+    background: StyledBackground {
+        cascade: _style
     }
 }

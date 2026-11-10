@@ -69,7 +69,7 @@ QtObject {
     }
 
     readonly property Style textArea: Style {
-        width: 200
+        width: Primitives.size.s200
         padding {
             horizontal: Primitives.spacing.sp150
             vertical: Primitives.spacing.sp100
@@ -79,7 +79,7 @@ QtObject {
     // The steps are buttons inside the field: a part each, with its own
     // state; the sign greys out at the end of the range
     readonly property Style spinBox: Style {
-        width: 120
+        width: Primitives.size.s120
         padding.left: Primitives.spacing.sp150
 
         Style {
@@ -130,15 +130,16 @@ QtObject {
     readonly property Style focus: Style {
         border.color: root.s.stroke_focus
     }
+    // Input that cannot be used: the border in the danger colour, over
+    // every state, focus too
+    readonly property Style error: Style {
+        border.color: root.s.danger_default
+    }
     readonly property Style readOnly: Style {
         background: TokenInterface.transparent
     }
     // Narrow fields (a number of reps) keep room for their text
     readonly property Style narrow: Style {
         padding.horizontal: Primitives.spacing.sp050
-    }
-    // An editable combo box: the text field inside has the padding
-    readonly property Style editable: Style {
-        padding.left: 0
     }
 }

@@ -11,6 +11,7 @@
 #include "weekreport.h"
 
 #include <QFileInfo>
+#include <QTimeZone>
 
 #include <QSqlDatabase>
 #include <QSqlQuery>
@@ -49,6 +50,7 @@ private slots:
     void exerciseWeekApply();
     void compareVersions();
     void times();
+    void stamps();
     void parseRelease();
 
 private:
@@ -892,6 +894,24 @@ void TestCore::times()
     QCOMPARE(Times::stored(QTime(8, 30)), QStringLiteral("08:30:00"));
     QCOMPARE(Times::optional(QTime(0, 0)), QString());
     QCOMPARE(Times::optional(QTime(8, 30)), QStringLiteral("08:30"));
+}
+
+// Change stamps are local time in whole seconds; a stamp with a time zone
+// is the same moment in local time
+void TestCore::stamps()
+{
+    const QDateTime t(QDate(2024, 5, 2), QTime(9, 0));
+    QCOMPARE(Database::stampTime(QStringLiteral("2024-05-02 09:00:00")), t);
+    QCOMPARE(Database::stampTime(QStringLiteral("2024-05-02T09:00:00")), t);
+    QCOMPARE(Database::stampText(t), QStringLiteral("2024-05-02 09:00:00"));
+    const QDateTime utc(QDate(2024, 5, 2), QTime(9, 0), QTimeZone::UTC);
+    QCOMPARE(Database::stampText(Database::stampTime(QStringLiteral("2024-05-02T09:00:00Z"))),
+             Database::stampText(utc.toLocalTime()));
+    const QDateTime plus2(QDate(2024, 5, 2), QTime(9, 0), QTimeZone::fromSecondsAheadOfUtc(7200));
+    QCOMPARE(Database::stampText(Database::stampTime(QStringLiteral("2024-05-02T09:00:00+02:00"))),
+             Database::stampText(plus2.toLocalTime()));
+    QVERIFY(!Database::stampTime(QStringLiteral("gestern")).isValid());
+    QCOMPARE(Database::now().time().msec(), 0);
 }
 
 void TestCore::parseRelease()

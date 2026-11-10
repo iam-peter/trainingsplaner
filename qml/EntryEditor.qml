@@ -99,7 +99,7 @@ Frame {
                         editor.exercise = parseInt(text) || 0
                         editor.changed()
                     }
-                    color: text === "" || editor.exerciseValid ? Styles.TokenInterface.semantics.text_default : Styles.TokenInterface.semantics.danger_default
+                    error: text !== "" && !editor.exerciseValid
                 }
                 IconButton {
                     implicitWidth: 30

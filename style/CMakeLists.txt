@@ -5,6 +5,7 @@
 qt_add_library(tpstyle STATIC)
 set_source_files_properties(Primitives.qml TokenInterface.qml ButtonStyle.qml FieldStyle.qml ToggleStyle.qml ItemStyle.qml TabStyle.qml
     PopupStyle.qml ScrollBarStyle.qml ProgressBarStyle.qml
+    ControlState.qml GroupStyle.qml
     PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(tpstyle
     URI TrainingsplanerStyle
@@ -28,6 +29,10 @@ qt_add_qml_module(tpstyle
         PopupStyle.qml
         ScrollBarStyle.qml
         ProgressBarStyle.qml
+        ControlState.qml
+        GroupStyle.qml
+        StyledBackground.qml
+        ButtonLabel.qml
         Shadow.qml
         ApplicationWindow.qml
         Button.qml

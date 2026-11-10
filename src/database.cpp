@@ -282,7 +282,8 @@ QDateTime stampTime(const QString &text)
     QDateTime time = QDateTime::fromString(t, QStringLiteral("yyyy-MM-dd HH:mm:ss"));
     if (!time.isValid())
         time = QDateTime::fromString(t, Qt::ISODate);
-    return time;
+    // Stamps are local time; one with Z or an offset is that moment here
+    return time.isValid() ? time.toLocalTime() : time;
 }
 
 bool open(const QString &path, QString *error)

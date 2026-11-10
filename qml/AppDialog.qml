@@ -1,4 +1,5 @@
 import QtQuick
+import Trainingsplaner
 import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -34,7 +35,7 @@ Dialog {
         // save buttons (emphasis comes from the styles, by the button's role)
         const save = standardButton(Dialog.Save)
         if (save) {
-            save.icon.source = "qrc:/qt/qml/Trainingsplaner/icons/save.svg"
+            save.icon.source = Theme.icon("save")
             save.icon.width = 16
             save.icon.height = 16
             // No colour: the style tints the icon in its own text colour

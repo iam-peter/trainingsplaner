@@ -14,8 +14,7 @@ T.TextArea {
         styles: control.styles
         overrides: [control.activeFocus && !control.readOnly ? FieldStyle.focus : null,
                     control.readOnly ? FieldStyle.readOnly : null]
-        state: !control.enabled ? StyleState.Disable
-               : control.hovered ? StyleState.Hover : StyleState.Idle
+        state: ControlState.hoverable(control)
     }
 
     implicitWidth: Math.max(contentWidth + leftPadding + rightPadding,
@@ -53,14 +52,9 @@ T.TextArea {
         renderType: control.renderType
     }
 
-    background: Rectangle {
-        implicitWidth: _style.width
-        // One control high: a taller minimum made a text area in a lower
-        // scroll view scroll with nothing in it
-        implicitHeight: _style.height
-        radius: _style.radius.value
-        color: _style.background
-        border.width: _style.border.width
-        border.color: _style.border.color
+    // One control high: a taller minimum made a text area in a lower
+    // scroll view scroll with nothing in it
+    background: StyledBackground {
+        cascade: _style
     }
 }

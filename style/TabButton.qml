@@ -14,9 +14,7 @@ T.TabButton {
         styles: control.styles
         overrides: [control.checked ? TabStyle.checked : null,
                     control.visualFocus ? TabStyle.focus : null]
-        state: !control.enabled ? StyleState.Disable
-               : control.down ? StyleState.Active
-               : control.hovered ? StyleState.Hover : StyleState.Idle
+        state: ControlState.item(control)
     }
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
@@ -50,11 +48,7 @@ T.TabButton {
         color: _style.text.color
     }
 
-    background: Rectangle {
-        implicitHeight: _style.height
-        radius: _style.radius.value
-        color: _style.background
-        border.width: _style.border.width
-        border.color: _style.border.color
+    background: StyledBackground {
+        cascade: _style
     }
 }

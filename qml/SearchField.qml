@@ -8,7 +8,7 @@ TextField {
     id: field
 
     selectByMouse: true
-    leadingIcon: "qrc:/qt/qml/Trainingsplaner/icons/search.svg"
+    leadingIcon: Theme.icon("search")
 
     Keys.onEscapePressed: (event) => {
         if (text === "") {

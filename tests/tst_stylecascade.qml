@@ -1,5 +1,7 @@
 import QtQuick
 import QtTest
+import QtQuick.Controls as Controls
+import Trainingsplaner
 import TrainingsplanerStyle
 
 // How a cascade resolves styles: rules by state, includes, the order of
@@ -58,8 +60,19 @@ Item {
         overrides: [square]
     }
 
+    Controls.Button {
+        id: button
+        text: "Speichern"
+    }
+    SignalSpy {
+        id: chosenChanged
+        target: chosen
+        signalName: "changed"
+    }
+
     TestCase {
         name: "StyleCascade"
+        when: windowShown
 
         function test_states() {
             control.state = StyleState.Idle
@@ -106,6 +119,33 @@ Item {
             base.rules[1].accent = "#888888"
             compare(indicator.accent, "#888888")
             base.rules[1].accent = "#444444"
+        }
+
+        // A control's colours follow the colour scheme while it shows
+        function test_followsScheme() {
+            const before = Store.colorScheme
+            Store.colorScheme = "light"
+            tryCompare(button.styleCascade, "background", TokenInterface.lightScheme.outline_default)
+            Store.colorScheme = "dark"
+            tryCompare(button.styleCascade, "background", TokenInterface.darkScheme.outline_default)
+            compare(button.background.color, TokenInterface.darkScheme.outline_default)
+            Store.colorScheme = before
+        }
+
+        // QML fills a list by clearing and appending: the cascade is told
+        // once, when the list is complete, and then has the new values
+        function test_listReassigned() {
+            chosen.state = StyleState.Idle
+            compare(chosen.padding.left, 12)
+            chosenChanged.clear()
+            chosen.styles = [square]
+            compare(chosenChanged.count, 0)
+            tryCompare(chosenChanged, "count", 1)
+            compare(chosen.padding.left, 8)
+            compare(chosen.background, "#111111")
+            chosen.styles = [ghost]
+            // Read before the cascade is told, it already resolves the new list
+            compare(chosen.padding.left, 12)
         }
     }
 }

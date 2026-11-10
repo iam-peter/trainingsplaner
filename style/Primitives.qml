@@ -106,19 +106,34 @@ QtObject {
     readonly property Stroke stroke: Stroke {}
 
     component Size: QtObject {
+        readonly property int s2: 2
         readonly property int s4: 4
         readonly property int s6: 6
         readonly property int s8: 8
         readonly property int s14: 14
         readonly property int s16: 16
+        readonly property int s18: 18
         readonly property int s20: 20
         readonly property int s24: 24
+        readonly property int s28: 28
         readonly property int s32: 32
         readonly property int s36: 36
+        readonly property int s40: 40
         readonly property int s64: 64
+        readonly property int s100: 100
+        readonly property int s120: 120
+        readonly property int s128: 128
         readonly property int s160: 160
+        readonly property int s200: 200
     }
     readonly property Size size: Size {}
+
+    // Text sizes in pixels beside the program's normal font
+    component FontSize: QtObject {
+        readonly property int small: 12
+        readonly property int title: 18
+    }
+    readonly property FontSize fontSize: FontSize {}
 
     component FontWeight: QtObject {
         readonly property int regular: Font.Normal

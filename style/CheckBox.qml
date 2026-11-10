@@ -14,8 +14,7 @@ T.CheckBox {
         styles: control.styles
         overrides: [control.visualFocus ? ToggleStyle.focus : null,
                     control.checkState !== Qt.Unchecked ? ToggleStyle.checkBoxChecked : null]
-        state: !control.enabled ? StyleState.Disable
-               : control.hovered ? StyleState.Hover : StyleState.Idle
+        state: ControlState.hoverable(control)
     }
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,

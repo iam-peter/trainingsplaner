@@ -138,30 +138,36 @@ EditorDialog {
             Layout.fillWidth: true
             spacing: 8
 
-            TextField {
-                id: numberField
-                objectName: "exerciseField"
-                implicitWidth: 46
-                horizontalAlignment: TextInput.AlignHCenter
-                font.bold: true
-                font.pixelSize: 15
-                validator: IntValidator { bottom: 0; top: 99 }
-                color: dialog.valid ? Styles.TokenInterface.semantics.text_default : Styles.TokenInterface.semantics.danger_default
-                onEditingFinished: dialog.switchTo(parseInt(text) || 0)
-                ToolTip.visible: activeFocus
-                ToolTip.text: "Andere Übung: Nummer eingeben und Enter"
-            }
-            IconButton {
-                implicitHeight: numberField.height
-                iconName: "layout-grid"
-                toolTip: "Übung auswählen"
-                onClicked: picker.open()
-                ExercisePicker {
-                    id: picker
-                    y: parent.height + 2
-                    textExercises: false
-                    current: dialog.exercise
-                    onPicked: (id) => dialog.switchTo(id)
+            // The number and its picker, one group
+            RowLayout {
+                spacing: -Styles.Primitives.stroke.thin
+                TextField {
+                    id: numberField
+                    objectName: "exerciseField"
+                    groupPosition: Styles.GroupStyle.Position.First
+                    implicitWidth: 46
+                    horizontalAlignment: TextInput.AlignHCenter
+                    font.bold: true
+                    font.pixelSize: 15
+                    validator: IntValidator { bottom: 0; top: 99 }
+                    error: !dialog.valid
+                    onEditingFinished: dialog.switchTo(parseInt(text) || 0)
+                    ToolTip.visible: activeFocus
+                    ToolTip.text: "Andere Übung: Nummer eingeben und Enter"
+                }
+                IconButton {
+                    implicitHeight: numberField.height
+                    groupPosition: Styles.GroupStyle.Position.Last
+                    iconName: "layout-grid"
+                    toolTip: "Übung auswählen"
+                    onClicked: picker.open()
+                    ExercisePicker {
+                        id: picker
+                        y: parent.height + 2
+                        textExercises: false
+                        current: dialog.exercise
+                        onPicked: (id) => dialog.switchTo(id)
+                    }
                 }
             }
             Label {

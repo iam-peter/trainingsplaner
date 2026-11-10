@@ -202,36 +202,43 @@ Page {
 
             ToolSeparator {}
 
-            IconButton {
-                iconName: "chevron-left"
-                onClicked: page.monday = Store.addWeeks(page.monday, -1)
-                ToolTip.visible: hovered
-                ToolTip.text: "Vorige Woche (Strg+←)"
-            }
-            // Typed (then Enter) or picked from its calendar, like a date
-            WeekField {
-                id: weekField
-                objectName: "weekField"
-                text: Store.weekLabel(page.monday)
-                font.bold: true
-                function show(m) {
-                    if (m !== "")
-                        page.monday = m
-                    text = Qt.binding(() => Store.weekLabel(page.monday))
+            // The week between its arrows, as one group with shared edges
+            RowLayout {
+                spacing: -Styles.Primitives.stroke.thin
+                IconButton {
+                    iconName: "chevron-left"
+                    groupPosition: Styles.GroupStyle.Position.First
+                    onClicked: page.monday = Store.addWeeks(page.monday, -1)
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Vorige Woche (Strg+←)"
                 }
-                onAccepted: {
-                    show(monday)
-                    focus = false
+                // Typed (then Enter) or picked from its calendar, like a date
+                WeekField {
+                    id: weekField
+                    objectName: "weekField"
+                    groupPosition: Styles.GroupStyle.Position.Middle
+                    text: Store.weekLabel(page.monday)
+                    font.bold: true
+                    function show(m) {
+                        if (m !== "")
+                            page.monday = m
+                        text = Qt.binding(() => Store.weekLabel(page.monday))
+                    }
+                    onAccepted: {
+                        show(monday)
+                        focus = false
+                    }
+                    onWeekPicked: (m) => show(m)
+                    ToolTip.visible: activeFocus
+                    ToolTip.text: "Woche/Jahr eingeben, z.B. 46/2026, dann Enter"
                 }
-                onWeekPicked: (m) => show(m)
-                ToolTip.visible: activeFocus
-                ToolTip.text: "Woche/Jahr eingeben, z.B. 46/2026, dann Enter"
-            }
-            IconButton {
-                iconName: "chevron-right"
-                onClicked: page.monday = Store.addWeeks(page.monday, 1)
-                ToolTip.visible: hovered
-                ToolTip.text: "Nächste Woche (Strg+→)"
+                IconButton {
+                    iconName: "chevron-right"
+                    groupPosition: Styles.GroupStyle.Position.Last
+                    onClicked: page.monday = Store.addWeeks(page.monday, 1)
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Nächste Woche (Strg+→)"
+                }
             }
             IconButton {
                 iconName: "calendar"
@@ -271,17 +278,22 @@ Page {
 
             Item { Layout.fillWidth: true }
 
-            IconButton {
-                iconName: "undo-2"
-                enabled: Store.undoLabel !== ""
-                toolTip: "Rückgängig: " + Store.undoLabel + " (Strg+Z)"
-                onClicked: page.show(Store.undo())
-            }
-            IconButton {
-                iconName: "redo-2"
-                enabled: Store.redoLabel !== ""
-                toolTip: "Wiederholen: " + Store.redoLabel + " (Strg+Y)"
-                onClicked: page.show(Store.redo())
+            RowLayout {
+                spacing: -Styles.Primitives.stroke.thin
+                IconButton {
+                    iconName: "undo-2"
+                    groupPosition: Styles.GroupStyle.Position.First
+                    enabled: Store.undoLabel !== ""
+                    toolTip: "Rückgängig: " + Store.undoLabel + " (Strg+Z)"
+                    onClicked: page.show(Store.undo())
+                }
+                IconButton {
+                    iconName: "redo-2"
+                    groupPosition: Styles.GroupStyle.Position.Last
+                    enabled: Store.redoLabel !== ""
+                    toolTip: "Wiederholen: " + Store.redoLabel + " (Strg+Y)"
+                    onClicked: page.show(Store.redo())
+                }
             }
 
             IconButton {

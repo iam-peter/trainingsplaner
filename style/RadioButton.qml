@@ -13,8 +13,7 @@ T.RadioButton {
         base: [ToggleStyle.base, ToggleStyle.radioButton]
         styles: control.styles
         overrides: [control.visualFocus ? ToggleStyle.focus : null]
-        state: !control.enabled ? StyleState.Disable
-               : control.hovered ? StyleState.Hover : StyleState.Idle
+        state: ControlState.hoverable(control)
     }
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,

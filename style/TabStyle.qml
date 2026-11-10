@@ -32,7 +32,9 @@ QtObject {
             vertical: Primitives.spacing.sp050
         }
         spacing: Primitives.spacing.sp100
-        height: 28
+        height: Primitives.size.s28
+        // As wide as their text needs
+        width: 0
         opacity: 1
 
         Style {

@@ -177,7 +177,7 @@ Page {
                         id: bornField
                         Layout.preferredWidth: 136
                         onTextEdited: page.dirty = true
-                        color: page.bornValid ? Styles.TokenInterface.semantics.text_default : Styles.TokenInterface.semantics.danger_default
+                        error: !page.bornValid
                     }
                     Label {
                         visible: !page.bornValid

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtTest
+import TrainingsplanerStyle as Styles
 
 // What a field can have besides its text: a leading icon, trailing items
 // and a unit; an icon beside a check box's or radio button's label
@@ -29,6 +30,15 @@ Item {
     }
     CheckBox { id: plainCheck; y: 160; text: "Querformat" }
     CheckBox { id: check; y: 200; text: "Querformat"; icon.source: "qrc:/qt/qml/Trainingsplaner/icons/printer.svg" }
+
+    Row {
+        y: 260
+        spacing: -1
+        Button { id: first; text: "<"; groupPosition: Styles.GroupStyle.Position.First }
+        TextField { id: middle; text: "46/2026"; groupPosition: Styles.GroupStyle.Position.Middle }
+        Button { id: last; text: ">"; groupPosition: Styles.GroupStyle.Position.Last }
+    }
+    TextField { id: wrong; y: 300; text: "1.13.2001"; error: true }
 
     TestCase {
         name: "FieldParts"
@@ -68,6 +78,27 @@ Item {
         function test_iconBesideLabel() {
             verify(check.contentItem.leftPadding > plainCheck.contentItem.leftPadding)
             verify(check.implicitWidth > plainCheck.implicitWidth)
+        }
+
+        // A group's inner corners are square, its outer ones round
+        function test_groupCorners() {
+            const r = Styles.Primitives.radius.r4
+            compare(first.styleCascade.radius.topLeft, r)
+            compare(first.styleCascade.radius.topRight, 0)
+            compare(middle.styleCascade.radius.topLeft, 0)
+            compare(middle.styleCascade.radius.bottomRight, 0)
+            compare(last.styleCascade.radius.bottomLeft, 0)
+            compare(last.styleCascade.radius.bottomRight, r)
+            compare(first.background.topRightRadius, 0)
+        }
+
+        // An error shows in the border, also with the focus
+        function test_errorBorder() {
+            const danger = Styles.TokenInterface.semantics.danger_default
+            compare(wrong.background.border.color, danger)
+            wrong.forceActiveFocus()
+            compare(wrong.background.border.color, danger)
+            compare(plain.styleCascade.border.color, Styles.TokenInterface.semantics.stroke_field)
         }
     }
 }

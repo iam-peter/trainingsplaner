@@ -10,6 +10,11 @@ QtObject {
     // Toolbars are as high on every page: a control and 6 px around it
     readonly property int toolBarHeight: Styles.Primitives.size.s32 + 2 * Styles.Primitives.spacing.sp075
 
+    // A Lucide icon of the program (icons/<name>.svg); none for ""
+    function icon(name: string): url {
+        return name !== "" ? "qrc:/qt/qml/Trainingsplaner/icons/" + name + ".svg" : ""
+    }
+
     // Corner radius: at most 4 px
     function radius(r) {
         return Math.min(r, Styles.Primitives.radius.r4)

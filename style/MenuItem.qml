@@ -13,9 +13,7 @@ T.MenuItem {
         base: [ItemStyle.base, ItemStyle.menuItem]
         styles: control.styles
         overrides: [control.highlighted ? ItemStyle.highlighted : null]
-        state: !control.enabled ? StyleState.Disable
-               : control.down ? StyleState.Active
-               : control.hovered ? StyleState.Hover : StyleState.Idle
+        state: ControlState.item(control)
     }
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
@@ -74,12 +72,9 @@ T.MenuItem {
         color: _style.text.color
     }
 
-    background: Rectangle {
-        // A minimum only: entries are as wide as their text needs, and a
-        // menu as wide as its longest entry
-        implicitWidth: _style.width
-        implicitHeight: _style.height
-        radius: _style.radius.value
-        color: _style.background
+    // implicitWidth is a minimum only: entries are as wide as their text
+    // needs, and a menu as wide as its longest entry
+    background: StyledBackground {
+        cascade: _style
     }
 }

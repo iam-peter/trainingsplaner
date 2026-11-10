@@ -11,6 +11,8 @@ T.SpinBox {
     id: control
 
     property list<Style> styles
+    property int groupPosition: GroupStyle.Position.None
+    property bool error: false
     readonly property alias styleCascade: _style
     readonly property int stepWidth: _upStyle.width
 
@@ -22,9 +24,10 @@ T.SpinBox {
         id: _style
         base: [FieldStyle.base, FieldStyle.spinBox]
         styles: control.styles
-        overrides: [control.activeFocus ? FieldStyle.focus : null]
-        state: !control.enabled ? StyleState.Disable
-               : control.hovered ? StyleState.Hover : StyleState.Idle
+        overrides: [control.activeFocus ? FieldStyle.focus : null,
+                    control.error ? FieldStyle.error : null,
+                    GroupStyle.of(control.groupPosition)]
+        state: ControlState.hoverable(control)
     }
     StyleCascade {
         id: _leadingStyle
@@ -50,6 +53,8 @@ T.SpinBox {
                   + (_unit.visible ? _unitStyle.padding.left + _unit.implicitWidth : 0)
     hoverEnabled: true
     opacity: _style.opacity
+    // In a group over its neighbours while focused, so its border shows
+    z: activeFocus ? 2 : 0
 
     validator: IntValidator {
         locale: control.locale.name
@@ -136,7 +141,8 @@ T.SpinBox {
 
     Item {
         id: _leading
-        x: control.mirrored ? control.width - width - _leadingStyle.padding.left : _leadingStyle.padding.left
+        // Left to right only, as the program is German; the unit too
+        x: _leadingStyle.padding.left
         anchors.verticalCenter: parent.verticalCenter
         width: _leadingStyle.width
         height: _leadingStyle.icon.size
@@ -168,12 +174,7 @@ T.SpinBox {
            + _unitStyle.padding.left
     }
 
-    background: Rectangle {
-        implicitWidth: _style.width
-        implicitHeight: _style.height
-        radius: _style.radius.value
-        color: _style.background
-        border.width: _style.border.width
-        border.color: _style.border.color
+    background: StyledBackground {
+        cascade: _style
     }
 }

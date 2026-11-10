@@ -30,7 +30,7 @@ QtObject {
 
     // ItemDelegate: also lights up under the pointer
     readonly property Style delegate: Style {
-        width: 100
+        width: Primitives.size.s100
 
         Style {
             state: StyleState.Hover
@@ -45,7 +45,7 @@ QtObject {
     // Menu entries: as wide as their text needs, at least 120 px; the
     // icon muted, the tick and the submenu arrow in the text colour
     readonly property Style menuItem: Style {
-        width: 120
+        width: Primitives.size.s120
         icon.color: root.s.text_muted
 
         Style {
@@ -64,7 +64,7 @@ QtObject {
     // row stays the one that stands out
     readonly property Style listRow: Style {
         radius.value: Primitives.radius.r3
-        height: 28
+        height: Primitives.size.s28
         width: 0
 
         Style {

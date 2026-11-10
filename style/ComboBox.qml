@@ -8,6 +8,8 @@ T.ComboBox {
     id: control
 
     property list<Style> styles
+    property int groupPosition: GroupStyle.Position.None
+    property bool error: false
     readonly property alias styleCascade: _style
 
     StyleCascade {
@@ -15,9 +17,9 @@ T.ComboBox {
         base: [FieldStyle.base, FieldStyle.comboBox]
         styles: control.styles
         overrides: [control.activeFocus ? FieldStyle.focus : null,
-                    control.editable ? FieldStyle.editable : null]
-        state: !control.enabled ? StyleState.Disable
-               : control.hovered ? StyleState.Hover : StyleState.Idle
+                    control.error ? FieldStyle.error : null,
+                    GroupStyle.of(control.groupPosition)]
+        state: ControlState.hoverable(control)
     }
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
@@ -26,10 +28,14 @@ T.ComboBox {
                              implicitContentHeight + topPadding + bottomPadding,
                              implicitIndicatorHeight + topPadding + bottomPadding)
 
-    leftPadding: _style.padding.left
+    // Editable, the text field inside takes the left padding, so a click
+    // there places the cursor
+    leftPadding: control.editable ? 0 : _style.padding.left
     rightPadding: _style.padding.right + (indicator ? indicator.width + _style.spacing : 0)
     hoverEnabled: true
     opacity: _style.opacity
+    // In a group over its neighbours while focused, so its border shows
+    z: activeFocus ? 2 : 0
 
     delegate: T.ItemDelegate {
         id: item
@@ -93,7 +99,7 @@ T.ComboBox {
     }
 
     contentItem: T.TextField {
-        leftPadding: control.editable ? _style.padding.right : 0
+        leftPadding: control.editable ? _style.padding.left : 0
         topPadding: _style.padding.top
         bottomPadding: _style.padding.bottom
 
@@ -113,13 +119,8 @@ T.ComboBox {
         verticalAlignment: Text.AlignVCenter
     }
 
-    background: Rectangle {
-        implicitWidth: _style.width
-        implicitHeight: _style.height
-        radius: _style.radius.value
-        color: _style.background
-        border.width: _style.border.width
-        border.color: _style.border.color
+    background: StyledBackground {
+        cascade: _style
     }
 
     // Nothing to choose: the list does not show at all

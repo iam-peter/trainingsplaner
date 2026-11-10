@@ -8,7 +8,7 @@ QtObject {
     readonly property Semantics s: TokenInterface.semantics
 
     readonly property Style base: Style {
-        width: 200
+        width: Primitives.size.s200
         height: Primitives.size.s8
         radius.value: Primitives.radius.r4
 

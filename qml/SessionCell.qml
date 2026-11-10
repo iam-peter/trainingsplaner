@@ -108,7 +108,7 @@ Rectangle {
     IconImage {
         anchors.centerIn: parent
         visible: !cell.filled && hover.hovered
-        source: "qrc:/qt/qml/Trainingsplaner/icons/plus.svg"
+        source: Theme.icon("plus")
         sourceSize: Qt.size(28, 28)
         color: _plusStyle.icon.color
     }

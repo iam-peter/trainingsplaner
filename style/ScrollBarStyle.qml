@@ -21,7 +21,7 @@ QtObject {
     readonly property Style thin: Style {
         Style {
             part: StylePart.Handle
-            width: 2
+            width: Primitives.size.s2
         }
     }
 }

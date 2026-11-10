@@ -75,7 +75,7 @@ QtObject {
         Style {
             part: StylePart.Indicator
             width: Primitives.size.s32
-            height: 18
+            height: Primitives.size.s18
             background: root.s.stroke_field
             border {
                 width: 0

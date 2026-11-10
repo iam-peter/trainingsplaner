@@ -23,8 +23,8 @@ QtObject {
     readonly property Style menu: Style {
         includes: [root.popover]
         padding.value: Primitives.spacing.sp050
-        width: 128
-        height: 40
+        width: Primitives.size.s128
+        height: Primitives.size.s40
     }
 
     // A combo box's list, a little below the box
@@ -48,7 +48,7 @@ QtObject {
             part: StylePart.Label
             text {
                 color: root.s.text_default
-                size: 18
+                size: Primitives.fontSize.title
                 weight: Primitives.fontWeight.semiBold
             }
             padding {
@@ -68,7 +68,7 @@ QtObject {
         background: root.s.primary_default
         text {
             color: root.s.text_on_primary
-            size: 12
+            size: Primitives.fontSize.small
         }
         radius.value: Primitives.radius.r4
         padding {

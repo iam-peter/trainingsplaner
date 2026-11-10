@@ -11,5 +11,5 @@ TabButton {
     property string iconName
 
     styles: [Styles.TabStyle.segment]
-    icon.source: iconName !== "" ? "qrc:/qt/qml/Trainingsplaner/icons/" + iconName + ".svg" : ""
+    icon.source: Theme.icon(iconName)
 }

@@ -24,6 +24,12 @@ AppDialog {
     // stand in columns from row to row; room for a value with its unit
     readonly property int fieldWidth: 108
 
+    // A margin as saved: the stored one while the box still shows it
+    // rounded, so a margin of 12.5 mm stays one unless it is changed
+    function margin(box, stored) {
+        return box.value === Math.round(stored) ? stored : box.value
+    }
+
     onAboutToShow: {
         trainerField.text = Store.trainer
         organisationField.text = Store.organisation
@@ -85,10 +91,10 @@ AppDialog {
             fontSmall: fontSmall.value,
             fontNormal: fontNormal.value,
             fontLarge: fontLarge.value,
-            marginTop: marginTop.value,
-            marginLeft: marginLeft.value,
-            marginRight: marginRight.value,
-            marginBottom: marginBottom.value,
+            marginTop: margin(marginTop, printOpts.marginTop),
+            marginLeft: margin(marginLeft, printOpts.marginLeft),
+            marginRight: margin(marginRight, printOpts.marginRight),
+            marginBottom: margin(marginBottom, printOpts.marginBottom),
             landscape: landscape.checked,
             logoPath: logoPath.text,
             sessionColor: sessionColor.color.toString()
@@ -206,11 +212,32 @@ AppDialog {
                 }
 
                 Label { text: "Logo im Hintergrund:" }
-                RowLayout {
-                    spacing: 8
-                    TextField { id: logoPath; Layout.fillWidth: true; placeholderText: "kein Logo"; readOnly: true }
-                    IconButton { iconName: "folder-open"; toolTip: "Bild wählen"; onClicked: logoDialog.open() }
-                    IconButton { iconName: "x"; toolTip: "Kein Logo"; onClicked: logoPath.text = "" }
+                // Choosing and removing are buttons in the field, removing
+                // only while there is a logo
+                TextField {
+                    id: logoPath
+                    Layout.fillWidth: true
+                    placeholderText: "kein Logo"
+                    readOnly: true
+                    trailingItems: [
+                        IconToolButton {
+                            height: logoPath.height - 4
+                            width: height
+                            padding: 0
+                            iconName: "folder-open"
+                            toolTip: "Bild wählen"
+                            onClicked: logoDialog.open()
+                        },
+                        IconToolButton {
+                            visible: logoPath.text !== ""
+                            height: logoPath.height - 4
+                            width: height
+                            padding: 0
+                            iconName: "x"
+                            toolTip: "Kein Logo"
+                            onClicked: logoPath.text = ""
+                        }
+                    ]
                 }
             }
 

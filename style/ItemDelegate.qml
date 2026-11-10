@@ -13,9 +13,7 @@ T.ItemDelegate {
         base: [ItemStyle.base, ItemStyle.delegate]
         styles: control.styles
         overrides: [control.highlighted ? ItemStyle.highlighted : null]
-        state: !control.enabled ? StyleState.Disable
-               : control.down ? StyleState.Active
-               : control.hovered ? StyleState.Hover : StyleState.Idle
+        state: ControlState.item(control)
     }
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
@@ -51,10 +49,7 @@ T.ItemDelegate {
         color: _style.text.color
     }
 
-    background: Rectangle {
-        implicitWidth: _style.width
-        implicitHeight: _style.height
-        radius: _style.radius.value
-        color: _style.background
+    background: StyledBackground {
+        cascade: _style
     }
 }
