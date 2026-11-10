@@ -97,27 +97,20 @@ QtObject {
     readonly property Radius radius: Radius {}
 
     component Stroke: QtObject {
-        readonly property int s1: 1
-        readonly property int s2: 2
-
-        readonly property int thin: s1
-        readonly property int thick: s2
+        readonly property int thin: 1
+        readonly property int thick: 2
     }
     readonly property Stroke stroke: Stroke {}
 
     component Size: QtObject {
         readonly property int s2: 2
-        readonly property int s4: 4
         readonly property int s6: 6
         readonly property int s8: 8
-        readonly property int s14: 14
         readonly property int s16: 16
         readonly property int s18: 18
-        readonly property int s20: 20
         readonly property int s24: 24
         readonly property int s28: 28
         readonly property int s32: 32
-        readonly property int s36: 36
         readonly property int s40: 40
         readonly property int s64: 64
         readonly property int s100: 100

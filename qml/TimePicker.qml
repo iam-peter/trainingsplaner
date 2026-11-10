@@ -38,7 +38,7 @@ Popup {
         flat: true
         background: Rectangle {
             color: cell.chosen ? Styles.TokenInterface.semantics.picker_chosen : cell.hovered ? Styles.TokenInterface.semantics.picker_hover : "transparent"
-            radius: Theme.radius(4)
+            radius: Styles.Primitives.radius.r4
         }
     }
 

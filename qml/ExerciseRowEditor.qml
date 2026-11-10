@@ -51,7 +51,7 @@ Frame {
     background: Rectangle {
         color: Styles.TokenInterface.semantics.background_default
         border.color: Styles.TokenInterface.semantics.stroke_subtle
-        radius: Theme.radius(4)
+        radius: Styles.Primitives.radius.r4
     }
 
     RowLayout {

@@ -289,7 +289,7 @@ Item {
         y: chart.plot ? chart.plot.top + 4 : 0
         width: valueColumn.implicitWidth + 16
         height: valueColumn.implicitHeight + 12
-        radius: Theme.radius(6)
+        radius: Styles.Primitives.radius.r4
         color: Styles.TokenInterface.semantics.primary_default
         border.color: Styles.TokenInterface.semantics.stroke_subtle
 

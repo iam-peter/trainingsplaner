@@ -68,22 +68,6 @@ QtObject {
         }
     }
 
-    readonly property Style secondary: Style {
-        background: root.s.background_secondary
-        border.width: 0
-        text.color: root.s.text_default
-        icon.color: root.s.text_default
-
-        Style {
-            state: StyleState.Hover
-            background: Primitives.alpha(root.s.background_secondary, 0.8)
-        }
-        Style {
-            state: StyleState.Active
-            background: Primitives.alpha(root.s.background_secondary, 0.8)
-        }
-    }
-
     // No surface until the pointer is over it: tool bars, pickers
     readonly property Style ghost: Style {
         background: TokenInterface.transparent

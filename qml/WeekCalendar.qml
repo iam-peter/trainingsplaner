@@ -113,7 +113,7 @@ Popup {
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: Theme.radius(4)
+                        radius: Styles.Primitives.radius.r4
                         color: popup.bandColor(weekRow.week)
                     }
                     Row {

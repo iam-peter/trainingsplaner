@@ -17,6 +17,6 @@ Frame {
     background: Rectangle {
         color: control.filled ? Styles.TokenInterface.semantics.background_elevated : "transparent"
         border.color: Styles.TokenInterface.semantics.stroke_subtle
-        radius: Theme.radius(4)
+        radius: Styles.Primitives.radius.r4
     }
 }

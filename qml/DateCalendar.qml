@@ -82,7 +82,7 @@ Popup {
                 // Chosen and under the pointer as in the other pickers
                 background: Rectangle {
                     color: chosen ? Styles.TokenInterface.semantics.picker_chosen : dayHover.hovered ? Styles.TokenInterface.semantics.picker_hover : "transparent"
-                    radius: Theme.radius(4)
+                    radius: Styles.Primitives.radius.r4
                 }
                 HoverHandler {
                     id: dayHover
