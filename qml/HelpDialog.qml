@@ -136,7 +136,9 @@ AppDialog {
                           + "<b>Planung:</b> MAZ anlegen, Rahmenorientierung (RO) in Prozent eintragen und daraus den "
                           + "individuellen Trainingsplan (ITP) berechnen.<br><br>"
                           + "<b>Analyse:</b> Abschnittsanalyse über beliebige Wochen oder eine MAZ, Grafik je Übung, "
-                          + "Belastungstabellen. Grafiken zeigen beim Darüberfahren die Werte und lassen sich als Bild speichern.<br><br>"
+                          + "Belastungstabellen. Die Tabellen stehen sofort da und folgen den Einstellungen. „Kopieren“ "
+                          + "legt sie für eine Tabellenkalkulation in die Zwischenablage, „Speichern unter“ schreibt ein PDF "
+                          + "oder eine CSV-Datei. Grafiken zeigen beim Darüberfahren die Werte und lassen sich als Bild speichern.<br><br>"
                           + "<b>Wettkämpfe:</b> Versuche eintragen, einen Fehlversuch mit der Leertaste oder einem Rechtsklick im Feld als ungültig markieren (rot, durchgestrichen), und die Entwicklung als Grafik ansehen.<br><br>"
                           + "<b>Datensicherung:</b> Daten › Exportieren schreibt eine Datei im Format des alten Programms."
                 }

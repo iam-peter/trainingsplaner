@@ -49,7 +49,8 @@ updates and uninstalling.
 - **Wochenplan**: 7 days × 2 (optionally 3) sessions per athlete, plan or
   actual ("Ist"), week note and injured flag, K1–K7 weekly summary,
   copy/paste a whole week (also to another athlete), calendar to pick a
-  week, extra info per day (body weight, body fat, supplements).
+  week, extra info per day (body weight, body fat, supplements), the
+  week's entries edited in place and saved together.
 - **Session editor**: weight exercises (kg, reps per set "SG", sets "ANZ",
   failed attempts "UG" in actual weeks), general exercises as text with total
   reps, free text lines, times and a note. Live MHG/BW/WH/SG-ANZ for the
@@ -69,13 +70,17 @@ updates and uninstalling.
   with the athlete's targets), and a chart of ITP against plan or actual.
 - **Analyse**: section analysis (WH, MHG, BW, set size with totals and
   trends, in kg or percent of the targets, comparisons, all MAZ, reps per
-  weight), group analysis of a MAZ, data check, and charts.
+  weight), group analysis of a MAZ, data check, and charts. Reports show
+  at once and follow their settings and the data; *Kopieren* puts them on
+  the clipboard for a spreadsheet, *Speichern unter* saves a PDF or a CSV
+  for Excel and LibreOffice.
 - **Data**: import and export in the old program's format (everything,
   changes since a date including deletions, or one athlete's weeks).
 - **Print / PDF** of the week plan with the old print options (notation,
-  figures, notes, empty lines, fonts, margins, landscape, logo), and of
-  all analyses and charts; charts also as PNG images, with the values
-  shown on hover.
+  figures, notes, empty lines, fonts, paper A4, A5 or A3, portrait or
+  landscape, margins, logo), and of all analyses and charts, their tables
+  drawn like the old program's reports; charts also as PNG images, with
+  the values shown on hover.
 - **Everyday use**: keyboard shortcuts (arrow keys, Enter and Delete in
   the week grid, Ctrl+←/→ for weeks, Ctrl+C/V for sessions), undo and
   redo of every change to sessions, a right-click menu with "Ist = Plan",
@@ -163,7 +168,8 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `src/planning.*` | MAZ, framework plan, ITP, planned weight steps |
 | `src/analysis.*` | section analysis and load tables |
 | `src/weekreport.*` | printed / PDF week plan |
-| `src/store.*`, `src/planstore.*`, `src/analysisapi.*`, `src/itpmodel.*` | APIs and models for the QML user interface |
+| `src/report.*` | analysis reports: headings, notes and tables, printed and as PDF, as text and CSV |
+| `src/store.*`, `src/planstore.*`, `src/analysisapi.*`, `src/itpmodel.*`, `src/reportmodel.*` | APIs and models for the QML user interface |
 | `qml/` | user interface |
 | `style/` | the controls' style: `Primitives` (every colour and size once), `TokenInterface` (their roles per colour scheme), `Style` and `StyleCascade` (rules by state and part), and a `*Style` singleton per kind of control with its variants, e.g. `ButtonStyle.ghost` |
 | `tests/` | unit tests (`tst_core`) and UI tests (`tst_qml`) |
@@ -171,6 +177,7 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `fonts/`, `icons/` | Inter, JetBrains Mono and Lucide icons, built into the program |
 | `packaging/` | Debian package script |
 | `pages/` | website |
+| `docs/ROADMAP.md`, `docs/NAVIGATION.md` | what comes next, and the planned sidebar navigation |
 | `docs/screenshots/` | screenshots with invented demo data |
 | `.github/workflows/` | CI, nightly, release and website |
 
