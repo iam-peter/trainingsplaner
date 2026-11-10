@@ -39,6 +39,7 @@ Item {
         Button { id: last; text: ">"; groupPosition: Styles.GroupStyle.Position.Last }
     }
     TextField { id: wrong; y: 300; text: "1.13.2001"; error: true }
+    ComboBox { id: editableBox; y: 340; width: 240; editable: true; model: ["Bundeskader", "Landeskader"] }
 
     TestCase {
         name: "FieldParts"
@@ -99,6 +100,14 @@ Item {
             wrong.forceActiveFocus()
             compare(wrong.background.border.color, danger)
             compare(plain.styleCascade.border.color, Styles.TokenInterface.semantics.stroke_field)
+        }
+
+        // Dragging over an editable box's text selects it, as in a field
+        function test_editableSelectsByMouse() {
+            const field = editableBox.contentItem
+            mouseDrag(field, 4, field.height / 2, field.width / 2, 0)
+            verify(field.selectedText.length > 0)
+            verify(!editableBox.popup.visible)
         }
     }
 }

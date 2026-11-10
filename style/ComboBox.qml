@@ -33,6 +33,9 @@ T.ComboBox {
     leftPadding: control.editable ? 0 : _style.padding.left
     rightPadding: _style.padding.right + (indicator ? indicator.width + _style.spacing : 0)
     hoverEnabled: true
+    // Editable, the text is selected by dragging as in any text field (Qt
+    // leaves it off)
+    selectTextByMouse: true
     opacity: _style.opacity
     // In a group over its neighbours while focused, so its border shows
     z: activeFocus ? 2 : 0
