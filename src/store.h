@@ -33,7 +33,7 @@ class Store : public QObject
     Q_PROPERTY(QString trainer READ trainer WRITE setTrainer NOTIFY settingsChanged)
     Q_PROPERTY(QString organisation READ organisation WRITE setOrganisation NOTIFY settingsChanged)
     Q_PROPERTY(QString databasePath READ databasePath CONSTANT)
-    // Print options as in WeekReport::Options, margins in mm
+    // Print options as in WeekReport::Options, margins in whole mm
     Q_PROPERTY(QVariantMap printOptions READ printOptions WRITE setPrintOptions NOTIFY settingsChanged)
     // Default times of the 1st-3rd session: [{from, to}, ...]
     Q_PROPERTY(QVariantList sessionTimes READ sessionTimes WRITE setSessionTimes NOTIFY settingsChanged)

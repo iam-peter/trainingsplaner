@@ -24,12 +24,6 @@ AppDialog {
     // stand in columns from row to row; room for a value with its unit
     readonly property int fieldWidth: 108
 
-    // A margin as saved: the stored one while the box still shows it
-    // rounded, so a margin of 12.5 mm stays one unless it is changed
-    function margin(box, stored) {
-        return box.value === Math.round(stored) ? stored : box.value
-    }
-
     onAboutToShow: {
         trainerField.text = Store.trainer
         organisationField.text = Store.organisation
@@ -47,10 +41,10 @@ AppDialog {
         fontSmall.value = printOpts.fontSmall
         fontNormal.value = printOpts.fontNormal
         fontLarge.value = printOpts.fontLarge
-        marginTop.value = Math.round(printOpts.marginTop)
-        marginLeft.value = Math.round(printOpts.marginLeft)
-        marginRight.value = Math.round(printOpts.marginRight)
-        marginBottom.value = Math.round(printOpts.marginBottom)
+        marginTop.value = printOpts.marginTop
+        marginLeft.value = printOpts.marginLeft
+        marginRight.value = printOpts.marginRight
+        marginBottom.value = printOpts.marginBottom
         landscape.checked = printOpts.landscape
         logoPath.text = printOpts.logoPath
         sessionColor.color = printOpts.sessionColor
@@ -91,10 +85,10 @@ AppDialog {
             fontSmall: fontSmall.value,
             fontNormal: fontNormal.value,
             fontLarge: fontLarge.value,
-            marginTop: margin(marginTop, printOpts.marginTop),
-            marginLeft: margin(marginLeft, printOpts.marginLeft),
-            marginRight: margin(marginRight, printOpts.marginRight),
-            marginBottom: margin(marginBottom, printOpts.marginBottom),
+            marginTop: marginTop.value,
+            marginLeft: marginLeft.value,
+            marginRight: marginRight.value,
+            marginBottom: marginBottom.value,
             landscape: landscape.checked,
             logoPath: logoPath.text,
             sessionColor: sessionColor.color.toString()

@@ -565,9 +565,9 @@ void Store::setOrganisation(const QString &v)
 namespace {
 
 const char *kPrintBool[] = {"weekNote", "weekNoteCentered", "figures", "sessionNoteCentered", "landscape"};
-const char *kPrintInt[] = {"blankHeader", "blankPerSession", "blankAfterNote"};
-const char *kPrintReal[] = {"fontSmall", "fontNormal", "fontLarge", "marginTop", "marginLeft",
-                            "marginRight", "marginBottom"};
+const char *kPrintInt[] = {"blankHeader", "blankPerSession", "blankAfterNote", "marginTop", "marginLeft",
+                           "marginRight", "marginBottom"};
+const char *kPrintReal[] = {"fontSmall", "fontNormal", "fontLarge"};
 
 WeekReport::Options readPrintOptions()
 {
@@ -587,10 +587,10 @@ WeekReport::Options readPrintOptions()
     o.fontSmall = qBound(5.0, s.value(QStringLiteral("fontSmall"), o.fontSmall).toDouble(), 24.0);
     o.fontNormal = qBound(6.0, s.value(QStringLiteral("fontNormal"), o.fontNormal).toDouble(), 28.0);
     o.fontLarge = qBound(6.0, s.value(QStringLiteral("fontLarge"), o.fontLarge).toDouble(), 36.0);
-    o.marginTop = qBound(0.0, s.value(QStringLiteral("marginTop"), o.marginTop).toDouble(), 80.0);
-    o.marginLeft = qBound(0.0, s.value(QStringLiteral("marginLeft"), o.marginLeft).toDouble(), 80.0);
-    o.marginRight = qBound(0.0, s.value(QStringLiteral("marginRight"), o.marginRight).toDouble(), 80.0);
-    o.marginBottom = qBound(0.0, s.value(QStringLiteral("marginBottom"), o.marginBottom).toDouble(), 80.0);
+    o.marginTop = qBound(0, s.value(QStringLiteral("marginTop"), o.marginTop).toInt(), 80);
+    o.marginLeft = qBound(0, s.value(QStringLiteral("marginLeft"), o.marginLeft).toInt(), 80);
+    o.marginRight = qBound(0, s.value(QStringLiteral("marginRight"), o.marginRight).toInt(), 80);
+    o.marginBottom = qBound(0, s.value(QStringLiteral("marginBottom"), o.marginBottom).toInt(), 80);
     o.logoPath = s.value(QStringLiteral("logoPath")).toString();
     const QColor c(s.value(QStringLiteral("sessionColor"), QStringLiteral("#ffffff")).toString());
     o.sessionColor = c.isValid() ? c : QColor(Qt::white);

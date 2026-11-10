@@ -38,10 +38,10 @@ struct Options
     double fontSmall = 9;           // pt
     double fontNormal = 10;
     double fontLarge = 12;
-    double marginTop = 12;          // mm
-    double marginLeft = 12;
-    double marginRight = 12;
-    double marginBottom = 12;
+    int marginTop = 12;             // whole mm
+    int marginLeft = 12;
+    int marginRight = 12;
+    int marginBottom = 12;
     bool landscape = false;
     QString logoPath;               // drawn faintly behind the content
     QColor sessionColor = Qt::white; // background of the session header rows

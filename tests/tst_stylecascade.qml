@@ -64,6 +64,13 @@ Item {
         id: button
         text: "Speichern"
     }
+    // The three ways controls read their state (ControlState)
+    Controls.Button { id: toggled; y: 40; text: "An"; checkable: true; checked: true }
+    Controls.MenuItem { id: ticked; y: 80; text: "Angekreuzt"; checkable: true; checked: true }
+    Controls.TabButton { id: currentTab; y: 120; text: "Aktuell"; checked: true }
+    Controls.CheckBox { id: lockedBox; y: 160; text: "Fest"; checked: true; enabled: false }
+    Controls.TextField { id: someField; y: 200; text: "Text" }
+
     SignalSpy {
         id: chosenChanged
         target: chosen
@@ -146,6 +153,22 @@ Item {
             chosen.styles = [ghost]
             // Read before the cascade is told, it already resolves the new list
             compare(chosen.padding.left, 12)
+        }
+
+        // A checked button is pressed in; a checked menu entry or the
+        // current tab is not pressed, a disabled check box stays checked
+        function test_controlStates() {
+            compare(toggled.styleCascade.state, StyleState.Active)
+            compare(ticked.styleCascade.state, StyleState.Idle)
+            compare(currentTab.styleCascade.state, StyleState.Idle)
+            compare(lockedBox.styleCascade.state, StyleState.Disable)
+            compare(lockedBox.indicator.color, TokenInterface.semantics.primary_default)
+            compare(someField.styleCascade.state, StyleState.Idle)
+            mouseMove(someField, 10, 10)
+            tryCompare(someField.styleCascade, "state", StyleState.Hover)
+            mousePress(currentTab)
+            compare(currentTab.styleCascade.state, StyleState.Active)
+            mouseRelease(currentTab)
         }
     }
 }
