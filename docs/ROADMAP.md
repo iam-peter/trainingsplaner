@@ -38,6 +38,9 @@ No new data, every user benefits at once.
 - [x] **Help:** tooltips for WH, MHG, BW, SG/ANZ, UG, K1–K7; a short help
       page; a first-start dialog (import old data or try demo data, trainer
       name).
+- [ ] **One sidebar instead of two tab bars**, with an athlete and a MAZ
+      picker as the headers of their views. See
+      [NAVIGATION.md](NAVIGATION.md).
 
 ## Phase 2 – Weightlifting planning
 
