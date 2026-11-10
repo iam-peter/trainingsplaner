@@ -17,7 +17,6 @@ TextField {
     placeholderText: "WW/JJJJ"
     // Room for the widest week and the calendar beside the style's padding
     implicitWidth: Math.ceil(digits.advanceWidth) + leftPadding + rightPadding + 8
-    rightPadding: calendarButton.width + 4
 
     TextMetrics {
         id: digits
@@ -25,19 +24,9 @@ TextField {
         text: "53/2026"
     }
 
-    IconToolButton {
+    trailingItems: FieldButton {
         id: calendarButton
         objectName: "calendarButton"
-        anchors.right: parent.right
-        anchors.rightMargin: 2
-        anchors.verticalCenter: parent.verticalCenter
-        height: parent.height - 4
-        width: height
-        padding: 0
-        leftPadding: 0
-        rightPadding: 0
-        topPadding: 0
-        bottomPadding: 0
         iconName: "calendar-days"
         toolTip: "Woche im Kalender wählen"
         enabled: !field.readOnly && field.enabled

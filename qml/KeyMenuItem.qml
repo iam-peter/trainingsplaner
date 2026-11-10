@@ -25,7 +25,7 @@ MenuItem {
         // Our styles name their text colour; the others draw menu text in
         // the window text colour (the style's own label colour cannot be
         // followed in a binding)
-        color: item.foreground !== undefined ? item.foreground : Styles.TokenInterface.semantics.text_default
+        color: item.styleCascade.text.color
         opacity: 0.6
     }
 }

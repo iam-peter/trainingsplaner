@@ -173,102 +173,105 @@ Page {
                 }
             }
 
-            Panel {
+            FormPanel {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                GridLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    columns: 2
-                    columnSpacing: 12
-                    rowSpacing: 8
+                title: page.current ? "Wettkampf bearbeiten" : "Neuer Wettkampf"
 
-                    Label {
-                        Layout.columnSpan: 2
-                        text: page.current ? "Wettkampf bearbeiten" : "Neuer Wettkampf"
-                        font.bold: true
-                        font.pixelSize: 16
-                    }
-                    Label { text: "Datum / Zeit:" }
-                    RowLayout {
-                        id: dateRow
-                        spacing: 8
-                        DateField { id: dateField; onTextEdited: page.dirty = true }
-                        TimeField { id: timeField; objectName: "timeField"; onTextEdited: page.dirty = true }
-                    }
-                    Label { text: "Art:" }
-                    ComboBox {
-                        id: typeBox
-                        // Ends with Datum / Zeit above it
-                        implicitWidth: dateRow.implicitWidth
-                        model: Store.competitionTypes
-                        onActivated: page.dirty = true
-                    }
-                    Label { text: "Wettkampf:" }
-                    TextField { id: nameField; Layout.preferredWidth: 320; onTextEdited: page.dirty = true }
-                    Label { text: "Ort:" }
-                    TextField { id: placeField; Layout.preferredWidth: 320; onTextEdited: page.dirty = true }
-                    Label { text: "Körpergewicht:" }
-                    RowLayout {
-                        spacing: 8
-                        TextField { id: weightField; implicitWidth: 80; horizontalAlignment: TextInput.AlignRight; onTextEdited: page.dirty = true }
-                        Label { text: "kg" }
-                    }
-                    Label { text: "Reißen:" }
-                    RowLayout {
-                        spacing: 8
-                        Repeater {
-                            id: snatchRepeater
-                            model: 3
-                            AttemptField {
-                                required property int index
-                                objectName: "snatch" + index
-                                onEdited: { page.dirty = true; page.updateTotal() }
-                            }
+                Label { text: "Datum / Zeit:" }
+                RowLayout {
+                    id: dateRow
+                    spacing: 8
+                    DateField { id: dateField; onTextEdited: page.dirty = true }
+                    TimeField { id: timeField; objectName: "timeField"; onTextEdited: page.dirty = true }
+                }
+                Label { text: "Art:" }
+                ComboBox {
+                    id: typeBox
+                    // Ends with Datum / Zeit above it
+                    implicitWidth: dateRow.implicitWidth
+                    model: Store.competitionTypes
+                    onActivated: page.dirty = true
+                }
+                Label { text: "Wettkampf:" }
+                TextField {
+                    id: nameField
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: Theme.fieldWidth
+                    onTextEdited: page.dirty = true
+                }
+                Label { text: "Ort:" }
+                TextField {
+                    id: placeField
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: Theme.fieldWidth
+                    onTextEdited: page.dirty = true
+                }
+                Label { text: "Körpergewicht:" }
+                TextField {
+                    id: weightField
+                    implicitWidth: 100
+                    unit: "kg"
+                    onTextEdited: page.dirty = true
+                }
+                Label { text: "Reißen:" }
+                RowLayout {
+                    spacing: 8
+                    Repeater {
+                        id: snatchRepeater
+                        model: 3
+                        AttemptField {
+                            required property int index
+                            objectName: "snatch" + index
+                            onEdited: { page.dirty = true; page.updateTotal() }
                         }
                     }
-                    Label { text: "Stoßen:" }
-                    RowLayout {
-                        spacing: 8
-                        Repeater {
-                            id: cjRepeater
-                            model: 3
-                            AttemptField {
-                                required property int index
-                                objectName: "cleanJerk" + index
-                                onEdited: { page.dirty = true; page.updateTotal() }
-                            }
-                        }
-                        Label {
-                            text: "Fehlversuch: Leertaste oder Rechtsklick im Feld (rot, durchgestrichen)"
-                            font.pixelSize: 11
-                            color: Styles.TokenInterface.semantics.text_muted
+                }
+                Label { text: "Stoßen:" }
+                RowLayout {
+                    spacing: 8
+                    Repeater {
+                        id: cjRepeater
+                        model: 3
+                        AttemptField {
+                            required property int index
+                            objectName: "cleanJerk" + index
+                            onEdited: { page.dirty = true; page.updateTotal() }
                         }
                     }
-                    Label { text: "Zweikampf:" }
-                    Label { id: totalLabel; font.bold: true; font.pixelSize: 16 }
-                    Label { text: "Bemerkung:" }
-                    TextField { id: noteField; Layout.preferredWidth: 320; onTextEdited: page.dirty = true }
+                }
+                Item {}
+                Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                    text: "Fehlversuch: Leertaste oder Rechtsklick im Feld (rot, durchgestrichen)"
+                    font.pixelSize: 11
+                    color: Styles.TokenInterface.semantics.text_muted
+                }
+                Label { text: "Zweikampf:" }
+                Label { id: totalLabel; font.bold: true; font.pixelSize: 16 }
+                Label { text: "Bemerkung:" }
+                TextField {
+                    id: noteField
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: Theme.fieldWidth
+                    onTextEdited: page.dirty = true
+                }
 
-                    Item {}
-                    RowLayout {
-                        spacing: 8
-                        IconButton {
-                            iconName: page.current ? "save" : "plus"
-                            text: page.current ? "Speichern" : "Hinzufügen"
-                            highlighted: true
-                            enabled: page.dirty || !page.current
-                            onClicked: page.save()
-                        }
-                    }
+                buttons: [
+                    IconButton {
+                        iconName: page.current ? "save" : "plus"
+                        text: page.current ? "Speichern" : "Hinzufügen"
+                        highlighted: true
+                        enabled: page.dirty || !page.current
+                        onClicked: page.save()
+                    },
                     Label {
-                        Layout.columnSpan: 2
                         visible: page.error !== ""
                         text: page.error
                         color: Styles.TokenInterface.semantics.danger_default
                     }
-                }
+                ]
             }
         }
 

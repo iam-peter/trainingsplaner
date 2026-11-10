@@ -642,17 +642,6 @@ Page {
         readonly property bool hasPlan: page.hasAthlete && opened
                                         && Store.session(page.athleteId, page.monday, "P", day, number).exists
 
-        // As wide as the longest entry (Menu's own width is fixed)
-        width: {
-            let w = 200
-            for (let i = 0; i < count; ++i) {
-                const it = itemAt(i)
-                if (it && it.visible)
-                    w = Math.max(w, it.implicitWidth)
-            }
-            return w + leftPadding + rightPadding
-        }
-
         function show(cell, d, n, ex, x, y) {
             day = d
             number = n

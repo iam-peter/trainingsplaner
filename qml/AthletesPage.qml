@@ -130,87 +130,81 @@ Page {
             }
         }
 
-        Panel {
+        FormPanel {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            title: page.selectedId === "" ? "Neuer Sportler" : "Sportler bearbeiten"
 
-            GridLayout {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
-                columns: 2
-                columnSpacing: 12
-                rowSpacing: 8
+            Item {}
+            RowLayout {
+                spacing: 8
+                RadioButton { id: maleButton; text: "Mann"; checked: true; onToggled: page.dirty = true }
+                RadioButton { id: femaleButton; text: "Frau"; onToggled: page.dirty = true }
+            }
 
+            Label { text: "Name:" }
+            TextField {
+                id: lastNameField
+                Layout.fillWidth: true
+                Layout.maximumWidth: Theme.fieldWidth
+                onTextEdited: page.dirty = true
+            }
+
+            Label { text: "Vorname:" }
+            TextField {
+                id: firstNameField
+                Layout.fillWidth: true
+                Layout.maximumWidth: Theme.fieldWidth
+                onTextEdited: page.dirty = true
+            }
+
+            Label { text: "geb.:" }
+            RowLayout {
+                spacing: 8
+                DateField {
+                    id: bornField
+                    onTextEdited: page.dirty = true
+                    error: !page.bornValid
+                }
                 Label {
-                    Layout.columnSpan: 2
-                    text: page.selectedId === "" ? "Neuer Sportler" : "Sportler bearbeiten"
-                    font.bold: true
-                    font.pixelSize: 16
+                    visible: !page.bornValid
+                    text: "Datum ungültig"
+                    color: Styles.TokenInterface.semantics.danger_default
                 }
-
-                Label { text: "" }
-                RowLayout {
-                    spacing: 8
-                    RadioButton { id: maleButton; text: "Mann"; checked: true; onToggled: page.dirty = true }
-                    RadioButton { id: femaleButton; text: "Frau"; onToggled: page.dirty = true }
+                Label {
+                    id: ageLabel
+                    visible: page.bornValid
+                    color: Styles.TokenInterface.semantics.text_muted
                 }
+            }
 
-                Label { text: "Name:" }
-                TextField {
-                    id: lastNameField
-                    Layout.preferredWidth: 300
-                    onTextEdited: page.dirty = true
-                }
+            Label { text: "Telefon:"; Layout.alignment: Qt.AlignTop }
+            TextArea {
+                id: phoneField
+                Layout.fillWidth: true
+                Layout.maximumWidth: Theme.fieldWidth
+                Layout.preferredHeight: 60
+                wrapMode: TextEdit.Wrap
+                onTextChanged: if (activeFocus) page.dirty = true
+            }
 
-                Label { text: "Vorname:" }
-                TextField {
-                    id: firstNameField
-                    Layout.preferredWidth: 300
-                    onTextEdited: page.dirty = true
-                }
+            Label { text: "Adresse:"; Layout.alignment: Qt.AlignTop }
+            TextArea {
+                id: addressField
+                Layout.fillWidth: true
+                Layout.maximumWidth: Theme.fieldWidth
+                Layout.preferredHeight: 80
+                wrapMode: TextEdit.Wrap
+                onTextChanged: if (activeFocus) page.dirty = true
+            }
 
-                Label { text: "geb.:" }
-                RowLayout {
-                    spacing: 8
-                    DateField {
-                        id: bornField
-                        Layout.preferredWidth: 136
-                        onTextEdited: page.dirty = true
-                        error: !page.bornValid
-                    }
-                    Label {
-                        visible: !page.bornValid
-                        text: "Datum ungültig"
-                        color: Styles.TokenInterface.semantics.danger_default
-                    }
-                    Label {
-                        id: ageLabel
-                        visible: page.bornValid
-                        color: Styles.TokenInterface.semantics.text_muted
-                    }
-                }
-
-                Label { text: "Telefon:"; Layout.alignment: Qt.AlignTop }
-                TextArea {
-                    id: phoneField
-                    Layout.preferredWidth: 300
-                    Layout.preferredHeight: 60
-                    wrapMode: TextEdit.Wrap
-                    onTextChanged: if (activeFocus) page.dirty = true
-                }
-
-                Label { text: "Adresse:"; Layout.alignment: Qt.AlignTop }
-                TextArea {
-                    id: addressField
-                    Layout.preferredWidth: 300
-                    Layout.preferredHeight: 80
-                    wrapMode: TextEdit.Wrap
-                    onTextChanged: if (activeFocus) page.dirty = true
-                }
-
-                Label { text: "Zugehörigkeit:"; Layout.alignment: Qt.AlignTop; Layout.topMargin: 8 }
+            Label { text: "Zugehörigkeit:"; Layout.alignment: Qt.AlignTop; Layout.topMargin: 8 }
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 4
                 GridLayout {
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: 2 * Theme.fieldWidth
                     columns: 2
                     columnSpacing: 16
                     rowSpacing: 4
@@ -222,13 +216,14 @@ Page {
                             required property string modelData
                             readonly property string art: modelData
                             property string value
+                            Layout.fillWidth: true
                             spacing: 0
                             Label { text: attribute.art + ":"; font.pixelSize: 11; color: Styles.TokenInterface.semantics.text_muted }
                             RowLayout {
                                 spacing: 4
                                 ComboBox {
                                     objectName: "attr_" + attribute.art
-                                    implicitWidth: 200
+                                    Layout.fillWidth: true
                                     editable: true
                                     model: Store.attributeValues(attribute.art)
                                     editText: attribute.value
@@ -252,33 +247,30 @@ Page {
                     }
                 }
                 Label {
-                    Layout.columnSpan: 2
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
                     font.pixelSize: 11
                     color: Styles.TokenInterface.semantics.text_muted
                     text: "Geänderte Zugehörigkeiten gelten ab heute; der Verlauf bleibt erhalten."
                 }
-
-                Item { Layout.preferredHeight: 8; Layout.columnSpan: 2 }
-
-                Item {}
-                RowLayout {
-                    spacing: 8
-                    IconButton {
-                        iconName: page.selectedId === "" ? "user-plus" : "save"
-                        text: page.selectedId === "" ? "Hinzufügen" : "Speichern"
-                        highlighted: true
-                        enabled: lastNameField.text.trim() !== "" && page.bornValid
-                                 && (page.dirty || page.selectedId === "")
-                        onClicked: page.save()
-                    }
-                    IconButton {
-                        iconName: "calendar-days"
-                        text: "Wochenplan öffnen"
-                        enabled: page.selectedId !== ""
-                        onClicked: page.openWeekPlan(page.selectedId)
-                    }
-                }
             }
+
+            buttons: [
+                IconButton {
+                    iconName: page.selectedId === "" ? "user-plus" : "save"
+                    text: page.selectedId === "" ? "Hinzufügen" : "Speichern"
+                    highlighted: true
+                    enabled: lastNameField.text.trim() !== "" && page.bornValid
+                             && (page.dirty || page.selectedId === "")
+                    onClicked: page.save()
+                },
+                IconButton {
+                    iconName: "calendar-days"
+                    text: "Wochenplan öffnen"
+                    enabled: page.selectedId !== ""
+                    onClicked: page.openWeekPlan(page.selectedId)
+                }
+            ]
         }
     }
 

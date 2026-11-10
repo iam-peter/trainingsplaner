@@ -11,7 +11,6 @@ TextField {
     placeholderText: "HH:MM"
     // Room for HH:MM and the clock beside the style's own padding
     implicitWidth: Math.ceil(digits.advanceWidth) + leftPadding + rightPadding + 8
-    rightPadding: clockButton.width + 4
     inputMethodHints: Qt.ImhPreferNumbers
     validator: RegularExpressionValidator { regularExpression: /^\d{0,2}(:\d{0,2})?$|^\d{3,4}$/ }
 
@@ -57,19 +56,9 @@ TextField {
         text: "HH:MM"
     }
 
-    IconToolButton {
+    trailingItems: FieldButton {
         id: clockButton
         objectName: "clockButton"
-        anchors.right: parent.right
-        anchors.rightMargin: 2
-        anchors.verticalCenter: parent.verticalCenter
-        height: parent.height - 4
-        width: height
-        padding: 0
-        leftPadding: 0
-        rightPadding: 0
-        topPadding: 0
-        bottomPadding: 0
         iconName: "clock"
         toolTip: "Uhrzeit wählen"
         enabled: !field.readOnly && field.enabled

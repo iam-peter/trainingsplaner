@@ -20,8 +20,20 @@ T.Menu {
     modal: true
     dim: false
 
+    // As wide as its longest shown entry: the list itself has no natural
+    // width, and a fixed one is wider than short entries need
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
-                            implicitContentWidth + leftPadding + rightPadding)
+                            entriesWidth() + leftPadding + rightPadding)
+
+    function entriesWidth(): real {
+        let w = 0
+        for (let i = 0; i < count; ++i) {
+            const entry = itemAt(i)
+            if (entry && entry.visible)
+                w = Math.max(w, entry.implicitWidth)
+        }
+        return w
+    }
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitContentHeight + topPadding + bottomPadding)
 

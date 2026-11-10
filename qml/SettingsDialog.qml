@@ -15,13 +15,8 @@ AppDialog {
     property var printOpts: ({})
     property var times: []
 
-    // The label columns of Leerzeilen, Schriftgröße and Seitenränder
-    readonly property real col1: Math.max(col1a.implicitWidth, col1b.implicitWidth, col1c.implicitWidth)
-    readonly property real col2: Math.max(col2a.implicitWidth, col2b.implicitWidth, col2c.implicitWidth)
-    readonly property real col3: Math.max(col3a.implicitWidth, col3b.implicitWidth, col3c.implicitWidth)
-
-    // Every field of Leerzeilen, Schriftgröße and Seitenränder, so they
-    // stand in columns from row to row; room for a value with its unit
+    // The spin boxes of the print settings, all as wide, room for a value
+    // with its unit
     readonly property int fieldWidth: 108
 
     onAboutToShow: {
@@ -122,19 +117,23 @@ AppDialog {
             currentIndex: tabs.currentIndex
             Layout.fillWidth: true
 
-            // Printing
+            // Printing: one grid, the row's label first, then label and
+            // field pairs, so the fields stand in columns from row to row;
+            // the last column takes what is left, so the wide fields reach
+            // the edge
             GridLayout {
-                columns: 2
-                columnSpacing: 16
+                columns: 10
+                columnSpacing: 8
                 rowSpacing: 8
 
-                Label { text: "Trainer:" }
-                TextField { id: trainerField; Layout.fillWidth: true }
-                Label { text: "Kopfzeile rechts:" }
-                TextField { id: organisationField; Layout.fillWidth: true; placeholderText: "z.B. Verein" }
+                Label { text: "Trainer:"; Layout.rightMargin: 8 }
+                TextField { id: trainerField; Layout.columnSpan: 9; Layout.fillWidth: true }
+                Label { text: "Kopfzeile rechts:"; Layout.rightMargin: 8 }
+                TextField { id: organisationField; Layout.columnSpan: 9; Layout.fillWidth: true; placeholderText: "z.B. Verein" }
 
-                Label { text: "Inhalt:"; Layout.alignment: Qt.AlignTop }
+                Label { text: "Inhalt:"; Layout.alignment: Qt.AlignTop; Layout.rightMargin: 8 }
                 GridLayout {
+                    Layout.columnSpan: 9
                     columns: 2
                     columnSpacing: 16
                     rowSpacing: 0
@@ -144,55 +143,47 @@ AppDialog {
                     CheckBox { id: sessionNoteCentered; text: "TE-Bemerkung zentriert" }
                 }
 
-                Label { text: "Laststufen:" }
+                Label { text: "Laststufen:"; Layout.rightMargin: 8 }
                 RowLayout {
+                    Layout.columnSpan: 9
                     spacing: 8
                     RadioButton { id: fraction; text: "Bruch (Gewicht über Wiederholungen)" }
                     RadioButton { id: slash; text: "100/2/2" }
                 }
 
-                // Leerzeilen, Schriftgröße and Seitenränder as one grid: each
-                // label column as wide as its widest label, every field as
-                // wide, so the fields stand in columns from row to row
-                Label { text: "Leerzeilen:" }
-                RowLayout {
-                    spacing: 8
-                    Label { id: col1a; text: "Kopf"; Layout.preferredWidth: dialog.col1 }
-                    SpinBox { id: blankHeader; from: 0; to: 20; editable: true; Layout.preferredWidth: dialog.fieldWidth }
-                    Label { id: col2a; text: "je TE"; Layout.preferredWidth: dialog.col2 }
-                    SpinBox { id: blankPerSession; from: 0; to: 20; editable: true; Layout.preferredWidth: dialog.fieldWidth }
-                    Label { id: col3a; text: "nach Bemerkung"; Layout.preferredWidth: dialog.col3 }
-                    SpinBox { id: blankAfterNote; from: 0; to: 40; editable: true; Layout.preferredWidth: dialog.fieldWidth }
-                }
+                Label { text: "Leerzeilen:"; Layout.rightMargin: 8 }
+                Label { text: "Kopf" }
+                SpinBox { id: blankHeader; from: 0; to: 20; editable: true; Layout.preferredWidth: dialog.fieldWidth }
+                Label { text: "je TE" }
+                SpinBox { id: blankPerSession; from: 0; to: 20; editable: true; Layout.preferredWidth: dialog.fieldWidth }
+                Label { text: "nach Bemerkung" }
+                SpinBox { id: blankAfterNote; from: 0; to: 40; editable: true; Layout.preferredWidth: dialog.fieldWidth; Layout.columnSpan: 4 }
 
-                Label { text: "Schriftgröße:" }
-                RowLayout {
-                    spacing: 8
-                    Label { id: col1b; text: "klein"; Layout.preferredWidth: dialog.col1 }
-                    SpinBox { id: fontSmall; unit: "pt"; from: 5; to: 24; editable: true; Layout.preferredWidth: dialog.fieldWidth }
-                    Label { id: col2b; text: "normal"; Layout.preferredWidth: dialog.col2 }
-                    SpinBox { id: fontNormal; unit: "pt"; from: 6; to: 28; editable: true; Layout.preferredWidth: dialog.fieldWidth }
-                    Label { id: col3b; text: "groß"; Layout.preferredWidth: dialog.col3 }
-                    SpinBox { id: fontLarge; unit: "pt"; from: 6; to: 36; editable: true; Layout.preferredWidth: dialog.fieldWidth }
-                }
+                Label { text: "Schriftgröße:"; Layout.rightMargin: 8 }
+                Label { text: "klein" }
+                SpinBox { id: fontSmall; unit: "pt"; from: 5; to: 24; editable: true; Layout.preferredWidth: dialog.fieldWidth }
+                Label { text: "normal" }
+                SpinBox { id: fontNormal; unit: "pt"; from: 6; to: 28; editable: true; Layout.preferredWidth: dialog.fieldWidth }
+                Label { text: "groß" }
+                SpinBox { id: fontLarge; unit: "pt"; from: 6; to: 36; editable: true; Layout.preferredWidth: dialog.fieldWidth; Layout.columnSpan: 4 }
 
-                Label { text: "Seitenränder:" }
-                RowLayout {
-                    spacing: 8
-                    Label { id: col1c; text: "oben"; Layout.preferredWidth: dialog.col1 }
-                    SpinBox { id: marginTop; unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.fieldWidth }
-                    Label { id: col2c; text: "links"; Layout.preferredWidth: dialog.col2 }
-                    SpinBox { id: marginLeft; unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.fieldWidth }
-                    Label { id: col3c; text: "rechts"; Layout.preferredWidth: dialog.col3 }
-                    SpinBox { id: marginRight; unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.fieldWidth }
-                    Label { text: "unten" }
-                    SpinBox { id: marginBottom; unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.fieldWidth }
-                }
-                Item { implicitWidth: 1 }
-                CheckBox { id: landscape; text: "Querformat" }
+                Label { text: "Seitenränder:"; Layout.rightMargin: 8 }
+                Label { text: "oben" }
+                SpinBox { id: marginTop; unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.fieldWidth }
+                Label { text: "links" }
+                SpinBox { id: marginLeft; unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.fieldWidth }
+                Label { text: "rechts" }
+                SpinBox { id: marginRight; unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.fieldWidth }
+                Label { text: "unten" }
+                SpinBox { id: marginBottom; unit: "mm"; from: 0; to: 80; editable: true; Layout.preferredWidth: dialog.fieldWidth }
+                Item { Layout.fillWidth: true }
 
-                Label { text: "Farbe TE-Zeile:" }
+                Item {}
+                CheckBox { id: landscape; text: "Querformat"; Layout.columnSpan: 9 }
+
+                Label { text: "Farbe TE-Zeile:"; Layout.rightMargin: 8 }
                 RowLayout {
+                    Layout.columnSpan: 9
                     spacing: 8
                     Rectangle {
                         id: sessionColor
@@ -205,28 +196,23 @@ AppDialog {
                     Button { text: "Weiß"; onClicked: sessionColor.color = "#ffffff" }
                 }
 
-                Label { text: "Logo im Hintergrund:" }
+                Label { text: "Logo im Hintergrund:"; Layout.rightMargin: 8 }
                 // Choosing and removing are buttons in the field, removing
                 // only while there is a logo
                 TextField {
                     id: logoPath
+                    Layout.columnSpan: 9
                     Layout.fillWidth: true
                     placeholderText: "kein Logo"
                     readOnly: true
                     trailingItems: [
-                        IconToolButton {
-                            height: logoPath.height - 4
-                            width: height
-                            padding: 0
+                        FieldButton {
                             iconName: "folder-open"
                             toolTip: "Bild wählen"
                             onClicked: logoDialog.open()
                         },
-                        IconToolButton {
+                        FieldButton {
                             visible: logoPath.text !== ""
-                            height: logoPath.height - 4
-                            width: height
-                            padding: 0
                             iconName: "x"
                             toolTip: "Kein Logo"
                             onClicked: logoPath.text = ""

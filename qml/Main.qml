@@ -25,18 +25,6 @@ ApplicationWindow {
     // the others too
     property string athlete
 
-    // A menu as wide as its longest shown entry (a Menu's own width is
-    // fixed, wider than short entries need)
-    function menuWidth(menu) {
-        let w = 0
-        for (let i = 0; i < menu.count; ++i) {
-            const item = menu.itemAt(i)
-            if (item && item.visible)
-                w = Math.max(w, item.implicitWidth)
-        }
-        return w + menu.leftPadding + menu.rightPadding
-    }
-
     // The first athlete of the selection lists while none is chosen or the
     // chosen one is gone. Only here: pages that each picked one fought over
     // the athlete they are bound to (a binding loop).
@@ -109,13 +97,8 @@ ApplicationWindow {
 
             // Daten, Einstellungen and Hilfe show only their icons (and the
             // label as tooltip) when the window is too narrow for the tabs
-            // and the three with their labels. The full widths come from
-            // copies that are never shown.
-            IconToolButton { id: dataFull; visible: false; iconName: "database"; text: "Daten" }
-            IconToolButton { id: settingsFull; visible: false; iconName: "settings"; text: "Einstellungen" }
-            IconToolButton { id: helpFull; visible: false; iconName: "circle-help"; text: "Hilfe" }
-            readonly property bool compact: width < tabs.Layout.preferredWidth + dataFull.implicitWidth
-                                                    + settingsFull.implicitWidth + helpFull.implicitWidth + 4 * spacing + 16
+            // and the three with their labels
+            readonly property bool compact: window.width < 1100
 
             IconToolButton {
                 id: dataButton
@@ -128,7 +111,6 @@ ApplicationWindow {
                 Menu {
                     id: dataMenu
                     objectName: "dataMenu"
-                    width: window.menuWidth(dataMenu)
                     // Right edge on the button's, as the button sits at the
                     // window's right
                     x: dataButton.width - dataMenu.width
@@ -178,7 +160,6 @@ ApplicationWindow {
                     // window's right
                     x: helpButton.width - helpMenu.width
                     y: helpButton.height
-                    width: window.menuWidth(helpMenu)
                     KeyMenuItem {
                         text: "Hilfe"
                         keys: "F1"

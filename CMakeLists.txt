@@ -67,6 +67,8 @@ qt_add_qml_module(tpqml
         qml/AppTabButton.qml
         qml/AppToolBar.qml
         qml/Panel.qml
+        qml/FormPanel.qml
+        qml/FieldButton.qml
         qml/ListRow.qml
         qml/ListPanel.qml
         qml/AppScrollBar.qml

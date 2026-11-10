@@ -20,6 +20,10 @@ QtObject {
         return Math.min(r, Styles.Primitives.radius.r4)
     }
 
+    // Fields of forms grow with the window up to this width, which keeps
+    // a line readable
+    readonly property int fieldWidth: 420
+
     // List rows: the selection's gap to the list's border, the same on
     // every side (inset across, inset down plus the list's own margin)
     readonly property int rowInsetX: 4
