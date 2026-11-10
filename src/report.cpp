@@ -97,6 +97,34 @@ Document fromVariant(const QVariantMap &v)
     return d;
 }
 
+QString toText(const Document &d)
+{
+    // A tab or line break inside a cell would split it
+    auto clean = [](QString t) {
+        t.replace(QLatin1Char('\t'), QLatin1Char(' '));
+        t.replace(QLatin1Char('\n'), QLatin1Char(' '));
+        return t;
+    };
+    QStringList lines;
+    if (!d.title.isEmpty())
+        lines.append(d.title);
+    for (const Block &b : d.blocks) {
+        if (b.kind != Block::Table) {
+            lines += b.text.split(QLatin1Char('\n'));
+            continue;
+        }
+        for (const Cells &row : b.rows) {
+            QStringList texts;
+            texts.reserve(row.size());
+            for (const Cell &c : row)
+                texts.append(clean(c.text));
+            lines.append(texts.join(QLatin1Char('\t')));
+        }
+        lines.append(QString());
+    }
+    return lines.join(QLatin1Char('\n')) + QLatin1Char('\n');
+}
+
 namespace {
 
 QFont font(double pt, bool bold = false)

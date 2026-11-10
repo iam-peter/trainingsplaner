@@ -9,6 +9,9 @@ Item {
     width: 1300
     height: 800
 
+    // Reads the clipboard back, as pasting would
+    TextEdit { id: pasted; visible: false }
+
     AnalysisPage {
         id: page
         anchors.fill: parent
@@ -54,6 +57,13 @@ Item {
             compare(table.itemAtCell(Qt.point(0, 2)).display, "TÜ")
             compare(table.itemAtCell(Qt.point(0, 3)).display, "1 Reißen WKÜ")
             verify(table.itemAtCell(Qt.point(0, 3)).bold)
+            // Kopieren: the tables for a spreadsheet, cells split by tabs
+            mouseClick(findChild(report, "copyButton"))
+            pasted.text = ""
+            pasted.paste()
+            verify(pasted.text.indexOf("Abschnittsanalyse") === 0, pasted.text.slice(0, 80))
+            verify(pasted.text.indexOf("TÜ\t\t") >= 0)
+            verify(pasted.text.indexOf("1 Reißen WKÜ\tWh\t") >= 0)
             // A setting rebuilds it
             const summary = control(page, "Zusammenfassung (ohne Wochenwerte)")
             const before = shown(report)

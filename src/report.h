@@ -49,6 +49,12 @@ struct Document
 QVariantMap toVariant(const Document &d);
 Document fromVariant(const QVariantMap &v);
 
+// The report as text for a spreadsheet: the title, headings and notes a
+// line each, every table row a line with its cells separated by tabs, and
+// an empty line after each table. Tabs, not commas: the numbers have
+// decimal commas (5,5), and spreadsheets split pasted text at tabs.
+QString toText(const Document &d);
+
 // Paints the report onto a device already set up with its page layout. A
 // table wider than the page is drawn smaller; a long one goes on over the
 // next page, its header row repeated there.

@@ -538,6 +538,17 @@ void TestCore::reportRoundTripAndPdf()
     QVERIFY(back.blocks[2].rows[5][0].bold);
     QVERIFY(!back.blocks[2].rows[5][1].bold);
 
+    // As text for a spreadsheet: a line per heading, note line and table
+    // row, the cells separated by tabs, a tab in a cell made a space
+    Report::Document small;
+    small.title = QStringLiteral("Gruppenanalyse");
+    small.heading(QStringLiteral("Gesamtübersicht"));
+    small.table({Report::cells({QStringLiteral("Sportler"), QStringLiteral("Wh/Wo")}),
+                 Report::cells({QStringLiteral("Test,\tTina"), QStringLiteral("5,5")})});
+    small.note(QStringLiteral("eins\nzwei"));
+    QCOMPARE(Report::toText(small),
+             QStringLiteral("Gruppenanalyse\nGesamtübersicht\nSportler\tWh/Wo\nTest, Tina\t5,5\n\neins\nzwei\n"));
+
     const QString path = m_dir.filePath(QStringLiteral("report.pdf"));
     {
         QPdfWriter writer(path);

@@ -7,7 +7,9 @@
 #include "planning.h"
 #include "report.h"
 
+#include <QClipboard>
 #include <QDesktopServices>
+#include <QGuiApplication>
 #include <QLocale>
 #include <QPageLayout>
 #include <QPdfWriter>
@@ -563,4 +565,9 @@ QString AnalysisApi::saveReportPdf(const QVariantMap &report, const QUrl &file) 
     }
     QDesktopServices::openUrl(file);
     return QString();
+}
+
+void AnalysisApi::copyReport(const QVariantMap &report) const
+{
+    QGuiApplication::clipboard()->setText(Report::toText(Report::fromVariant(report)));
 }

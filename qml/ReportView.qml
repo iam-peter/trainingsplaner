@@ -73,6 +73,14 @@ ColumnLayout {
         // On the line of the first heading beside it (Sportler, MAZ), not
         // centred on the buttons
         Label { text: view.title; font.bold: true; Layout.fillWidth: true; Layout.alignment: Qt.AlignTop }
+        // For a spreadsheet: the cells separated by tabs
+        IconButton {
+            objectName: "copyButton"
+            iconName: "copy"
+            text: "Kopieren"
+            enabled: view.hasReport
+            onClicked: Analysis.copyReport(view.report)
+        }
         IconButton {
             iconName: "printer"
             text: "Drucken"
