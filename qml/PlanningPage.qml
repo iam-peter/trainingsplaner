@@ -80,9 +80,29 @@ Page {
     onMazChoicesChanged: selectDefaults()
     onAthleteIdChanged: selectDefaults()
     Component.onCompleted: selectDefaults()
+    // The grid reloads only while it shows: reloading updates every cell,
+    // half a second for a year's plan, and a hidden one would make each
+    // save elsewhere (a target in the MAZ) wait for it. Hidden, it only
+    // notes the change and reloads when it shows again.
+    property bool itpStale: false
     Connections {
         target: Plan
-        function onChanged() { itpGrid.model.reload(); page.reloadSteps() }
+        function onChanged() {
+            page.reloadSteps()
+            if (itpGrid.visible)
+                itpGrid.model.reload()
+            else
+                page.itpStale = true
+        }
+    }
+    Connections {
+        target: itpGrid
+        function onVisibleChanged() {
+            if (itpGrid.visible && page.itpStale) {
+                page.itpStale = false
+                itpGrid.model.reload()
+            }
+        }
     }
 
     header: AppToolBar {

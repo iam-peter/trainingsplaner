@@ -177,14 +177,25 @@ RowLayout {
                     id: athleteRow
                     required property var modelData
                     spacing: 8
-                    function saveRow() {
-                        Plan.saveMazAthlete({
-                            mazId: pane.mazId, athleteId: modelData.athleteId,
+                    // What was saved last: leaving a field saves only a change,
+                    // as every save makes the plans reload
+                    // (set once: as a binding it would follow every keystroke)
+                    property string saved
+                    Component.onCompleted: saved = JSON.stringify(values())
+                    function values() {
+                        return {
                             weightClass: parseInt(wc.text) || 0,
                             targetSnatch: parseInt(ts.text) || 0, targetCleanJerk: parseInt(tc.text) || 0,
-                            compSnatch: parseInt(cs.text) || 0, compCleanJerk: parseInt(cc.text) || 0,
-                            note: modelData.note
-                        })
+                            compSnatch: parseInt(cs.text) || 0, compCleanJerk: parseInt(cc.text) || 0
+                        }
+                    }
+                    function saveRow() {
+                        const now = JSON.stringify(values())
+                        if (now === saved)
+                            return
+                        saved = now
+                        Plan.saveMazAthlete(Object.assign({ mazId: pane.mazId, athleteId: modelData.athleteId,
+                                                            note: modelData.note }, values()))
                     }
                     Label { text: modelData.displayName; Layout.preferredWidth: 180; elide: Text.ElideRight }
                     TextField {
