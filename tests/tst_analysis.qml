@@ -16,31 +16,55 @@ TestCase {
             { kind: 0, exercise: 1, steps: [{ kg: 75, reps: 2, sets: 2 }] } ] })
     }
 
+    // The texts of a report's cells, and all of its texts one per line
+    function cellTexts(report) {
+        const out = []
+        for (const b of report.blocks)
+            if (b.kind === "table")
+                for (const row of b.rows)
+                    for (const c of row)
+                        out.push(c.t)
+        return out
+    }
+    function allText(report) {
+        return [report.title].concat(report.blocks.filter(b => b.kind !== "table").map(b => b.text))
+                             .concat(cellTexts(report)).join("\n")
+    }
+    function tables(report) {
+        return report.blocks.filter(b => b.kind === "table")
+    }
+
     function test_individual() {
-        const html = Analysis.individual({ athleteId: athlete, mazId: "", from: "1/2029", weeks: 2, basis: "I",
+        const report = Analysis.individual({ athleteId: athlete, mazId: "", from: "1/2029", weeks: 2, basis: "I",
                                            reference: "kg", groups: false, competitionWeeks: true, summary: false,
                                            compareMazId: "", compareBasis: "I", allMaz: false, loadExercise: 1 })
-        verify(html.indexOf("Abschnittsanalyse") >= 0)
-        verify(html.indexOf("1 Reißen WKÜ") >= 0)
-        verify(html.indexOf("19 Kniebeuge vorn") >= 0)
-        verify(html.indexOf("2 Wochen, 2 TE") >= 0, html.slice(0, 600))
-        verify(html.indexOf("Laststufenanalyse TÜ 1") >= 0)
-        verify(html.indexOf(">14<") >= 0)   // WH total of exercise 1: 10 + 4
+        const text = allText(report)
+        compare(report.title, "Abschnittsanalyse")
+        verify(text.indexOf("1 Reißen WKÜ") >= 0)
+        verify(text.indexOf("19 Kniebeuge vorn") >= 0)
+        verify(text.indexOf("2 Wochen, 2 TE") >= 0, text.slice(0, 600))
+        verify(text.indexOf("Laststufenanalyse TÜ 1") >= 0)
+        verify(cellTexts(report).indexOf("14") >= 0)   // WH total of exercise 1: 10 + 4
+        // The exercise's name in bold, as the first reports had it
+        const first = tables(report)[0]
+        compare(first.rows[1][0].t, "1 Reißen WKÜ")
+        verify(first.rows[1][0].b)
     }
 
     function test_groupsAndSummary() {
-        const html = Analysis.individual({ athleteId: athlete, from: "1/2029", weeks: 2, basis: "I", reference: "kg",
+        const report = Analysis.individual({ athleteId: athlete, from: "1/2029", weeks: 2, basis: "I", reference: "kg",
                                            groups: true, summary: true })
-        verify(html.indexOf(">K1<") >= 0 || html.indexOf("K1</b>") >= 0)
-        verify(html.indexOf(">K5<") >= 0 || html.indexOf("K5</b>") >= 0)
-        verify(html.indexOf("1.</th>") < 0)  // no weekly columns
+        const cells = cellTexts(report)
+        verify(cells.indexOf("K1") >= 0)
+        verify(cells.indexOf("K5") >= 0)
+        verify(tables(report)[0].rows[0].every(c => c.t !== "1."))  // no weekly columns
     }
 
     function test_dataCheckAndSeries() {
-        const html = Analysis.dataCheck({ from: "1/2029", weeks: 2, mode: 0,
+        const report = Analysis.dataCheck({ from: "1/2029", weeks: 2, mode: 0,
                                           athletes: [{ id: athlete, displayName: "Test, Tina" }] })
-        verify(html.indexOf("Test, Tina") >= 0)
-        verify(html.indexOf("0/1") >= 0)
+        verify(cellTexts(report).indexOf("Test, Tina") >= 0)
+        verify(cellTexts(report).indexOf("0/1") >= 0)
         const s = Analysis.series({ athleteId: athlete, mazId: "", from: "1/2029", weeks: 2, exercise: 1,
                                     volume: 1, basis: "I", reference: "kg" })
         compare(s.labels, ["1/2029", "2/2029"])
@@ -55,10 +79,10 @@ TestCase {
         const r = Plan.saveMaz({ name: "Gruppe", from: "1/2029", to: "2/2029" })
         Plan.saveMazAthlete({ mazId: r.id, athleteId: athlete, targetSnatch: 80, targetCleanJerk: 100 })
         for (const mode of [0, 1, 2]) {
-            const html = Analysis.group({ mazId: r.id, mode: mode, exercise: 1, reference: "ziel" })
-            verify(html.indexOf("Test, Tina") >= 0, "mode " + mode)
+            const report = Analysis.group({ mazId: r.id, mode: mode, exercise: 1, reference: "ziel" })
+            verify(cellTexts(report).indexOf("Test, Tina") >= 0, "mode " + mode)
         }
-        verify(Analysis.group({ mazId: r.id, mode: 2, exercise: 1, reference: "ziel" }).indexOf("93,8") >= 0) // 75 of 80
+        verify(cellTexts(Analysis.group({ mazId: r.id, mode: 2, exercise: 1, reference: "ziel" })).indexOf("93,8") >= 0) // 75 of 80
         Plan.removeMaz(r.id)
     }
 }

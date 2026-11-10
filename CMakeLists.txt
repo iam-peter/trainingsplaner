@@ -25,6 +25,7 @@ add_library(tpcore STATIC
     src/analysis.cpp    src/analysis.h
     src/bakimport.cpp   src/bakimport.h
     src/weekreport.cpp  src/weekreport.h
+    src/report.cpp      src/report.h
     src/demo.cpp        src/demo.h
     src/update.cpp      src/update.h
 )
@@ -53,6 +54,7 @@ qt_add_qml_module(tpqml
         src/planstore.cpp src/planstore.h
         src/itpmodel.cpp src/itpmodel.h
         src/analysisapi.cpp src/analysisapi.h
+        src/reportmodel.cpp src/reportmodel.h
         src/updater.cpp src/updater.h
         src/colorscheme.cpp src/colorscheme.h
     QML_FILES

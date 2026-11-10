@@ -5,6 +5,7 @@
 #include "competition.h"
 #include "database.h"
 #include "planning.h"
+#include "report.h"
 
 #include <QDesktopServices>
 #include <QLocale>
@@ -12,11 +13,12 @@
 #include <QPdfWriter>
 #include <QPrintDialog>
 #include <QPrinter>
-#include <QTextDocument>
 
 namespace {
 
 using namespace Analysis;
+using Report::Cell;
+using Report::Cells;
 
 const QLocale de(QLocale::German);
 
@@ -28,44 +30,6 @@ QString fmt(double v, int decimals = 0, bool sign = false)
     if (sign && v > 0)
         s.prepend(QLatin1Char('+'));
     return s;
-}
-
-QString esc(const QString &s)
-{
-    return s.toHtmlEscaped();
-}
-
-const char *kStyle =
-    "<style>"
-    "body { font-family: Inter, Arial, sans-serif; font-size: 9pt; }"
-    "h2 { font-size: 13pt; margin: 0 0 4px 0; }"
-    "h3 { font-size: 10.5pt; margin: 14px 0 4px 0; }"
-    "p.note { color: #6b6560; margin: 2px 0; }"
-    "th { background: #f1efed; font-weight: 600; }"
-    "td.l, th.l { text-align: left; }"
-    ".x { color: #a39d98; }"
-    ".b { font-weight: 600; }"
-    "</style>";
-
-QString table(const QStringList &rows)
-{
-    // Separate light borders, not collapsed ones: collapsing made laying
-    // out a long report (two years) take a quarter second, and every
-    // change of its settings shows it anew
-    return QStringLiteral("<table border=\"1\" bordercolor=\"#dcd8d4\" cellspacing=\"0\" cellpadding=\"3\">")
-           + rows.join(QString())
-           + QStringLiteral("</table>");
-}
-
-QString cells(const QStringList &values, const QString &tag = QStringLiteral("td"), const QString &first = {})
-{
-    QString row = QStringLiteral("<tr>");
-    for (int i = 0; i < values.size(); ++i) {
-        const QString cls = i == 0 && !first.isEmpty() ? QStringLiteral(" class=\"%1\"").arg(first) : QString();
-        row += QStringLiteral("<%1 align=\"%2\"%3>%4</%1>")
-                   .arg(tag, i == 0 ? QStringLiteral("left") : QStringLiteral("right"), cls, values[i]);
-    }
-    return row + QStringLiteral("</tr>");
 }
 
 Basis basisFrom(const QString &b)
@@ -114,32 +78,29 @@ bool period(const QVariantMap &p, const QString &mazKey, QDate *from, int *weeks
     return from->isValid() && *weeks > 0;
 }
 
-QString sectionTable(const Section &s, bool summary, bool itp)
+QList<Cells> sectionTable(const Section &s, bool summary, bool itp)
 {
     const int pr = 1; // decimals for percent values
-    QStringList rows;
-    QStringList head{QStringLiteral("TÜ"), QString()};
+    QList<Cells> rows;
+    Cells head = Report::cells({QStringLiteral("TÜ"), QString()});
     if (!summary) {
-        for (int i = 0; i < s.weeks.size(); ++i) {
-            const int wk = s.weeks[i].weekNumber();
-            head.append(s.excluded[i] ? QStringLiteral("<span class=\"x\">%1.</span>").arg(wk)
-                                      : QStringLiteral("%1.").arg(wk));
-        }
+        for (int i = 0; i < s.weeks.size(); ++i)
+            head.append(Cell{QStringLiteral("%1.").arg(s.weeks[i].weekNumber()), false, bool(s.excluded[i])});
     }
-    head << QStringLiteral("1)") << QStringLiteral("2)") << QStringLiteral("3)");
-    rows.append(cells(head, QStringLiteral("th"), QStringLiteral("l")));
+    head += Report::cells({QStringLiteral("1)"), QStringLiteral("2)"), QStringLiteral("3)")});
+    rows.append(head);
 
     for (const Row &r : s.rows) {
         const int d = r.percent ? pr : 0;
         auto line = [&](const QString &label, const QList<double> &weekly, int wd, double a, double b, double c,
                         int ad, int bd, int cd, bool first, bool trend = true) {
-            QStringList v{first ? QStringLiteral("<b>%1</b>").arg(esc(r.name)) : QString(), label};
+            Cells v{Cell{first ? r.name : QString(), true}, Cell{label}};
             if (!summary) {
                 for (double x : weekly)
-                    v.append(fmt(x, wd));
+                    v.append(Cell{fmt(x, wd)});
             }
-            v << fmt(a, ad) << fmt(b, bd) << fmt(c, cd, trend);
-            rows.append(cells(v, QStringLiteral("td"), QStringLiteral("l")));
+            v += Report::cells({fmt(a, ad), fmt(b, bd), fmt(c, cd, trend)});
+            rows.append(v);
         };
         line(QStringLiteral("Wh"), r.wh, 0, r.whTotal, r.whPerWeek, r.whTrend, 0, 1, 1, true);
         line(QStringLiteral("Mhg"), r.mhg, d, r.mhgMax, r.mhgPeriod, r.mhgTrend, d, d, 1, false);
@@ -147,30 +108,29 @@ QString sectionTable(const Section &s, bool summary, bool itp)
         if (!itp)
             line(QStringLiteral("SG"), r.sg, 1, r.sgMean, r.sgTop30, r.failed, 1, 1, 0, false, false);
     }
-    return table(rows);
+    return rows;
 }
 
 QString legend(bool itp)
 {
     QString l = QStringLiteral(
-        "<p class=\"note\">Wh: 1) Gesamtumfang; 2) Wh pro Woche; 3) durchschnittlicher Zuwachs von Woche zu Woche (Regression)<br/>"
-        "Mhg: 1) höchstes Wochen-Mhg; 2) Mhg des Abschnitts; 3) durchschnittlicher Zuwachs von Woche zu Woche<br/>"
+        "Wh: 1) Gesamtumfang; 2) Wh pro Woche; 3) durchschnittlicher Zuwachs von Woche zu Woche (Regression)\n"
+        "Mhg: 1) höchstes Wochen-Mhg; 2) Mhg des Abschnitts; 3) durchschnittlicher Zuwachs von Woche zu Woche\n"
         "BW: 1) höchstes BW; 2) Mhg der 30 schwersten Versuche; 3) durchschnittlicher Zuwachs von Woche zu Woche");
     if (!itp)
-        l += QStringLiteral("<br/>SG: 1) mittlere Satzgröße; 2) mittlere Satzgröße der 30 schwersten Versuche; 3) ungültige Versuche");
-    return l + QStringLiteral("</p>");
+        l += QStringLiteral("\nSG: 1) mittlere Satzgröße; 2) mittlere Satzgröße der 30 schwersten Versuche; 3) ungültige Versuche");
+    return l;
 }
 
 QString sectionTitle(const QString &athlete, const QString &what, int weeks, const Section &s,
                      const QString &basis)
 {
-    return QStringLiteral("<h3>%1 – %2 (%3, %4/%5 Wochen, %6 TE)</h3>")
-        .arg(esc(athlete), esc(what), basis)
+    return QStringLiteral("%1 – %2 (%3, %4/%5 Wochen, %6 TE)")
+        .arg(athlete, what, basis)
         .arg(s.countedWeeks)
         .arg(weeks)
         .arg(fmt(s.sessions));
 }
-
 // Framework plan in kg-free form: its own percent values as a section
 Section roSection(const QString &mazId, bool groups)
 {
@@ -224,46 +184,48 @@ Section roSection(const QString &mazId, bool groups)
     return s;
 }
 
-QString loadTableHtml(const LoadTable &t, int exercise)
+void addLoadTable(Report::Document &doc, const LoadTable &t, int exercise)
 {
-    QStringList rows;
-    QStringList head{QStringLiteral("kg")};
-    for (const QDate &w : t.weeks)
-        head.append(QStringLiteral("%1.").arg(w.weekNumber()));
-    head.append(QStringLiteral("ges."));
-    rows.append(cells(head, QStringLiteral("th")));
-    for (int i = 0; i < t.kg.size(); ++i) {
-        QStringList v{QString::number(t.kg[i])};
-        for (int r : t.reps[i])
-            v.append(r > 0 ? QString::number(r) : QString());
-        v.append(QStringLiteral("<b>%1</b>").arg(t.totals[i]));
-        rows.append(cells(v));
+    doc.heading(QStringLiteral("Laststufenanalyse TÜ %1 %2 (Wiederholungen je Gewicht)")
+                    .arg(exercise)
+                    .arg(Catalog::name(exercise)));
+    if (t.kg.isEmpty()) {
+        doc.note(QStringLiteral("Keine Daten."));
+        return;
     }
-    return QStringLiteral("<h3>Laststufenanalyse TÜ %1 %2 (Wiederholungen je Gewicht)</h3>")
-               .arg(exercise)
-               .arg(esc(Catalog::name(exercise)))
-           + (t.kg.isEmpty() ? QStringLiteral("<p class=\"note\">Keine Daten.</p>") : table(rows));
-}
-
-QString document(const QString &title, const QString &body)
-{
-    return QStringLiteral("<html><head>") + QString::fromLatin1(kStyle) + QStringLiteral("</head><body><h2>")
-           + esc(title) + QStringLiteral("</h2>") + body + QStringLiteral("</body></html>");
+    QList<Cells> rows;
+    Cells head = Report::cells({QStringLiteral("kg")});
+    for (const QDate &w : t.weeks)
+        head.append(Cell{QStringLiteral("%1.").arg(w.weekNumber())});
+    head.append(Cell{QStringLiteral("ges.")});
+    rows.append(head);
+    for (int i = 0; i < t.kg.size(); ++i) {
+        Cells v{Cell{QString::number(t.kg[i])}};
+        for (int r : t.reps[i])
+            v.append(Cell{r > 0 ? QString::number(r) : QString()});
+        v.append(Cell{QString::number(t.totals[i]), true});
+        rows.append(v);
+    }
+    doc.table(rows);
 }
 
 } // namespace
 
 AnalysisApi::AnalysisApi(QObject *parent) : QObject(parent) {}
 
-QString AnalysisApi::individual(const QVariantMap &p) const
+QVariantMap AnalysisApi::individual(const QVariantMap &p) const
 {
+    Report::Document doc;
+    doc.title = QStringLiteral("Abschnittsanalyse");
     const QString athleteId = p.value(QStringLiteral("athleteId")).toString();
     const Athlete a = Database::athlete(athleteId);
     QDate from;
     int weeks = 0;
     Maz maz;
-    if (athleteId.isEmpty() || !period(p, QStringLiteral("mazId"), &from, &weeks, &maz))
-        return document(QStringLiteral("Abschnittsanalyse"), QStringLiteral("<p>Bitte Sportler und Zeitraum wählen.</p>"));
+    if (athleteId.isEmpty() || !period(p, QStringLiteral("mazId"), &from, &weeks, &maz)) {
+        doc.note(QStringLiteral("Bitte Sportler und Zeitraum wählen."));
+        return Report::toVariant(doc);
+    }
 
     const QString basis = p.value(QStringLiteral("basis")).toString();
     Params params;
@@ -281,12 +243,15 @@ QString AnalysisApi::individual(const QVariantMap &p) const
     const QString what = maz.id.isEmpty() ? QStringLiteral("Woche %1 bis %2").arg(Weeks::label(from), Weeks::label(from.addDays(7 * (weeks - 1))))
                                           : maz.name;
     const Section s = section(params);
-    QString body = sectionTitle(a.fullName(), what, weeks, s, basisName(basis));
+    doc.heading(sectionTitle(a.fullName(), what, weeks, s, basisName(basis)));
     if (params.reference != Reference::Absolute)
-        body += QStringLiteral("<p class=\"note\">Mhg und BW in %% der %1 im MAZ.</p>")
-                    .arg(params.reference == Reference::MazTarget ? QStringLiteral("Zielleistung")
-                                                                  : QStringLiteral("Wettkampfleistung"));
-    body += s.rows.isEmpty() ? QStringLiteral("<p class=\"note\">Keine Daten im Zeitraum.</p>") : sectionTable(s, summary, itp);
+        doc.note(QStringLiteral("Mhg und BW in % der %1 im MAZ.")
+                     .arg(params.reference == Reference::MazTarget ? QStringLiteral("Zielleistung")
+                                                                   : QStringLiteral("Wettkampfleistung")));
+    if (s.rows.isEmpty())
+        doc.note(QStringLiteral("Keine Daten im Zeitraum."));
+    else
+        doc.table(sectionTable(s, summary, itp));
 
     // Comparison with another MAZ
     const QString compareMaz = p.value(QStringLiteral("compareMazId")).toString();
@@ -304,20 +269,22 @@ QString AnalysisApi::individual(const QVariantMap &p) const
             c.mazId = compareMaz;
             cs = section(c);
         }
-        body += QStringLiteral("<h3>Vergleich: %1 (%2)</h3>").arg(esc(cm.name), basisName(cb));
-        body += cs.rows.isEmpty() ? QStringLiteral("<p class=\"note\">Keine Daten.</p>")
-                                  : sectionTable(cs, summary, cb == QLatin1String("T") || cb == QLatin1String("R"));
+        doc.heading(QStringLiteral("Vergleich: %1 (%2)").arg(cm.name, basisName(cb)));
+        if (cs.rows.isEmpty())
+            doc.note(QStringLiteral("Keine Daten."));
+        else
+            doc.table(sectionTable(cs, summary, cb == QLatin1String("T") || cb == QLatin1String("R")));
     }
 
     // Overview of all MAZ of the athlete
     if (p.value(QStringLiteral("allMaz")).toBool()) {
         const QList<Maz> list = Planning::mazForAthlete(athleteId);
-        QStringList rows;
-        QStringList head{QStringLiteral("TÜ")};
+        QList<Cells> rows;
+        Cells head = Report::cells({QStringLiteral("TÜ")});
         for (const Maz &m : list)
-            head << QStringLiteral("%1 Wh").arg(esc(m.shortName.isEmpty() ? m.name : m.shortName))
-                 << QStringLiteral("Mhg") << QStringLiteral("BW");
-        rows.append(cells(head, QStringLiteral("th"), QStringLiteral("l")));
+            head += Report::cells({QStringLiteral("%1 Wh").arg(m.shortName.isEmpty() ? m.name : m.shortName),
+                                   QStringLiteral("Mhg"), QStringLiteral("BW")});
+        rows.append(head);
         QMap<int, QStringList> byKey;
         QMap<int, QString> names;
         for (int i = 0; i < list.size(); ++i) {
@@ -336,48 +303,54 @@ QString AnalysisApi::individual(const QVariantMap &p) const
         for (auto it = byKey.begin(); it != byKey.end(); ++it) {
             while (it->size() < list.size() * 3)
                 it->append(QString());
-            rows.append(cells(QStringList{esc(names.value(it.key()))} + *it, QStringLiteral("td"), QStringLiteral("l")));
+            rows.append(Report::cells(QStringList{names.value(it.key())} + *it));
         }
-        body += QStringLiteral("<h3>Gesamtübersicht aller MAZ (%1)</h3>").arg(basisName(basis))
-                + (list.isEmpty() ? QStringLiteral("<p class=\"note\">Der Sportler ist in keinem MAZ.</p>") : table(rows));
+        doc.heading(QStringLiteral("Gesamtübersicht aller MAZ (%1)").arg(basisName(basis)));
+        if (list.isEmpty())
+            doc.note(QStringLiteral("Der Sportler ist in keinem MAZ."));
+        else
+            doc.table(rows);
     }
 
     const int loadEx = p.value(QStringLiteral("loadExercise")).toInt();
     if (loadEx > 0 && !itp) {
-        body += loadTableHtml(loadTable(athleteId, params.basis == Basis::Plan ? Variant::Plan : Variant::Actual,
-                                        loadEx, from, weeks), loadEx);
+        addLoadTable(doc, loadTable(athleteId, params.basis == Basis::Plan ? Variant::Plan : Variant::Actual,
+                                    loadEx, from, weeks), loadEx);
     }
-    body += legend(itp);
-    return document(QStringLiteral("Abschnittsanalyse"), body);
+    doc.note(legend(itp));
+    return Report::toVariant(doc);
 }
 
-QString AnalysisApi::group(const QVariantMap &p) const
+QVariantMap AnalysisApi::group(const QVariantMap &p) const
 {
+    Report::Document doc;
+    doc.title = QStringLiteral("Gruppenanalyse");
     const QString mazId = p.value(QStringLiteral("mazId")).toString();
     const Maz maz = Planning::maz(mazId);
-    if (mazId.isEmpty() || !maz.from.isValid())
-        return document(QStringLiteral("Gruppenanalyse"), QStringLiteral("<p>Bitte einen MAZ wählen.</p>"));
+    if (mazId.isEmpty() || !maz.from.isValid()) {
+        doc.note(QStringLiteral("Bitte einen MAZ wählen."));
+        return Report::toVariant(doc);
+    }
     const int mode = p.value(QStringLiteral("mode")).toInt();
     const Reference ref = referenceFrom(p.value(QStringLiteral("reference")).toString());
     const bool compWeeks = p.value(QStringLiteral("competitionWeeks")).toBool();
     const int exercise = qMax(1, p.value(QStringLiteral("exercise")).toInt());
 
-    QStringList rows;
+    QList<Cells> rows;
     if (mode == 0)
-        rows.append(cells({QStringLiteral("Sportler"), QStringLiteral("Wochen"), QStringLiteral("TE"),
-                           QStringLiteral("Wh K1-7"), QStringLiteral("Wh/Wo"), QStringLiteral("Mhg K1-7"),
-                           QStringLiteral("t"), QStringLiteral("bester ZK")},
-                          QStringLiteral("th"), QStringLiteral("l")));
+        rows.append(Report::cells({QStringLiteral("Sportler"), QStringLiteral("Wochen"), QStringLiteral("TE"),
+                                   QStringLiteral("Wh K1-7"), QStringLiteral("Wh/Wo"), QStringLiteral("Mhg K1-7"),
+                                   QStringLiteral("t"), QStringLiteral("bester ZK")}));
     else if (mode == 1) {
         QStringList h{QStringLiteral("Sportler")};
         for (int g = 1; g <= 7; ++g)
             h.append(QStringLiteral("K%1").arg(g));
         h.append(QStringLiteral("K1-7"));
-        rows.append(cells(h, QStringLiteral("th"), QStringLiteral("l")));
+        rows.append(Report::cells(h));
     } else {
-        rows.append(cells({QStringLiteral("Sportler"), QStringLiteral("Wh"), QStringLiteral("höchstes BW"),
-                           QStringLiteral("Mhg Abschnitt"), QStringLiteral("Mhg 30 schwerste"), QStringLiteral("Trend BW")},
-                          QStringLiteral("th"), QStringLiteral("l")));
+        rows.append(Report::cells({QStringLiteral("Sportler"), QStringLiteral("Wh"), QStringLiteral("höchstes BW"),
+                                   QStringLiteral("Mhg Abschnitt"), QStringLiteral("Mhg 30 schwerste"),
+                                   QStringLiteral("Trend BW")}));
     }
 
     for (const MazAthlete &ma : Planning::mazAthletes(mazId)) {
@@ -390,7 +363,7 @@ QString AnalysisApi::group(const QVariantMap &p) const
         params.mazId = mazId;
         params.groups = mode != 2;
         const Section s = section(params);
-        const QString name = esc(Database::athlete(ma.athleteId).displayName());
+        const QString name = Database::athlete(ma.athleteId).displayName();
         if (mode == 0) {
             double wh = 0, tonnage = 0;
             for (const Row &r : s.rows) {
@@ -400,12 +373,12 @@ QString AnalysisApi::group(const QVariantMap &p) const
             int best = 0;
             for (const Competition &c : Competitions::between(ma.athleteId, maz.from, maz.to.addDays(6)))
                 best = qMax(best, c.total());
-            rows.append(cells({name, QString::number(s.countedWeeks), fmt(s.sessions), fmt(wh),
-                               fmt(s.countedWeeks ? wh / s.countedWeeks : none, 1), fmt(wh > 0 ? tonnage / wh : none),
-                               fmt(tonnage / 1000.0, 1), best > 0 ? QString::number(best) : QString()},
-                              QStringLiteral("td"), QStringLiteral("l")));
+            rows.append(Report::cells({name, QString::number(s.countedWeeks), fmt(s.sessions), fmt(wh),
+                                       fmt(s.countedWeeks ? wh / s.countedWeeks : none, 1),
+                                       fmt(wh > 0 ? tonnage / wh : none), fmt(tonnage / 1000.0, 1),
+                                       best > 0 ? QString::number(best) : QString()}));
         } else if (mode == 1) {
-            QStringList v{name};
+            Cells v{Cell{name}};
             double all = 0;
             for (int g = 1; g <= 7; ++g) {
                 double perWeek = none;
@@ -413,11 +386,11 @@ QString AnalysisApi::group(const QVariantMap &p) const
                     if (r.key == -g)
                         perWeek = r.whPerWeek;
                 }
-                v.append(fmt(perWeek, 1));
+                v.append(Cell{fmt(perWeek, 1)});
                 all += has(perWeek) ? perWeek : 0;
             }
-            v.append(QStringLiteral("<b>%1</b>").arg(fmt(all, 1)));
-            rows.append(cells(v, QStringLiteral("td"), QStringLiteral("l")));
+            v.append(Cell{fmt(all, 1), true});
+            rows.append(v);
         } else {
             Row r;
             for (const Row &x : s.rows) {
@@ -425,79 +398,75 @@ QString AnalysisApi::group(const QVariantMap &p) const
                     r = x;
             }
             const int d = r.percent ? 1 : 0;
-            rows.append(cells({name, fmt(r.whTotal), fmt(r.bwMax, d), fmt(r.mhgPeriod, d), fmt(r.mhgTop30, d),
-                               fmt(r.bwTrend, 1, true)},
-                              QStringLiteral("td"), QStringLiteral("l")));
+            rows.append(Report::cells({name, fmt(r.whTotal), fmt(r.bwMax, d), fmt(r.mhgPeriod, d),
+                                       fmt(r.mhgTop30, d), fmt(r.bwTrend, 1, true)}));
         }
     }
     static const char *modes[] = {"Gesamtübersicht", "Umfangskennziffern (Wh pro Woche)", "Intensitätskennziffern"};
-    QString body = QStringLiteral("<h3>%1 – %2, %3 bis %4</h3>")
-                       .arg(QString::fromUtf8(modes[qBound(0, mode, 2)]), esc(maz.name), Weeks::label(maz.from),
-                            Weeks::label(maz.to));
+    doc.heading(QStringLiteral("%1 – %2, %3 bis %4")
+                    .arg(QString::fromUtf8(modes[qBound(0, mode, 2)]), maz.name, Weeks::label(maz.from),
+                         Weeks::label(maz.to)));
     if (mode == 2)
-        body += QStringLiteral("<p class=\"note\">TÜ %1 %2%3</p>")
-                    .arg(exercise)
-                    .arg(esc(Catalog::name(exercise)))
-                    .arg(ref == Reference::Absolute ? QStringLiteral(", kg")
-                                                    : ref == Reference::MazTarget ? QStringLiteral(", % der Zielleistung")
-                                                                                  : QStringLiteral(", % der Wettkampfleistung"));
-    body += table(rows);
-    return document(QStringLiteral("Gruppenanalyse"), body);
+        doc.note(QStringLiteral("TÜ %1 %2%3")
+                     .arg(exercise)
+                     .arg(Catalog::name(exercise))
+                     .arg(ref == Reference::Absolute ? QStringLiteral(", kg")
+                                                     : ref == Reference::MazTarget ? QStringLiteral(", % der Zielleistung")
+                                                                                   : QStringLiteral(", % der Wettkampfleistung")));
+    doc.table(rows);
+    return Report::toVariant(doc);
 }
 
-QString AnalysisApi::dataCheck(const QVariantMap &p) const
+QVariantMap AnalysisApi::dataCheck(const QVariantMap &p) const
 {
+    Report::Document doc;
     const QDate from = Weeks::fromLabel(p.value(QStringLiteral("from")).toString());
     const int weeks = qBound(1, p.value(QStringLiteral("weeks")).toInt(), 104);
-    if (!from.isValid())
-        return document(QStringLiteral("Trainingsdaten"), QStringLiteral("<p>Bitte die erste Woche angeben.</p>"));
-    const QVariantList athletes = p.value(QStringLiteral("athletes")).toList();
     const bool competitions = p.value(QStringLiteral("mode")).toInt() == 1;
-    QStringList rows;
+    doc.title = competitions ? QStringLiteral("Wettkämpfe") : QStringLiteral("Trainingsdaten");
+    if (!from.isValid()) {
+        doc.note(QStringLiteral("Bitte die erste Woche angeben."));
+        return Report::toVariant(doc);
+    }
+    const QVariantList athletes = p.value(QStringLiteral("athletes")).toList();
+    const QString range = QStringLiteral("Woche %1 bis %2.").arg(Weeks::label(from), Weeks::label(from.addDays(7 * (weeks - 1))));
+    QList<Cells> rows;
     if (!competitions) {
         QStringList head{QStringLiteral("Sportler")};
         for (int i = 0; i < weeks; ++i)
             head.append(QStringLiteral("%1.").arg(from.addDays(7 * i).weekNumber()));
-        rows.append(cells(head, QStringLiteral("th"), QStringLiteral("l")));
+        rows.append(Report::cells(head));
         for (const QVariant &v : athletes) {
             const QVariantMap a = v.toMap();
             const QString id = a.value(QStringLiteral("id")).toString();
             const QList<int> plan = sessionCounts(id, from, weeks, Variant::Plan);
             const QList<int> actual = sessionCounts(id, from, weeks, Variant::Actual);
-            QStringList r{esc(a.value(QStringLiteral("displayName")).toString())};
-            for (int i = 0; i < weeks; ++i) {
-                QString c;
-                if (plan[i] || actual[i])
-                    c = QStringLiteral("%1/%2").arg(plan[i]).arg(actual[i]);
-                r.append(c);
-            }
-            rows.append(cells(r, QStringLiteral("td"), QStringLiteral("l")));
+            QStringList r{a.value(QStringLiteral("displayName")).toString()};
+            for (int i = 0; i < weeks; ++i)
+                r.append(plan[i] || actual[i] ? QStringLiteral("%1/%2").arg(plan[i]).arg(actual[i]) : QString());
+            rows.append(Report::cells(r));
         }
-        return document(QStringLiteral("Trainingsdaten"),
-                        QStringLiteral("<p class=\"note\">Trainingseinheiten je Woche: Plan/Ist, Woche %1 bis %2.</p>")
-                                .arg(Weeks::label(from), Weeks::label(from.addDays(7 * (weeks - 1))))
-                            + table(rows));
+        doc.note(QStringLiteral("Trainingseinheiten je Woche: Plan/Ist, ") + range);
+        doc.table(rows);
+        return Report::toVariant(doc);
     }
-    rows.append(cells({QStringLiteral("Sportler"), QStringLiteral("Datum"), QStringLiteral("Art"),
-                       QStringLiteral("Wettkampf"), QStringLiteral("KG"), QStringLiteral("Reißen"),
-                       QStringLiteral("Stoßen"), QStringLiteral("ZK")},
-                      QStringLiteral("th"), QStringLiteral("l")));
+    rows.append(Report::cells({QStringLiteral("Sportler"), QStringLiteral("Datum"), QStringLiteral("Art"),
+                               QStringLiteral("Wettkampf"), QStringLiteral("KG"), QStringLiteral("Reißen"),
+                               QStringLiteral("Stoßen"), QStringLiteral("ZK")}));
     for (const QVariant &v : athletes) {
         const QVariantMap a = v.toMap();
         for (const Competition &c : Competitions::between(a.value(QStringLiteral("id")).toString(), from,
                                                           from.addDays(7 * weeks - 1))) {
-            rows.append(cells({esc(a.value(QStringLiteral("displayName")).toString()),
-                               Dates::text(c.date),
-                               Competitions::typeShortNames().value(c.type), esc(c.name), fmt(c.bodyWeight, 1),
-                               QString::number(c.bestSnatch()), QString::number(c.bestCleanJerk()),
-                               QStringLiteral("<b>%1</b>").arg(c.total())},
-                              QStringLiteral("td"), QStringLiteral("l")));
+            Cells r = Report::cells({a.value(QStringLiteral("displayName")).toString(), Dates::text(c.date),
+                                     Competitions::typeShortNames().value(c.type), c.name, fmt(c.bodyWeight, 1),
+                                     QString::number(c.bestSnatch()), QString::number(c.bestCleanJerk())});
+            r.append(Cell{QString::number(c.total()), true});
+            rows.append(r);
         }
     }
-    return document(QStringLiteral("Wettkämpfe"),
-                    QStringLiteral("<p class=\"note\">Woche %1 bis %2.</p>")
-                            .arg(Weeks::label(from), Weeks::label(from.addDays(7 * (weeks - 1))))
-                        + table(rows));
+    doc.note(range);
+    doc.table(rows);
+    return Report::toVariant(doc);
 }
 
 QVariantMap AnalysisApi::series(const QVariantMap &p) const
@@ -555,35 +524,42 @@ QVariantMap AnalysisApi::series(const QVariantMap &p) const
             {QStringLiteral("wh"), wh}};
 }
 
-bool AnalysisApi::printHtml(const QString &html, const QString &title) const
+namespace {
+
+QPageLayout reportLayout()
 {
+    return QPageLayout(QPageSize(QPageSize::A4), QPageLayout::Landscape, QMarginsF(10, 10, 10, 10),
+                       QPageLayout::Millimeter);
+}
+
+} // namespace
+
+bool AnalysisApi::printReport(const QVariantMap &report) const
+{
+    const Report::Document doc = Report::fromVariant(report);
     QPrinter printer(QPrinter::HighResolution);
-    printer.setPageLayout(QPageLayout(QPageSize(QPageSize::A4), QPageLayout::Landscape,
-                                      QMarginsF(10, 10, 10, 10), QPageLayout::Millimeter));
-    printer.setDocName(title);
+    printer.setPageLayout(reportLayout());
+    printer.setDocName(doc.title);
     QPrintDialog dialog(&printer);
     if (dialog.exec() != QDialog::Accepted)
         return false;
-    QTextDocument doc;
-    doc.setHtml(html);
-    doc.print(&printer);
+    Report::paint(&printer, doc);
     return true;
 }
 
-QString AnalysisApi::saveHtmlPdf(const QString &html, const QString &title, const QUrl &file) const
+QString AnalysisApi::saveReportPdf(const QVariantMap &report, const QUrl &file) const
 {
     const QString path = file.toLocalFile();
     if (path.isEmpty())
         return QStringLiteral("Kein Dateiname angegeben.");
+    const Report::Document doc = Report::fromVariant(report);
     {
         QPdfWriter writer(path);
-        writer.setTitle(title);
+        writer.setResolution(300);
+        writer.setTitle(doc.title);
         writer.setCreator(QStringLiteral("Trainingsplaner"));
-        writer.setPageLayout(QPageLayout(QPageSize(QPageSize::A4), QPageLayout::Landscape,
-                                         QMarginsF(10, 10, 10, 10), QPageLayout::Millimeter));
-        QTextDocument doc;
-        doc.setHtml(html);
-        doc.print(&writer);
+        writer.setPageLayout(reportLayout());
+        Report::paint(&writer, doc);
     }
     QDesktopServices::openUrl(file);
     return QString();

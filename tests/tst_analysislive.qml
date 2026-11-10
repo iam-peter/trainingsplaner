@@ -32,26 +32,41 @@ Item {
             return null
         }
 
+        // The report as text, to compare and search
+        function shown(view) {
+            return JSON.stringify(view.report)
+        }
+
         function test_showsAndFollows() {
             const monday = Store.mondayOf(Store.today())
             Store.saveSession("test_tina", monday, "I", { day: 1, number: 1, entries: [
                 { kind: 0, exercise: 1, steps: [{ kg: 61, reps: 3, sets: 1 }] } ] })
             page.show("individual")
             const report = findChild(page, "individualReport")
-            tryVerify(() => report.html.indexOf("1 Reißen WKÜ") >= 0)
+            tryVerify(() => shown(report).indexOf("1 Reißen WKÜ") >= 0)
+            // Drawn as a table: the title, the heading, then the table's
+            // header row and its first row
+            const table = findChild(report, "reportTable")
+            tryVerify(() => table.itemAtCell(Qt.point(0, 3)) !== null)
+            compare(table.itemAtCell(Qt.point(0, 0)).kind, ReportModel.Title)
+            compare(table.itemAtCell(Qt.point(0, 1)).kind, ReportModel.Heading)
+            compare(table.itemAtCell(Qt.point(0, 2)).kind, ReportModel.Header)
+            compare(table.itemAtCell(Qt.point(0, 2)).display, "TÜ")
+            compare(table.itemAtCell(Qt.point(0, 3)).display, "1 Reißen WKÜ")
+            verify(table.itemAtCell(Qt.point(0, 3)).bold)
             // A setting rebuilds it
             const summary = control(page, "Zusammenfassung (ohne Wochenwerte)")
-            const before = report.html
+            const before = shown(report)
             summary.click()
-            tryVerify(() => report.html !== before)
+            tryVerify(() => shown(report) !== before)
             summary.click()
-            tryCompare(report, "html", before)
+            tryVerify(() => shown(report) === before)
             // So does a change of the data
             Store.saveSession("test_tina", monday, "I", { day: 2, number: 1, entries: [
                 { kind: 0, exercise: 1, steps: [{ kg: 66, reps: 2, sets: 1 }] } ] })
-            tryVerify(() => report.html !== before)
+            tryVerify(() => shown(report) !== before)
             Store.removeSession("test_tina", monday, "I", 2, 1)
-            tryCompare(report, "html", before)
+            tryVerify(() => shown(report) === before)
             Store.removeSession("test_tina", monday, "I", 1, 1)
         }
 
@@ -61,15 +76,14 @@ Item {
             page.show("individual")
             verify(!check.visible)
             // Not built while the page was set up
-            compare(check.html, "")
-            const html = check.html
+            verify(!check.hasReport)
             Store.saveSession("test_tina", Store.mondayOf(Store.today()), "I", { day: 2, number: 1, entries: [
                 { kind: 0, exercise: 1, steps: [{ kg: 50, reps: 2, sets: 1 }] } ] })
             wait(200)
             verify(check.stale)
             page.show("check")
             tryVerify(() => !check.stale)
-            verify(check.html.length > 0)
+            verify(check.hasReport)
             Store.removeSession("test_tina", Store.mondayOf(Store.today()), "I", 2, 1)
         }
     }

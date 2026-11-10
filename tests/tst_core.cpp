@@ -9,8 +9,10 @@
 #include "steps.h"
 #include "update.h"
 #include "weekreport.h"
+#include "report.h"
 
 #include <QFileInfo>
+#include <QPdfWriter>
 #include <QPageLayout>
 #include <QTimeZone>
 
@@ -43,6 +45,7 @@ private slots:
     void nextWeight();
     void printWithAllOptions();
     void exportRoundTrip();
+    void reportRoundTripAndPdf();
     void attributesWithHistory();
     void competitions();
     void planningBasics();
@@ -508,6 +511,45 @@ void TestCore::printWithAllOptions()
     const QString path = m_dir.filePath(QStringLiteral("all.pdf"));
     QVERIFY(WeekReport::writePdf(path, w, {QStringLiteral("T"), QStringLiteral("V"), QStringLiteral("A B")}, o));
     QVERIFY(QFileInfo(path).size() > 1000);
+}
+
+// A report survives the way to QML and back, and a long table goes on
+// over the next page
+void TestCore::reportRoundTripAndPdf()
+{
+    Report::Document d;
+    d.title = QStringLiteral("Abschnittsanalyse");
+    d.heading(QStringLiteral("Anna – Woche 1/2029 bis 2/2029"));
+    d.note(QStringLiteral("erste Zeile\nzweite Zeile"));
+    QList<Report::Cells> rows{Report::cells({QStringLiteral("TÜ"), QStringLiteral("1."), QStringLiteral("2.")})};
+    rows[0][2].muted = true;
+    for (int i = 0; i < 120; ++i)
+        rows.append(Report::Cells{Report::Cell{QStringLiteral("Übung %1").arg(i), true},
+                                  Report::Cell{QString::number(i)}, Report::Cell{}});
+    d.table(rows);
+
+    const Report::Document back = Report::fromVariant(Report::toVariant(d));
+    QCOMPARE(back.title, d.title);
+    QCOMPARE(back.blocks.size(), 3);
+    QCOMPARE(back.blocks[0].kind, Report::Block::Heading);
+    QCOMPARE(back.blocks[1].text, d.blocks[1].text);
+    QCOMPARE(back.blocks[2].rows.size(), 121);
+    QVERIFY(back.blocks[2].rows[0][2].muted);
+    QVERIFY(back.blocks[2].rows[5][0].bold);
+    QVERIFY(!back.blocks[2].rows[5][1].bold);
+
+    const QString path = m_dir.filePath(QStringLiteral("report.pdf"));
+    {
+        QPdfWriter writer(path);
+        writer.setPageLayout(QPageLayout(QPageSize(QPageSize::A4), QPageLayout::Landscape,
+                                         QMarginsF(10, 10, 10, 10), QPageLayout::Millimeter));
+        Report::paint(&writer, back);
+    }
+    QFile pdf(path);
+    QVERIFY(pdf.open(QIODevice::ReadOnly));
+    const QByteArray bytes = pdf.readAll();
+    // 120 rows do not fit on one landscape page
+    QVERIFY(bytes.count("/Type /Page\n") >= 2);
 }
 
 void TestCore::exportRoundTrip()
