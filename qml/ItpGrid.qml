@@ -142,8 +142,12 @@ Item {
             }
             TextField {
                 id: _editor
+                // Up to the cell's own lines (below, right, and left before
+                // an exercise), not a pixel short of the line above
                 anchors.fill: parent
-                anchors.margins: 1
+                anchors.bottomMargin: 1
+                anchors.rightMargin: 1
+                anchors.leftMargin: itp.columnInfo(cell.column).first ? 1 : 0
                 visible: !cell.average
                 text: cell.display
                 horizontalAlignment: TextInput.AlignHCenter

@@ -44,5 +44,19 @@ Item {
             wait(50)
             verify(editorAt(1, 0).activeFocus)
         }
+
+        // The editor's border meets the grid's lines: no gap to the line
+        // above (the cell above draws it), its own lines below and right
+        function test_editorMeetsTheLines() {
+            const table = findChild(grid, "itpTable")
+            waitForRendering(table)
+            table.focusCell(1, 1)
+            tryVerify(() => editorAt(1, 1) && editorAt(1, 1).activeFocus)
+            const editor = editorAt(1, 1)
+            const cell = editor.parent
+            compare(editor.y, 0)
+            compare(editor.height, cell.height - 1)
+            compare(editor.width, cell.width - 1 - editor.x)
+        }
     }
 }
