@@ -41,7 +41,6 @@ const char *kStyle =
     "h2 { font-size: 13pt; margin: 0 0 4px 0; }"
     "h3 { font-size: 10.5pt; margin: 14px 0 4px 0; }"
     "p.note { color: #6b6560; margin: 2px 0; }"
-    "table { border-collapse: collapse; }"
     "th { background: #f1efed; font-weight: 600; }"
     "td.l, th.l { text-align: left; }"
     ".x { color: #a39d98; }"
@@ -50,7 +49,11 @@ const char *kStyle =
 
 QString table(const QStringList &rows)
 {
-    return QStringLiteral("<table border=\"1\" cellspacing=\"0\" cellpadding=\"3\">") + rows.join(QString())
+    // Separate light borders, not collapsed ones: collapsing made laying
+    // out a long report (two years) take a quarter second, and every
+    // change of its settings shows it anew
+    return QStringLiteral("<table border=\"1\" bordercolor=\"#dcd8d4\" cellspacing=\"0\" cellpadding=\"3\">")
+           + rows.join(QString())
            + QStringLiteral("</table>");
 }
 

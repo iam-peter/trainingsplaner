@@ -5,12 +5,64 @@ import QtQuick.Layouts
 import QtQuick.Dialogs
 import Trainingsplaner
 
-// An analysis report (HTML) with printing and PDF export.
+// An analysis report (HTML) with printing and PDF export. It shows at
+// once and follows its settings and the data: request is what it is built
+// from (one binding over the settings), build(request) makes the HTML.
 ColumnLayout {
     id: view
 
+    property var request: null
+    property var build: null
+    // false while a setting is half typed (a week): the report stays
+    property bool ready: true
+    // What shows without a report (no athlete, no MAZ)
+    property string emptyText: "Keine Daten."
     property string html
     property string title
+
+    property bool stale: true
+    property double builtAt: 0
+    function rebuild() {
+        later.stop()
+        stale = false
+        const h = request && build ? build(request) : ""
+        if (h !== html)
+            html = h
+        builtAt = Date.now()
+    }
+    // Hidden or half typed, it only notes the change. A single change (a
+    // click) rebuilds it at once; one coming quickly after another (typing,
+    // a spin box arrow held) waits until they pause. Built while the tabs
+    // are still being set up, all briefly visible: a hidden one waits.
+    function rebuildIfShown() {
+        if (visible && ready && stale)
+            rebuild()
+    }
+    function changed() {
+        stale = true
+        if (!visible || !ready)
+            return
+        if (Date.now() - builtAt > 300)
+            Qt.callLater(rebuildIfShown)
+        else
+            later.restart()
+    }
+    onRequestChanged: changed()
+    onReadyChanged: if (ready) changed()
+    onVisibleChanged: rebuildIfShown()
+    Connections {
+        target: Store
+        function onDataChanged() { view.changed() }
+    }
+    Connections {
+        target: Plan
+        function onChanged() { view.changed() }
+    }
+    Timer {
+        id: later
+        interval: 150
+        onTriggered: view.rebuildIfShown()
+    }
 
     spacing: 8
 
@@ -57,7 +109,7 @@ ColumnLayout {
         Label {
             anchors.centerIn: parent
             visible: view.html === ""
-            text: "Einstellungen wählen und „Tabelle“ drücken."
+            text: view.emptyText
             color: Styles.TokenInterface.semantics.text_muted
         }
     }

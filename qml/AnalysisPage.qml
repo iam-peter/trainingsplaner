@@ -25,7 +25,6 @@ Page {
     function show(name) {
         tabs.currentIndex = ["individual", "group", "check", "chart"].indexOf(name) >= 0
                             ? ["individual", "group", "check", "chart"].indexOf(name) : 0
-        if (tabs.currentIndex === 0) individualReport.html = Analysis.individual(individualParams())
         if (tabs.currentIndex === 3) chartTab.reload()
     }
 
@@ -146,20 +145,18 @@ Page {
                         CheckBox { id: iLoad; text: "Laststufenanalyse TÜ" }
                         TextField { id: iLoadEx; implicitWidth: 44; text: "1"; enabled: iLoad.checked; validator: IntValidator { bottom: 1; top: 45 } }
                     }
-                    IconButton {
-                        Layout.topMargin: 8
-                        iconName: "list"
-                        text: "Tabelle"
-                        highlighted: true
-                        onClicked: individualReport.html = Analysis.individual(page.individualParams())
-                    }
                 }
             }
             ReportView {
                 id: individualReport
+                objectName: "individualReport"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 title: "Abschnittsanalyse"
+                request: page.athleteId !== "" ? page.individualParams() : null
+                build: (p) => Analysis.individual(p)
+                ready: iMaz.currentIndex > 0 || iFrom.monday !== ""
+                emptyText: "Bitte einen Sportler wählen."
             }
         }
 
@@ -200,25 +197,21 @@ Page {
                     RadioButton { id: gWk; text: "% MAZ-WK" }
                 }
                 CheckBox { id: gCompWeeks; text: "WK-Woche einschließen" }
-                IconButton {
-                    Layout.topMargin: 8
-                    iconName: "list"
-                    text: "Tabelle"
-                    highlighted: true
-                    enabled: gMaz.currentIndex >= 0
-                    onClicked: groupReport.html = Analysis.group({
-                        mazId: gMaz.currentValue, mode: gVolume.checked ? 1 : gIntensity.checked ? 2 : 0,
-                        exercise: parseInt(gExercise.text) || 1,
-                        reference: gZiel.checked ? "ziel" : gWk.checked ? "wk" : "kg",
-                        competitionWeeks: gCompWeeks.checked
-                    })
-                }
             }
             ReportView {
                 id: groupReport
+                objectName: "groupReport"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 title: "Gruppenanalyse"
+                request: gMaz.currentIndex >= 0 ? {
+                    mazId: gMaz.currentValue, mode: gVolume.checked ? 1 : gIntensity.checked ? 2 : 0,
+                    exercise: parseInt(gExercise.text) || 1,
+                    reference: gZiel.checked ? "ziel" : gWk.checked ? "wk" : "kg",
+                    competitionWeeks: gCompWeeks.checked
+                } : null
+                build: (p) => Analysis.group(p)
+                emptyText: "Bitte zuerst einen MAZ anlegen."
             }
         }
 
@@ -249,22 +242,19 @@ Page {
                     color: Styles.TokenInterface.semantics.text_muted
                     text: "Alle Sportler der Auswahl aus den Einstellungen (Kader, Männer/Frauen)."
                 }
-                IconButton {
-                    Layout.topMargin: 8
-                    iconName: "list"
-                    text: "Tabelle"
-                    highlighted: true
-                    onClicked: checkReport.html = Analysis.dataCheck({
-                        from: cFrom.text, weeks: cWeeks.value, mode: cTraining.checked ? 0 : 1,
-                        athletes: Store.selectableAthletes
-                    })
-                }
             }
             ReportView {
                 id: checkReport
+                objectName: "checkReport"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 title: "Datenprüfung"
+                request: ({
+                    from: cFrom.text, weeks: cWeeks.value, mode: cTraining.checked ? 0 : 1,
+                    athletes: Store.selectableAthletes
+                })
+                build: (p) => Analysis.dataCheck(p)
+                ready: cFrom.monday !== ""
             }
         }
 
