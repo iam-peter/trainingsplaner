@@ -12,6 +12,9 @@
 #include "report.h"
 
 #include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QPdfWriter>
 #include <QPageLayout>
 #include <QTimeZone>
@@ -46,6 +49,7 @@ private slots:
     void printWithAllOptions();
     void exportRoundTrip();
     void reportRoundTripAndPdf();
+    void bvdgSampleWeeks();
     void attributesWithHistory();
     void competitions();
     void planningBasics();
@@ -511,6 +515,110 @@ void TestCore::printWithAllOptions()
     const QString path = m_dir.filePath(QStringLiteral("all.pdf"));
     QVERIFY(WeekReport::writePdf(path, w, {QStringLiteral("T"), QStringLiteral("V"), QStringLiteral("A B")}, o));
     QVERIFY(QFileInfo(path).size() > 1000);
+}
+
+// WinWoTA's own printouts: the 75 sample week plans of the BVDG's
+// Rahmentrainingskonzeption 2019, Anhang IV (tests/fixtures/
+// bvdg-rtk-2019-weeks.json). WH, MHG and BW of every exercise line, each
+// exercise's figures for the week, the complexes K1 to K7, and K1-7 and
+// K1-5 with the tonnage must come out as WinWoTA printed them.
+void TestCore::bvdgSampleWeeks()
+{
+    QFile file(QStringLiteral(TEST_FIXTURES_DIR "/bvdg-rtk-2019-weeks.json"));
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const QJsonArray weeks = QJsonDocument::fromJson(file.readAll()).object().value(QLatin1String("weeks")).toArray();
+    QCOMPARE(weeks.size(), 75);
+
+    // Where the printout contradicts itself, these figures are left out.
+    // U20 14/2018: exercise 12 on Tuesday (in combination with 5) has a
+    // last step of 98 kg that its line counts in WH and MHG but not in BW,
+    // and the week's figures leave out entirely. U20 11/2018: the week's
+    // figures for exercise 1 have one rep fewer than its two lines. U17
+    // 05/2017: the only tonnage ending exactly on 50 kg, 27,85 t, is shown
+    // as 27,8 (half to even?), where every MHG half is rounded up.
+    const QString u20a = QStringLiteral("Junioren u20 Musterplan 14/2018");
+    const QString u20b = QStringLiteral("Junioren u20 Musterplan 11/2018");
+    const QSet<QString> printErrors{
+        u20a + QStringLiteral(" line 2/1 ex 12 BW"), u20a + QStringLiteral(" week ex 12 WH"),
+        u20a + QStringLiteral(" week ex 12 MHG"), u20a + QStringLiteral(" week ex 12 BW"),
+        u20a + QStringLiteral(" K2"), u20a + QStringLiteral(" K1-7 WH"), u20a + QStringLiteral(" K1-7 t"),
+        u20a + QStringLiteral(" K1-5 WH"), u20a + QStringLiteral(" K1-5 t"),
+        u20b + QStringLiteral(" week ex 1 WH"), u20b + QStringLiteral(" week ex 1 MHG"), u20b + QStringLiteral(" K1"),
+        u20b + QStringLiteral(" K1-7 WH"), u20b + QStringLiteral(" K1-7 t"), u20b + QStringLiteral(" K1-5 WH"),
+        u20b + QStringLiteral(" K1-5 t"),
+        QStringLiteral("Jugend Sportsch u17 Musterplan 05/2017 K1-7 t"),
+    };
+    QStringList differences;
+    QSet<QString> printErrorsSeen;
+    int checks = 0;
+    auto check = [&](const QString &key, const QVariant &ours, const QVariant &printed) {
+        ++checks;
+        if (ours == printed)
+            return;
+        if (printErrors.contains(key))
+            printErrorsSeen.insert(key);
+        else
+            differences.append(QStringLiteral("%1: ours %2, printed %3").arg(key, ours.toString(), printed.toString()));
+    };
+    const QLocale de(QLocale::German);
+    auto tons = [&](double kg) { return de.toString(kg / 1000.0, 'f', 1); };
+
+    for (const QJsonValue &wv : weeks) {
+        const QJsonObject w = wv.toObject();
+        const QString tag = w.value(QLatin1String("plan")).toString() + QLatin1Char(' ')
+                            + w.value(QLatin1String("week")).toString();
+        Week week;
+        for (const QJsonValue &sv : w.value(QLatin1String("sessions")).toArray()) {
+            const QJsonObject so = sv.toObject();
+            Session s;
+            s.day = so.value(QLatin1String("day")).toInt();
+            s.number = so.value(QLatin1String("number")).toInt();
+            for (const QJsonValue &ev : so.value(QLatin1String("entries")).toArray()) {
+                // [exercise, [[kg, reps, sets] ...], WH, MHG, BW]
+                const QJsonArray e = ev.toArray();
+                Entry entry;
+                entry.exercise = e.at(0).toInt();
+                for (const QJsonValue &stv : e.at(1).toArray()) {
+                    const QJsonArray st = stv.toArray();
+                    entry.steps.append(Step{st.at(0).toInt(), st.at(1).toInt(), st.at(2).toInt()});
+                }
+                const Stats stats = entry.stats();
+                const QString key = QStringLiteral("%1 line %2/%3 ex %4").arg(tag).arg(s.day).arg(s.number).arg(entry.exercise);
+                check(key + QStringLiteral(" WH"), stats.wh, e.at(2).toInt());
+                check(key + QStringLiteral(" MHG"), stats.mhg, e.at(3).toInt());
+                check(key + QStringLiteral(" BW"), stats.bw, e.at(4).toInt());
+                s.entries.append(entry);
+            }
+            week.sessions.append(s);
+        }
+        const WeekSummary sum = week.summary();
+        for (const QJsonValue &v : w.value(QLatin1String("weekly")).toArray()) {
+            // [exercise, WH, MHG, BW, reps at BW]
+            const QJsonArray x = v.toArray();
+            const Stats st = sum.perExercise.value(x.at(0).toInt());
+            const QString key = QStringLiteral("%1 week ex %2").arg(tag).arg(x.at(0).toInt());
+            check(key + QStringLiteral(" WH"), st.wh, x.at(1).toInt());
+            check(key + QStringLiteral(" MHG"), st.mhg, x.at(2).toInt());
+            check(key + QStringLiteral(" BW"), st.bw, x.at(3).toInt());
+            check(key + QStringLiteral(" SG"), st.bwReps, x.at(4).toInt());
+        }
+        const QJsonArray groups = w.value(QLatin1String("groups")).toArray();
+        for (int g = 1; g <= 7; ++g)
+            check(QStringLiteral("%1 K%2").arg(tag).arg(g), sum.groups[g - 1].stats.wh, groups.at(g - 1).toInt());
+        for (const auto &[name, stats] : {std::pair{QStringLiteral("K1-7"), sum.groups1to7},
+                                          std::pair{QStringLiteral("K1-5"), sum.groups1to5}}) {
+            // [WH, MHG, tonnage in t as printed]
+            const QJsonArray x = w.value(name == QLatin1String("K1-7") ? QLatin1String("k17") : QLatin1String("k15")).toArray();
+            const QString key = tag + QLatin1Char(' ') + name;
+            check(key + QStringLiteral(" WH"), stats.wh, x.at(0).toInt());
+            check(key + QStringLiteral(" MHG"), stats.mhg, x.at(1).toInt());
+            check(key + QStringLiteral(" t"), tons(stats.tonnage), x.at(2).toString());
+        }
+    }
+    QVERIFY2(differences.isEmpty(), qPrintable(differences.join(QLatin1Char('\n'))));
+    // Every exception still differs: none hides a figure that agrees now
+    QCOMPARE(printErrorsSeen, printErrors);
+    QVERIFY2(checks > 7000, qPrintable(QString::number(checks)));
 }
 
 // A report survives the way to QML and back, and a long table goes on

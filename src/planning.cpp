@@ -364,6 +364,11 @@ int roundToStep(double kg, double step)
     return int(std::floor(std::round(kg / step) * step + 1e-9));
 }
 
+// The target a percentage of the framework plan refers to. As the BVDG
+// sets it (Rahmentrainingskonzeption 2019, p. 57): exercises with a wide
+// grip refer to the snatch target, those with a narrow grip and the squats
+// to the clean & jerk target, which the catalogue's lift says. Complexes
+// (negative numbers) take the mean of both: not confirmed yet.
 int targetFor(const MazAthlete &a, int exercise)
 {
     if (exercise < 0)

@@ -6,9 +6,14 @@ competition calculators) and on a review of our own user interface.
 
 ## Phase 0 – Verify against the old program (first)
 
-Everything below builds on correct numbers. The analyses, the conversion
-from framework plan to ITP, the competition chart with the reference total
-and the group percentages are not yet compared with WinWoTA XP.
+Everything below builds on correct numbers. WH, MHG and BW per exercise
+line, the week's figures per exercise, K1–K7 and K1-7/K1-5 with tonnage
+agree with 75 week plans printed by WinWoTA (the sample plans of the BVDG's
+Rahmentrainingskonzeption 2019, `tests/fixtures/`, checked by `tst_core`). Which
+target a framework plan percentage refers to follows the same document. The
+analyses, the rounding and the complexes in the conversion from framework
+plan to ITP, the competition chart with the reference total and the group
+percentages are not yet compared with WinWoTA XP.
 
 1. Work through the test protocol on the old PC (test athlete, four weeks,
    competitions, MAZ with framework plan and ITP; screenshots of every

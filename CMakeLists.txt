@@ -161,6 +161,7 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/test-results)
 
 qt_add_executable(tst_core tests/tst_core.cpp)
 target_link_libraries(tst_core PRIVATE tpcore Qt6::Test)
+target_compile_definitions(tst_core PRIVATE TEST_FIXTURES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures")
 add_test(NAME tst_core COMMAND tst_core -o ${CMAKE_BINARY_DIR}/test-results/tst_core.txt,txt -o -,txt)
 set_tests_properties(tst_core PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
