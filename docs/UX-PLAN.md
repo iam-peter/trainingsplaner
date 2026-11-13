@@ -49,7 +49,7 @@ decide how the program feels. That is where his wishes are, too:
 | W2 | As many sessions per day as he uses (one), not always two | 3.1 | done |
 | W3 | Two weeks at once when there is room | 3.1 | done |
 | W4 | The session editor beside the week, not over it | 3.2 | done |
-| W5 | A month view with the competitions, instead of his paper calendar | 3.3 | planned |
+| W5 | A month view with the competitions, instead of his paper calendar | 3.3 | done |
 | W6 | A chart of Ist against Ziel showing raised and lowered weeks | 3.5 | to clarify with him |
 | W7 | The next weight filled in by the athlete's usual jump | 4 | done |
 | W8 | WH (ges.) of an AMKT line from its text (4x12) | 4 | done |
@@ -196,6 +196,9 @@ under its title:
 
 ### 3.3 Monat
 
+Done, as "Woche | Monat" in the week's toolbar (the view is kept;
+"Vorwoche" stays a box beside it). Ctrl+←/→ go by months there.
+
 ![Mock-up of the month: weeks as rows with load and reps, sessions, competitions and camps, the dates of all athletes at the side](ux/monat.png)
 
 *Mock-up.*
@@ -223,7 +226,12 @@ one; WinWoTA's calendars were date pickers only. (W5)
   replaces the calendar on the wall. **Drucken** prints the month on A4
   landscape.
 - Camps and tests (the "Lehrgang" in the mock-up) only if the coach
-  wants them (section 9); they would be a new kind of record.
+  wants them (section 9); they would be a new kind of record, and are
+  not built.
+- **Printing** puts the month on paper as a table: a row per week with
+  KW, load and reps, a cell per day with its sessions and competitions.
+- The DM norm and the one-per-week warning in "Termine" come with the
+  youth competitions (step 9).
 
 ### 3.4 Planung: MAZ, Rahmenorientierung, ITP, Laststufen
 
@@ -486,7 +494,7 @@ flowchart LR
 | ✓ 5 | Rahmenorientierung opened from the MAZ; ITP and Laststufen without the switch | small | W13 |
 | ✓ 4b | Erfassung TÜ as the session panel's second view; what the panel changes marked in the week | medium | W4 |
 | ✓ 6 | The week's load h / m / g read from the ITP wherever a week is shown | small | 3.1, 3.3, 3.5 |
-| 7 | Monat: weeks with load and WH, sessions, competition dates, Termine, all athletes, print | large | W5 |
+| ✓ 7 | Monat: weeks with load and WH, sessions, competition dates, Termine, all athletes, print | large | W5 |
 | 8 | Load chart: weight as Ziel, Ist and ideal line, expected course, reps with h / m / g, table below, Bezug, comparison MAZ, reachable from week and Analyse | medium | W6 |
 | 9 | Youth competition types, one-per-week warning, DM norms as an editable table | small | 6.2 |
 

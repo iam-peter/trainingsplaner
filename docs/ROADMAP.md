@@ -70,7 +70,7 @@ and order in [UX-PLAN.md](UX-PLAN.md)):
 - [x] **Quicker entry of a session**: the next weight proposed with the
       athlete's usual jump, WH (ges.) worked out from texts like `4x12`,
       earlier lines and texts offered while typing.
-- [ ] **A month view** with the sessions and the competition dates, for
+- [x] **A month view** with the sessions and the competition dates, for
       one athlete or all, printable.
 - [ ] **The load chart** (Ist against Ziel per week, the sawtooth of
       raised and lowered weeks), after asking the coach what it shows.
