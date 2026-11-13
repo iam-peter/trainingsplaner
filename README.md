@@ -46,28 +46,50 @@ updates and uninstalling.
 
 ## Features
 
-- **Wochenplan**: 7 days × 2 (optionally 3) sessions per athlete, plan or
-  actual ("Ist"), week note and injured flag, K1–K7 weekly summary,
-  copy/paste a whole week (also to another athlete), calendar to pick a
-  week, extra info per day (body weight, body fat, supplements), the
-  week's entries edited in place and saved together.
-- **Session editor**: weight exercises (kg, reps per set "SG", sets "ANZ",
-  failed attempts "UG" in actual weeks), general exercises as text with total
-  reps, free text lines, times and a note. Live MHG/BW/WH/SG-ANZ for the
-  session and the whole week. History and chart of an exercise.
-- **Erfassung TÜ**: click an exercise line in the week to edit that
-  exercise across the whole week: one row per session with its weight
-  steps, move it to another day or session, add or remove it, copy weight
-  steps between rows, with the week's totals and the ITP targets.
+- **Wochenplan**: per athlete the week as days with their sessions, plan
+  or actual ("Ist"). As many sessions a day as the coach uses (1–3, a
+  setting; with one, each day lists its own sessions from the top), days
+  without sessions narrow. Above the days the week's MAZ, phase, load
+  (h / m / g) and the next competition; "Vorwoche" shows the week before
+  above it. The K1–K7 summary with last week, the ITP's target and the
+  difference. Week note, injured flag, extra info per day (body weight,
+  body fat, supplements), copy/paste a whole week (also to another
+  athlete).
+- **Monat**: the month instead of the week, in place of a paper calendar:
+  weeks with their load and reps planned / done, the MAZ's phases, the
+  days' sessions (done, done without a plan, planned, open), and
+  competitions entered as dates by a double click. The coming
+  competitions at the side, "Alle Sportler" for everyone's, printable.
+- **Session panel**: a session opens beside the week, not over it (or in a
+  window of its own): weight exercises (kg, reps per set "SG", sets "ANZ",
+  failed attempts "UG" in actual weeks), general exercises as text with
+  total reps (4x12 gives 48), free text lines, times and a note. Each line
+  shows the session's and the week's WH, MHG and BW beside last week and
+  the ITP. The next weight is proposed by the athlete's usual jump, ↑/↓
+  count, earlier lines and texts are offered while typing, "Wie Vorwoche"
+  takes last week's session. Saved when another session is chosen; undo
+  with Ctrl+Z. What the panel changes is marked in the week.
+- **Erfassung TÜ**: click an exercise line to edit that exercise across
+  the whole week in the same panel: one row per session, moved to another
+  day or session, added or removed; its lines are marked in the week.
+- **Belastungsverlauf**: one exercise's weight per week of the MAZ (BW
+  and MHG) as the ITP's target, done and planned, with an ideal line, and
+  below it the reps of K1-7 in the colours of the weeks' load: the
+  sawtooth of raised and lowered weeks. In kg or % of the MAZ target,
+  with the table to copy and print.
 - **Sportler**: athletes with age, and Kader, Verein, BSP, Bundeswehr and
   trainers with their history over time; a filter by Kader and sex.
 - **Wettkämpfe**: results with six attempts (valid/invalid), total, and a
   chart over the years with best results per half year or year, trends
-  and the reference total of the athlete's class.
-- **Planung**: macrocycles (MAZ) with phases and athletes' targets, the
-  framework plan (RO) in percent, the individual training plan (ITP) per
-  week and exercise or group, planned weight steps, templates (RO to ITP
-  with the athlete's targets), and a chart of ITP against plan or actual.
+  and the reference total of the athlete's class. For youth athletes the
+  rules of the DGJ: its competitions to pick, a warning for a second
+  competition in a week up to AK 17, and the DM Jugend norm of the weight
+  class against the year's best total (norms editable in the settings).
+- **Planung**: macrocycles (MAZ) with phases and athletes' targets; the
+  framework plan (RO) in percent, opened from its MAZ; the athlete's
+  individual training plan (ITP) per week and exercise or group with the
+  week's load as h / m / g; planned weight steps; templates (RO to ITP
+  with the athlete's targets).
 - **Analyse**: section analysis (WH, MHG, BW, set size with totals and
   trends, in kg or percent of the targets, comparisons, all MAZ, reps per
   weight), group analysis of a MAZ, data check, and charts. Reports show
@@ -78,20 +100,28 @@ updates and uninstalling.
   changes since a date including deletions, or one athlete's weeks).
 - **Print / PDF** of the week plan with the old print options (notation,
   figures, notes, empty lines, fonts, paper A4, A5 or A3, portrait or
-  landscape, margins, logo), and of all analyses and charts, their tables
-  drawn like the old program's reports; charts also as PNG images, with
-  the values shown on hover.
+  landscape, margins, logo), of the month, and of all analyses and charts,
+  their tables drawn like the old program's reports; charts also as PNG
+  images, with the values shown on hover.
 - **Everyday use**: keyboard shortcuts (arrow keys, Enter and Delete in
-  the week grid, Ctrl+←/→ for weeks, Ctrl+C/V for sessions), undo and
-  redo of every change to sessions, a right-click menu with "Ist = Plan",
-  one athlete selection for all pages, light and dark mode (following the
-  system or chosen in the settings), a style of its own (`style/`),
-  help with a glossary (F1), an About
-  dialog with the version, the update check and a link for reporting
-  problems, and example data to try the program on the first start.
+  the week grid, Ctrl+←/→ for weeks or months, Ctrl+C/V for sessions,
+  Ctrl+S), undo and redo of every change to sessions, a right-click menu
+  with "Ist = Plan" and "Weitere Einheit", "von" kept before "bis" in
+  every range, one athlete selection for all pages, light and dark mode
+  (following the system or chosen in the settings), a style of its own
+  (`style/`), help with a glossary (F1), an About dialog with the
+  version, the update check and a link for reporting problems, and
+  example data to try the program on the first start.
+
+![Session panel beside the week](docs/screenshots/session.png)
+
+![Month](docs/screenshots/month.png)
+
+![Belastungsverlauf](docs/screenshots/load.png)
 
 ![Planning](docs/screenshots/planning.png)
 
+How the interface came about and where it goes: [docs/UX-PLAN.md](docs/UX-PLAN.md).
 What comes next: [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Data from WinWoTA XP
@@ -146,7 +176,7 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `--import <file.bak>` | import an old data export and exit |
 | `--athlete <id> --week 46/2026` | start with this athlete and week |
 | `--page sportler\|planung\|analyse\|wettkaempfe\|einstellungen` | start on that page |
-| `--open 1:2`, `ex:8`, `hist:8`, `chart:8` | open a session (day:number), an exercise's week, history or chart |
+| `--open 1:2`, `ex:8`, `hist:8`, `chart:8` | open a session (day:number) or an exercise's week in the panel, or an exercise's history or chart |
 | `--page planung --open maz\|itp\|ro\|laststufen`, `--page analyse --open individual\|group\|check\|chart` | open a tab |
 | `--farbschema hell\|dunkel\|klassisch` | light, dark or the old program's colours for this start, regardless of the setting (Einstellungen › Allgemein › Farbschema) |
 | `--grab <file.png>` | save a screenshot and exit (for testing) |
@@ -169,6 +199,7 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `src/analysis.*` | section analysis and load tables |
 | `src/weekreport.*` | printed / PDF week plan |
 | `src/report.*` | analysis reports: headings, notes and tables, printed and as PDF, as text and CSV |
+| `src/youth.*` | the DGJ's youth rules: age class, weight classes, DM norms, competitions |
 | `src/store.*`, `src/planstore.*`, `src/analysisapi.*`, `src/itpmodel.*`, `src/reportmodel.*` | APIs and models for the QML user interface |
 | `qml/` | user interface |
 | `style/` | the controls' style: `Primitives` (every colour and size once), `TokenInterface` (their roles per colour scheme), `Style` and `StyleCascade` (rules by state and part), and a `*Style` singleton per kind of control with its variants, e.g. `ButtonStyle.ghost` |
@@ -177,8 +208,8 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `fonts/`, `icons/` | Inter, JetBrains Mono and Lucide icons, built into the program |
 | `packaging/` | Debian package script |
 | `pages/` | website |
-| `docs/ROADMAP.md`, `docs/NAVIGATION.md` | what comes next, and the planned sidebar navigation |
-| `docs/screenshots/` | screenshots with invented demo data |
+| `docs/ROADMAP.md`, `docs/UX-PLAN.md`, `docs/NAVIGATION.md` | what comes next, the UI/UX plan with its background and mock-ups (`docs/ux/`), and the sidebar set aside |
+| `docs/screenshots/` | screenshots with invented demo data (the U17 sample plan of the RTK 2019 scaled for the ITP), retaken with `take_screenshots.qml` and `schemes.py` there |
 | `.github/workflows/` | CI, nightly, release and website |
 
 ### Old storage format
