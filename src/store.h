@@ -101,7 +101,9 @@ public:
     // How much this athlete usually adds from one weight step to the next
     // in this exercise, from the half year up to the week (Plan and Ist);
     // without such steps the athlete's usual jump in any exercise, else 5
-    Q_INVOKABLE int usualJump(const QString &athleteId, const QString &monday, int exercise) const;
+    Q_INVOKABLE double usualJump(const QString &athleteId, const QString &monday, int exercise) const;
+    // The weight after kg with that jump (Steps::proposedWeight)
+    Q_INVOKABLE int proposedWeight(int kg, double jump) const { return Steps::proposedWeight(kg, jump); }
     QString clipboardLabel() const;
     QString sessionClipboardLabel() const { return m_sessionClipLabel; }
     QString undoLabel() const;

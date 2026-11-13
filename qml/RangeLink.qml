@@ -33,6 +33,7 @@ QtObject {
     function setValue(field, v) {
         let text
         if (kind === "time") {
+            // Within the day: the span gives way rather than the order
             v = Math.max(0, Math.min(23 * 60 + 59, v))
             const h = Math.floor(v / 60)
             const m = v % 60
@@ -70,18 +71,26 @@ QtObject {
         remember()
     }
 
+    // A record loaded: its span, or none when a field is empty (a new
+    // record must not keep the span of the one before)
+    function loaded() {
+        const a = value(from)
+        const b = value(to)
+        span = !isNaN(a) && !isNaN(b) && b >= a ? b - a : -1
+    }
+
     // Texts set from outside (a record loaded) give the span too; what
     // is typed counts only once the edit is done
     property Connections fromEdits: Connections {
         target: link.from
         function onEditStarted() { link.remember() }
         function onEditDone() { link.follow(link.from) }
-        function onTextChanged() { if (!link.from.activeFocus) link.remember() }
+        function onTextChanged() { if (!link.from.activeFocus) link.loaded() }
     }
     property Connections toEdits: Connections {
         target: link.to
         function onEditStarted() { link.remember() }
         function onEditDone() { link.follow(link.to) }
-        function onTextChanged() { if (!link.to.activeFocus) link.remember() }
+        function onTextChanged() { if (!link.to.activeFocus) link.loaded() }
     }
 }

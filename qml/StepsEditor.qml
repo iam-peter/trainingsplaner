@@ -15,7 +15,7 @@ RowLayout {
     property var steps: []
     property var stats: ({})
     // What the athlete usually adds from one step to the next (Store.usualJump)
-    property int jump: 5
+    property real jump: 5
     // Steps whose kg were proposed, not typed: they follow the step before
     property var proposed: []
     // The athlete's earlier steps of this exercise (Store.recentSteps),
@@ -45,7 +45,7 @@ RowLayout {
         // A weight typed there stays
         if (steps[next] && steps[next].kg > 0 && !isProposed)
             return
-        const kg = steps[index] && steps[index].kg > 0 ? Math.min(999, steps[index].kg + jump) : 0
+        const kg = steps[index] && steps[index].kg > 0 ? Store.proposedWeight(steps[index].kg, jump) : 0
         // Nothing to propose, and nothing proposed to take back
         if (kg === 0 && !isProposed)
             return
@@ -60,7 +60,9 @@ RowLayout {
     function bump(field, index, key, delta, max) {
         const v = Math.max(0, Math.min(max, (parseInt(field.text) || 0) + delta))
         field.text = v > 0 ? String(v) : ""
-        typed(index)
+        // A count for a proposed weight takes it; none leaves it proposed
+        if (v > 0)
+            typed(index)
         setStep(index, key, v)
     }
 
@@ -91,8 +93,9 @@ RowLayout {
             stepRepeater.itemAt(0).focusKg()
     }
 
+    // Without the proposed weights, which are no steps until taken
     function updateStats() {
-        stats = Store.stats(steps)
+        stats = Store.stats(steps.filter((s, i) => proposed.indexOf(i) < 0))
     }
 
     function setStep(index, key, val) {
@@ -210,7 +213,8 @@ RowLayout {
                         text: root.stepValue(stepItem.index, "reps")
                         // Reps for a proposed weight take it as it is
                         onTextEdited: {
-                            root.typed(stepItem.index)
+                            if ((parseInt(text) || 0) > 0)
+                                root.typed(stepItem.index)
                             root.setStep(stepItem.index, "reps", parseInt(text) || 0)
                         }
                         Keys.onUpPressed: root.bump(repsField, stepItem.index, "reps", 1, 999)
@@ -226,7 +230,11 @@ RowLayout {
                         horizontalAlignment: TextInput.AlignHCenter
                         validator: IntValidator { bottom: 0; top: 99 }
                         text: root.stepValue(stepItem.index, "sets")
-                        onTextEdited: root.setStep(stepItem.index, "sets", parseInt(text) || 0)
+                        onTextEdited: {
+                            if ((parseInt(text) || 0) > 0)
+                                root.typed(stepItem.index)
+                            root.setStep(stepItem.index, "sets", parseInt(text) || 0)
+                        }
                         Keys.onUpPressed: root.bump(setsField, stepItem.index, "sets", 1, 99)
                         Keys.onDownPressed: root.bump(setsField, stepItem.index, "sets", -1, 99)
                         ToolTip.visible: activeFocus
@@ -241,7 +249,11 @@ RowLayout {
                         horizontalAlignment: TextInput.AlignHCenter
                         validator: IntValidator { bottom: 0; top: 9 }
                         text: root.stepValue(stepItem.index, "failed")
-                        onTextEdited: root.setStep(stepItem.index, "failed", parseInt(text) || 0)
+                        onTextEdited: {
+                            if ((parseInt(text) || 0) > 0)
+                                root.typed(stepItem.index)
+                            root.setStep(stepItem.index, "failed", parseInt(text) || 0)
+                        }
                         Keys.onUpPressed: root.bump(failedField, stepItem.index, "failed", 1, 9)
                         Keys.onDownPressed: root.bump(failedField, stepItem.index, "failed", -1, 9)
                         ToolTip.visible: activeFocus

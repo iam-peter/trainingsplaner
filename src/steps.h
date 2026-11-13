@@ -54,7 +54,13 @@ int nextWeight(int kg, double step, int direction);
 
 // The jump an athlete usually makes from one weight step to the next: the
 // most frequent rise between neighbouring steps of the given lines, the
-// smaller one on a tie; 0 when no line has two rising steps.
-int usualJump(const QList<QList<Step>> &lines);
+// smaller one on a tie; 0 when no line has two rising steps. Weights on
+// a 2.5 kg grid are stored as whole kg (70, 72, 75, 77), so their rises
+// alternate 2 and 3 (or 7 and 8): seen both, they count as 2.5 (7.5).
+double usualJump(const QList<QList<Step>> &lines);
+
+// The weight proposed after kg with that jump, on the 2.5 kg grid when
+// kg is one of its rounded halves (72 for 72.5): 72 + 2.5 gives 75
+int proposedWeight(int kg, double jump);
 
 } // namespace Steps

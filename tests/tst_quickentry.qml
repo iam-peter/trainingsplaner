@@ -60,6 +60,23 @@ Item {
             compare(findChild(e, "kg1").text, "65")
         }
 
+        // A count in sets or UG takes a proposal too; ↓ in an empty field
+        // does not, and the line's figures leave a proposal out
+        function test_proposalTakenByAnyCount() {
+            const e = createTemporaryObject(stepsComponent, window)
+            typeInto(findChild(e, "kg0"), "100")
+            typeInto(findChild(e, "reps0"), "3")
+            tryVerify(() => findChild(e, "kg1") !== null)
+            compare(findChild(e, "kg1").text, "105")
+            compare(e.stats.bw, 100)
+            mouseClick(findChild(e, "reps1"))
+            keyClick(Qt.Key_Down)
+            compare(e.value().length, 1)
+            typeInto(findChild(e, "sets1"), "2")
+            compare(e.value().length, 2)
+            compare(e.value()[1].kg, 105)
+        }
+
         function test_typedWeightStays() {
             const e = createTemporaryObject(stepsComponent, window)
             typeInto(findChild(e, "kg0"), "50")

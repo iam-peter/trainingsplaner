@@ -51,7 +51,8 @@ Page {
         nameField.text = c ? c.name : ""
         placeField.text = c ? c.place : ""
         weightField.text = c && c.bodyWeight > 0 ? c.bodyWeight.toLocaleString(Qt.locale("de_DE"), "f", 1) : ""
-        for (let i = 0; i < 3; ++i) {
+        // (the attempt fields are not made yet while the page is built)
+        for (let i = 0; i < Math.min(3, snatchRepeater.count, cjRepeater.count); ++i) {
             snatchRepeater.itemAt(i).setValue(c ? c.snatch[i] : 0)
             cjRepeater.itemAt(i).setValue(c ? c.cleanJerk[i] : 0)
         }
@@ -63,7 +64,7 @@ Page {
     function attempts(rep) {
         const a = []
         for (let i = 0; i < 3; ++i)
-            a.push(rep.itemAt(i).value)
+            a.push(rep.itemAt(i) ? rep.itemAt(i).value : 0)
         return a
     }
 

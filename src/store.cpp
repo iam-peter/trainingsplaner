@@ -195,6 +195,19 @@ QSettings settings()
     return QSettings();
 }
 
+// The MAZ's phase in the week of monday; none when the MAZ has no phase
+// dates
+QString phaseOf(const Maz &z, const QDate &monday)
+{
+    if (z.peakPhase.isValid() && monday >= z.peakPhase)
+        return QStringLiteral("Leistungsausprägung");
+    if (z.buildUp.isValid() && monday >= z.buildUp)
+        return QStringLiteral("Aufbauphase");
+    if (z.buildUp.isValid() || z.peakPhase.isValid())
+        return QStringLiteral("Grundlagenphase");
+    return QString();
+}
+
 } // namespace
 
 Store::Store(QObject *parent) : QObject(parent) {}
@@ -793,7 +806,7 @@ int Store::stepWeight(int kg, int direction) const
     return Steps::nextWeight(kg, weightStep(), direction);
 }
 
-int Store::usualJump(const QString &athleteId, const QString &monday, int exercise) const
+double Store::usualJump(const QString &athleteId, const QString &monday, int exercise) const
 {
     const QDate to = toDate(monday);
     if (athleteId.isEmpty() || !to.isValid())
@@ -808,7 +821,7 @@ int Store::usualJump(const QString &athleteId, const QString &monday, int exerci
                 same.append(l.steps);
         }
     }
-    int jump = Steps::usualJump(same);
+    double jump = Steps::usualJump(same);
     if (jump == 0)
         jump = Steps::usualJump(all);
     return jump > 0 ? jump : 5;
@@ -1415,13 +1428,7 @@ QVariantMap Store::weekContext(const QString &athleteId, const QString &monday) 
     QVariantMap maz{{QStringLiteral("has"), false}};
     for (const Maz &z : Planning::mazForAthlete(athleteId)) {
         if (z.from.isValid() && z.to.isValid() && m >= z.from && m <= z.to) {
-            QString phase;
-            if (z.peakPhase.isValid() && m >= z.peakPhase)
-                phase = QStringLiteral("Leistungsausprägung");
-            else if (z.buildUp.isValid() && m >= z.buildUp)
-                phase = QStringLiteral("Aufbauphase");
-            else if (z.buildUp.isValid() || z.peakPhase.isValid())
-                phase = QStringLiteral("Grundlagenphase");
+            const QString phase = phaseOf(z, m);
             maz = {{QStringLiteral("has"), true}, {QStringLiteral("name"), z.name},
                    {QStringLiteral("shortName"), z.shortName},
                    {QStringLiteral("week"), int(z.from.daysTo(m) / 7) + 1},
@@ -1440,9 +1447,10 @@ QVariantMap Store::weekContext(const QString &athleteId, const QString &monday) 
     result.insert(QStringLiteral("loadText"), Planning::loadText(load));
     result.insert(QStringLiteral("position"), position);
 
-    // The next competition from the week on
+    // The next competition from the week on (for a past week: the one in
+    // or after it, so its own competition shows)
     QVariantMap next{{QStringLiteral("has"), false}};
-    const QDate from = qMax(m, QDate::currentDate());
+    const QDate from = m;
     const QList<Competition> comps = Competitions::forAthlete(athleteId);
     for (auto it = comps.crbegin(); it != comps.crend(); ++it) {
         if (it->date >= from) {
@@ -1565,12 +1573,7 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
         QString phase;
         for (const Maz &z : std::as_const(mazs)) {
             if (z.from.isValid() && z.to.isValid() && monday >= z.from && monday <= z.to) {
-                if (z.peakPhase.isValid() && monday >= z.peakPhase)
-                    phase = QStringLiteral("Leistungsausprägung");
-                else if (z.buildUp.isValid() && monday >= z.buildUp)
-                    phase = QStringLiteral("Aufbauphase");
-                else
-                    phase = QStringLiteral("Grundlagenphase");
+                phase = phaseOf(z, monday);
                 break;
             }
         }
@@ -1595,12 +1598,16 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
                     continue;
                 auto whOf = [](const Session *s) {
                     int wh = 0;
-                    for (const Entry &e : s->entries)
-                        wh += e.stats().wh;
+                    for (const Entry &e : s->entries) {
+                        const Exercise *ex = e.kind == Entry::Weights ? Catalog::find(e.exercise) : nullptr;
+                        if (ex && ex->group >= 1 && ex->group <= Catalog::summaryGroups)
+                            wh += e.stats().wh;
+                    }
                     return wh;
                 };
                 QString state;
                 if (a)
+                // K1-7 only, as the week's figure, so the days add up to it
                     state = p ? QStringLiteral("done") : QStringLiteral("free");
                 else
                     state = date < today ? QStringLiteral("open") : QStringLiteral("planned");

@@ -14,7 +14,7 @@ Frame {
     property int day: 1
     property int number: 1
     // How much the athlete usually adds per step (Store.usualJump)
-    property int jump: 5
+    property real jump: 5
     // Earlier lines of the exercise (Store.recentSteps)
     property var suggestions: []
     readonly property var rowStats: stepsEditor.stats

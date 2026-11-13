@@ -26,9 +26,9 @@ FocusScope {
     // Last week and the ITP's targets (Store.weekContext)
     property var context: ({})
     // How much the athlete usually adds per step, for the proposals
-    readonly property int jump: exercise > 0 && athleteId !== "" ? Store.usualJump(athleteId, monday, exercise) : 5
+    readonly property real jump: (Store.dataVersion, exercise > 0 && athleteId !== "" ? Store.usualJump(athleteId, monday, exercise) : 5)
     // The athlete's earlier lines of the exercise, offered in each row
-    readonly property var recentSteps: exercise > 0 && athleteId !== "" ? Store.recentSteps(athleteId, exercise) : []
+    readonly property var recentSteps: (Store.dataVersion, exercise > 0 && athleteId !== "" ? Store.recentSteps(athleteId, exercise) : [])
 
     // The session of the row under the pointer, for the week to mark
     readonly property int hoveredDay: hoveredRow ? hoveredRow.day : 0

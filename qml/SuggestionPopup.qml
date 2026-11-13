@@ -75,6 +75,9 @@ Popup {
         function onActiveFocusChanged() { popup.update() }
     }
 
+    // Under its field, also when a Loader made it (its parent would be the
+    // Loader then, and a press into the field would close it)
+    parent: field
     y: field.height + 2
     width: Math.max(field.width, 220)
     padding: 2

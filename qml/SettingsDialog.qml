@@ -80,9 +80,12 @@ AppDialog {
             rows.push({ boy: boys[i], girl: girls[i] })
         return rows
     }
+    // Changed in place: a new list would make every row again, and the
+    // field being typed in (or with the focus next) with them
     function setNorm(sex, weightClass, total) {
-        norms = norms.map(n => n.sex === sex && n.weightClass === weightClass
-                          ? { sex: sex, weightClass: weightClass, total: total } : n)
+        const n = norms.find(n => n.sex === sex && n.weightClass === weightClass)
+        if (n)
+            n.total = total
     }
 
     // The colours change at once as a preview; Abbrechen goes back

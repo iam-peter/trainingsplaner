@@ -112,6 +112,9 @@ Page {
         const n = context.next
         if (!n || !n.has)
             return ""
+        // In a past week: the competition that came next then
+        if (n.days < 0)
+            return "Wettkampf: " + n.name + ", " + n.date + (n.days === -1 ? " (gestern)" : " (vor " + -n.days + " Tagen)")
         return "Nächster Wettkampf: " + n.name + ", " + n.date
                + (n.days === 0 ? " (heute)" : n.days === 1 ? " (morgen)" : " (in " + n.days + " Tagen)")
     }

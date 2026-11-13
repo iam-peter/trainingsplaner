@@ -103,14 +103,25 @@ int nextWeight(int kg, double step, int direction)
     return qBound(0, kgAt(m), 999);
 }
 
-int usualJump(const QList<QList<Step>> &lines)
+double usualJump(const QList<QList<Step>> &lines)
 {
+    // In half kg
     QMap<int, int> count;
     for (const QList<Step> &line : lines) {
         for (qsizetype i = 1; i < line.size(); ++i) {
             const int jump = line[i].kg - line[i - 1].kg;
             if (jump > 0 && line[i - 1].kg > 0)
-                ++count[jump];
+                ++count[2 * jump];
+        }
+    }
+    // 2 and 3, 7 and 8, ...: the halves of a 2.5 kg grid
+    for (int low = 2; low < 999; low += 5) {
+        const int a = count.value(2 * low);
+        const int b = count.value(2 * (low + 1));
+        if (a > 0 && b > 0) {
+            count.remove(2 * low);
+            count.remove(2 * (low + 1));
+            count[2 * low + 1] = a + b;
         }
     }
     int best = 0;
@@ -122,7 +133,16 @@ int usualJump(const QList<QList<Step>> &lines)
             bestCount = it.value();
         }
     }
-    return best;
+    return best / 2.0;
+}
+
+int proposedWeight(int kg, double jump)
+{
+    if (kg <= 0)
+        return 0;
+    // 72 and 77 stand for 72.5 and 77.5
+    const double exact = kg % 5 == 2 ? kg + 0.5 : kg;
+    return qMin(999, int(std::floor(exact + jump + 1e-9)));
 }
 
 } // namespace Steps

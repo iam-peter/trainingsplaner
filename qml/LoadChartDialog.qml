@@ -85,8 +85,9 @@ AppDialog {
                         // Only exercises with weights have a weight to show
                         if (Store.catalog.some(e => e.id === n && !e.text))
                             dialog.exercise = n
-                        else
-                            text = dialog.exercise
+                        // The exercise again, and following it (the picker,
+                        // show()): typing had replaced the binding
+                        text = Qt.binding(() => dialog.exercise)
                     }
                 }
                 IconButton {

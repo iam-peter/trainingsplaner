@@ -36,6 +36,7 @@ private slots:
     void parseSteps();
     void formatSteps();
     void loadLetters();
+    void jumpOnHalfGrid();
     void youthRules();
     void statsMatchOldProgram();
     void entryEncoding();
@@ -103,6 +104,30 @@ void TestCore::youthRules()
         if (n.sex == 1 && n.weightClass == QLatin1String("+81"))
             QCOMPARE(n.total, 104);
     }
+}
+
+// With 2.5 kg steps the weights are stored as 70, 72, 75, 77: rises of 2
+// and 3 are one jump of 2.5, and the proposals stay on that grid
+void TestCore::jumpOnHalfGrid()
+{
+    auto line = [](std::initializer_list<int> kgs) {
+        QList<Step> l;
+        for (int kg : kgs)
+            l.append(Step{kg, 3, 1, 0});
+        return l;
+    };
+    QCOMPARE(Steps::usualJump({line({70, 72, 75, 77, 80})}), 2.5);
+    QCOMPARE(Steps::usualJump({line({40, 43, 46, 50})}), 3.0);
+    QCOMPARE(Steps::usualJump({line({60, 65, 70}), line({70, 75})}), 5.0);
+    QCOMPARE(Steps::usualJump({line({60, 67, 75, 82, 90})}), 7.5);
+    QCOMPARE(Steps::usualJump({}), 0.0);
+    QCOMPARE(Steps::proposedWeight(80, 2.5), 82);
+    QCOMPARE(Steps::proposedWeight(82, 2.5), 85);
+    QCOMPARE(Steps::proposedWeight(72, 5), 77);
+    QCOMPARE(Steps::proposedWeight(100, 5), 105);
+    QCOMPARE(Steps::proposedWeight(42, 3), 45);
+    QCOMPARE(Steps::proposedWeight(998, 5), 999);
+    QCOMPARE(Steps::proposedWeight(0, 5), 0);
 }
 
 void TestCore::loadLetters()
