@@ -25,9 +25,10 @@ Item {
     function reload() {
         monthData = month !== "" && (allAthletes || athleteId !== "") ? Store.month(athleteId, month, allAthletes) : {}
     }
-    onAthleteIdChanged: reload()
-    onMonthChanged: reload()
-    onAllAthletesChanged: reload()
+    // Hidden (the week shown): reloaded when it shows
+    onAthleteIdChanged: if (visible) reload()
+    onMonthChanged: if (visible) reload()
+    onAllAthletesChanged: if (visible) reload()
     onVisibleChanged: if (visible) reload()
     Component.onCompleted: reload()
     Connections {

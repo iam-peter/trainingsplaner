@@ -50,13 +50,7 @@ Frame {
     signal moveRequested(int delta)
     signal infoRequested(int exercise, bool chart)
 
-    readonly property var exerciseInfo: {
-        for (const e of Store.catalog) {
-            if (e.id === exercise)
-                return e
-        }
-        return null
-    }
+    readonly property var exerciseInfo: Store.exerciseInfo(exercise)
     readonly property bool exerciseValid: exerciseInfo !== null && exerciseInfo.text === (kind === 1)
     readonly property var week: weekStats[String(exercise)] || null
 

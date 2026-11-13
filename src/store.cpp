@@ -215,6 +215,8 @@ Store::Store(QObject *parent) : QObject(parent) {}
 void Store::bump()
 {
     ++m_dataVersion;
+    m_jumpCache.clear();
+    m_stepsCache.clear();
     emit dataChanged();
 }
 
@@ -811,6 +813,9 @@ double Store::usualJump(const QString &athleteId, const QString &monday, int exe
     const QDate to = toDate(monday);
     if (athleteId.isEmpty() || !to.isValid())
         return 5;
+    const QString key = athleteId + QLatin1Char('|') + monday + QLatin1Char('|') + QString::number(exercise);
+    if (const auto it = m_jumpCache.constFind(key); it != m_jumpCache.cend())
+        return *it;
     const QDate from = to.addDays(-7 * 26);
     QList<QList<Step>> same;
     QList<QList<Step>> all;
@@ -824,7 +829,10 @@ double Store::usualJump(const QString &athleteId, const QString &monday, int exe
     double jump = Steps::usualJump(same);
     if (jump == 0)
         jump = Steps::usualJump(all);
-    return jump > 0 ? jump : 5;
+    if (jump <= 0)
+        jump = 5;
+    m_jumpCache.insert(key, jump);
+    return jump;
 }
 
 QString Store::databasePath() const
@@ -1596,6 +1604,7 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
                 const Session *a = actual.session(d, n);
                 if (!p && !a)
                     continue;
+                // K1-7 only, as the week's figure, so the days add up to it
                 auto whOf = [](const Session *s) {
                     int wh = 0;
                     for (const Entry &e : s->entries) {
@@ -1807,6 +1816,9 @@ QVariantList Store::recentTexts(const QString &athleteId, int kind, int exercise
 
 QVariantList Store::recentSteps(const QString &athleteId, int exercise) const
 {
+    const QString key = athleteId + QLatin1Char('|') + QString::number(exercise);
+    if (const auto it = m_stepsCache.constFind(key); it != m_stepsCache.cend())
+        return *it;
     QVariantList list;
     QSet<QString> seen;
     for (const QString &content : Database::recentContents(athleteId, Entry::Weights, exercise, 60)) {
@@ -1826,6 +1838,7 @@ QVariantList Store::recentSteps(const QString &athleteId, int exercise) const
         if (list.size() >= 12)
             break;
     }
+    m_stepsCache.insert(key, list);
     return list;
 }
 
@@ -2000,6 +2013,16 @@ QString Store::parseDate(const QString &text) const
 QString Store::exerciseName(int id) const
 {
     return Catalog::name(id);
+}
+
+QVariant Store::exerciseInfo(int id) const
+{
+    const Exercise *e = Catalog::find(id);
+    if (!e)
+        return QVariant::fromValue(nullptr);
+    return QVariantMap{{QStringLiteral("id"), e->id}, {QStringLiteral("name"), e->name},
+                       {QStringLiteral("group"), e->group},
+                       {QStringLiteral("text"), e->input == Exercise::Text}};
 }
 
 QString Store::exportBak(const QUrl &file, const QString &mode, const QString &sinceDate,

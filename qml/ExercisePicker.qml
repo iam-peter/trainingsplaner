@@ -18,7 +18,13 @@ Popup {
 
     signal picked(int id)
 
+    // The buttons are made the first time the picker opens: every line of
+    // a session has its own picker, and most are never opened
+    property bool built: false
+
     readonly property var rows: {
+        if (!built)
+            return []
         const byGroup = {}
         for (const e of Store.catalog) {
             if (e.text !== picker.textExercises)
@@ -32,6 +38,7 @@ Popup {
 
     padding: 12
     focus: true
+    onAboutToShow: built = true
     onOpened: hovered = 0
 
     contentItem: ColumnLayout {

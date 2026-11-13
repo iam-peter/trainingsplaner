@@ -2,6 +2,7 @@
 
 #include "model.h"
 
+#include <QHash>
 #include <QImage>
 #include <QObject>
 #include <QUrl>
@@ -267,6 +268,9 @@ public:
     // "24.03.2001" -> "2001-03-24"; "" when invalid
     Q_INVOKABLE QString parseDate(const QString &text) const;
     Q_INVOKABLE QString exerciseName(int id) const;
+    // One exercise as in catalog ({ id, name, group, text }), null for
+    // none: reading catalog makes the whole list each time
+    Q_INVOKABLE QVariant exerciseInfo(int id) const;
 
     // Import, print, export
     Q_INVOKABLE QString importBak(const QUrl &file, bool ignoreTimestamps = false);
@@ -303,6 +307,11 @@ private:
     Week loadWeek(const QString &athleteId, const QString &monday, const QString &variant) const;
 
     int m_dataVersion = 0;
+    // Proposals asked for by every line of the open session, kept until
+    // the data changes: usualJump by "athlete|monday|exercise",
+    // recentSteps by "athlete|exercise"
+    mutable QHash<QString, double> m_jumpCache;
+    mutable QHash<QString, QVariantList> m_stepsCache;
     struct Clip
     {
         QString athleteId;

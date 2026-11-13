@@ -21,6 +21,8 @@ Item {
         function test_titleWithNumber() {
             picker.open()
             tryCompare(picker, "opened", true)
+            // The buttons are made on the first open: wait for their layout
+            waitForRendering(picker.contentItem)
             const title = findChild(picker.contentItem, "pickerTitle")
             compare(title.text, "2  " + Store.exerciseName(2))
             const other = findChild(picker.contentItem, "exercise5")

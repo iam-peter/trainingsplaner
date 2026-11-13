@@ -628,14 +628,17 @@ QStringList recentContents(const QString &athleteId, int kind, int exercise, int
     QStringList list;
     QSqlQuery q(db());
     const bool ownOnly = kind == 0;
+    // The exercise as its own condition, so the index on (kind, exercise)
+    // serves it
     q.prepare(QStringLiteral("SELECT content, MAX(athlete_id = ?) AS own, MAX(monday) AS last FROM session_entries"
-                             " WHERE kind = ? AND (? < 0 OR exercise = ?) AND content <> ''%1"
+                             " WHERE kind = ?%1 AND content <> ''%2"
                              " GROUP BY content ORDER BY own DESC, last DESC LIMIT ?")
-                  .arg(ownOnly ? QStringLiteral(" AND athlete_id = ?") : QString()));
+                  .arg(exercise >= 0 ? QStringLiteral(" AND exercise = ?") : QString(),
+                       ownOnly ? QStringLiteral(" AND athlete_id = ?") : QString()));
     q.addBindValue(athleteId);
     q.addBindValue(kind);
-    q.addBindValue(exercise);
-    q.addBindValue(exercise);
+    if (exercise >= 0)
+        q.addBindValue(exercise);
     if (ownOnly)
         q.addBindValue(athleteId);
     q.addBindValue(limit);

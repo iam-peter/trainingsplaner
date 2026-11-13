@@ -69,6 +69,10 @@ CREATE TABLE IF NOT EXISTS session_entries (
     changed_at TEXT,
     PRIMARY KEY (athlete_id, monday, day, number, position, variant)
 );
+-- The texts offered while typing (Database::recentContents) come from
+-- every athlete's lines of one kind and exercise: without this, each one
+-- read the whole table. An index is no change of the layout.
+CREATE INDEX IF NOT EXISTS session_entries_kind ON session_entries (kind, exercise);
 
 -- Per week of an owner: the athlete's notes on plan and actual training,
 -- and the framework plan's load and competition position with its note

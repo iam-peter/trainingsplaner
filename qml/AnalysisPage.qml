@@ -334,7 +334,8 @@ Page {
                     implicitWidth: 180
                     model: Store.selectableAthletes
                     value: page.athleteId
-                    onChosen: (v) => { page.athleteId = v; chartTab.reload() }
+                    // The chart follows the athlete (Connections above)
+                    onChosen: (v) => page.athleteId = v
                 }
                 ComboBox {
                     id: chMaz

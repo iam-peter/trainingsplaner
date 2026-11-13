@@ -30,7 +30,16 @@ QtObject {
 
     // "K2" → "K2: 6 Reißen erhöhte Position, 7 Standreißen, …"
     function group(number) {
-        const names = Store.catalog.filter(e => e.group === number).map(e => e.id + " " + e.name)
-        return "K" + number + ": " + names.join(", ")
+        return groupTexts[number] || "K" + number + ": "
+    }
+    // Made once: the catalog does not change
+    readonly property var groupTexts: {
+        const names = {}
+        for (const e of Store.catalog)
+            (names[e.group] = names[e.group] || []).push(e.id + " " + e.name)
+        const texts = {}
+        for (const g in names)
+            texts[g] = "K" + g + ": " + names[g].join(", ")
+        return texts
     }
 }

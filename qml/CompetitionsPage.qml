@@ -24,7 +24,11 @@ Page {
             athleteId = Store.selectableAthletes[0].id
     }
 
+    property bool stale: false
+    onVisibleChanged: if (visible && stale) reload()
+
     function reload() {
+        stale = false
         list = athleteId !== "" ? Store.competitions(athleteId) : []
         reloadTrend()
     }
@@ -95,8 +99,8 @@ Page {
             note: noteField.text
         }, current ? current.date : "", current ? current.time : "")
         if (error === "") {
+            // The list is new already: the save changed the data
             const date = Store.parseDate(dateField.text)
-            reload()
             edit(list.find(c => c.date === date) || null)
         }
     }
@@ -107,7 +111,13 @@ Page {
         function onAthletesChanged() { page.selectDefaultAthlete() }
         // Competitions entered elsewhere (the month view): the list and the
         // chart follow; the form keeps what is being edited
-        function onDataVersionChanged() { page.reload() }
+        // (while another page is shown, once it shows again)
+        function onDataVersionChanged() {
+            if (page.visible)
+                page.reload()
+            else
+                page.stale = true
+        }
     }
     Component.onCompleted: {
         selectDefaultAthlete()
