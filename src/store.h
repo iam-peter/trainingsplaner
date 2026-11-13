@@ -43,6 +43,11 @@ class Store : public QObject
     Q_PROPERTY(int sessionsPerDay READ sessionsPerDay WRITE setSessionsPerDay NOTIFY settingsChanged)
     // The week plan shows the week before above the week ("Vorwoche")
     Q_PROPERTY(bool showPreviousWeek READ showPreviousWeek WRITE setShowPreviousWeek NOTIFY settingsChanged)
+    // The DM Jugend norms, editable: [{sex, weightClass "-89", total}],
+    // the DGJ's of January 2020 until changed
+    Q_PROPERTY(QVariantList dmNorms READ dmNorms WRITE setDmNorms NOTIFY settingsChanged)
+    // The DGJ's national youth competitions to pick: [{text, type, note}]
+    Q_PROPERTY(QVariantList youthCompetitions READ youthCompetitions CONSTANT)
     Q_PROPERTY(QString clipboardLabel READ clipboardLabel NOTIFY clipboardChanged)
     Q_PROPERTY(QString sessionClipboardLabel READ sessionClipboardLabel NOTIFY clipboardChanged)
     // What Ctrl+Z / Ctrl+Y would do, "" when there is nothing
@@ -86,6 +91,11 @@ public:
     void setSessionsPerDay(int n);
     bool showPreviousWeek() const;
     void setShowPreviousWeek(bool on);
+    QVariantList dmNorms() const;
+    void setDmNorms(const QVariantList &norms);
+    QVariantList youthCompetitions() const;
+    // The DGJ's norms of January 2020, for going back to them
+    Q_INVOKABLE QVariantList defaultDmNorms() const;
     // Next weight up or down by weightStep, rounded to whole kg (100, 102, 105, 107 ...)
     Q_INVOKABLE int stepWeight(int kg, int direction) const;
     // How much this athlete usually adds from one weight step to the next
@@ -188,6 +198,14 @@ public:
     // A session's state: "done" (Ist after a Plan), "free" (Ist without a
     // Plan), "planned", "open" (planned, in the past, no Ist)
     Q_INVOKABLE QVariantMap month(const QString &athleteId, const QString &firstOfMonth, bool allAthletes) const;
+    // An athlete as a youth athlete on a date: {ageClass, youth (up to AK
+    // 17), weightClass, dm: {applies (AK 16-17), norm, best, bestDate,
+    // reached, text}}; the weight class from the MAZ, else the last body
+    // weight at a competition
+    Q_INVOKABLE QVariantMap youthStatus(const QString &athleteId, const QString &date) const;
+    // Why a competition on a date breaks the one-per-week rule for youth
+    // athletes ("" when it does not); oldDate: the competition moved
+    Q_INVOKABLE QString weekConflict(const QString &athleteId, const QString &date, const QString &oldDate) const;
     // A competition's date, type, name and place, keeping its results;
     // old date and time "" for a new one
     Q_INVOKABLE QString saveCompetitionDate(const QString &athleteId, const QString &date, int type,

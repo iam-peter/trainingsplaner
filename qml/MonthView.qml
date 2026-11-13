@@ -340,6 +340,23 @@ Item {
                                 text: termin.modelData.dateText + " · " + termin.modelData.name
                             }
                             Label {
+                                objectName: "terminNorm"
+                                Layout.fillWidth: true
+                                visible: text !== ""
+                                wrapMode: Text.Wrap
+                                font.pixelSize: 11
+                                text: termin.modelData.norm || ""
+                            }
+                            Label {
+                                objectName: "terminWarning"
+                                Layout.fillWidth: true
+                                visible: text !== ""
+                                wrapMode: Text.Wrap
+                                font.pixelSize: 11
+                                color: view.s.danger_default
+                                text: termin.modelData.warning || ""
+                            }
+                            Label {
                                 Layout.fillWidth: true
                                 elide: Text.ElideRight
                                 font.pixelSize: 11

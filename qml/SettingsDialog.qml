@@ -67,6 +67,22 @@ AppDialog {
         perDay3.checked = Store.sessionsPerDay === 3
         step10.checked = Store.weightStep === 1
         schemeBefore = Store.colorScheme
+        norms = Store.dmNorms
+    }
+
+    // The DM norms being edited, saved with OK
+    property var norms: []
+    readonly property var normRows: {
+        const boys = norms.filter(n => n.sex === 0)
+        const girls = norms.filter(n => n.sex === 1)
+        const rows = []
+        for (let i = 0; i < Math.max(boys.length, girls.length); ++i)
+            rows.push({ boy: boys[i], girl: girls[i] })
+        return rows
+    }
+    function setNorm(sex, weightClass, total) {
+        norms = norms.map(n => n.sex === sex && n.weightClass === weightClass
+                          ? { sex: sex, weightClass: weightClass, total: total } : n)
     }
 
     // The colours change at once as a preview; Abbrechen goes back
@@ -103,6 +119,7 @@ AppDialog {
         Store.sessionTimes = t
         Store.weightStep = step10.checked ? 1 : 2.5
         Store.sessionsPerDay = perDay1.checked ? 1 : perDay3.checked ? 3 : 2
+        Store.dmNorms = dialog.norms
         const cats = []
         for (let i = 0; i < categoryModel.count; ++i)
             cats.push(categoryModel.get(i))
@@ -124,6 +141,7 @@ AppDialog {
                 AppTabButton { text: "Trainingszeiten" }
                 AppTabButton { text: "Zusatzinfo" }
                 AppTabButton { text: "Allgemein" }
+                AppTabButton { text: "Normen" }
             }
 
             StackLayout {
@@ -464,6 +482,64 @@ AppDialog {
                         font.pixelSize: 11
                         color: Styles.TokenInterface.semantics.text_muted
                         text: "Version und Updates: Hilfe › Über den Trainingsplaner."
+                    }
+                }
+
+                // DM Jugend norms, per weight class
+                ColumnLayout {
+                    width: pages.width
+                    spacing: 8
+                    Label {
+                        Layout.fillWidth: true
+                        wrapMode: Text.Wrap
+                        color: Styles.TokenInterface.semantics.text_muted
+                        text: "Normen der Deutschen Meisterschaft der Jugend (AK 16–17): der Zweikampf, der vom 1. Januar "
+                              + "bis zum Meldeschluss erreicht sein muss. Voreingestellt die der DGJ (Stand Januar 2020); "
+                              + "neue Werte hier eintragen."
+                    }
+                    GridLayout {
+                        columns: 4
+                        columnSpacing: 12
+                        rowSpacing: 4
+                        Label { text: "Jungen"; font.bold: true; Layout.columnSpan: 2 }
+                        Label { text: "Mädchen"; font.bold: true; Layout.columnSpan: 2; Layout.leftMargin: 24 }
+                        Repeater {
+                            model: dialog.normRows
+                            Item {
+                                required property var modelData
+                                required property int index
+                                Layout.columnSpan: 4
+                                Layout.fillWidth: true
+                                implicitHeight: normRow.implicitHeight
+                                RowLayout {
+                                    id: normRow
+                                    spacing: 12
+                                    Repeater {
+                                        model: [modelData.boy, modelData.girl]
+                                        RowLayout {
+                                            required property var modelData
+                                            spacing: 12
+                                            Layout.leftMargin: modelData && modelData.sex === 1 ? 24 : 0
+                                            Label { text: modelData ? modelData.weightClass + " kg" : ""; Layout.preferredWidth: 64 }
+                                            SpinBox {
+                                                objectName: modelData ? "norm" + modelData.sex + modelData.weightClass : ""
+                                                visible: modelData !== undefined
+                                                from: 0; to: 500; editable: true
+                                                unit: "kg"
+                                                Layout.preferredWidth: dialog.fieldWidth
+                                                value: modelData ? modelData.total : 0
+                                                onValueModified: dialog.setNorm(modelData.sex, modelData.weightClass, value)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Button {
+                        objectName: "resetNorms"
+                        text: "Normen der DGJ (2020) wiederherstellen"
+                        onClicked: dialog.norms = Store.defaultDmNorms()
                     }
                 }
             }

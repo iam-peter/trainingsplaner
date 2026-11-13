@@ -130,7 +130,21 @@ Page {
                 AppTabButton { text: "Ergebnisse" }
                 AppTabButton { text: "Grafik" }
             }
-            Item { Layout.fillWidth: true }
+            // A youth athlete: the age class, the weight class and how far
+            // the DM Jugend norm is (DGJ rules, norms in the settings)
+            Label {
+                objectName: "youthStatus"
+                Layout.fillWidth: true
+                Layout.leftMargin: 8
+                elide: Text.ElideRight
+                readonly property var status: page.athleteId !== ""
+                                              ? (Store.dataVersion, Store.dmNorms, Store.youthStatus(page.athleteId, Store.today())) : ({})
+                visible: status.youth === true
+                text: status.youth ? "AK " + status.ageClass + (status.weightClass ? " · " + status.weightClass + " kg" : "")
+                                     + (status.dm && status.dm.text ? " · " + status.dm.text : "") : ""
+                color: status.dm && status.dm.reached ? Styles.TokenInterface.semantics.text_default
+                                                      : Styles.TokenInterface.semantics.text_muted
+            }
         }
     }
 

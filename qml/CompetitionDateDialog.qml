@@ -67,7 +67,20 @@ AppDialog {
             objectName: "nameField"
             Layout.preferredWidth: 300
             placeholderText: "z.B. LM Jugend"
-            onAccepted: dialog.save()
+            // Enter takes a suggestion while the list is open
+            onAccepted: if (!suggestions.visible) dialog.save()
+            Keys.onPressed: (event) => suggestions.handleKey(event)
+            // The DGJ's youth competitions, with the type they are
+            SuggestionPopup {
+                id: suggestions
+                field: nameField
+                width: 460
+                suggestions: Store.youthCompetitions
+                onChosen: (item) => {
+                    nameField.text = item.text
+                    typeBox.currentIndex = item.type
+                }
+            }
         }
         Label { text: "Ort:" }
         TextField {
@@ -80,6 +93,27 @@ AppDialog {
             visible: dialog.error !== ""
             text: dialog.error
             color: Styles.TokenInterface.semantics.danger_default
+        }
+        // Youth athletes: one competition a week; the DM norm for a DM
+        Label {
+            objectName: "weekWarning"
+            Layout.columnSpan: 2
+            Layout.preferredWidth: 400
+            wrapMode: Text.Wrap
+            visible: text !== ""
+            text: dialog.opened ? (Store.dataVersion, Store.weekConflict(athleteBox.value || "", dateField.text,
+                                                                         dialog.competition ? dialog.competition.date : ""))
+                                : ""
+            color: "#c2410c"
+        }
+        Label {
+            objectName: "normNote"
+            Layout.columnSpan: 2
+            Layout.preferredWidth: 400
+            wrapMode: Text.Wrap
+            visible: text !== ""
+            text: dialog.opened && (typeBox.currentIndex === 1 || nameField.text.indexOf("DM") >= 0)
+                  ? (Store.dataVersion, Store.youthStatus(athleteBox.value || "", dateField.text).dm?.text ?? "") : ""
         }
         Label {
             Layout.columnSpan: 2

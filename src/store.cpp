@@ -9,6 +9,7 @@
 #include "exerciseweek.h"
 #include "planning.h"
 #include "report.h"
+#include "youth.h"
 #include "weekreport.h"
 
 #include <QCoreApplication>
@@ -737,6 +738,42 @@ void Store::setSessionsPerDay(int n)
     emit settingsChanged();
 }
 
+QVariantList Store::dmNorms() const
+{
+    const QVariant stored = QSettings().value(QStringLiteral("youth/dmNorms"));
+    if (stored.isValid() && !stored.toList().isEmpty())
+        return stored.toList();
+    return defaultDmNorms();
+}
+
+QVariantList Store::defaultDmNorms() const
+{
+    QVariantList list;
+    for (const Youth::Norm &n : Youth::defaultDmNorms())
+        list.append(QVariantMap{{QStringLiteral("sex"), n.sex}, {QStringLiteral("weightClass"), n.weightClass},
+                                {QStringLiteral("total"), n.total}});
+    return list;
+}
+
+void Store::setDmNorms(const QVariantList &norms)
+{
+    // An empty list goes back to the DGJ's
+    if (norms.isEmpty())
+        QSettings().remove(QStringLiteral("youth/dmNorms"));
+    else
+        QSettings().setValue(QStringLiteral("youth/dmNorms"), norms);
+    emit settingsChanged();
+}
+
+QVariantList Store::youthCompetitions() const
+{
+    QVariantList list;
+    for (const Youth::Template &t : Youth::competitionTemplates())
+        list.append(QVariantMap{{QStringLiteral("text"), t.name}, {QStringLiteral("type"), t.type},
+                                {QStringLiteral("note"), t.when}});
+    return list;
+}
+
 bool Store::showPreviousWeek() const
 {
     return QSettings().value(QStringLiteral("week/showPrevious"), false).toBool();
@@ -1459,9 +1496,19 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
                           {QStringLiteral("name"), c.name.isEmpty() ? Competitions::typeShortNames().value(c.type) : c.name},
                           {QStringLiteral("place"), c.place}, {QStringLiteral("hasResult"), hasResult},
                           {QStringLiteral("days"), int(today.daysTo(c.date))}};
-            compsByDate[c.date].append(m);
-            if (c.date >= today)
+            if (c.date >= today) {
+                // For youth athletes: the DM norm, and a second competition in the week
+                const QVariantMap youth = youthStatus(id, c.date.toString(Qt::ISODate));
+                const QString norm = youth.value(QStringLiteral("dm")).toMap().value(QStringLiteral("text")).toString();
+                const bool dm = c.type == 1 || c.name.contains(QStringLiteral("DM"));
+                m.insert(QStringLiteral("norm"), dm ? norm : QString());
+                m.insert(QStringLiteral("warning"),
+                         weekConflict(id, c.date.toString(Qt::ISODate), QString()).isEmpty()
+                             ? QString()
+                             : QStringLiteral("Zwei Wettkämpfe in KW %1 (bis AK 17 nur einer pro Woche)").arg(c.date.weekNumber()));
                 upcoming.append(m);
+            }
+            compsByDate[c.date].append(m);
         }
     }
     std::sort(upcoming.begin(), upcoming.end(), [](const QVariantMap &a, const QVariantMap &b) {
@@ -1577,6 +1624,95 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
         doc.note(QStringLiteral("● Ist nach Plan   ◆ Ist ohne Plan   ○ geplant   offen: geplant, ohne Ist   ★ Wettkampf"));
     result.insert(QStringLiteral("report"), Report::toVariant(doc));
     return result;
+}
+
+QVariantMap Store::youthStatus(const QString &athleteId, const QString &date) const
+{
+    QDate at = Dates::parse(date);
+    if (!at.isValid())
+        at = QDate::fromString(date, Qt::ISODate);
+    const Athlete a = Database::athlete(athleteId);
+    if (athleteId.isEmpty() || !at.isValid() || a.id.isEmpty())
+        return {};
+    const int sex = int(a.sex);
+    const int ak = Youth::ageClass(a.born, at);
+
+    // The weight class: the MAZ's around the date, else the last body weight
+    QString weightClass;
+    for (const Maz &z : Planning::mazForAthlete(athleteId)) {
+        if (z.from.isValid() && z.to.isValid() && at >= z.from && at <= z.to.addDays(6)) {
+            for (const MazAthlete &m : Planning::mazAthletes(z.id))
+                if (m.athleteId == athleteId && m.weightClass > 0)
+                    weightClass = Youth::weightClassFromLimit(sex, m.weightClass);
+        }
+    }
+    const QList<Competition> comps = Competitions::forAthlete(athleteId); // newest first
+    // (the last one up to the date, else the first one after it)
+    for (int pass = 0; pass < 2 && weightClass.isEmpty(); ++pass) {
+        for (const Competition &c : comps) {
+            if ((pass == 1 || c.date <= at) && c.bodyWeight > 0) {
+                weightClass = Youth::weightClassFor(sex, c.bodyWeight);
+                if (pass == 0)
+                    break;
+            }
+        }
+    }
+
+    // DM Jugend: the norm of the class, against the best total since 1 January
+    QVariantMap dm{{QStringLiteral("applies"), Youth::dmJugendAge(ak)}};
+    int norm = 0;
+    for (const QVariant &v : dmNorms()) {
+        const QVariantMap n = v.toMap();
+        if (n.value(QStringLiteral("sex")).toInt() == sex && n.value(QStringLiteral("weightClass")).toString() == weightClass)
+            norm = n.value(QStringLiteral("total")).toInt();
+    }
+    int best = 0;
+    QDate bestDate;
+    for (const Competition &c : comps) {
+        if (c.date.year() == at.year() && c.date <= at && c.total() > best) {
+            best = c.total();
+            bestDate = c.date;
+        }
+    }
+    const bool reached = norm > 0 && best >= norm;
+    QString text;
+    if (Youth::dmJugendAge(ak) && norm > 0) {
+        text = QStringLiteral("Norm DM Jugend %1 kg: %2 kg").arg(weightClass).arg(norm);
+        if (reached)
+            text += QStringLiteral(" – erfüllt (%1 kg, %2)").arg(best).arg(Dates::text(bestDate));
+        else if (best > 0)
+            text += QStringLiteral(" – noch %1 kg (bisher %2 kg)").arg(norm - best).arg(best);
+        else
+            text += QStringLiteral(" – in %1 noch kein Zweikampf").arg(at.year());
+    }
+    dm.insert(QStringLiteral("norm"), norm);
+    dm.insert(QStringLiteral("best"), best);
+    dm.insert(QStringLiteral("bestDate"), bestDate.isValid() ? Dates::text(bestDate) : QString());
+    dm.insert(QStringLiteral("reached"), reached);
+    dm.insert(QStringLiteral("text"), text);
+    return {{QStringLiteral("ageClass"), ak}, {QStringLiteral("youth"), Youth::limitedToOnePerWeek(ak)},
+            {QStringLiteral("weightClass"), weightClass}, {QStringLiteral("dm"), dm}};
+}
+
+QString Store::weekConflict(const QString &athleteId, const QString &date, const QString &oldDate) const
+{
+    QDate at = Dates::parse(date);
+    if (!at.isValid())
+        at = QDate::fromString(date, Qt::ISODate);
+    const QDate old = QDate::fromString(oldDate, Qt::ISODate);
+    const Athlete a = Database::athlete(athleteId);
+    if (!at.isValid() || a.id.isEmpty() || !Youth::limitedToOnePerWeek(Youth::ageClass(a.born, at)))
+        return QString();
+    const QDate monday = Weeks::mondayOf(at);
+    for (const Competition &c : Competitions::forAthlete(athleteId)) {
+        if (c.date == old || c.date == at)
+            continue;
+        if (Weeks::mondayOf(c.date) == monday)
+            return QStringLiteral("In dieser Woche ist schon ein Wettkampf: %1 am %2. Für Schüler und Jugend "
+                                  "(bis AK 17) ist nur einer pro Woche erlaubt.")
+                .arg(c.name.isEmpty() ? Competitions::typeShortNames().value(c.type) : c.name, Dates::text(c.date));
+    }
+    return QString();
 }
 
 QString Store::saveCompetitionDate(const QString &athleteId, const QString &date, int type, const QString &name,

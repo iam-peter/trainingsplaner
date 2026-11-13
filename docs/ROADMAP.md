@@ -75,7 +75,8 @@ and order in [UX-PLAN.md](UX-PLAN.md)):
 - [x] **The load chart** ("Belastungsverlauf"): weight per week as Ziel,
       Ist and ideal line, reps with h / m / g, from the week, the ITP and
       Analyse; to confirm with the coach.
-- [ ] **Youth competitions** of the DGJ: types, one per week, DM norms.
+- [x] **Youth competitions** of the DGJ: names to pick, one per week,
+      DM norms (editable).
 - [ ] Later, if wanted: one sidebar instead of two tab bars
       ([NAVIGATION.md](NAVIGATION.md)).
 

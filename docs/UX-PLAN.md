@@ -323,12 +323,20 @@ is still to ask him (section 9, question 1).
 
 - **Coming competitions** (dates entered in the month view) at the top of
   the list, results below as now.
-- **Youth competition types** of the DGJ to pick (section 6), besides
-  WinWoTA's NT, DM, IT, BL, EM, WM, OS.
-- **Norm line** in the competition chart: the DM Jugend norm of the
-  athlete's weight class, and "Norm erreicht am …" beside the results.
-- **One competition per week** for youth athletes: a warning when a
-  second one is entered.
+- **Youth competitions** of the DGJ to pick (done): offered as names
+  while typing a competition (with the month they usually are in), each
+  mapped onto one of WinWoTA's types (NT, DM, IT …), so the old export
+  format keeps its meaning.
+- **The DM Jugend norm** of the athlete's weight class (done): in the
+  page's toolbar for a youth athlete ("AK 16 · -89 kg · Norm DM Jugend
+  -89 kg: 188 kg – noch 14 kg"), at a DM in the month's dates and in the
+  competition dialog. The weight class comes from the MAZ, else from the
+  last body weight at a competition. The norms are an editable table
+  under Einstellungen › Normen, the DGJ's of 2020 until changed. A norm
+  line in the competition chart is left for later.
+- **One competition per week** for youth athletes up to AK 17 (done): a
+  warning in the competition dialog and at the dates in the month view;
+  saving is still allowed.
 - The "Bild" and "Drucken" buttons move into the toolbar, as in Analyse.
 
 ### 3.7 Analyse
@@ -502,7 +510,7 @@ flowchart LR
 | ✓ 6 | The week's load h / m / g read from the ITP wherever a week is shown | small | 3.1, 3.3, 3.5 |
 | ✓ 7 | Monat: weeks with load and WH, sessions, competition dates, Termine, all athletes, print | large | W5 |
 | ✓ 8 | Load chart: weight as Ziel, Ist and ideal line, expected course, reps with h / m / g, table below, Bezug, reachable from week and Analyse (comparison MAZ later) | medium | W6 |
-| 9 | Youth competition types, one-per-week warning, DM norms as an editable table | small | 6.2 |
+| ✓ 9 | Youth competition types, one-per-week warning, DM norms as an editable table | small | 6.2 |
 
 Steps 1, 2 and 5 are small and independent; each can go to the coach on
 its own. Step 4 builds on the narrow days of step 1. Step 8 waits for his

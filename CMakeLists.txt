@@ -26,6 +26,7 @@ add_library(tpcore STATIC
     src/bakimport.cpp   src/bakimport.h
     src/weekreport.cpp  src/weekreport.h
     src/report.cpp      src/report.h
+    src/youth.cpp       src/youth.h
     src/demo.cpp        src/demo.h
     src/update.cpp      src/update.h
 )

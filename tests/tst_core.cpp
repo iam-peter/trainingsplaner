@@ -10,6 +10,7 @@
 #include "update.h"
 #include "weekreport.h"
 #include "report.h"
+#include "youth.h"
 
 #include <QFileInfo>
 #include <QJsonArray>
@@ -35,6 +36,7 @@ private slots:
     void parseSteps();
     void formatSteps();
     void loadLetters();
+    void youthRules();
     void statsMatchOldProgram();
     void entryEncoding();
     void weekLabels();
@@ -81,6 +83,28 @@ void TestCore::cleanupTestCase()
 
 // The load of a week as h / m / g; the numbers are an assumption until
 // checked against WinWoTA, so the mapping is tested in both directions
+// The DGJ's rules: age class by year, youth weight classes, the norms
+void TestCore::youthRules()
+{
+    QCOMPARE(Youth::ageClass(QDate(2010, 12, 31), QDate(2026, 1, 2)), 16);
+    QVERIFY(Youth::limitedToOnePerWeek(17));
+    QVERIFY(!Youth::limitedToOnePerWeek(18));
+    QVERIFY(Youth::dmJugendAge(16) && !Youth::dmJugendAge(15));
+    QCOMPARE(Youth::weightClassFor(0, 88.4), QStringLiteral("-89"));
+    QCOMPARE(Youth::weightClassFor(0, 89.0), QStringLiteral("-89"));
+    QCOMPARE(Youth::weightClassFor(0, 110), QStringLiteral("+102"));
+    QCOMPARE(Youth::weightClassFor(1, 63.5), QStringLiteral("-64"));
+    QCOMPARE(Youth::weightClassFromLimit(1, 87), QStringLiteral("+81"));
+    const QList<Youth::Norm> norms = Youth::defaultDmNorms();
+    QCOMPARE(norms.size(), 20);
+    for (const Youth::Norm &n : norms) {
+        if (n.sex == 0 && n.weightClass == QLatin1String("-89"))
+            QCOMPARE(n.total, 188);
+        if (n.sex == 1 && n.weightClass == QLatin1String("+81"))
+            QCOMPARE(n.total, 104);
+    }
+}
+
 void TestCore::loadLetters()
 {
     QCOMPARE(Planning::loadText(0), QString());

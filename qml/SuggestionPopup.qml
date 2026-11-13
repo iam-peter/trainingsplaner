@@ -95,6 +95,7 @@ Popup {
             focusPolicy: Qt.NoFocus
             highlighted: index === popup.current
             text: modelData.text + (modelData.totalReps > 0 ? "   (WH " + modelData.totalReps + ")" : "")
+                  + (modelData.note ? "   · " + modelData.note : "")
             onClicked: popup.choose(index)
         }
     }
