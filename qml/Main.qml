@@ -45,7 +45,7 @@ ApplicationWindow {
     minimumWidth: 1000
     minimumHeight: 680
     visible: true
-    title: "Trainingsplaner Gewichtheben"
+    title: Store.projectName + " – Trainingsplaner Gewichtheben"
 
     // The old program's colours, when chosen as colour scheme
     Binding {
@@ -81,6 +81,131 @@ ApplicationWindow {
             anchors.rightMargin: 8
             spacing: 8
 
+            // Everything that is not a page: projects, the old program's
+            // data, settings and help
+            IconToolButton {
+                id: fileButton
+                objectName: "fileButton"
+                iconName: "dumbbell"
+                text: "Datei"
+                display: AbstractButton.TextBesideIcon
+                onClicked: fileMenu.open()
+                Menu {
+                    id: fileMenu
+                    objectName: "fileMenu"
+                    y: fileButton.height
+                    KeyMenuItem {
+                        objectName: "newProjectItem"
+                        text: "Neues Projekt…"
+                        keys: "Strg+N"
+                        icon.source: Theme.icon("file-plus")
+                        icon.color: Styles.TokenInterface.semantics.text_default
+                        onTriggered: window.newProject()
+                    }
+                    KeyMenuItem {
+                        text: "Öffnen…"
+                        keys: "Strg+O"
+                        icon.source: Theme.icon("folder-open")
+                        icon.color: Styles.TokenInterface.semantics.text_default
+                        onTriggered: window.openProject()
+                    }
+                    Menu {
+                        id: recentMenu
+                        objectName: "recentMenu"
+                        title: "Zuletzt geöffnet"
+                        icon.source: Theme.icon("history")
+                        icon.color: Styles.TokenInterface.semantics.text_default
+                        // The entry for it takes the whole icon, size too
+                        icon.width: 16
+                        icon.height: 16
+                        Instantiator {
+                            model: Store.recentProjects
+                            delegate: MenuItem {
+                                required property var modelData
+                                text: modelData.name
+                                ToolTip.text: modelData.path
+                                ToolTip.visible: hovered
+                                ToolTip.delay: 600
+                                onTriggered: window.switchProject(() => Store.openProject(modelData.path))
+                            }
+                            onObjectAdded: (index, object) => recentMenu.insertItem(index, object)
+                            onObjectRemoved: (index, object) => recentMenu.removeItem(object)
+                        }
+                        MenuItem {
+                            visible: Store.recentProjects.length === 0
+                            height: visible ? implicitHeight : 0
+                            enabled: false
+                            text: "Noch keine anderen Projekte"
+                        }
+                    }
+                    KeyMenuItem {
+                        text: "Speichern unter…"
+                        keys: "Strg+Umschalt+S"
+                        icon.source: Theme.icon("save")
+                        icon.color: Styles.TokenInterface.semantics.text_default
+                        onTriggered: window.saveProjectAs()
+                    }
+                    MenuSeparator {}
+                    MenuItem {
+                        text: "Importieren…"
+                        icon.source: Theme.icon("import")
+                        icon.color: Styles.TokenInterface.semantics.text_default
+                        onTriggered: importDialog.open()
+                    }
+                    MenuItem {
+                        text: "Exportieren…"
+                        icon.source: Theme.icon("file-down")
+                        icon.color: Styles.TokenInterface.semantics.text_default
+                        onTriggered: exportDialog.open()
+                    }
+                    MenuItem {
+                        visible: Store.hasDemoData
+                        height: visible ? implicitHeight : 0
+                        text: "Beispieldaten entfernen"
+                        icon.source: Theme.icon("trash-2")
+                        icon.color: Styles.TokenInterface.semantics.text_default
+                        onTriggered: removeDemoConfirm.open()
+                    }
+                    MenuSeparator {}
+                    MenuItem {
+                        objectName: "settingsItem"
+                        text: "Einstellungen…"
+                        icon.source: Theme.icon("settings")
+                        icon.color: Styles.TokenInterface.semantics.text_default
+                        onTriggered: settingsDialog.open()
+                    }
+                    MenuSeparator {}
+                    KeyMenuItem {
+                        text: "Hilfe"
+                        keys: "F1"
+                        icon.source: Theme.icon("circle-help")
+                        icon.color: Styles.TokenInterface.semantics.text_default
+                        onTriggered: helpDialog.open()
+                    }
+                    MenuItem {
+                        // && shows one &: a single one marks a shortcut key
+                        text: "Ideen && Probleme"
+                        icon.source: Theme.icon("external-link")
+                        icon.color: Styles.TokenInterface.semantics.text_default
+                        onTriggered: Qt.openUrlExternally(Updater.issueUrl)
+                    }
+                    MenuItem {
+                        text: "Über den Trainingsplaner"
+                        icon.source: Theme.icon("info")
+                        icon.color: Styles.TokenInterface.semantics.text_default
+                        onTriggered: aboutDialog.open()
+                    }
+                    MenuSeparator {}
+                    KeyMenuItem {
+                        text: "Beenden"
+                        keys: "Strg+Q"
+                        icon.source: Theme.icon("log-out")
+                        icon.color: Styles.TokenInterface.semantics.text_default
+                        onTriggered: window.close()
+                    }
+                }
+            }
+
             AppTabBar {
                 id: tabs
                 objectName: "mainTabs"
@@ -94,88 +219,91 @@ ApplicationWindow {
             }
 
             Item { Layout.fillWidth: true }
+        }
+    }
 
-            // Daten, Einstellungen and Hilfe show only their icons (and the
-            // label as tooltip) when the window is too narrow for the tabs
-            // and the three with their labels
-            readonly property bool compact: window.width < 1100
+    // Projects. What the session panel holds is saved into the open one
+    // first, as on closing; the pages then show the other file's athletes.
+    function switchProject(open) {
+        if (!weekPage.closePanel()) {
+            tabs.currentIndex = weekTab
+            return false
+        }
+        const error = open()
+        if (error !== "") {
+            projectError.text = error
+            projectError.open()
+            return false
+        }
+        chooseDefaultAthlete()
+        return true
+    }
+    function newProject() { newProjectDialog.open() }
+    function openProject() { openProjectDialog.open() }
+    function saveProjectAs() { saveProjectDialog.open() }
 
-            IconToolButton {
-                id: dataButton
-                objectName: "dataButton"
-                iconName: "database"
-                text: "Daten"
-                display: headerRow.compact ? AbstractButton.IconOnly : AbstractButton.TextBesideIcon
-                toolTip: headerRow.compact ? text : ""
-                onClicked: dataMenu.open()
-                Menu {
-                    id: dataMenu
-                    objectName: "dataMenu"
-                    // Right edge on the button's, as the button sits at the
-                    // window's right
-                    x: dataButton.width - dataMenu.width
-                    y: dataButton.height
-                    MenuItem {
-                        text: "Importieren"
-                        icon.source: Theme.icon("import")
-                        icon.color: Styles.TokenInterface.semantics.text_default
-                        onTriggered: importDialog.open()
-                    }
-                    MenuItem {
-                        text: "Exportieren"
-                        icon.source: Theme.icon("file-down")
-                        icon.color: Styles.TokenInterface.semantics.text_default
-                        onTriggered: exportDialog.open()
-                    }
-                    MenuItem {
-                        visible: Store.hasDemoData
-                        height: visible ? implicitHeight : 0
-                        text: "Beispieldaten entfernen"
-                        icon.source: Theme.icon("trash-2")
-                        icon.color: Styles.TokenInterface.semantics.text_default
-                        onTriggered: removeDemoConfirm.open()
-                    }
-                }
-            }
-            IconToolButton {
-                objectName: "settingsButton"
-                iconName: "settings"
-                text: "Einstellungen"
-                display: headerRow.compact ? AbstractButton.IconOnly : AbstractButton.TextBesideIcon
-                toolTip: headerRow.compact ? text : ""
-                onClicked: settingsDialog.open()
-            }
-            IconToolButton {
-                id: helpButton
-                objectName: "helpButton"
-                iconName: "circle-help"
-                text: "Hilfe"
-                display: headerRow.compact ? AbstractButton.IconOnly : AbstractButton.TextBesideIcon
-                toolTip: headerRow.compact ? text : ""
-                onClicked: helpMenu.open()
-                Menu {
-                    id: helpMenu
-                    objectName: "helpMenu"
-                    // Right edge on the button's, as the button sits at the
-                    // window's right
-                    x: helpButton.width - helpMenu.width
-                    y: helpButton.height
-                    KeyMenuItem {
-                        text: "Hilfe"
-                        keys: "F1"
-                        onTriggered: helpDialog.open()
-                    }
-                    MenuItem {
-                        // && shows one &: a single one marks a shortcut key
-                        text: "Ideen && Probleme"
-                        onTriggered: Qt.openUrlExternally(Updater.issueUrl)
-                    }
-                    MenuSeparator {}
-                    MenuItem {
-                        text: "Über den Trainingsplaner"
-                        onTriggered: aboutDialog.open()
-                    }
-                }
+    Shortcut {
+        sequences: [StandardKey.New]
+        enabled: DialogStack.open === 0
+        onActivated: window.newProject()
+    }
+    Shortcut {
+        sequences: [StandardKey.Open]
+        enabled: DialogStack.open === 0
+        onActivated: window.openProject()
+    }
+    Shortcut {
+        sequences: ["Ctrl+Shift+S"]
+        enabled: DialogStack.open === 0
+        onActivated: window.saveProjectAs()
+    }
+    Shortcut {
+        sequences: [StandardKey.Quit, "Ctrl+Q"]
+        onActivated: window.close()
+    }
+
+    readonly property var projectFilters: ["Trainingsplaner-Projekt (*.trainingsplaner *.sqlite)", "Alle Dateien (*)"]
+
+    FileDialog {
+        id: newProjectDialog
+        title: "Neues Projekt"
+        fileMode: FileDialog.SaveFile
+        nameFilters: window.projectFilters
+        defaultSuffix: "trainingsplaner"
+        currentFolder: Store.projectFolder
+        // An existing file is refused by the program, not replaced
+        options: FileDialog.DontConfirmOverwrite
+        onAccepted: if (window.switchProject(() => Store.newProject(selectedFile.toString())))
+                        welcomeDialog.open()
+    }
+    FileDialog {
+        id: openProjectDialog
+        title: "Projekt öffnen"
+        fileMode: FileDialog.OpenFile
+        nameFilters: window.projectFilters
+        currentFolder: Store.projectFolder
+        onAccepted: window.switchProject(() => Store.openProject(selectedFile.toString()))
+    }
+    FileDialog {
+        id: saveProjectDialog
+        title: "Projekt speichern unter"
+        fileMode: FileDialog.SaveFile
+        nameFilters: window.projectFilters
+        defaultSuffix: "trainingsplaner"
+        currentFolder: Store.projectFolder
+        onAccepted: window.switchProject(() => Store.saveProjectAs(selectedFile.toString()))
+    }
+    AppDialog {
+        id: projectError
+        objectName: "projectError"
+        property alias text: projectErrorLabel.text
+        title: "Projekt"
+        standardButtons: Dialog.Ok
+        ColumnLayout {
+            Label {
+                id: projectErrorLabel
+                Layout.preferredWidth: 480
+                wrapMode: Text.Wrap
             }
         }
     }

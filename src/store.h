@@ -33,7 +33,12 @@ class Store : public QObject
     Q_PROPERTY(QVariantList infoCategories READ infoCategories WRITE setInfoCategories NOTIFY settingsChanged)
     Q_PROPERTY(QString trainer READ trainer WRITE setTrainer NOTIFY settingsChanged)
     Q_PROPERTY(QString organisation READ organisation WRITE setOrganisation NOTIFY settingsChanged)
-    Q_PROPERTY(QString databasePath READ databasePath CONSTANT)
+    Q_PROPERTY(QString databasePath READ databasePath NOTIFY projectChanged)
+    // The open project (its file's name without the folder and ending) and
+    // the ones opened before it, newest first: [{ path, name }]
+    Q_PROPERTY(QString projectName READ projectName NOTIFY projectChanged)
+    Q_PROPERTY(QString projectFolder READ projectFolder NOTIFY projectChanged)
+    Q_PROPERTY(QVariantList recentProjects READ recentProjects NOTIFY projectChanged)
     // Print options as in WeekReport::Options, margins in whole mm
     Q_PROPERTY(QVariantMap printOptions READ printOptions WRITE setPrintOptions NOTIFY settingsChanged)
     // Default times of the 1st-3rd session: [{from, to}, ...]
@@ -82,6 +87,23 @@ public:
     QString organisation() const;
     void setOrganisation(const QString &v);
     QString databasePath() const;
+    QString projectName() const;
+    QString projectFolder() const;
+    QVariantList recentProjects() const;
+
+    // Projects: one database file each. Every change is saved at once, so
+    // there is no "save"; these switch the program to another file and
+    // return "" or why they could not. file is a path or a file: URL.
+    // A new project starts empty; the file must not exist yet
+    Q_INVOKABLE QString newProject(const QString &file);
+    // A project saved before
+    Q_INVOKABLE QString openProject(const QString &file);
+    // A copy of the open project, which the program then works in
+    Q_INVOKABLE QString saveProjectAs(const QString &file);
+    // The file to open at start: the last project, else the usual one in
+    // the user profile; and recording the file opened at start
+    static QString startProject();
+    static void rememberProject(const QString &path);
     QVariantMap printOptions() const;
     void setPrintOptions(const QVariantMap &v);
     QVariantList sessionTimes() const;
@@ -297,9 +319,12 @@ signals:
     void clipboardChanged();
     void undoChanged();
     void dataChanged();
+    void projectChanged();
 
 private:
     void bump();
+    // Opens path in place of the open file, the open one again when it fails
+    QString switchProject(const QString &path, bool existingOnly);
     // Runs op, which changes one week, and records the change for undo
     bool changeWeek(const QString &label, const QString &athleteId, const QString &monday,
                     const QString &variant, const std::function<bool()> &op);

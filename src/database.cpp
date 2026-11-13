@@ -286,8 +286,13 @@ QDateTime stampTime(const QString &text)
     return time.isValid() ? time.toLocalTime() : time;
 }
 
-bool open(const QString &path, QString *error)
+bool open(const QString &path, QString *error, bool existingOnly)
 {
+    if (existingOnly && !QFileInfo(path).isFile()) {
+        if (error)
+            *error = QStringLiteral("Die Datei gibt es nicht.");
+        return false;
+    }
     QDir().mkpath(QFileInfo(path).absolutePath());
     QSqlDatabase d = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"));
     d.setDatabaseName(path);
@@ -300,7 +305,9 @@ bool open(const QString &path, QString *error)
     // A file of another layout is left alone; a new one has none yet (0)
     const int version = fileSchemaVersion();
     QString failure;
-    if (version != 0 && version != kSchemaVersion)
+    if (existingOnly && version == 0)
+        failure = QStringLiteral("Die Datei ist kein Projekt des Trainingsplaners.");
+    else if (version != 0 && version != kSchemaVersion)
         failure = QStringLiteral("Die Datenbank stammt von einer anderen Version des Trainingsplaners.");
     // Missing tables are created, existing ones stay as they are
     else if (!runSqlFile(QStringLiteral("schema.sql")))
@@ -326,6 +333,19 @@ void close()
 QString path()
 {
     return db().databaseName();
+}
+
+bool copyTo(const QString &path, QString *error)
+{
+    QSqlQuery q(db());
+    q.prepare(QStringLiteral("VACUUM INTO ?"));
+    q.addBindValue(path);
+    if (!q.exec()) {
+        if (error)
+            *error = q.lastError().text();
+        return false;
+    }
+    return true;
 }
 
 QList<Athlete> athletes()

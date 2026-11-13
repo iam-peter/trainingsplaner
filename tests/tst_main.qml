@@ -44,34 +44,33 @@ Item {
                 Store.removeAthlete(dora.id)
         }
 
-        // Daten, Einstellungen and Hilfe drop their labels when the window
-        // is too narrow for them, and get them back when it is wide again
-        function test_headerButtonsShrinkToIcons() {
-            const w = createTemporaryObject(mainComponent, null)
-            const buttons = ["dataButton", "settingsButton", "helpButton"].map(n => findChild(w, n))
-            w.width = 1366
-            tryVerify(() => buttons.every(b => b.display === AbstractButton.TextBesideIcon))
-            w.width = w.minimumWidth
-            tryVerify(() => buttons.every(b => b.display === AbstractButton.IconOnly))
-            verify(buttons.every(b => b.toolTip === b.text))
-            w.width = 1366
-            tryVerify(() => buttons.every(b => b.display === AbstractButton.TextBesideIcon))
-        }
-
-        // The menus of Daten and Hilfe end where their buttons end
-        function test_menusAlignRight() {
+        // One menu at the window's left, before the tabs, holds projects,
+        // import and export, the settings and help; it opens under its button
+        function test_fileMenu() {
             const w = createTemporaryObject(mainComponent, null)
             waitForRendering(w.contentItem)
-            for (const [button, menu] of [["dataButton", "dataMenu"], ["helpButton", "helpMenu"]]) {
-                const b = findChild(w, button), m = findChild(w, menu)
-                m.open()
-                tryCompare(m, "opened", true)
-                const right = b.mapToItem(null, b.width, 0).x
-                const menuRight = m.background.mapToItem(null, m.background.width, 0).x
-                verify(Math.abs(menuRight - right) <= 1, button + ": menu ends at " + menuRight + ", button at " + right)
-                m.close()
-                tryCompare(m, "visible", false)
-            }
+            const b = findChild(w, "fileButton"), m = findChild(w, "fileMenu")
+            const tabs = findChild(w, "mainTabs")
+            verify(b.mapToItem(null, b.width, 0).x <= tabs.mapToItem(null, 0, 0).x)
+            compare(b.icon.source.toString().indexOf("dumbbell") >= 0, true)
+            for (const name of ["dataButton", "settingsButton", "helpButton"])
+                compare(findChild(w, name), null, name)
+            m.open()
+            tryCompare(m, "opened", true)
+            const left = b.mapToItem(null, 0, 0).x
+            verify(Math.abs(m.background.mapToItem(null, 0, 0).x - left) <= 1)
+            const texts = []
+            for (let i = 0; i < m.count; ++i)
+                texts.push(m.itemAt(i).text ?? "")
+            for (const t of ["Neues Projekt…", "Öffnen…", "Zuletzt geöffnet", "Speichern unter…", "Importieren…",
+                             "Exportieren…", "Einstellungen…", "Hilfe", "Über den Trainingsplaner", "Beenden"])
+                verify(texts.indexOf(t) >= 0, t + " in " + texts)
+            m.close()
+            tryCompare(m, "visible", false)
+            // At the smallest width the tabs still fit beside it
+            w.width = w.minimumWidth
+            waitForRendering(w.contentItem)
+            verify(tabs.mapToItem(null, tabs.width, 0).x <= w.width)
         }
 
         function test_choosingOnOnePageSelectsEverywhere() {

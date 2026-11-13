@@ -4,7 +4,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import Trainingsplaner
 
-// Hilfe › Über den Trainingsplaner: version, updates, where to report
+// Datei › Über den Trainingsplaner: version, updates, where to report
 // problems, licences
 AppDialog {
     id: dialog

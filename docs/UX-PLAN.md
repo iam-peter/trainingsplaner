@@ -59,6 +59,7 @@ decide how the program feels. That is where his wishes are, too:
 | W12 | "von" never after "bis" | 4 | done |
 | W13 | ITP and Rahmenorientierung not behind one switch | 3.4 | done |
 | W14 | A print preview before printing, as WinWoTA's Seitenvorschau | – | done |
+| W15 | Projects: one file each, opened, created and copied from one *Datei* menu (dumbbell) left of the tabs, which also holds Daten, Einstellungen and Hilfe | – | done |
 
 ## 2. Principles
 

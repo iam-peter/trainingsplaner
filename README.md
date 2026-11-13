@@ -129,7 +129,7 @@ What comes next: [docs/ROADMAP.md](docs/ROADMAP.md).
 
 Users of the older WinWoTA XP 2.61 can bring their data along: export it
 there ("Datenexport", option *komplett*, gives `winwotaxp.bak`), then use
-**Daten › Importieren** here. The exercise numbers are the same. Rows are
+**Datei › Importieren** here. The exercise numbers are the same. Rows are
 merged by key and timestamp, so importing again is safe.
 
 This is an independent project. It is not affiliated with, endorsed by or
@@ -151,11 +151,15 @@ For Windows, install Qt with the online installer (MSVC 2022 or MinGW),
 open `CMakeLists.txt` in Qt Creator and build *Release*. `windeployqt
 --qmldir qml trainingsplaner.exe` makes the folder self-contained.
 
-The database is stored at
-`%APPDATA%\Trainingsplaner\Trainingsplaner\trainingsplaner.sqlite`
-(shown under *Einstellungen*). To back up, close the program and copy that
-file. The program opens only a file of its own table layout
-(`sql/schema.sql`); one of another version is refused, not changed.
+Each project is one SQLite file (`*.trainingsplaner`); every change is
+saved into it at once. *Datei* creates, opens and copies projects
+(*Neues Projekt*, *Öffnen*, *Zuletzt geöffnet*, *Speichern unter*), and the
+program starts with the one used last. The first one is
+`%APPDATA%\Trainingsplaner\Trainingsplaner\trainingsplaner.sqlite`;
+the open file is shown under *Einstellungen*. *Speichern unter* makes a
+consistent copy, also for a backup. The program opens only a file of its
+own table layout (`sql/schema.sql`); one of another version, or any other
+file, is refused, not changed.
 
 ## Releases
 
@@ -173,7 +177,7 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 
 | Option | Purpose |
 |---|---|
-| `--db <file>` | use another database file |
+| `--db <file>` | use another project file for this start, without remembering it |
 | `--import <file.bak>` | import an old data export and exit |
 | `--athlete <id> --week 46/2026` | start with this athlete and week |
 | `--page sportler\|planung\|analyse\|wettkaempfe\|einstellungen` | start on that page |
@@ -230,7 +234,7 @@ do not attach a real database or export.
 
 The only network access is the update check, which sends no training data:
 GitHub sees the program version (as user agent) and the IP address. It can
-be switched off under Hilfe › Über den Trainingsplaner.
+be switched off under Datei › Über den Trainingsplaner.
 
 ## Licence
 

@@ -12,6 +12,7 @@
 #include "report.h"
 #include "youth.h"
 
+#include <QFile>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -45,6 +46,7 @@ private slots:
     void importAndMerge();
     void oldFormatColumns();
     void otherLayoutRefused();
+    void projectFilesOnly();
     void saveAndLoadSession();
     void copyWeek();
     void weekSummary();
@@ -365,6 +367,63 @@ void TestCore::otherLayoutRefused()
     }
     QSqlDatabase::removeDatabase(QStringLiteral("old"));
 
+    QVERIFY(Database::open(m_dir.filePath(QStringLiteral("test.sqlite"))));
+}
+
+// A project opened from the menu must already be one of this program's
+// files: another SQLite file, any other file or a missing one stays as it
+// is. A copy of the open project opens as one.
+void TestCore::projectFilesOnly()
+{
+    const QString foreign = m_dir.filePath(QStringLiteral("foreign.sqlite"));
+    {
+        QSqlDatabase d = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), QStringLiteral("foreign"));
+        d.setDatabaseName(foreign);
+        QVERIFY(d.open());
+        QSqlQuery q(d);
+        QVERIFY(q.exec(QStringLiteral("CREATE TABLE x (a TEXT)")));
+        d.close();
+    }
+    QSqlDatabase::removeDatabase(QStringLiteral("foreign"));
+    const QString text = m_dir.filePath(QStringLiteral("notes.txt"));
+    {
+        QFile f(text);
+        QVERIFY(f.open(QIODevice::WriteOnly));
+        f.write("Kein Projekt\n");
+    }
+    const QString missing = m_dir.filePath(QStringLiteral("missing.trainingsplaner"));
+
+    Database::close();
+    QString error;
+    QVERIFY(!Database::open(foreign, &error, true));
+    QVERIFY(error.contains(QStringLiteral("kein Projekt")));
+    QVERIFY(!Database::open(text, &error, true));
+    QVERIFY(!Database::open(missing, &error, true));
+    QVERIFY(!QFile::exists(missing));
+    {
+        QSqlDatabase d = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), QStringLiteral("foreign"));
+        d.setDatabaseName(foreign);
+        QVERIFY(d.open());
+        QSqlQuery q(d);
+        QVERIFY(q.exec(QStringLiteral("SELECT group_concat(name) FROM sqlite_master WHERE type = 'table'")) && q.next());
+        QCOMPARE(q.value(0).toString(), QStringLiteral("x"));
+        d.close();
+    }
+    QSqlDatabase::removeDatabase(QStringLiteral("foreign"));
+    {
+        QFile f(text);
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        QCOMPARE(f.readAll(), QByteArray("Kein Projekt\n"));
+    }
+
+    QVERIFY(Database::open(m_dir.filePath(QStringLiteral("test.sqlite"))));
+    const int athletes = Database::athletes().size();
+    const QString copy = m_dir.filePath(QStringLiteral("copy.trainingsplaner"));
+    QVERIFY(Database::copyTo(copy, &error));
+    Database::close();
+    QVERIFY2(Database::open(copy, &error, true), qPrintable(error));
+    QCOMPARE(Database::athletes().size(), athletes);
+    Database::close();
     QVERIFY(Database::open(m_dir.filePath(QStringLiteral("test.sqlite"))));
 }
 

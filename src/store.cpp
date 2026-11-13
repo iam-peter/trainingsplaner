@@ -17,6 +17,7 @@
 #include <QDateTime>
 #include <QDesktopServices>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QPageLayout>
 #include <QPainter>
@@ -25,6 +26,7 @@
 #include <QSet>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QUrl>
 
 #include <cmath>
 
@@ -838,6 +840,141 @@ double Store::usualJump(const QString &athleteId, const QString &monday, int exe
 QString Store::databasePath() const
 {
     return QDir::toNativeSeparators(Database::path());
+}
+
+namespace {
+
+const QString kProjectSuffix = QStringLiteral("trainingsplaner");
+constexpr int kRecentProjects = 6;
+
+// A path from QML: a plain path or a file: URL from a file dialog
+QString localPath(const QString &file)
+{
+    const QString path = file.startsWith(QLatin1String("file:")) ? QUrl(file).toLocalFile() : file;
+    return path.isEmpty() ? QString() : QFileInfo(path).absoluteFilePath();
+}
+
+bool sameFile(const QString &a, const QString &b)
+{
+    return QFileInfo(a).canonicalFilePath() == QFileInfo(b).canonicalFilePath()
+           && !QFileInfo(a).canonicalFilePath().isEmpty();
+}
+
+QString shownName(const QString &path)
+{
+    return QFileInfo(path).completeBaseName();
+}
+
+} // namespace
+
+QString Store::projectName() const
+{
+    return shownName(Database::path());
+}
+
+QString Store::projectFolder() const
+{
+    return QUrl::fromLocalFile(QFileInfo(Database::path()).absolutePath()).toString();
+}
+
+QVariantList Store::recentProjects() const
+{
+    QVariantList list;
+    for (const QString &path : QSettings().value(QStringLiteral("project/recent")).toStringList()) {
+        if (QFileInfo(path).isFile() && !sameFile(path, Database::path()))
+            list.append(QVariantMap{{QStringLiteral("path"), QDir::toNativeSeparators(path)},
+                                    {QStringLiteral("name"), shownName(path)}});
+    }
+    return list;
+}
+
+QString Store::startProject()
+{
+    const QString last = QSettings().value(QStringLiteral("project/last")).toString();
+    if (!last.isEmpty() && QFileInfo(last).isFile())
+        return last;
+    return QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation))
+        .filePath(QStringLiteral("trainingsplaner.sqlite"));
+}
+
+void Store::rememberProject(const QString &path)
+{
+    const QString file = QFileInfo(path).absoluteFilePath();
+    QSettings s;
+    QStringList recent = s.value(QStringLiteral("project/recent")).toStringList();
+    recent.removeIf([&](const QString &p) { return p == file || sameFile(p, file); });
+    recent.prepend(file);
+    s.setValue(QStringLiteral("project/recent"), recent.mid(0, kRecentProjects));
+    s.setValue(QStringLiteral("project/last"), file);
+}
+
+QString Store::switchProject(const QString &path, bool existingOnly)
+{
+    const QString old = Database::path();
+    Database::close();
+    QString error;
+    if (!Database::open(path, &error, existingOnly)) {
+        Database::open(old);
+        return QStringLiteral("„%1“ lässt sich nicht öffnen.\n\n%2")
+            .arg(QDir::toNativeSeparators(path), error);
+    }
+    rememberProject(path);
+    // Undo, the copied week and session belong to the other file
+    m_undo.clear();
+    m_redo.clear();
+    m_clip.reset();
+    m_sessionClip.reset();
+    m_sessionClipLabel.clear();
+    emit undoChanged();
+    emit clipboardChanged();
+    emit projectChanged();
+    emit settingsChanged();
+    emit athletesChanged();
+    bump();
+    return {};
+}
+
+QString Store::newProject(const QString &file)
+{
+    QString path = localPath(file);
+    if (path.isEmpty())
+        return QStringLiteral("Kein Dateiname angegeben.");
+    if (QFileInfo(path).suffix().isEmpty())
+        path += QLatin1Char('.') + kProjectSuffix;
+    if (QFileInfo::exists(path))
+        return QStringLiteral("„%1“ gibt es schon. Ein neues Projekt braucht einen neuen Dateinamen; "
+                              "ein gespeichertes Projekt öffnet „Öffnen…“.")
+            .arg(QDir::toNativeSeparators(path));
+    return switchProject(path, false);
+}
+
+QString Store::openProject(const QString &file)
+{
+    const QString path = localPath(file);
+    if (path.isEmpty())
+        return QStringLiteral("Kein Dateiname angegeben.");
+    if (sameFile(path, Database::path()))
+        return {};
+    return switchProject(path, true);
+}
+
+QString Store::saveProjectAs(const QString &file)
+{
+    QString path = localPath(file);
+    if (path.isEmpty())
+        return QStringLiteral("Kein Dateiname angegeben.");
+    if (QFileInfo(path).suffix().isEmpty())
+        path += QLatin1Char('.') + kProjectSuffix;
+    if (sameFile(path, Database::path()))
+        return {};
+    // The file dialog has asked before replacing a file
+    if (QFileInfo::exists(path) && !QFile::remove(path))
+        return QStringLiteral("„%1“ lässt sich nicht ersetzen.").arg(QDir::toNativeSeparators(path));
+    QString error;
+    if (!Database::copyTo(path, &error))
+        return QStringLiteral("Die Kopie „%1“ lässt sich nicht anlegen.\n\n%2")
+            .arg(QDir::toNativeSeparators(path), error);
+    return switchProject(path, true);
 }
 
 QString Store::clipboardLabel() const

@@ -79,7 +79,7 @@ AppDialog {
                 wrapMode: Text.Wrap
                 font.pixelSize: 11
                 color: Styles.TokenInterface.semantics.text_muted
-                text: "Beispieldaten sind frei erfunden und lassen sich über Daten › Beispieldaten entfernen wieder löschen. "
+                text: "Beispieldaten sind frei erfunden und lassen sich über Datei › Beispieldaten entfernen wieder löschen. "
                       + "F1 öffnet jederzeit die Hilfe."
             }
         }

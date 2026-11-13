@@ -1,5 +1,6 @@
 #include "bakimport.h"
 #include "database.h"
+#include "store.h"
 #include "colorscheme.h"
 #include "updater.h"
 
@@ -119,13 +120,26 @@ int main(int argc, char *argv[])
     QQuickStyle::setStyle(QStringLiteral("TrainingsplanerStyle"));
     QQuickStyle::setFallbackStyle(QStringLiteral("Basic"));
 
+    // --db only for this start; else the project open last time, which the
+    // usual file replaces when it can no longer be opened
     QString dbPath = parser.value(dbOption);
-    if (dbPath.isEmpty()) {
-        const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-        dbPath = QDir(dir).filePath(QStringLiteral("trainingsplaner.sqlite"));
-    }
     QString error;
-    if (!Database::open(dbPath, &error)) {
+    bool opened = false;
+    if (dbPath.isEmpty()) {
+        dbPath = Store::startProject();
+        opened = Database::open(dbPath, &error);
+        const QString usual = QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation))
+                                  .filePath(QStringLiteral("trainingsplaner.sqlite"));
+        if (!opened && dbPath != usual) {
+            dbPath = usual;
+            opened = Database::open(dbPath, &error);
+        }
+        if (opened)
+            Store::rememberProject(dbPath);
+    } else {
+        opened = Database::open(dbPath, &error);
+    }
+    if (!opened) {
         QMessageBox::critical(nullptr, QApplication::applicationDisplayName(),
                               QStringLiteral("Die Datenbank kann nicht geöffnet werden:\n%1\n\n%2")
                                   .arg(QDir::toNativeSeparators(dbPath), error));

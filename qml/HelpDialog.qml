@@ -128,8 +128,12 @@ AppDialog {
                     wrapMode: Text.Wrap
                     textFormat: Text.StyledText
                     lineHeight: 1.2
-                    text: "<b>Daten aus dem alten Programm:</b> Daten › Importieren liest die Datensicherung "
+                    text: "<b>Daten aus dem alten Programm:</b> Datei › Importieren liest die Datensicherung "
                           + "(winwotaxp.bak) ein. Neuere Einträge im Programm bleiben dabei erhalten.<br><br>"
+                          + "<b>Projekte:</b> alle Daten stehen in einer Projektdatei; jede Änderung wird sofort darin "
+                          + "gespeichert. Unter „Datei“ legt „Neues Projekt…“ eine leere an, „Öffnen…“ und „Zuletzt geöffnet“ "
+                          + "wechseln zu einer anderen, „Speichern unter…“ legt eine Kopie an und arbeitet darin weiter. "
+                          + "Beim Start öffnet das Programm das zuletzt benutzte Projekt.<br><br>"
                           + "<b>Sportler:</b> unter „Sportler“ anlegen und bearbeiten; Kader, Verein usw. mit Zeiträumen (Stift-Symbol daneben).<br><br>"
                           + "<b>Wochenplan:</b> Sportler und Woche wählen. Ein Klick in eine Trainingseinheit öffnet sie "
                           + "neben der Woche; Änderungen werden beim Wechsel zu einer anderen Einheit oder beim Schließen "
@@ -153,7 +157,7 @@ AppDialog {
                           + "legt sie für eine Tabellenkalkulation in die Zwischenablage, „Speichern unter“ schreibt ein PDF "
                           + "oder eine CSV-Datei. Grafiken zeigen beim Darüberfahren die Werte und lassen sich als Bild speichern.<br><br>"
                           + "<b>Wettkämpfe:</b> Versuche eintragen, einen Fehlversuch mit der Leertaste oder einem Rechtsklick im Feld als ungültig markieren (rot, durchgestrichen), und die Entwicklung als Grafik ansehen.<br><br>"
-                          + "<b>Datensicherung:</b> Daten › Exportieren schreibt eine Datei im Format des alten Programms."
+                          + "<b>Datensicherung:</b> Datei › Exportieren schreibt eine Datei im Format des alten Programms."
                 }
             }
         }

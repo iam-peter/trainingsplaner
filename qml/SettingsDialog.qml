@@ -445,7 +445,7 @@ AppDialog {
                         color: Styles.TokenInterface.semantics.text_muted
                         text: "Pfeiltasten in Gewichtsfeldern und berechnete Gewichte springen in diesen Schritten."
                     }
-                    Label { text: "Datenbank:" }
+                    Label { text: "Projektdatei:" }
                     TextField { Layout.fillWidth: true; readOnly: true; selectByMouse: true; text: Store.databasePath }
                     Label {
                         Layout.columnSpan: 2
@@ -453,7 +453,7 @@ AppDialog {
                         wrapMode: Text.Wrap
                         font.pixelSize: 11
                         color: Styles.TokenInterface.semantics.text_muted
-                        text: "Alle Daten stehen in dieser einen Datei. Zur Sicherung das Programm schließen und die Datei kopieren, oder Daten › Exportieren nutzen."
+                        text: "Alle Daten des Projekts stehen in dieser einen Datei, jede Änderung wird sofort gespeichert. Datei › Speichern unter… legt eine Kopie an, Datei › Öffnen… wechselt zu einem anderen Projekt."
                     }
                     Label { text: "Farbschema:" }
                     RowLayout {
@@ -484,7 +484,7 @@ AppDialog {
                         wrapMode: Text.Wrap
                         font.pixelSize: 11
                         color: Styles.TokenInterface.semantics.text_muted
-                        text: "Version und Updates: Hilfe › Über den Trainingsplaner."
+                        text: "Version und Updates: Datei › Über den Trainingsplaner."
                     }
                 }
 

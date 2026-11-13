@@ -16,9 +16,14 @@
 // decide whether an incoming row is newer than the local one.
 namespace Database {
 
-bool open(const QString &path, QString *error = nullptr);
+// A new file gets the tables; with existingOnly the file must already be
+// one of this program's (a project opened from the menu), so no other
+// SQLite file is changed by opening it
+bool open(const QString &path, QString *error = nullptr, bool existingOnly = false);
 void close();
 QString path();
+// A consistent copy of the open file at path (which must not exist yet)
+bool copyTo(const QString &path, QString *error = nullptr);
 // The open file's table layout (meta.schema), and the one this program
 // writes (sql/schema.sql)
 int schemaVersion();
