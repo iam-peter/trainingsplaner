@@ -379,6 +379,25 @@ QString Plan::setPlannedSteps(const QString &owner, int exercise, const QString 
     return QString();
 }
 
+bool Plan::setWeekLoad(const QString &athleteId, const QString &monday, const QString &load)
+{
+    const QDate m = isoDate(monday);
+    const int value = Planning::loadFromText(load);
+    if (athleteId.isEmpty() || !m.isValid() || value < 0)
+        return false;
+    WeekMeta meta;
+    meta.monday = m;
+    for (const WeekMeta &w : Planning::meta(athleteId, m, m))
+        meta = w;
+    if (meta.load == value)
+        return true;
+    meta.load = value;
+    if (!Planning::setMeta(athleteId, meta))
+        return false;
+    emit changed();
+    return true;
+}
+
 QVariantMap Plan::itpForWeek(const QString &athleteId, const QString &monday, int exercise) const
 {
     const QDate m = isoDate(monday);

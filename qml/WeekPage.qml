@@ -462,6 +462,9 @@ Page {
     onVisibleChanged: {
         if (visible && stale)
             reload()
+        // The ITP grid saves the load without telling: read it again
+        else if (visible)
+            refreshContext()
     }
 
     onShowPreviousChanged: reload()
@@ -469,6 +472,16 @@ Page {
     onAthleteIdChanged: { closePanel(); extraRows = 0; reload() }
     onMondayChanged: { closePanel(); extraRows = 0; reload() }
     onVariantChanged: { closePanel(); reload() }
+    // The week's load and position come from the ITP: set here or there
+    Connections {
+        target: Plan
+        function onChanged() { page.refreshContext() }
+    }
+    function refreshContext() {
+        if (page.hasAthlete && page.monday !== "")
+            page.context = Store.weekContext(page.athleteId, page.monday)
+    }
+
     Connections {
         target: Store
         // While another page is shown, only noted: reloaded when shown
@@ -968,9 +981,42 @@ Page {
                     // otherwise make the row take room from the week
                     Layout.fillHeight: false
                     spacing: 8
-                    Label {
-                        text: "Bemerkung:"
+                    // The week's load, as the ITP's Bel. column: h, m or g; a
+                    // click on the chosen one takes it back. The note needs no
+                    // label, its placeholder says what it is.
+                    ColumnLayout {
                         Layout.alignment: Qt.AlignTop
+                        Layout.fillWidth: false
+                        spacing: 4
+                        Label {
+                            text: "Belastung"
+                            color: Styles.TokenInterface.semantics.text_muted
+                        }
+                        RowLayout {
+                            objectName: "weekLoad"
+                            spacing: -Styles.Primitives.stroke.thin
+                            enabled: page.hasAthlete
+                            Repeater {
+                                model: [{ load: "h", tip: "hoch" }, { load: "m", tip: "mittel" },
+                                        { load: "g", tip: "gesenkt" }]
+                                IconButton {
+                                    required property var modelData
+                                    required property int index
+                                    objectName: "weekLoad_" + modelData.load
+                                    // One letter: no wider than it needs
+                                    Layout.preferredWidth: 36
+                                    groupPosition: index === 0 ? Styles.GroupStyle.Position.First
+                                                   : index === 2 ? Styles.GroupStyle.Position.Last
+                                                                 : Styles.GroupStyle.Position.Middle
+                                    text: modelData.load
+                                    highlighted: page.context.loadText === modelData.load
+                                    toolTip: "Belastung der Woche: " + modelData.tip
+                                             + (highlighted ? " (Klick nimmt sie zurück)" : "")
+                                    onClicked: Plan.setWeekLoad(page.athleteId, page.monday,
+                                                                highlighted ? "" : modelData.load)
+                                }
+                            }
+                        }
                     }
                     ScrollView {
                         // No overshoot at the ends

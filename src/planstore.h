@@ -58,6 +58,9 @@ public:
     // The ITP of an athlete for one week and exercise, for the week plan:
     // {has, wh, mhg, bw, repsSets, steps}
     Q_INVOKABLE QVariantMap itpForWeek(const QString &athleteId, const QString &monday, int exercise) const;
+    // The load of an athlete's week (h, m, g or "" for none), as the ITP's
+    // Bel. column; from the week plan. The ITP's other week values stay.
+    Q_INVOKABLE bool setWeekLoad(const QString &athleteId, const QString &monday, const QString &load);
 
     // Exports a MAZ with its athletes and RO; returns a summary
     Q_INVOKABLE QString exportMaz(const QUrl &file, const QString &mazId);

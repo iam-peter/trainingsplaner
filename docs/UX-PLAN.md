@@ -60,6 +60,7 @@ decide how the program feels. That is where his wishes are, too:
 | W13 | ITP and Rahmenorientierung not behind one switch | 3.4 | done |
 | W14 | A print preview before printing, as WinWoTA's Seitenvorschau | – | done |
 | W15 | Projects: one file each, opened, created and copied from one menu, a dumbbell icon without label, left of the tabs, which also holds Daten, Einstellungen and Hilfe | – | done |
+| W16 | The week's load (h / m / g) set below the week plan, the same value as the ITP's Bel.; the note's label gone, its placeholder says it | – | done |
 
 ## 2. Principles
 
