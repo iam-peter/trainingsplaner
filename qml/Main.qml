@@ -391,21 +391,35 @@ ApplicationWindow {
             }
         }
 
+        // The week plan is built at start; the other pages when they are
+        // first shown, which halves the work before the window appears
         StackLayout {
+            id: pages
             Layout.fillWidth: true
             Layout.fillHeight: true
             currentIndex: tabs.currentIndex
+            // Synchronous: a page asked for right after switching to its tab
+            // (the start options, tests) is there
+            onCurrentIndexChanged: {
+                const loader = children[currentIndex]
+                if (loader instanceof Loader)
+                    loader.active = true
+            }
 
-            AthletesPage {
-                id: athletesPage
-                objectName: "athletesPage"
-                onSelectedIdChanged: if (selectedId !== "") window.athlete = selectedId
-                // Follows the others only when shown and without unsaved edits
-                onVisibleChanged: if (visible && !dirty && window.athlete !== "" && selectedId !== window.athlete)
-                                      select(window.athlete)
-                onOpenWeekPlan: (athleteId) => {
-                    window.athlete = athleteId
-                    tabs.currentIndex = window.weekTab
+            Loader {
+                id: athletesLoader
+                active: false
+                sourceComponent: AthletesPage {
+                    objectName: "athletesPage"
+                    startId: window.athlete
+                    onSelectedIdChanged: if (selectedId !== "") window.athlete = selectedId
+                    // Follows the others only when shown and without unsaved edits
+                    onVisibleChanged: if (visible && !dirty && window.athlete !== "" && selectedId !== window.athlete)
+                                          select(window.athlete)
+                    onOpenWeekPlan: (athleteId) => {
+                        window.athlete = athleteId
+                        tabs.currentIndex = window.weekTab
+                    }
                 }
             }
 
@@ -416,33 +430,51 @@ ApplicationWindow {
                 onAthleteIdChanged: window.athlete = athleteId
             }
 
-            PlanningPage {
-                id: planningPage
-                objectName: "planningPage"
-                choosesAthlete: false
-                onAthleteIdChanged: window.athlete = athleteId
+            Loader {
+                id: planningLoader
+                active: false
+                sourceComponent: PlanningPage {
+                    objectName: "planningPage"
+                    choosesAthlete: false
+                    athleteId: window.athlete
+                    onAthleteIdChanged: window.athlete = athleteId
+                }
             }
 
-            AnalysisPage {
-                id: analysisPage
-                objectName: "analysisPage"
-                choosesAthlete: false
-                onAthleteIdChanged: window.athlete = athleteId
+            Loader {
+                id: analysisLoader
+                active: false
+                sourceComponent: AnalysisPage {
+                    objectName: "analysisPage"
+                    choosesAthlete: false
+                    athleteId: window.athlete
+                    onAthleteIdChanged: window.athlete = athleteId
+                }
             }
 
-            CompetitionsPage {
-                id: competitionsPage
-                objectName: "competitionsPage"
-                choosesAthlete: false
-                onAthleteIdChanged: window.athlete = athleteId
+            Loader {
+                id: competitionsLoader
+                active: false
+                sourceComponent: CompetitionsPage {
+                    objectName: "competitionsPage"
+                    choosesAthlete: false
+                    athleteId: window.athlete
+                    onAthleteIdChanged: window.athlete = athleteId
+                }
             }
         }
     }
 
+    // The pages built on first showing; null until then
+    readonly property AthletesPage athletesPage: athletesLoader.item as AthletesPage
+    readonly property PlanningPage planningPage: planningLoader.item as PlanningPage
+    readonly property AnalysisPage analysisPage: analysisLoader.item as AnalysisPage
+    readonly property CompetitionsPage competitionsPage: competitionsLoader.item as CompetitionsPage
+
     Binding { target: weekPage; property: "athleteId"; value: window.athlete }
-    Binding { target: planningPage; property: "athleteId"; value: window.athlete }
-    Binding { target: analysisPage; property: "athleteId"; value: window.athlete }
-    Binding { target: competitionsPage; property: "athleteId"; value: window.athlete }
+    Binding { target: window.planningPage; property: "athleteId"; value: window.athlete }
+    Binding { target: window.analysisPage; property: "athleteId"; value: window.athlete }
+    Binding { target: window.competitionsPage; property: "athleteId"; value: window.athlete }
 
     FileDialog {
         id: importDialog

@@ -25,12 +25,48 @@ Item {
             Store.removeAthlete(second)
         }
 
+        // Shows every tab once, so all pages are built, and goes back to
+        // the week plan
+        function openAllPages(w) {
+            const tabs = findChild(w, "mainTabs")
+            for (let i = 0; i < 5; ++i)
+                tabs.currentIndex = i
+            tabs.currentIndex = w.weekTab
+        }
+
+        // Only the week plan is built at start; another page when its tab
+        // is first shown, then with the athlete all pages show. It stays
+        // when the tab is left.
+        function test_pagesBuiltWhenShown() {
+            const w = createTemporaryObject(mainComponent, null)
+            verify(findChild(w, "weekPage") !== null)
+            for (const name of ["athletesPage", "planningPage", "analysisPage", "competitionsPage"])
+                compare(findChild(w, name), null, name)
+            w.athlete = second
+            const tabs = findChild(w, "mainTabs")
+            tabs.currentIndex = w.planningTab
+            const planning = findChild(w, "planningPage")
+            verify(planning !== null)
+            compare(w.planningPage, planning)
+            compare(planning.athleteId, second)
+            tabs.currentIndex = w.athletesTab
+            compare(findChild(w, "athletesPage").selectedId, second)
+            tabs.currentIndex = w.weekTab
+            compare(findChild(w, "planningPage"), planning)
+            compare(findChild(w, "analysisPage"), null)
+            // Ctrl+4 builds the analysis
+            keyClick(Qt.Key_4, Qt.ControlModifier)
+            tryVerify(() => findChild(w, "analysisPage") !== null)
+            compare(findChild(w, "analysisPage").athleteId, second)
+        }
+
         // The window chooses the first athlete for all pages, also when
         // athletes come later (example data), without the pages fighting
         // over it (they each chose one, a binding loop)
         function test_defaultAthleteChosenOnce() {
             failOnWarning(/Binding loop/)
             const w = createTemporaryObject(mainComponent, null)
+            openAllPages(w)
             verify(w.athlete !== "")
             const demo = Store.createDemoData()
             w.athlete = ""
@@ -101,6 +137,7 @@ Item {
 
         function test_choosingOnOnePageSelectsEverywhere() {
             const w = createTemporaryObject(mainComponent, null)
+            openAllPages(w)
             const pages = ["weekPage", "planningPage", "analysisPage", "competitionsPage"]
                 .map(n => findChild(w, n))
             const athletes = findChild(w, "athletesPage")

@@ -9,6 +9,8 @@ Page {
 
     property string selectedId
     property bool dirty: false
+    // Shown first when the page is built, if there; else the first athlete
+    property string startId
 
     signal openWeekPlan(string athleteId)
 
@@ -301,7 +303,9 @@ Page {
     }
 
     Component.onCompleted: {
-        if (Store.athletes.length > 0)
+        if (startId !== "" && Store.athletes.some(a => a.id === startId))
+            select(startId)
+        else if (Store.athletes.length > 0)
             select(Store.athletes[0].id)
     }
 }
