@@ -142,11 +142,15 @@ He described a chart of Ist against Ziel where the lowered and raised
 weeks (gesenkte / gehobene Wochen) show as a sawtooth. Our reading:
 
 - In a cycle, high-load weeks (h) alternate with lowered weeks (g). The
-  RTK's sample plans for U15 and U17 all run `m h h g h h g h h g h m g`:
-  every third week is lowered to about two thirds of the reps (K1-7) of
-  the high weeks before it (most between 55 and 75 %), while the mean
-  weight (MHG) keeps rising towards the competition. Drawn per week, the
-  reps go up, up, down: a sawtooth.
+  RTK's sample plans for U15 and U17 all run `m h h g h h g h h g h m g`.
+- **The weight climbs in a sawtooth.** Towards the competition the mean
+  weight (MHG) and the heaviest weight (BW) rise, with a dip in the
+  lowered weeks: up, up, down, on a rising line. In the U17 plan the
+  snatch's BW goes 70 → 83, down to 78 in week 7, 88 → 90, down to 85
+  in week 10, then 95 → 100.
+- **The reps fall in a sawtooth.** Every third week has about two thirds
+  of the reps (K1-7) of the high weeks before it (most between 55 and
+  75 %), and the reps fall over the cycle as the weight rises.
 - WinWoTA had a window for it, **ITP-Planung › Grafik**: a line chart
   of WH, MHG and BW per week, compared with the RO, the ITP or the Ist
   of a chosen MAZ, and new values entered by double-clicking into the
@@ -155,28 +159,35 @@ weeks (gesenkte / gehobene Wochen) show as a sawtooth. Our reading:
   ("ITP und Trainingswochen"): WH as bars, ITP against Plan or Ist, MHG
   and BW as lines, for one exercise.
 
-![Sawtooth mock-up: WH per week as bars coloured by load, Ist as a line](ux/saegezahn.png)
+![Sawtooth mock-up: snatch BW and MHG per week, target, actual and ideal line, reps below](ux/saegezahn.png)
 
 *Mock-up: the targets are the RTK's sample plan U17 Verein (weeks 1–13
-of 2017, K1-7); the Ist is invented.*
+of 2017, snatch and K1-7); the Ist is invented, up to week 9.*
 
-What we would change, once the coach has confirmed what he means:
+The proposed chart:
 
-- Bars coloured by the week's load, with h / m / g on the axis.
-- K1-7 (all exercises) as the default, single exercises to choose.
-- Ist as a line over the target bars; Ist / Ziel in % on hover.
+- **Weight is the main series**, for one exercise: BW and MHG per week,
+  the ITP's target dashed, the Ist solid. Lowered weeks are shaded.
+- **An ideal line** for each: straight from the first week's Ist to the
+  target of the last week. It shows at a glance whether the athlete is
+  ahead of or behind the straight way to the goal, while the planned
+  sawtooth swings around it. (A choice to make: the line could also end
+  at the Zielleistung of the MAZ instead of the last week's target.)
+- **Reps below**, small: the target WH (K1-7) per week as pale bars with
+  h / m / g, the Ist as dots.
+- **Today** marked; the weeks after it show the target only.
 - Compare with another MAZ (last year's cycle), as WinWoTA did.
-- Open it from the week (the current week marked) and from Analyse, not
-  only from inside the ITP.
+- Opened from the week and from Analyse, not only from inside the ITP.
 
 Questions for the coach:
 
-1. Is it the reps (WH), the mean weight (MHG), or both?
+1. Weight first, as in the mock-up, or the reps?
 2. Is "Ziel" the ITP in kg, or the framework plan (RO)?
-3. One exercise, or all together (K1-7)?
-4. Did he draw the plan into WinWoTA's chart by double-clicking, or only
+3. One exercise at a time, or several in one chart?
+4. Where should the ideal line end: the last week's target, the
+   Zielleistung, or the competition?
+5. Did he draw the plan into WinWoTA's chart by double-clicking, or only
    look at it?
-5. Per week, or per session?
 
 ## 3. Further small things that stay close to WinWoTA
 
@@ -228,7 +239,7 @@ flowchart LR
 | 3 | "Vorwoche anzeigen": the previous week above the current one | medium |
 | 4 | Session editor movable and non-modal, its position remembered | small |
 | 5 | Monat view: weeks with load and WH, sessions, competition dates; all athletes; print | large |
-| 6 | Sawtooth chart: load colours, K1-7, Ist over Ziel, comparison MAZ, reachable from week and Analyse | medium |
+| 6 | Sawtooth chart: weight per week as Ziel, Ist and ideal line, reps with h / m / g below, comparison MAZ, reachable from week and Analyse | medium |
 | 7 | Youth competition types, one-per-week warning, DM norms as an editable table | small |
 
 Steps 1, 2 and 4 are small and independent; each can go to the coach on
