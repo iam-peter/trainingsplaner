@@ -175,6 +175,7 @@ public:
     //     {has, perExercise {ex: {wh, mhg, bw, repsSets}}, k17 {wh, mhg, bw}, groups [wh x7, 0 = none]}
     //   maz: the athlete's MAZ around the week: {has, name, shortName, week, weeks, phase}
     //   load, position: the ITP's "Bel." and "WK" of the week (0 / "" when not set)
+    //   loadText: the load as h / m / g (Planning::loadText)
     //   next: the next competition from the week's Monday on: {has, name, date, days}
     Q_INVOKABLE QVariantMap weekContext(const QString &athleteId, const QString &monday) const;
     Q_INVOKABLE QVariantList exerciseHistory(const QString &athleteId, const QString &monday,

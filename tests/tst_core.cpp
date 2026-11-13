@@ -34,6 +34,7 @@ private slots:
 
     void parseSteps();
     void formatSteps();
+    void loadLetters();
     void statsMatchOldProgram();
     void entryEncoding();
     void weekLabels();
@@ -76,6 +77,22 @@ void TestCore::initTestCase()
 void TestCore::cleanupTestCase()
 {
     Database::close();
+}
+
+// The load of a week as h / m / g; the numbers are an assumption until
+// checked against WinWoTA, so the mapping is tested in both directions
+void TestCore::loadLetters()
+{
+    QCOMPARE(Planning::loadText(0), QString());
+    QCOMPARE(Planning::loadText(1), QStringLiteral("g"));
+    QCOMPARE(Planning::loadText(2), QStringLiteral("m"));
+    QCOMPARE(Planning::loadText(3), QStringLiteral("h"));
+    QCOMPARE(Planning::loadText(7), QStringLiteral("7"));
+    for (int n = 0; n <= 3; ++n)
+        QCOMPARE(Planning::loadFromText(Planning::loadText(n)), n);
+    QCOMPARE(Planning::loadFromText(QStringLiteral(" H ")), 3);
+    QCOMPARE(Planning::loadFromText(QStringLiteral("7")), 7);
+    QCOMPARE(Planning::loadFromText(QStringLiteral("x")), -1);
 }
 
 void TestCore::parseSteps()

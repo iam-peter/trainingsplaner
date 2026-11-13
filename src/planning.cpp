@@ -48,6 +48,38 @@ bool exec(QSqlQuery &q)
 
 namespace Planning {
 
+QString loadText(int load)
+{
+    switch (load) {
+    case 0:
+        return QString();
+    case 1:
+        return QStringLiteral("g");
+    case 2:
+        return QStringLiteral("m");
+    case 3:
+        return QStringLiteral("h");
+    default:
+        return QString::number(load);
+    }
+}
+
+int loadFromText(const QString &text)
+{
+    const QString t = text.trimmed().toLower();
+    if (t.isEmpty())
+        return 0;
+    if (t == QLatin1String("g"))
+        return 1;
+    if (t == QLatin1String("m"))
+        return 2;
+    if (t == QLatin1String("h"))
+        return 3;
+    bool ok = false;
+    const int n = t.toInt(&ok);
+    return ok && n >= 0 && n <= 99 ? n : -1;
+}
+
 QString roOwner(const QString &mazId)
 {
     return QLatin1Char('#') + mazId;

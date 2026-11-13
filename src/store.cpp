@@ -1398,6 +1398,7 @@ QVariantMap Store::weekContext(const QString &athleteId, const QString &monday) 
         position = w.position;
     }
     result.insert(QStringLiteral("load"), load);
+    result.insert(QStringLiteral("loadText"), Planning::loadText(load));
     result.insert(QStringLiteral("position"), position);
 
     // The next competition from the week on

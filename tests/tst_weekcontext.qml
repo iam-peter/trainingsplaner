@@ -41,7 +41,7 @@ Item {
             // The ITP's targets of the week: snatch and front squat, load, position
             itp.owner = athlete
             itp.fromMonday = monday
-            for (const [col, v] of [[0, "20"], [1, "60"], [2, "70"], [3, "30"], [4, "90"], [5, "100"], [6, "3"], [7, "WK-2"]])
+            for (const [col, v] of [[0, "20"], [1, "60"], [2, "70"], [3, "30"], [4, "90"], [5, "100"], [6, "h"], [7, "WK-2"]])
                 verify(itp.setData(itp.index(0, col), v, editRole))
             // Last week: planned, and done a little differently
             Store.saveSession(athlete, previous, "P", { day: 1, number: 1, entries: [
@@ -70,6 +70,7 @@ Item {
             compare(c.maz.weeks, 11)
             compare(c.maz.phase, "Aufbauphase")
             compare(c.load, 3)
+            compare(c.loadText, "h")
             compare(c.position, "WK-2")
             // Last week: its Ist, not its Plan
             compare(c.previous.variant, "I")
@@ -93,6 +94,7 @@ Item {
             const line = findChild(page, "cycleLine")
             tryVerify(() => line.visible)
             verify(page.cycleText.indexOf("Kontext-MAZ · Aufbauphase · Woche 4 von 11") === 0)
+            verify(page.cycleText.indexOf("Belastung h") > 0)
             verify(page.nextCompetitionText.indexOf("Nächster Wettkampf: LM Jugend") === 0)
             // The summary: last week, the ITP and how far off the week is
             const cmp = findChild(page, "weekComparison")

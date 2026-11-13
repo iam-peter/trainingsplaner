@@ -97,6 +97,14 @@ bool setPlannedSteps(const QString &owner, int exercise, const QDate &monday, co
 bool copyPlan(const QString &fromOwner, const QDate &fromMonday, const QString &toOwner,
               const QDate &toMonday, int weeks);
 
+// The load of a week (Belastung) as a letter: h (hoch) 3, m (mittel) 2,
+// g (gesenkt) 1, "" for none, other numbers as they are. WinWoTA keeps
+// a small number (TINYINT "bel"); which number it uses for which letter
+// is still to be checked on the old program, so the mapping is here only.
+QString loadText(int load);
+// "h", "m", "g" (either case) or a number; -1 when it is neither
+int loadFromText(const QString &text);
+
 // Rounds kg to the weight step as whole kg (2.5: 100, 102, 105, 107 ...)
 int roundToStep(double kg, double step);
 // The target performance an exercise's percentages refer to

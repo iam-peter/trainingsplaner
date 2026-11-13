@@ -146,7 +146,7 @@ QVariant ItpModel::data(const QModelIndex &index, int role) const
     case Qt::DisplayRole:
     case EditRole: {
         if (average) {
-            if (k == Position)
+            if (k == Position || k == Load)
                 return QString();
             // Averages: of the weeks with a value, or of all weeks
             double sum = 0;
@@ -163,6 +163,8 @@ QVariant ItpModel::data(const QModelIndex &index, int role) const
         }
         if (k == Position)
             return m_meta.value(m_from.addDays(7 * row)).position;
+        if (k == Load)
+            return Planning::loadText(value(row, col));
         const int v = value(row, col);
         return v > 0 ? QString::number(v) : QString();
     }
@@ -181,9 +183,11 @@ bool ItpModel::setData(const QModelIndex &index, const QVariant &value, int role
     if (k == Load || k == Position) {
         WeekMeta m = m_meta.value(monday);
         m.monday = monday;
-        if (k == Load)
-            m.load = qBound(0, text.toInt(), 99);
-        else
+        if (k == Load) {
+            m.load = Planning::loadFromText(text);
+            if (m.load < 0)
+                return false;
+        } else
             m.position = text.left(5);
         ok = Planning::setMeta(m_owner, m);
         if (ok)
@@ -213,7 +217,7 @@ QVariantMap ItpModel::columnInfo(int column) const
     if (k == Load)
         return {{QStringLiteral("title"), QStringLiteral("Bel.")}, {QStringLiteral("sub"), QString()},
                 {QStringLiteral("first"), true}, {QStringLiteral("exercise"), 0},
-                {QStringLiteral("tip"), QStringLiteral("Belastung der Woche")}};
+                {QStringLiteral("tip"), QStringLiteral("Belastung der Woche: h (hoch), m (mittel), g (gesenkt)")}};
     if (k == Position)
         return {{QStringLiteral("title"), QStringLiteral("WK")}, {QStringLiteral("sub"), QString()},
                 {QStringLiteral("first"), true}, {QStringLiteral("exercise"), 0},

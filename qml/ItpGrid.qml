@@ -199,7 +199,11 @@ Item {
                         color: parent.activeFocus ? Styles.TokenInterface.semantics.background_elevated : "transparent"
                         border.color: parent.activeFocus ? Styles.TokenInterface.semantics.primary_default : "transparent"
                     }
-                    validator: itp.columnInfo(cell.column).title === "WK" ? null : intValidator
+                    // WK-Lage: free text; Bel.: h, m, g (or a number); else numbers
+                    validator: {
+                        const title = itp.columnInfo(cell.column).title
+                        return title === "WK" ? null : title === "Bel." ? loadValidator : intValidator
+                    }
                     function commit() {
                         if (text !== cell.display)
                             cell.model.edit = text
@@ -263,6 +267,10 @@ Item {
     }
 
     IntValidator { id: intValidator; bottom: 0; top: 9999 }
+    RegularExpressionValidator {
+        id: loadValidator
+        regularExpression: /^[hmgHMG]?$|^\d{0,2}$/
+    }
 
     Label {
         anchors.centerIn: parent

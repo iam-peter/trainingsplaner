@@ -106,9 +106,9 @@ the steps below (section 8).
    Last week means its Ist where it has one, otherwise its Plan; the
    label says which. (W1)
 5. **Earlier lines offered** under the first weight. (W9)
-6. **A line about the week's place in the cycle** (done; the load as a
-   number until its meaning is known, question 8), from the MAZ and the
-   ITP: the MAZ, the phase, the week of the cycle, its load h / m / g,
+6. **A line about the week's place in the cycle** (done; the load as
+   h / m / g, its stored numbers still to confirm, question 8), from the
+   MAZ and the ITP: the MAZ, the phase, the week of the cycle, its load h / m / g,
    and the next competition with the days left.
 7. **The K1–K7 summary with last week and the target** (done, as a line
    under K1-7 and per complex, the difference marked from 10 %): this week (Plan
@@ -251,9 +251,10 @@ So, as in WinWoTA (done):
 - **Planung › ITP** and **Planung › Laststufen** are the athlete's, in
   kg, without the switch: an athlete and one of their MAZ (or an own
   range) to choose. A link from the ITP to its MAZ is left for later.
-- **The load of a week** (h / m / g) is set in the RO and the ITP (the
-  "Bel." column exists already); everything else reads it from there:
-  the week's info line, the month view, the load chart.
+- **The load of a week** (h / m / g) is set in the RO and the ITP, in
+  the "Bel." column, typed as h, m or g (done); everything else reads it
+  from there: the week's info line (done), the month view and the load
+  chart (when they come).
 
 ### 3.5 Belastungsverlauf: Ist against Ziel (to clarify with the coach)
 
@@ -484,7 +485,7 @@ flowchart LR
 | ✓ 4 | Session panel at the side of the week, undockable; "Wie Vorwoche" | medium | W4 |
 | ✓ 5 | Rahmenorientierung opened from the MAZ; ITP and Laststufen without the switch | small | W13 |
 | ✓ 4b | Erfassung TÜ as the session panel's second view; what the panel changes marked in the week | medium | W4 |
-| 6 | The week's load h / m / g read from the ITP wherever a week is shown | small | 3.1, 3.3, 3.5 |
+| ✓ 6 | The week's load h / m / g read from the ITP wherever a week is shown | small | 3.1, 3.3, 3.5 |
 | 7 | Monat: weeks with load and WH, sessions, competition dates, Termine, all athletes, print | large | W5 |
 | 8 | Load chart: weight as Ziel, Ist and ideal line, expected course, reps with h / m / g, table below, Bezug, comparison MAZ, reachable from week and Analyse | medium | W6 |
 | 9 | Youth competition types, one-per-week warning, DM norms as an editable table | small | 6.2 |
@@ -532,9 +533,11 @@ Kept for later, and only if the coach wants them:
    summary page was?
 7. What did WinWoTA's "Langfristiger Leistungsaufbau" show, and does he
    use it? (To look at on the old PC.)
-8. Which values does WinWoTA's "Bel." (load of a week, a number in the
-   data) take, and how do they map to h / m / g? Until then the week
-   shows the number as stored. (To look at on the old PC.)
+8. Which values does WinWoTA's "Bel." (load of a week, a small number
+   in the data, TINYINT `bel`) take, and how do they map to h / m / g?
+   The program assumes h = 3, m = 2, g = 1, in one place
+   (`Planning::loadText`); other numbers show as they are. (To check on
+   the old PC; the handoff lists the experiment.)
 
 ## 10. Background
 

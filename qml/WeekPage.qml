@@ -76,7 +76,7 @@ Page {
         if (z && z.has)
             parts.push(z.name + (z.phase ? " · " + z.phase : "") + " · Woche " + z.week + " von " + z.weeks)
         if (context.load > 0)
-            parts.push("Bel. " + context.load)
+            parts.push("Belastung " + context.loadText)
         if (context.position)
             parts.push("WK-Lage " + context.position)
         return parts.join("   ·   ")

@@ -41,7 +41,12 @@ Item {
             verify(model.setData(model.index(0, 0), "30", editRole))   // WH
             verify(model.setData(model.index(0, 1), "80", editRole))   // MHG %
             verify(model.setData(model.index(1, 0), "20", editRole))
-            verify(model.setData(model.index(0, 6), "3", editRole))    // load
+            verify(model.setData(model.index(0, 6), "3", editRole))    // load, as stored
+            compare(model.data(model.index(0, 6), Qt.DisplayRole), "h")
+            verify(model.setData(model.index(1, 6), "g", editRole))    // or as a letter
+            compare(model.data(model.index(1, 6), Qt.DisplayRole), "g")
+            verify(!model.setData(model.index(1, 6), "x", editRole))
+            compare(model.data(model.index(3, 6), Qt.DisplayRole), "")  // no average of letters
             verify(model.setData(model.index(0, 7), "WK", editRole))   // position
             compare(model.data(model.index(3, 0), Qt.DisplayRole), "25")   // average WH
             model.averageAllWeeks = true
