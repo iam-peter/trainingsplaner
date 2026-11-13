@@ -95,6 +95,8 @@ qt_add_qml_module(tpqml
         qml/StepsEditor.qml
         qml/SuggestionPopup.qml
         qml/ExerciseEditor.qml
+        qml/MonthView.qml
+        qml/CompetitionDateDialog.qml
         qml/ExerciseRowEditor.qml
         qml/ExportDialog.qml
         qml/AttributeHistoryDialog.qml

@@ -178,6 +178,21 @@ public:
     //   loadText: the load as h / m / g (Planning::loadText)
     //   next: the next competition from the week's Monday on: {has, name, date, days}
     Q_INVOKABLE QVariantMap weekContext(const QString &athleteId, const QString &monday) const;
+    // A month as weeks for the month view, for one athlete or (allAthletes)
+    // the competitions of all athletes chosen in the settings' filter:
+    //   {title, weeks: [{monday, label, load, whPlan, whActual, phase,
+    //     days: [{date, day, inMonth, sessions: [{number, state, wh}],
+    //             competitions: [{athleteId, athlete, date, time, type,
+    //                             typeName, name, place, hasResult}]}]}],
+    //    upcoming: the next competitions from today, report: for printing}
+    // A session's state: "done" (Ist after a Plan), "free" (Ist without a
+    // Plan), "planned", "open" (planned, in the past, no Ist)
+    Q_INVOKABLE QVariantMap month(const QString &athleteId, const QString &firstOfMonth, bool allAthletes) const;
+    // A competition's date, type, name and place, keeping its results;
+    // old date and time "" for a new one
+    Q_INVOKABLE QString saveCompetitionDate(const QString &athleteId, const QString &date, int type,
+                                            const QString &name, const QString &place,
+                                            const QString &oldDate, const QString &oldTime);
     Q_INVOKABLE QVariantList exerciseHistory(const QString &athleteId, const QString &monday,
                                              const QString &variant, int exercise, int weeks) const;
     // Per week up to the given one (oldest first): {labels, wh, mhg, bw}

@@ -8,6 +8,7 @@
 #include "demo.h"
 #include "exerciseweek.h"
 #include "planning.h"
+#include "report.h"
 #include "weekreport.h"
 
 #include <QCoreApplication>
@@ -1416,6 +1417,200 @@ QVariantMap Store::weekContext(const QString &athleteId, const QString &monday) 
     }
     result.insert(QStringLiteral("next"), next);
     return result;
+}
+
+QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, bool allAthletes) const
+{
+    QVariantMap result;
+    const QDate first0 = toDate(firstOfMonth);
+    if (!first0.isValid())
+        return result;
+    const QDate first(first0.year(), first0.month(), 1);
+    const QDate last = first.addMonths(1).addDays(-1);
+    const QDate today = QDate::currentDate();
+    static const QStringList months = {QStringLiteral("Januar"), QStringLiteral("Februar"), QStringLiteral("März"),
+                                       QStringLiteral("April"), QStringLiteral("Mai"), QStringLiteral("Juni"),
+                                       QStringLiteral("Juli"), QStringLiteral("August"), QStringLiteral("September"),
+                                       QStringLiteral("Oktober"), QStringLiteral("November"), QStringLiteral("Dezember")};
+    const QString title = months.at(first.month() - 1) + QLatin1Char(' ') + QString::number(first.year());
+    result.insert(QStringLiteral("title"), title);
+
+    // Whose competitions: the athlete, or all athletes of the filter
+    QList<QPair<QString, QString>> who; // id, name
+    if (allAthletes) {
+        for (const QVariant &v : selectableAthletes()) {
+            const QVariantMap a = v.toMap();
+            who.append({a.value(QStringLiteral("id")).toString(), a.value(QStringLiteral("displayName")).toString()});
+        }
+    } else if (!athleteId.isEmpty()) {
+        who.append({athleteId, Database::athlete(athleteId).displayName()});
+    }
+    QMap<QDate, QVariantList> compsByDate;
+    QList<QVariantMap> upcoming;
+    for (const auto &[id, name] : std::as_const(who)) {
+        for (const Competition &c : Competitions::forAthlete(id)) {
+            const bool hasResult = c.bodyWeight > 0 || c.bestSnatch() > 0 || c.bestCleanJerk() > 0;
+            QVariantMap m{{QStringLiteral("athleteId"), id}, {QStringLiteral("athlete"), name},
+                          {QStringLiteral("date"), c.date.toString(Qt::ISODate)},
+                          {QStringLiteral("dateText"), Dates::text(c.date)},
+                          {QStringLiteral("time"), Times::optional(c.time)},
+                          {QStringLiteral("type"), c.type},
+                          {QStringLiteral("typeName"), Competitions::typeShortNames().value(c.type)},
+                          {QStringLiteral("name"), c.name.isEmpty() ? Competitions::typeShortNames().value(c.type) : c.name},
+                          {QStringLiteral("place"), c.place}, {QStringLiteral("hasResult"), hasResult},
+                          {QStringLiteral("days"), int(today.daysTo(c.date))}};
+            compsByDate[c.date].append(m);
+            if (c.date >= today)
+                upcoming.append(m);
+        }
+    }
+    std::sort(upcoming.begin(), upcoming.end(), [](const QVariantMap &a, const QVariantMap &b) {
+        return a.value(QStringLiteral("date")).toString() < b.value(QStringLiteral("date")).toString();
+    });
+    QVariantList upcomingList;
+    for (int i = 0; i < upcoming.size() && i < 12; ++i)
+        upcomingList.append(upcoming.at(i));
+    result.insert(QStringLiteral("upcoming"), upcomingList);
+
+    // The athlete's MAZ, for the phases
+    QList<Maz> mazs;
+    if (!allAthletes && !athleteId.isEmpty())
+        mazs = Planning::mazForAthlete(athleteId);
+
+    Report::Document doc;
+    doc.title = title + (allAthletes ? QStringLiteral(" – alle Sportler")
+                                     : (who.isEmpty() ? QString() : QStringLiteral(" – ") + who.first().second));
+    QList<Report::Cells> rows;
+    rows.append(Report::cells({QStringLiteral("KW"), QStringLiteral("Bel."), QStringLiteral("WH Plan/Ist"),
+                               QStringLiteral("Mo"), QStringLiteral("Di"), QStringLiteral("Mi"), QStringLiteral("Do"),
+                               QStringLiteral("Fr"), QStringLiteral("Sa"), QStringLiteral("So")}));
+
+    QVariantList weeks;
+    for (QDate monday = Weeks::mondayOf(first); monday <= last; monday = monday.addDays(7)) {
+        QVariantMap w{{QStringLiteral("monday"), monday.toString(Qt::ISODate)},
+                      {QStringLiteral("label"), QString::number(monday.weekNumber())}};
+        Week plan, actual;
+        if (!allAthletes && !athleteId.isEmpty()) {
+            plan = Database::loadWeek(athleteId, monday, Variant::Plan);
+            actual = Database::loadWeek(athleteId, monday, Variant::Actual);
+        }
+        const int whPlan = plan.summary().groups1to7.wh;
+        const int whActual = actual.summary().groups1to7.wh;
+        int load = 0;
+        if (!allAthletes && !athleteId.isEmpty())
+            for (const WeekMeta &m : Planning::meta(athleteId, monday, monday))
+                load = m.load;
+        QString phase;
+        for (const Maz &z : std::as_const(mazs)) {
+            if (z.from.isValid() && z.to.isValid() && monday >= z.from && monday <= z.to) {
+                if (z.peakPhase.isValid() && monday >= z.peakPhase)
+                    phase = QStringLiteral("Leistungsausprägung");
+                else if (z.buildUp.isValid() && monday >= z.buildUp)
+                    phase = QStringLiteral("Aufbauphase");
+                else
+                    phase = QStringLiteral("Grundlagenphase");
+                break;
+            }
+        }
+        w.insert(QStringLiteral("load"), Planning::loadText(load));
+        w.insert(QStringLiteral("whPlan"), whPlan);
+        w.insert(QStringLiteral("whActual"), whActual);
+        w.insert(QStringLiteral("phase"), phase);
+
+        Report::Cells row = Report::cells({QString::number(monday.weekNumber()), Planning::loadText(load),
+                                           (whPlan > 0 ? QString::number(whPlan) : QStringLiteral("–"))
+                                               + QStringLiteral(" / ")
+                                               + (whActual > 0 ? QString::number(whActual) : QStringLiteral("–"))});
+        QVariantList days;
+        for (int d = 1; d <= 7; ++d) {
+            const QDate date = monday.addDays(d - 1);
+            QVariantList sessions;
+            QStringList printed;
+            for (int n = 1; n <= 3; ++n) {
+                const Session *p = plan.session(d, n);
+                const Session *a = actual.session(d, n);
+                if (!p && !a)
+                    continue;
+                auto whOf = [](const Session *s) {
+                    int wh = 0;
+                    for (const Entry &e : s->entries)
+                        wh += e.stats().wh;
+                    return wh;
+                };
+                QString state;
+                if (a)
+                    state = p ? QStringLiteral("done") : QStringLiteral("free");
+                else
+                    state = date < today ? QStringLiteral("open") : QStringLiteral("planned");
+                const int wh = whOf(a ? a : p);
+                sessions.append(QVariantMap{{QStringLiteral("number"), n}, {QStringLiteral("state"), state},
+                                            {QStringLiteral("wh"), wh}});
+                const QString mark = state == QLatin1String("done") ? QStringLiteral("●")
+                                     : state == QLatin1String("free") ? QStringLiteral("◆")
+                                     : state == QLatin1String("open") ? QStringLiteral("offen") : QStringLiteral("○");
+                printed.append(mark + QLatin1Char(' ') + QString::number(wh));
+            }
+            const QVariantList comps = compsByDate.value(date);
+            for (const QVariant &c : comps) {
+                const QVariantMap m = c.toMap();
+                printed.append(QStringLiteral("★ ") + m.value(QStringLiteral("name")).toString()
+                               + (allAthletes ? QStringLiteral(" (") + m.value(QStringLiteral("athlete")).toString() + QLatin1Char(')') : QString()));
+            }
+            days.append(QVariantMap{{QStringLiteral("date"), date.toString(Qt::ISODate)},
+                                    {QStringLiteral("day"), date.day()},
+                                    {QStringLiteral("inMonth"), date.month() == first.month()},
+                                    {QStringLiteral("today"), date == today},
+                                    {QStringLiteral("sessions"), sessions},
+                                    {QStringLiteral("competitions"), comps}});
+            Report::Cell cell;
+            cell.text = QString::number(date.day()) + (printed.isEmpty() ? QString() : QStringLiteral(": ") + printed.join(QStringLiteral(" · ")));
+            cell.muted = date.month() != first.month();
+            row.append(cell);
+        }
+        w.insert(QStringLiteral("days"), days);
+        weeks.append(w);
+        rows.append(row);
+    }
+    result.insert(QStringLiteral("weeks"), weeks);
+    doc.table(rows);
+    if (!allAthletes)
+        doc.note(QStringLiteral("● Ist nach Plan   ◆ Ist ohne Plan   ○ geplant   offen: geplant, ohne Ist   ★ Wettkampf"));
+    result.insert(QStringLiteral("report"), Report::toVariant(doc));
+    return result;
+}
+
+QString Store::saveCompetitionDate(const QString &athleteId, const QString &date, int type, const QString &name,
+                                   const QString &place, const QString &oldDate, const QString &oldTime)
+{
+    if (athleteId.isEmpty())
+        return QStringLiteral("Bitte einen Sportler wählen.");
+    QDate d = Dates::parse(date);
+    if (!d.isValid())
+        d = QDate::fromString(date, Qt::ISODate);
+    if (!d.isValid())
+        return QStringLiteral("Datum ungültig.");
+    Competition c;
+    c.athleteId = athleteId;
+    const QDate od = QDate::fromString(oldDate, Qt::ISODate);
+    const QTime ot = keyTime(oldTime);
+    if (od.isValid()) {
+        for (const Competition &x : Competitions::forAthlete(athleteId)) {
+            if (x.date == od && x.time == ot) {
+                c = x;
+                break;
+            }
+        }
+    }
+    c.date = d;
+    c.type = qBound(0, type, int(Competitions::typeNames().size()) - 1);
+    c.name = name.trimmed();
+    c.place = place.trimmed();
+    if (od.isValid() && (od != c.date))
+        Competitions::remove(athleteId, od, ot);
+    if (!Competitions::save(c))
+        return QStringLiteral("Speichern fehlgeschlagen.");
+    bump();
+    return QString();
 }
 
 QVariantList Store::recentTexts(const QString &athleteId, int kind, int exercise) const

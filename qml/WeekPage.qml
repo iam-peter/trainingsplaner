@@ -19,6 +19,33 @@ Page {
     property var otherWeek: ({})
     // A row asked for with "Weitere Einheit", until the week changes
     property int extraRows: 0
+
+    // The month instead of the week, and which month ("yyyy-MM-dd", any
+    // day in it); the choice of view is kept
+    readonly property bool monthMode: viewSettings.monthMode
+    property string monthDay: Store.today()
+    function showMonth(on) {
+        if (on === monthMode)
+            return
+        if (on) {
+            if (!closePanel())
+                return
+            // The month the week mostly lies in (its Thursday)
+            const d = new Date(monday + "T12:00:00")
+            d.setDate(d.getDate() + 3)
+            monthDay = isoDate(d)
+        }
+        viewSettings.monthMode = on
+    }
+    function shiftMonth(delta) {
+        const d = new Date(monthDay + "T12:00:00")
+        d.setDate(1)
+        d.setMonth(d.getMonth() + delta)
+        monthDay = isoDate(d)
+    }
+    function isoDate(d) {
+        return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0")
+    }
     // Last week, the ITP's targets, the MAZ and the next competition
     // (Store.weekContext)
     property var context: ({})
@@ -364,12 +391,12 @@ Page {
     Shortcut {
         sequence: "Ctrl+Left"
         enabled: page.shortcutsActive
-        onActivated: page.monday = Store.addWeeks(page.monday, -1)
+        onActivated: page.monthMode ? page.shiftMonth(-1) : page.monday = Store.addWeeks(page.monday, -1)
     }
     Shortcut {
         sequence: "Ctrl+Right"
         enabled: page.shortcutsActive
-        onActivated: page.monday = Store.addWeeks(page.monday, 1)
+        onActivated: page.monthMode ? page.shiftMonth(1) : page.monday = Store.addWeeks(page.monday, 1)
     }
     Shortcut {
         sequences: [StandardKey.Print]
@@ -443,8 +470,54 @@ Page {
 
             ToolSeparator {}
 
+            // Woche or Monat, one group
+            RowLayout {
+                spacing: -Styles.Primitives.stroke.thin
+                IconButton {
+                    objectName: "weekViewButton"
+                    groupPosition: Styles.GroupStyle.Position.First
+                    text: "Woche"
+                    highlighted: !page.monthMode
+                    onClicked: page.showMonth(false)
+                }
+                IconButton {
+                    objectName: "monthViewButton"
+                    groupPosition: Styles.GroupStyle.Position.Last
+                    text: "Monat"
+                    highlighted: page.monthMode
+                    onClicked: page.showMonth(true)
+                    toolTip: "Der Monat mit Einheiten und Wettkämpfen"
+                }
+            }
+
+            // The month between its arrows
+            RowLayout {
+                visible: page.monthMode
+                spacing: -Styles.Primitives.stroke.thin
+                IconButton {
+                    iconName: "chevron-left"
+                    groupPosition: Styles.GroupStyle.Position.First
+                    onClicked: page.shiftMonth(-1)
+                    toolTip: "Voriger Monat (Strg+←)"
+                }
+                Label {
+                    objectName: "monthTitle"
+                    text: monthView.monthData.title || ""
+                    font.bold: true
+                    horizontalAlignment: Text.AlignHCenter
+                    Layout.preferredWidth: 140
+                }
+                IconButton {
+                    iconName: "chevron-right"
+                    groupPosition: Styles.GroupStyle.Position.Last
+                    onClicked: page.shiftMonth(1)
+                    toolTip: "Nächster Monat (Strg+→)"
+                }
+            }
+
             // The week between its arrows, as one group with shared edges
             RowLayout {
+                visible: !page.monthMode
                 spacing: -Styles.Primitives.stroke.thin
                 IconButton {
                     iconName: "chevron-left"
@@ -484,17 +557,35 @@ Page {
             IconButton {
                 iconName: "calendar"
                 text: "Heute"
-                onClicked: page.monday = Store.mondayOf(Store.today())
+                onClicked: page.monthMode ? page.monthDay = Store.today() : page.monday = Store.mondayOf(Store.today())
             }
             Label {
+                visible: !page.monthMode
                 text: Store.weekRange(page.monday)
                 color: Styles.TokenInterface.semantics.text_muted
             }
 
             ToolSeparator {}
 
+            CheckBox {
+                id: allBox
+                objectName: "allAthletesBox"
+                visible: page.monthMode
+                text: "Alle Sportler"
+                ToolTip.visible: hovered
+                ToolTip.text: "Die Wettkämpfe aller Sportler zeigen, wie ein Wandkalender"
+            }
+            IconButton {
+                objectName: "addCompetition"
+                visible: page.monthMode
+                iconName: "plus"
+                text: "Wettkampf"
+                onClicked: competitionDialog.show(null, "", page.athleteId)
+            }
+
             RadioButton {
                 id: planRadio
+                visible: !page.monthMode
                 objectName: "planRadio"
                 text: "Plan"
                 checked: page.variant === "P"
@@ -502,6 +593,7 @@ Page {
             }
             RadioButton {
                 id: actualRadio
+                visible: !page.monthMode
                 objectName: "actualRadio"
                 text: "Ist"
                 checked: page.variant === "I"
@@ -509,6 +601,7 @@ Page {
             }
             CheckBox {
                 id: previousBox
+                visible: !page.monthMode
                 objectName: "previousBox"
                 text: "Vorwoche"
                 checked: Store.showPreviousWeek
@@ -538,12 +631,14 @@ Page {
             }
 
             IconButton {
+                visible: !page.monthMode
                 iconName: "copy"
                 text: "Woche kopieren"
                 enabled: page.hasAthlete && page.weekData.empty === false
                 onClicked: Store.copyWeek(page.athleteId, page.monday, page.variant)
             }
             IconButton {
+                visible: !page.monthMode
                 iconName: "clipboard-paste"
                 text: "Einfügen"
                 enabled: page.hasAthlete && Store.clipboardLabel !== ""
@@ -560,10 +655,11 @@ Page {
                 iconName: "printer"
                 text: "Drucken"
                 enabled: page.hasAthlete
-                toolTip: "Wochenplan drucken (Strg+P)"
-                onClicked: page.printWeek()
+                toolTip: page.monthMode ? "Den Monat drucken" : "Wochenplan drucken (Strg+P)"
+                onClicked: page.monthMode ? Analysis.printReport(monthView.monthData.report) : page.printWeek()
             }
             IconButton {
+                visible: !page.monthMode
                 iconName: "file-down"
                 text: "PDF"
                 enabled: page.hasAthlete
@@ -591,11 +687,28 @@ Page {
             SplitView.fillWidth: true
             SplitView.minimumWidth: 420
 
+            MonthView {
+                id: monthView
+                objectName: "monthView"
+                anchors.fill: parent
+                anchors.margins: 8
+                visible: page.monthMode
+                athleteId: page.athleteId
+                month: page.monthDay
+                allAthletes: allBox.checked
+                onWeekOpened: (m) => {
+                    page.monday = m
+                    page.showMonth(false)
+                }
+                onCompetitionRequested: (c, date) => competitionDialog.show(c, date, page.athleteId)
+            }
+
             ColumnLayout {
                 anchors.fill: parent
                 // Lined up with the toolbar above (8 px from the window edge)
                 anchors.margins: 8
                 spacing: 8
+                visible: !page.monthMode
 
                 // Day columns with one row per session number, in an area that takes
                 // the room left: the rows get its share in whole pixels, so all are
@@ -1002,6 +1115,17 @@ Page {
             SplitView.minimumWidth: 420
             onWidthChanged: if (visible && width > 0) panelSettings.dockWidth = width
         }
+    }
+
+    Settings {
+        id: viewSettings
+        category: "week"
+        property bool monthMode: false
+    }
+
+    CompetitionDateDialog {
+        id: competitionDialog
+        objectName: "competitionDialog"
     }
 
     Settings {
