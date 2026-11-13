@@ -88,7 +88,8 @@ ApplicationWindow {
                 objectName: "fileButton"
                 iconName: "dumbbell"
                 text: "Datei"
-                display: AbstractButton.TextBesideIcon
+                display: AbstractButton.IconOnly
+                toolTip: text
                 onClicked: fileMenu.open()
                 Menu {
                     id: fileMenu

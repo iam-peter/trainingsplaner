@@ -53,6 +53,9 @@ Item {
             const tabs = findChild(w, "mainTabs")
             verify(b.mapToItem(null, b.width, 0).x <= tabs.mapToItem(null, 0, 0).x)
             compare(b.icon.source.toString().indexOf("dumbbell") >= 0, true)
+            // Only the icon; its name shows as tooltip
+            compare(b.display, AbstractButton.IconOnly)
+            compare(b.toolTip, "Datei")
             for (const name of ["dataButton", "settingsButton", "helpButton"])
                 compare(findChild(w, name), null, name)
             m.open()

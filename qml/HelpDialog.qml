@@ -131,7 +131,7 @@ AppDialog {
                     text: "<b>Daten aus dem alten Programm:</b> Datei › Importieren liest die Datensicherung "
                           + "(winwotaxp.bak) ein. Neuere Einträge im Programm bleiben dabei erhalten.<br><br>"
                           + "<b>Projekte:</b> alle Daten stehen in einer Projektdatei; jede Änderung wird sofort darin "
-                          + "gespeichert. Unter „Datei“ legt „Neues Projekt…“ eine leere an, „Öffnen…“ und „Zuletzt geöffnet“ "
+                          + "gespeichert. Im Menü „Datei“ (die Hantel oben links) legt „Neues Projekt…“ eine leere an, „Öffnen…“ und „Zuletzt geöffnet“ "
                           + "wechseln zu einer anderen, „Speichern unter…“ legt eine Kopie an und arbeitet darin weiter. "
                           + "Beim Start öffnet das Programm das zuletzt benutzte Projekt.<br><br>"
                           + "<b>Sportler:</b> unter „Sportler“ anlegen und bearbeiten; Kader, Verein usw. mit Zeiträumen (Stift-Symbol daneben).<br><br>"
