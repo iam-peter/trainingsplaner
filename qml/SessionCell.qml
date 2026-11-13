@@ -22,6 +22,9 @@ Rectangle {
     property bool readOnly: false
     // Shown in the session panel
     property bool selected: false
+    // The exercise the panel's Erfassung TÜ edits: its lines are marked,
+    // the others faded (0: none)
+    property int highlightExercise: 0
     signal clicked()
     signal deleteRequested()
     signal moveRequested(int days, int sessions)
@@ -37,7 +40,8 @@ Rectangle {
     Styles.StyleCascade {
         id: _cellStyle
         base: [CellStyle.base]
-        overrides: [cell.today ? CellStyle.today : null, cell.activeFocus || cell.selected ? CellStyle.focus : null]
+        overrides: [cell.today ? CellStyle.today : null, cell.selected ? CellStyle.selected : null,
+                    cell.activeFocus ? CellStyle.focus : null]
         state: hover.hovered ? Styles.StyleState.Hover : Styles.StyleState.Idle
     }
     Styles.StyleCascade {
@@ -145,11 +149,24 @@ Rectangle {
                 id: line
                 required property var modelData
                 required property int index
-                objectName: "line" + index
                 readonly property bool weights: modelData.kind === 0 && modelData.exercise > 0
+                readonly property bool marked: cell.highlightExercise > 0 && weights
+                                               && modelData.exercise === cell.highlightExercise
+                objectName: "line" + index
+                opacity: cell.highlightExercise > 0 && !marked ? 0.35 : 1
                 Layout.fillWidth: true
                 implicitHeight: lineRow.implicitHeight + 3
 
+                // A line Erfassung TÜ changes
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.margins: -3
+                    radius: height / 2
+                    visible: line.marked
+                    color: Styles.TokenInterface.semantics.background_accent
+                    border.color: Styles.TokenInterface.semantics.primary_default
+                    border.width: Styles.Primitives.stroke.thin
+                }
                 // Outline on hover, like the selected line in the old program
                 Rectangle {
                     anchors.fill: parent

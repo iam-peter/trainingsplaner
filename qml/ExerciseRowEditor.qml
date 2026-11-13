@@ -18,6 +18,8 @@ Frame {
     // Earlier lines of the exercise (Store.recentSteps)
     property var suggestions: []
     readonly property var rowStats: stepsEditor.stats
+    // Under the pointer, so the week can mark its session
+    readonly property bool pointerOver: rowHover.hovered
 
     signal changed()
     signal removeRequested()
@@ -48,24 +50,25 @@ Frame {
         number = source.number || 1
     }
 
-    // The same 12 px on every side: the icon buttons on the right are
-    // pulled out by the free space around their icons (8 px), so the icons
-    // end 12 px from the border like the fields on the left
-    padding: 12
+    // Two rows, to fit beside the week: the session (day, TE) with the
+    // figures and buttons, then the weight steps
+    padding: 10
     background: Rectangle {
         color: Styles.TokenInterface.semantics.background_default
         border.color: Styles.TokenInterface.semantics.stroke_subtle
         radius: Styles.Primitives.radius.r4
     }
 
-    RowLayout {
+    HoverHandler { id: rowHover }
+
+    ColumnLayout {
         anchors.left: parent.left
         anchors.right: parent.right
-        spacing: 8
+        spacing: 6
 
-        ColumnLayout {
-            Layout.alignment: Qt.AlignTop
-            spacing: 4
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 6
             ComboBox {
                 objectName: "dayBox"
                 implicitWidth: 130
@@ -78,7 +81,7 @@ Frame {
             }
             ComboBox {
                 objectName: "sessionBox"
-                implicitWidth: 130
+                implicitWidth: 90
                 model: ["1. TE", "2. TE", "3. TE"]
                 currentIndex: row.number - 1
                 onActivated: (index) => {
@@ -86,71 +89,51 @@ Frame {
                     row.changed()
                 }
             }
+            Label {
+                objectName: "figures"
+                Layout.fillWidth: true
+                Layout.leftMargin: 6
+                horizontalAlignment: Text.AlignRight
+                elide: Text.ElideLeft
+                text: "WH " + (row.rowStats.wh || 0) + " · MHG " + (row.rowStats.mhg || 0)
+                      + " · BW " + (row.rowStats.bw || 0) + (row.rowStats.repsSets ? " " + row.rowStats.repsSets : "")
+                font.bold: true
+                font.pixelSize: 12
+            }
+            // Out of the Tab order, which goes from the session to its weights
+            RowLayout {
+                Layout.rightMargin: -6
+                spacing: 0
+                IconToolButton {
+                    activeFocusOnTab: false
+                    iconName: "clipboard-copy"
+                    toolTip: "Laststufen kopieren"
+                    onClicked: row.copyRequested(stepsEditor.value())
+                }
+                IconToolButton {
+                    activeFocusOnTab: false
+                    iconName: "clipboard-paste"
+                    toolTip: "Kopierte Laststufen einfügen"
+                    enabled: row.canPaste
+                    onClicked: row.pasteRequested()
+                }
+                IconToolButton {
+                    activeFocusOnTab: false
+                    iconName: "trash-2"
+                    toolTip: "Aus dieser Einheit entfernen"
+                    onClicked: row.removeRequested()
+                }
+            }
         }
 
         StepsEditor {
             id: stepsEditor
             Layout.fillWidth: true
-            Layout.alignment: Qt.AlignTop
             initialSteps: row.source.steps || []
             actual: row.actual
             jump: row.jump
             suggestions: row.suggestions
             onChanged: row.changed()
-        }
-
-        // Figures of this session
-        GridLayout {
-            Layout.alignment: Qt.AlignTop
-            columns: 2
-            columnSpacing: 16
-            rowSpacing: 4
-            Label {
-                Layout.preferredWidth: 50
-                horizontalAlignment: Text.AlignHCenter
-                font.bold: true
-                text: row.rowStats.mhg || 0
-            }
-            Label {
-                Layout.preferredWidth: 50
-                horizontalAlignment: Text.AlignHCenter
-                font.bold: true
-                text: row.rowStats.bw || 0
-            }
-            Label {
-                Layout.preferredWidth: 50
-                horizontalAlignment: Text.AlignHCenter
-                font.bold: true
-                text: row.rowStats.wh || 0
-            }
-            Label {
-                Layout.preferredWidth: 50
-                horizontalAlignment: Text.AlignHCenter
-                font.bold: true
-                text: row.rowStats.repsSets || "–"
-            }
-        }
-
-        IconToolButton {
-            Layout.alignment: Qt.AlignTop
-            iconName: "clipboard-copy"
-            toolTip: "Laststufen kopieren"
-            onClicked: row.copyRequested(stepsEditor.value())
-        }
-        IconToolButton {
-            Layout.alignment: Qt.AlignTop
-            iconName: "clipboard-paste"
-            toolTip: "Kopierte Laststufen einfügen"
-            enabled: row.canPaste
-            onClicked: row.pasteRequested()
-        }
-        IconToolButton {
-            Layout.alignment: Qt.AlignTop
-            // Pulled out by the free space around its icon, see padding
-            Layout.rightMargin: -8
-            iconName: "trash-2"
-            toolTip: "Aus dieser Einheit entfernen"
-            onClicked: row.removeRequested()
         }
     }
 }

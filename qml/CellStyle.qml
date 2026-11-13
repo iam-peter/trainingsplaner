@@ -58,6 +58,15 @@ QtObject {
         }
     }
 
+    // The session the panel beside the week edits: tinted and framed
+    readonly property Style selected: Style {
+        background: root.s.background_accent
+        border {
+            width: Primitives.stroke.thick
+            color: root.s.primary_default
+        }
+    }
+
     readonly property Style focus: Style {
         border {
             width: Primitives.stroke.thick

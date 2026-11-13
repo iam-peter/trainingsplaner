@@ -7,7 +7,7 @@ Item {
     width: 1100
     height: 800
 
-    ExerciseWeekDialog { id: weekDialog }
+    ExerciseEditor { id: weekDialog; x: 620; width: 480; height: 780 }
     TrendChart { id: chart; width: 600; height: 300 }
 
     TestCase {
@@ -64,7 +64,7 @@ Item {
                 { kind: 0, exercise: 13, steps: [{ kg: 50, reps: 5, sets: 1 }] } ] })
             weekDialog.edit(athlete, mondays[1], "P", 13)
             tryCompare(weekDialog, "opened", true)
-            const row = findChild(weekDialog.contentItem, "row0")
+            const row = findChild(weekDialog, "row0")
             verify(row)
             row.copyRequested([{ kg: 80, reps: 1, sets: 3 }])
             compare(row.canPaste, true)

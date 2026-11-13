@@ -8,8 +8,11 @@ Item {
     width: 1200
     height: 900
 
-    ExerciseWeekDialog {
+    ExerciseEditor {
         id: dialog
+        x: 300
+        width: 640
+        height: 880
     }
 
     SessionCell {
@@ -29,8 +32,6 @@ Item {
         when: windowShown
 
         function test_lineOpensExercise() {
-            // Some styles fade a dialog out; its backdrop would take the clicks
-            tryCompare(dialog, "visible", false)
             cell.visible = true
             waitForRendering(cell)
             // The first line (exercise 8), then the free text below it; by
@@ -49,14 +50,14 @@ Item {
     }
 
     TestCase {
-        name: "ExerciseWeekDialog"
+        name: "ExerciseEditor"
         when: windowShown
 
         readonly property string athlete: "test_tina"
         readonly property string monday: "2026-11-16"
 
         function row(i) {
-            return findChild(dialog.contentItem, "row" + i)
+            return findChild(dialog, "row" + i)
         }
 
         function typeInto(item, text) {
@@ -107,7 +108,7 @@ Item {
             row(1).changed()
 
             // A new row: Saturday, 2nd session
-            mouseClick(findChild(dialog.contentItem, "addRow"))
+            mouseClick(findChild(dialog, "addRow"))
             tryVerify(() => row(2) !== null)
             row(2).day = 6
             row(2).number = 2
@@ -118,8 +119,8 @@ Item {
             keyClick(Qt.Key_Tab); keyClick("2")
             tryVerify(() => dialog.weekStats.wh === 23, 3000, "week WH " + dialog.weekStats.wh)
 
-            dialog.save()
-            tryCompare(dialog, "visible", false)
+            verify(dialog.save())
+            compare(dialog.dirty, false)
 
             const week = Store.week(athlete, monday, "P")
             const at = (d, n) => week.sessions.find(s => s.day === d && s.number === n)

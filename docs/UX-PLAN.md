@@ -176,13 +176,23 @@ mock-up), in a split the coach can widen or narrow:
   session last week (its Ist, else its Plan). WinWoTA had "Woche
   kopieren" only. Taking an earlier session by date is left for later.
 
-**Erfassung TÜ in the same panel** (planned). Erfassung TÜ (one exercise
-across the week, opened by clicking an exercise line) is still a dialog
-over the week, with the same problem the session dialog had. It becomes
-the panel's second view: the exercise's uses in the week (day, TE,
-weight steps), with the same entry help, last week and the ITP. The
-panel shows either a session or an exercise; switching saves, as between
-sessions.
+**Erfassung TÜ in the same panel** (done). Erfassung TÜ, opened by
+clicking an exercise line, edits one exercise across the week: one row
+per session it is in, with that line's weight steps; the day and TE of a
+row move the line to another session, "Einheit hinzufügen" puts the
+exercise into one more session, the bin takes it out of one. It was a
+dialog over the week; it is now the panel's second view, with the same
+entry help, the week's figures for the exercise, last week and the ITP.
+The panel shows either a session or an exercise; switching saves.
+
+**What the panel changes is shown in the week**, and said in one line
+under its title:
+
+- the session panel tints and frames its session ("Ändert diese
+  Trainingseinheit");
+- Erfassung TÜ outlines the exercise's lines in every session and fades
+  all other lines ("Ändert Übung 1 in allen Einheiten dieser Woche");
+  the row under the pointer tints and frames its session.
 
 ### 3.3 Monat
 
@@ -473,7 +483,7 @@ flowchart LR
 | ✓ 3 | "Vorwoche": the previous week above the current one | medium | W3 |
 | ✓ 4 | Session panel at the side of the week, undockable; "Wie Vorwoche" | medium | W4 |
 | ✓ 5 | Rahmenorientierung opened from the MAZ; ITP and Laststufen without the switch | small | W13 |
-| 4b | Erfassung TÜ as the session panel's second view | medium | W4 |
+| ✓ 4b | Erfassung TÜ as the session panel's second view; what the panel changes marked in the week | medium | W4 |
 | 6 | The week's load h / m / g read from the ITP wherever a week is shown | small | 3.1, 3.3, 3.5 |
 | 7 | Monat: weeks with load and WH, sessions, competition dates, Termine, all athletes, print | large | W5 |
 | 8 | Load chart: weight as Ziel, Ist and ideal line, expected course, reps with h / m / g, table below, Bezug, comparison MAZ, reachable from week and Analyse | medium | W6 |

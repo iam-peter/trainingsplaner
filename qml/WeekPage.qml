@@ -286,15 +286,23 @@ Page {
         return null
     }
 
+    // Erfassung TÜ: the exercise across the week, in the panel; the
+    // session shown there before is saved and closed first
     function openExercise(exercise) {
-        if (!hasAthlete)
-            return
-        // It edits the same lines as the session panel: save the panel first
-        if (!sessionEditor.save())
+        if (!hasAthlete || !sessionEditor.close())
             return
         saveNote()
-        exerciseDialog.edit(athleteId, monday, variant, exercise)
+        if (!exerciseEditor.edit(athleteId, monday, variant, exercise))
+            return
+        exerciseEditor.forceActiveFocus()
     }
+
+    // The panel's view that is open, or null
+    readonly property Item activeEditor: sessionEditor.opened ? sessionEditor : exerciseEditor.opened ? exerciseEditor : null
+    // The exercise Erfassung TÜ edits in the week shown, 0 for none
+    readonly property int editedExercise: exerciseEditor.opened && exerciseEditor.athleteId === athleteId
+                                          && exerciseEditor.monday === monday && exerciseEditor.variant === variant
+                                          ? exerciseEditor.exercise : 0
 
     // The cell of a day's session, by its number
     function focusSession(day, number) {
@@ -352,6 +360,7 @@ Page {
     // Keyboard shortcuts while the week plan is shown and no dialog is open
     // Not while typing in the session panel, where Ctrl+←/→ move the cursor
     readonly property bool shortcutsActive: visible && DialogStack.open === 0 && !sessionEditor.activeFocus
+                                            && !exerciseEditor.activeFocus
     Shortcut {
         sequence: "Ctrl+Left"
         enabled: page.shortcutsActive
@@ -372,24 +381,31 @@ Page {
         if (!hasAthlete || !(day >= 1 && day <= 7) || !(number >= 1 && number <= 3))
             return
         saveNote()
-        // The session shown before is saved first; when it cannot be (an
+        // What the panel showed before is saved first; when it cannot be (an
         // impossible time), it stays
-        if (!sessionEditor.edit(athleteId, monday, variant, day, number))
+        if (!exerciseEditor.close() || !sessionEditor.edit(athleteId, monday, variant, day, number))
             return
         sessionEditor.forceActiveFocus()
     }
 
-    // Is this the session in the panel?
+    // Is this the session in the panel, or the one under the pointer in
+    // Erfassung TÜ?
     function isEdited(day, number) {
+        if (editedExercise > 0)
+            return exerciseEditor.hoveredDay === day && exerciseEditor.hoveredNumber === number
         return sessionEditor.opened && sessionEditor.athleteId === athleteId && sessionEditor.monday === monday
                && sessionEditor.variant === variant && sessionEditor.day === day && sessionEditor.number === number
     }
 
+    function closePanel() {
+        return sessionEditor.close() && exerciseEditor.close()
+    }
+
     onShowPreviousChanged: reload()
     // Another week, athlete or variant: the panel saves and closes
-    onAthleteIdChanged: { sessionEditor.close(); extraRows = 0; reload() }
-    onMondayChanged: { sessionEditor.close(); extraRows = 0; reload() }
-    onVariantChanged: { sessionEditor.close(); reload() }
+    onAthleteIdChanged: { closePanel(); extraRows = 0; reload() }
+    onMondayChanged: { closePanel(); extraRows = 0; reload() }
+    onVariantChanged: { closePanel(); reload() }
     Connections {
         target: Store
         function onDataVersionChanged() { page.reload() }
@@ -744,6 +760,7 @@ Page {
                                 Layout.minimumHeight: 44
                                 today: page.todayDay === day
                                 selected: page.isEdited(day, number)
+                                highlightExercise: page.editedExercise
                                 sessionNumber: number
                                 session: page.sessionAt(day, number)
                                 onClicked: page.openSession(day, number)
@@ -957,7 +974,7 @@ Page {
         Item {
             id: panelSlot
             objectName: "panelSlot"
-            visible: sessionEditor.opened && !sessionEditor.floating
+            visible: page.activeEditor !== null && !panelSettings.floating
             SplitView.preferredWidth: panelSettings.dockWidth
             SplitView.minimumWidth: 420
             onWidthChanged: if (visible && width > 0) panelSettings.dockWidth = width
@@ -982,15 +999,7 @@ Page {
         anchors.fill: parent
         visible: opened
         floating: panelSettings.floating
-        onFloatingToggled: {
-            panelSettings.floating = !panelSettings.floating
-            // Docked again: the keys go to the week's window
-            if (!panelSettings.floating)
-                Qt.callLater(() => {
-                    page.Window.window.requestActivate()
-                    sessionEditor.forceActiveFocus()
-                })
-        }
+        onFloatingToggled: page.toggleFloating(sessionEditor)
         // Back to the session's cell, when it is in the week shown
         onClosed: {
             if (athleteId === page.athleteId && monday === page.monday && variant === page.variant)
@@ -1007,12 +1016,44 @@ Page {
         }
     }
 
-    // The session panel in a window of its own, for a second screen
+    // Erfassung TÜ, the panel's second view
+    ExerciseEditor {
+        id: exerciseEditor
+        objectName: "exerciseEditor"
+        parent: floating ? floatWindow.contentItem : panelSlot
+        anchors.fill: parent
+        visible: opened
+        floating: panelSettings.floating
+        onFloatingToggled: page.toggleFloating(exerciseEditor)
+        onClosed: {
+            if (athleteId === page.athleteId && monday === page.monday && variant === page.variant)
+                page.focusSession(1, 1)
+        }
+        Connections {
+            target: Store
+            function onDataVersionChanged() {
+                if (exerciseEditor.opened && !exerciseEditor.dirty && !exerciseEditor.saving)
+                    exerciseEditor.reload()
+            }
+        }
+    }
+
+    function toggleFloating(editor) {
+        panelSettings.floating = !panelSettings.floating
+        // Docked again: the keys go to the week's window
+        if (!panelSettings.floating)
+            Qt.callLater(() => {
+                page.Window.window.requestActivate()
+                editor.forceActiveFocus()
+            })
+    }
+
+    // The panel in a window of its own, for a second screen
     ApplicationWindow {
         id: floatWindow
         objectName: "floatWindow"
-        title: "Trainingseinheit – " + sessionEditor.title
-        visible: sessionEditor.opened && sessionEditor.floating
+        title: page.activeEditor ? page.activeEditor.title : ""
+        visible: page.activeEditor !== null && panelSettings.floating
         minimumWidth: 460
         minimumHeight: 420
         width: panelSettings.windowWidth
@@ -1028,7 +1069,7 @@ Page {
         onWidthChanged: if (visible) panelSettings.windowWidth = width
         onHeightChanged: if (visible) panelSettings.windowHeight = height
         // Closing the window closes the session, saved
-        onClosing: (close) => { close.accepted = sessionEditor.close() }
+        onClosing: (close) => { close.accepted = page.closePanel() }
     }
 
     ColumnLayout {
@@ -1050,10 +1091,6 @@ Page {
     }
 
 
-    ExerciseWeekDialog {
-        id: exerciseDialog
-        objectName: "exerciseDialog"
-    }
 
     DayInfoDialog {
         id: dayInfoDialog

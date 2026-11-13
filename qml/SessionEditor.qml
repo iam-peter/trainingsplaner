@@ -264,6 +264,16 @@ FocusScope {
             }
         }
 
+        // What this panel changes, marked in the week
+        Label {
+            objectName: "scopeNote"
+            Layout.fillWidth: true
+            wrapMode: Text.Wrap
+            font.pixelSize: 11
+            color: Styles.TokenInterface.semantics.text_muted
+            text: "Ändert diese Trainingseinheit – in der Woche hervorgehoben."
+        }
+
         Flickable {
             id: flick
             Layout.fillWidth: true
