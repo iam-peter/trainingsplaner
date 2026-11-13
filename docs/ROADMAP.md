@@ -48,10 +48,22 @@ No new data, every user benefits at once.
       spreadsheet or saved as CSV.
 - [x] **Paper and orientation** for the week plan: A4, A5 or A3, portrait
       or landscape.
-- [ ] **One sidebar instead of two tab bars**, with an athlete and a MAZ
-      picker as the headers of their views. See
-      [NAVIGATION.md](NAVIGATION.md), and [UX-PLAN.md](UX-PLAN.md) for
-      the screens behind it and the order of work.
+
+The coach's wishes come next, in small steps close to WinWoTA (details
+and order in [UX-PLAN.md](UX-PLAN.md)):
+
+- [ ] **Sessions per day** as a setting (1–3) instead of the "3 TE" box.
+- [ ] **The previous week** beside each exercise in the session editor
+      and in the K1–K7 summary; optionally the whole previous week above
+      the current one.
+- [ ] **A movable, non-modal session editor.**
+- [ ] **A month view** with the sessions and the competition dates, for
+      one athlete or all, printable.
+- [ ] **The load chart** (Ist against Ziel per week, the sawtooth of
+      raised and lowered weeks), after asking the coach what it shows.
+- [ ] **Youth competitions** of the DGJ: types, one per week, DM norms.
+- [ ] Later, if wanted: one sidebar instead of two tab bars
+      ([NAVIGATION.md](NAVIGATION.md)).
 
 ## Phase 2 – Weightlifting planning
 
