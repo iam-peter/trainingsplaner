@@ -135,6 +135,34 @@ Item {
             compare(empty.length, 0, empty.slice(0, 5).join(", "))
         }
 
+        // An open submenu does not block its menu: moving on to another
+        // entry highlights that one and closes the submenu
+        function test_submenuLeavesMenuUsable() {
+            failOnWarning(/Menu\.qml/)
+            const w = createTemporaryObject(mainComponent, null)
+            waitForRendering(w.contentItem)
+            const m = findChild(w, "fileMenu"), recent = findChild(w, "recentMenu")
+            m.open()
+            tryCompare(m, "opened", true)
+            let recentItem = null, openItem = null
+            for (let i = 0; i < m.count; ++i) {
+                const item = m.itemAt(i)
+                if (item.text === "Zuletzt geöffnet") recentItem = item
+                if (item.text === "Öffnen…") openItem = item
+            }
+            mouseMove(recentItem, recentItem.width / 2, recentItem.height / 2)
+            tryCompare(recent, "opened", true)
+            // The menu still blocks the window behind it, the submenu not
+            compare(m.modal, true)
+            compare(recent.modal, false)
+            mouseMove(openItem, openItem.width / 2, openItem.height / 2)
+            tryVerify(() => openItem.highlighted)
+            tryCompare(recent, "visible", false)
+            verify(m.visible)
+            m.close()
+            tryCompare(m, "visible", false)
+        }
+
         function test_choosingOnOnePageSelectsEverywhere() {
             const w = createTemporaryObject(mainComponent, null)
             openAllPages(w)
