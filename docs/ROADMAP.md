@@ -52,7 +52,8 @@ No new data, every user benefits at once.
 The coach's wishes come next, in small steps close to WinWoTA (details
 and order in [UX-PLAN.md](UX-PLAN.md)):
 
-- [ ] **Sessions per day** as a setting (1–3) instead of the "3 TE" box.
+- [x] **Sessions per day** as a setting (1–3) instead of the "3 TE" box;
+      days without sessions narrow.
 - [ ] **The previous week** beside each exercise in the session editor
       and in the K1–K7 summary; optionally the whole previous week above
       the current one.

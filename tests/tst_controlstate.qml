@@ -4,7 +4,7 @@ import QtTest
 import Trainingsplaner
 
 // Controls show the program's state, also after they were used and when
-// the state changes elsewhere: the planning period, Plan/Ist and 3 TE in
+// the state changes elsewhere: the planning period and Plan/Ist in
 // the week, the colour scheme after Abbrechen
 Item {
     width: 1300
@@ -98,8 +98,8 @@ Item {
             Store.colorScheme = before
         }
 
-        // Plan/Ist and 3 TE follow the week also after a click, as keys and
-        // a week with a third session change them without one
+        // Plan/Ist follow the week also after a click, as keys change them
+        // without one
         function test_weekTogglesAfterClick() {
             planning.visible = false
             week.visible = true
@@ -109,12 +109,6 @@ Item {
             week.variant = "P"
             verify(findChild(week, "planRadio").checked)
             verify(!findChild(week, "actualRadio").checked)
-            const three = findChild(week, "threeBox")
-            mouseClick(three)
-            const now = week.threeSessions
-            week.threeSessions = !now
-            compare(three.checked, !now)
-            week.threeSessions = false
             week.visible = false
             planning.visible = true
         }

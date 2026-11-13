@@ -11,8 +11,64 @@ Page {
     property string athleteId
     property string monday: Store.mondayOf(Store.today())
     property string variant: "P"
-    property bool threeSessions: false
     property var weekData: ({})
+    // The same week in the other variant (Ist while Plan is shown, and the
+    // reverse): its days and sessions count too, so a planned session keeps
+    // its place while its Ist is entered
+    property var otherWeek: ({})
+    // A row asked for with "Weitere Einheit", until the week changes
+    property int extraRows: 0
+
+    // The session numbers of each day in either variant, sorted
+    readonly property var dayNumbers: {
+        const days = [[], [], [], [], [], [], []]
+        for (const w of [weekData, otherWeek]) {
+            for (const s of (w.sessions || [])) {
+                if (days[s.day - 1].indexOf(s.number) < 0)
+                    days[s.day - 1].push(s.number)
+            }
+        }
+        for (const d of days)
+            d.sort()
+        return days
+    }
+    // One session a day (Einheiten pro Tag 1): each day lists its own
+    // sessions from the top, whatever their number, as a single session
+    // is often a 2. TE (the afternoon) in WinWoTA's data. With 2 or 3 the
+    // rows are the session numbers, as in WinWoTA.
+    readonly property bool compact: Store.sessionsPerDay === 1
+    // The number a session on an empty day gets: the one the week (else
+    // the week before) uses most, else 1
+    property int usualNumber: 1
+    // Rows of sessions: as many as set, and as many as the week uses, so
+    // nothing is hidden
+    readonly property int rows: {
+        let n = Math.max(Store.sessionsPerDay, extraRows)
+        for (const d of dayNumbers)
+            n = Math.max(n, compact ? d.length : (d.length > 0 ? d[d.length - 1] : 0))
+        return Math.min(3, n)
+    }
+    // The session number shown in a day's row
+    function numberAt(day, row) {
+        if (!compact)
+            return row
+        const used = dayNumbers[day - 1]
+        if (row <= used.length)
+            return used[row - 1]
+        // Below the day's sessions: the next numbers after them
+        const start = used.length > 0 ? used[used.length - 1] + 1 : usualNumber
+        const free = [1, 2, 3].filter(n => used.indexOf(n) < 0)
+        const ordered = free.filter(n => n >= start).concat(free.filter(n => n < start))
+        return ordered[row - used.length - 1] || 0
+    }
+    // Days with a session in either variant
+    readonly property var usedDays: dayNumbers.map(d => d.length > 0)
+    // A day without sessions is a narrow column, once another day has some
+    function narrowDay(day) {
+        return usedDays.indexOf(true) >= 0 && !usedDays[day - 1]
+    }
+    readonly property int narrowWidth: 56
+    readonly property int wideMinimum: 130
 
     // The week the note field belongs to, so it is saved to the right week
     // even after the selection has changed.
@@ -63,14 +119,44 @@ Page {
             return
         }
         weekData = Store.week(athleteId, monday, variant)
+        otherWeek = Store.week(athleteId, monday, variant === "P" ? "I" : "P")
+        let counts = [0, 0, 0, 0]
+        for (const w of [weekData, otherWeek])
+            for (const s of (w.sessions || []))
+                ++counts[s.number]
+        if (counts[1] + counts[2] + counts[3] === 0) {
+            for (const s of (Store.week(athleteId, Store.addWeeks(monday, -1), variant).sessions || []))
+                ++counts[s.number]
+        }
+        usualNumber = counts[2] > counts[1] && counts[2] >= counts[3] ? 2 : counts[3] > counts[1] ? 3 : 1
         noteField.text = weekData.note
         injuredBox.checked = weekData.injured
         noteOwner = { athleteId: athleteId, monday: monday, variant: variant }
-        // Show the third row automatically when the week uses it.
-        for (const s of weekData.sessions) {
-            if (s.number === 3)
-                threeSessions = true
+    }
+
+    // "Weitere Einheit": the next session of the day after the ones it has
+    function addSession(day) {
+        let n = 1
+        for (const w of [weekData, otherWeek]) {
+            for (const s of (w.sessions || [])) {
+                if (s.day === day)
+                    n = Math.max(n, s.number + 1)
+            }
         }
+        if (n > 3)
+            return
+        extraRows = Math.max(extraRows, compact ? dayNumbers[day - 1].length + 1 : n)
+        openSession(day, n)
+    }
+
+    function canAddSession(day) {
+        for (const w of [weekData, otherWeek]) {
+            for (const s of (w.sessions || [])) {
+                if (s.day === day && s.number === 3)
+                    return false
+            }
+        }
+        return true
     }
 
     // 1-7 when today is in the shown week, else 0
@@ -96,11 +182,23 @@ Page {
         exerciseDialog.edit(athleteId, monday, variant, exercise)
     }
 
+    // The cell of a day's session, by its number
     function focusSession(day, number) {
-        const rows = threeSessions ? 3 : 2
         day = Math.min(7, Math.max(1, day))
-        number = Math.min(rows, Math.max(1, number))
-        cells.itemAt((number - 1) * 7 + day - 1).forceActiveFocus()
+        for (let row = 1; row <= rows; ++row) {
+            if (numberAt(day, row) === number) {
+                focusRow(day, row)
+                return
+            }
+        }
+        focusRow(day, number)
+    }
+
+    // The cell in a day's row, moved to by the arrow keys
+    function focusRow(day, row) {
+        day = Math.min(7, Math.max(1, day))
+        row = Math.min(rows, Math.max(1, row))
+        cells.itemAt((row - 1) * 7 + day - 1).forceActiveFocus()
     }
 
     function askRemoveSession(day, number) {
@@ -162,8 +260,8 @@ Page {
         sessionDialog.edit(athleteId, monday, variant, day, number)
     }
 
-    onAthleteIdChanged: reload()
-    onMondayChanged: reload()
+    onAthleteIdChanged: { extraRows = 0; reload() }
+    onMondayChanged: { extraRows = 0; reload() }
     onVariantChanged: reload()
     Connections {
         target: Store
@@ -266,15 +364,6 @@ Page {
                 checked: page.variant === "I"
                 onToggled: if (checked) page.variant = "I"
             }
-            CheckBox {
-                id: threeBox
-                objectName: "threeBox"
-                text: "3 TE"
-                checked: page.threeSessions
-                onToggled: page.threeSessions = checked
-                ToolTip.visible: hovered
-                ToolTip.text: "Dritte Trainingseinheit pro Tag anzeigen"
-            }
 
             Item { Layout.fillWidth: true }
 
@@ -347,44 +436,63 @@ Page {
         // exactly as high (shared out by the layout, an odd height made one
         // row a pixel higher). The area, not the grid, fills: a grid fills
         // only as far as its cells do, which then set their heights apart.
-        Item {
+        // A day without sessions is narrow; when even the narrow days do not
+        // fit, the area scrolls sideways instead of squeezing the text.
+        Flickable {
             id: gridArea
+            objectName: "gridArea"
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.minimumHeight: grid.minimumRows
+            Layout.minimumHeight: grid.minimumRows + bottomRoom
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            flickableDirection: Flickable.HorizontalFlick
+            interactive: contentWidth > width
+            contentWidth: Math.max(width, grid.minimumWidth)
+            contentHeight: height
+            // Room for the scroll bar below the days while it shows
+            readonly property real bottomRoom: contentWidth > width ? hBar.height + 4 : 0
+            ScrollBar.horizontal: AppScrollBar { id: hBar }
 
             GridLayout {
                 id: grid
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
+                width: gridArea.contentWidth
                 columns: 7
                 rowSpacing: 4
                 columnSpacing: 4
 
                 readonly property real headHeight: dayHeads.count > 0 && dayHeads.itemAt(0) ? dayHeads.itemAt(0).implicitHeight : 0
-                readonly property int rows: page.threeSessions ? 3 : 2
-                readonly property real minimumRows: headHeight + rows * (44 + rowSpacing)
-                readonly property int rowHeight: Math.max(44, Math.floor((gridArea.height - headHeight - rows * rowSpacing) / rows))
+                readonly property real minimumRows: headHeight + page.rows * (44 + rowSpacing)
+                readonly property int rowHeight: Math.max(44, Math.floor((gridArea.height - gridArea.bottomRoom - headHeight - page.rows * rowSpacing) / page.rows))
+                readonly property real minimumWidth: {
+                    let w = 6 * columnSpacing
+                    for (let d = 1; d <= 7; ++d)
+                        w += page.narrowDay(d) ? page.narrowWidth : page.wideMinimum
+                    return w
+                }
 
                 Repeater {
                     id: dayHeads
                     model: 7
                     ColumnLayout {
                         required property int index
-                        Layout.fillWidth: true
-                        Layout.preferredWidth: 1
+                        readonly property bool narrow: page.narrowDay(index + 1)
+                        objectName: "dayHead" + (index + 1)
+                        Layout.fillWidth: !narrow
+                        Layout.preferredWidth: narrow ? page.narrowWidth : 1
+                        Layout.minimumWidth: narrow ? page.narrowWidth : page.wideMinimum
+                        Layout.maximumWidth: narrow ? page.narrowWidth : Number.POSITIVE_INFINITY
                         spacing: 0
                         Label {
                             Layout.alignment: Qt.AlignHCenter
-                            text: Store.dayName(index + 1)
+                            text: parent.narrow ? ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"][index] : Store.dayName(index + 1)
                             font.bold: true
                             color: page.todayDay === index + 1 ? Styles.TokenInterface.semantics.primary_default : Styles.TokenInterface.semantics.text_default
                         }
                         Label {
                             Layout.alignment: Qt.AlignHCenter
-                            text: page.todayDay === index + 1 ? "heute, " + Store.dayDate(page.monday, index + 1)
-                                                               : Store.dayDate(page.monday, index + 1)
+                            text: page.todayDay === index + 1 && !parent.narrow ? "heute, " + Store.dayDate(page.monday, index + 1)
+                                                                                : Store.dayDate(page.monday, index + 1)
                             font.pixelSize: 11
                             color: page.todayDay === index + 1 ? Styles.TokenInterface.semantics.primary_default : Styles.TokenInterface.semantics.text_muted
                         }
@@ -393,14 +501,19 @@ Page {
 
                 Repeater {
                     id: cells
-                    model: page.threeSessions ? 21 : 14
+                    model: page.rows * 7
                     SessionCell {
                         required property int index
                         readonly property int day: index % 7 + 1
-                        readonly property int number: Math.floor(index / 7) + 1
+                        readonly property int row: Math.floor(index / 7) + 1
+                        readonly property int number: page.numberAt(day, row)
                         objectName: "cell" + day + "_" + number
-                        Layout.fillWidth: true
-                        Layout.preferredWidth: 1
+                        enabled: number > 0
+                        narrow: page.narrowDay(day)
+                        Layout.fillWidth: !narrow
+                        Layout.preferredWidth: narrow ? page.narrowWidth : 1
+                        Layout.minimumWidth: narrow ? page.narrowWidth : page.wideMinimum
+                        Layout.maximumWidth: narrow ? page.narrowWidth : Number.POSITIVE_INFINITY
                         // Every row of sessions as high as the others, as in the
                         // old program, so the grid keeps its shape from week to
                         // week: exactly the rows' share, set rather than filled
@@ -413,10 +526,19 @@ Page {
                         onClicked: page.openSession(day, number)
                         onExerciseClicked: (exercise) => page.openExercise(exercise)
                         onDeleteRequested: page.askRemoveSession(day, number)
-                        onMoveRequested: (days, sessions) => page.focusSession(day + days, number + sessions)
+                        onMoveRequested: (days, sessions) => page.focusRow(day + days, row + sessions)
                         onCopyRequested: page.copySession(day, number)
                         onPasteRequested: page.pasteSession(day, number)
                         onMenuRequested: (exercise, x, y) => sessionMenu.show(this, day, number, exercise, x, y)
+                        // Keep a cell reached by the keys in view
+                        onActiveFocusChanged: {
+                            if (!activeFocus)
+                                return
+                            if (x < gridArea.contentX)
+                                gridArea.contentX = x
+                            else if (x + width > gridArea.contentX + gridArea.width)
+                                gridArea.contentX = x + width - gridArea.width
+                        }
                     }
                 }
             }
@@ -665,6 +787,12 @@ Page {
             height: visible ? implicitHeight : 0
             text: "Verlauf von Übung " + sessionMenu.exercise
             onTriggered: historyDialog.show(page.athleteId, page.monday, page.variant, sessionMenu.exercise, false)
+        }
+        MenuSeparator {}
+        MenuItem {
+            text: "Weitere Einheit an diesem Tag"
+            enabled: page.hasAthlete && page.canAddSession(sessionMenu.day)
+            onTriggered: page.addSession(sessionMenu.day)
         }
         MenuSeparator {}
         KeyMenuItem {

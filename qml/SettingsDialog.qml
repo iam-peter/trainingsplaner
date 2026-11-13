@@ -62,6 +62,9 @@ AppDialog {
         for (const c of Store.infoCategories)
             categoryModel.append({ name: c.name, code: c.code, unit: c.unit, decimals: c.decimals, aggregate: c.aggregate })
         step25.checked = Store.weightStep !== 1
+        perDay1.checked = Store.sessionsPerDay === 1
+        perDay2.checked = Store.sessionsPerDay === 2
+        perDay3.checked = Store.sessionsPerDay === 3
         step10.checked = Store.weightStep === 1
         schemeBefore = Store.colorScheme
     }
@@ -99,6 +102,7 @@ AppDialog {
             t.push({ from: timeRepeater.itemAt(i).fromTime, to: timeRepeater.itemAt(i).toTime })
         Store.sessionTimes = t
         Store.weightStep = step10.checked ? 1 : 2.5
+        Store.sessionsPerDay = perDay1.checked ? 1 : perDay3.checked ? 3 : 2
         const cats = []
         for (let i = 0; i < categoryModel.count; ++i)
             cats.push(categoryModel.get(i))
@@ -254,10 +258,24 @@ AppDialog {
                     }
                 }
 
-                // Default times of the sessions
+                // How many sessions a day, and their default times
                 ColumnLayout {
                     width: pages.width
                     spacing: 8
+                    RowLayout {
+                        spacing: 8
+                        Label { text: "Einheiten pro Tag im Wochenplan:" }
+                        RadioButton { id: perDay1; objectName: "perDay1"; text: "1" }
+                        RadioButton { id: perDay2; objectName: "perDay2"; text: "2" }
+                        RadioButton { id: perDay3; objectName: "perDay3"; text: "3" }
+                    }
+                    Label {
+                        Layout.fillWidth: true
+                        Layout.bottomMargin: 8
+                        wrapMode: Text.Wrap
+                        color: Styles.TokenInterface.semantics.text_muted
+                        text: "So viele Zeilen zeigt die Woche mindestens; eine Woche mit mehr Einheiten zeigt alle. Eine weitere Einheit gibt es über das Kontextmenü eines Tages."
+                    }
                     Label {
                         Layout.fillWidth: true
                         wrapMode: Text.Wrap

@@ -46,7 +46,7 @@ decide how the program feels. That is where his wishes are, too:
 | # | What he asked for | Where in this plan | State |
 |---|---|---|---|
 | W1 | See the previous week while entering a session | 3.1, 3.2 | planned |
-| W2 | As many sessions per day as he uses (one), not always two | 3.1 | planned |
+| W2 | As many sessions per day as he uses (one), not always two | 3.1 | done |
 | W3 | Two weeks at once when there is room | 3.1 | planned |
 | W4 | The session editor beside the week, not over it | 3.2 | planned |
 | W5 | A month view with the competitions, instead of his paper calendar | 3.3 | planned |
@@ -93,9 +93,9 @@ the steps below (section 8).
 
 *Mock-up. The numbers refer to the markers.*
 
-1. **Days share the width by their content.** A day without sessions is a
-   narrow column with its name, date and a "+" to add one; days with
-   sessions share the rest. When even the narrow columns do not fit (two
+1. **Days share the width by their content** (done). A day without
+   sessions is a narrow column with its short name, date and a "+" to add
+   one; days with sessions share the rest. When even the narrow columns do not fit (two
    weeks on a small screen), the grid scrolls sideways instead of
    squeezing the text. (W2)
 2. **The session panel** at the side instead of a dialog over the week:
@@ -113,12 +113,23 @@ the steps below (section 8).
    or Ist), last week, the ITP's targets for this week, and the
    difference to the target where it is large. (W1)
 
-**Sessions per day.** A setting "Einheiten pro Tag" (1, 2 or 3; WinWoTA's
-default was 2) sets how many rows the grid shows; a week that has a
-session in a higher row shows that row too, so nothing is ever hidden. A
-day gets a further session from its context menu ("Weitere Einheit").
-The "3 TE" box goes. Sessions keep their numbers 1–3, as in the old
-export format. (W2)
+**Sessions per day** (done). A setting "Einheiten pro Tag" (1, 2 or 3;
+WinWoTA's default was 2, under Einstellungen › Trainingszeiten) sets how
+many rows the grid shows at least; a week that uses more shows them all,
+so nothing is ever hidden. The "3 TE" box is gone. A day gets a further
+session from its context menu ("Weitere Einheit an diesem Tag").
+Sessions keep their numbers 1–3, as in the old export format. (W2)
+
+- **With 2 or 3** the rows are the session numbers, as in WinWoTA: the
+  1. TE (morning) above the 2. TE (afternoon).
+- **With 1** each day lists its own sessions from the top, whatever their
+  number, with the number in the cell's corner. A single session is
+  often a 2. TE in WinWoTA's data (the afternoon); it no longer leaves an
+  empty row above it. A new session on an empty day gets the number the
+  week uses most (else the week before), so the times from the settings
+  fit.
+- **Plan and Ist count together**: in the Ist, a planned session keeps
+  its place and its day stays wide, ready for its Ist.
 
 **Woche | 2 Wochen | Monat** in the toolbar. "2 Wochen" shows the
 previous week above the current one, dimmed and labelled
@@ -436,7 +447,7 @@ flowchart LR
 | Step | What | Size | For |
 |---|---|---|---|
 | ✓ | Next weight proposed, ↑ / ↓ counting, totals from text, earlier entries, no placeholder, ranges in order | – | W7–W12 |
-| 1 | Setting "Einheiten pro Tag"; rows grow with the data; "Weitere Einheit"; "3 TE" goes; empty days narrow, scrolling when too wide | small | W2 |
+| ✓ 1 | Setting "Einheiten pro Tag"; rows grow with the data; "Weitere Einheit"; "3 TE" goes; empty days narrow, scrolling when too wide | small | W2 |
 | 2 | Last week and the ITP per exercise line in the session editor; last week, target and difference in the K1–K7 summary; the info line of the week | small | W1 |
 | 3 | "2 Wochen": the previous week above the current one | medium | W3 |
 | 4 | Session panel at the side of the week, undockable; Vorlage from last week | medium | W4 |
@@ -489,8 +500,6 @@ Kept for later, and only if the coach wants them:
    summary page was?
 7. What did WinWoTA's "Langfristiger Leistungsaufbau" show, and does he
    use it? (To look at on the old PC.)
-8. Are his single sessions 1. or 2. TE in his old data? With one row per
-   day the grid should show "the day's session" whatever its number.
 
 ## 10. Background
 

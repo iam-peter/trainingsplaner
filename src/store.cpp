@@ -721,6 +721,20 @@ void Store::setWeightStep(double v)
     emit settingsChanged();
 }
 
+int Store::sessionsPerDay() const
+{
+    return qBound(1, QSettings().value(QStringLiteral("week/sessionsPerDay"), 2).toInt(), 3);
+}
+
+void Store::setSessionsPerDay(int n)
+{
+    n = qBound(1, n, 3);
+    if (n == sessionsPerDay())
+        return;
+    QSettings().setValue(QStringLiteral("week/sessionsPerDay"), n);
+    emit settingsChanged();
+}
+
 int Store::stepWeight(int kg, int direction) const
 {
     return Steps::nextWeight(kg, weightStep(), direction);

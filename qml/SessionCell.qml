@@ -14,6 +14,9 @@ Rectangle {
     property var session: null
     property int sessionNumber: 1
     property bool today: false
+    // A narrow column for a day without sessions: no session number, the
+    // "+" always shown
+    property bool narrow: false
     signal clicked()
     signal deleteRequested()
     signal moveRequested(int days, int sessions)
@@ -97,6 +100,7 @@ Rectangle {
     }
 
     Label {
+        visible: !cell.narrow
         anchors.top: parent.top
         anchors.right: parent.right
         anchors.margins: 4
@@ -107,10 +111,11 @@ Rectangle {
 
     IconImage {
         anchors.centerIn: parent
-        visible: !cell.filled && hover.hovered
+        visible: !cell.filled && (hover.hovered || cell.narrow)
         source: Theme.icon("plus")
-        sourceSize: Qt.size(28, 28)
+        sourceSize: cell.narrow ? Qt.size(20, 20) : Qt.size(28, 28)
         color: _plusStyle.icon.color
+        opacity: cell.narrow && !hover.hovered ? 0.5 : 1
     }
 
     ColumnLayout {
@@ -218,7 +223,7 @@ Rectangle {
         color: _cellStyle.text.color
     }
 
-    ToolTip.visible: mouse.containsMouse && filled && session.note !== ""
-    ToolTip.text: filled ? session.note : ""
+    ToolTip.visible: mouse.containsMouse && (filled ? session.note !== "" : narrow)
+    ToolTip.text: filled ? session.note : sessionNumber + ". TE anlegen"
     ToolTip.delay: 600
 }
