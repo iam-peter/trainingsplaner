@@ -56,7 +56,12 @@ and order in [UX-PLAN.md](UX-PLAN.md)):
 - [ ] **The previous week** beside each exercise in the session editor
       and in the K1–K7 summary; optionally the whole previous week above
       the current one.
-- [ ] **A movable, non-modal session editor.**
+- [ ] **A session panel at the side of the week** instead of the modal
+      dialog, undockable into a window; empty days narrower.
+- [ ] **Rahmenorientierung opened from the MAZ**, without the ITP / RO
+      switch in the ITP and Laststufen tabs.
+- [x] **"von" and "bis" fields keep their order**: the other one follows,
+      keeping the span.
 - [ ] **A month view** with the sessions and the competition dates, for
       one athlete or all, printable.
 - [ ] **The load chart** (Ist against Ziel per week, the sawtooth of

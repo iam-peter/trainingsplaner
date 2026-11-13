@@ -81,27 +81,48 @@ Proposal:
   (`Vorwoche 45/2026 · Ist`); clicking into it switches to that week.
   This answers 2.1 a second time, for the whole week at a glance.
 
+- **Days share the width by their content.** A day without sessions
+  shrinks to a narrow column (its name, date and room to click into);
+  the days with sessions share the rest. When even the narrow columns do
+  not fit, for two weeks on a small screen, the grid scrolls sideways
+  instead of squeezing the text.
+
 The data does not change: sessions keep their numbers 1–3 as in the old
 export format. To check with his data (counts only): whether his single
 sessions are stored as 1. or 2. TE. If they are 2. TE, one row should
 show "the day's session" whatever its number.
 
-### 2.3 The session editor in place, or at least movable
+### 2.3 The session editor beside the week, not over it
 
-Today the session dialog is modal and in the middle of the window.
+Today the session dialog is modal and in the middle of the window, and
+hides the week it belongs to.
 
-Proposal, in two steps:
+Proposal: **a session panel docked at the side** of the week, like a
+property editor.
 
-1. **Movable and non-modal** (small): the dialog can be dragged by its
-   title and stays where it was put, also the next time. The week behind
-   it stays visible and shows every saved change at once. Unsaved
-   changes are kept when he clicks into the week; opening another
-   session asks to save first.
-2. **Docked**, to try once step 1 is in use: the editor as a panel below
-   the week grid, where WinWoTA had its summary page, and the grid
-   shrinks to fit. With one row per day there is room for both. Editing
-   inside the day cell itself is too narrow for lines of weight steps
-   (`70/3/2 80/2/2 85/1/2`) at seven columns.
+```
+┌ Woche 46/2026 ◂ ▸ ────────────────────────────┬ Mo 09.11. · 1. TE · Plan ──┐
+│ Mo        Di  Mi        Do  Fr        Sa  So  │ 15:30 – 17:00              │
+│ ▌1 20 52  ·   1 18 50   ·   1 21 55   ·   ·   │ TÜ 1  70/3/2 80/2/2 85/1/2 │
+│ ▌19 16 104    3 16 62       19 15 98          │   Vorwoche WH 18 MHG 76    │
+│ ▌…            …             …                 │ TÜ 19 100/5/2 110/3/2      │
+│                                               │   Vorwoche WH 15 MHG 102   │
+├───────────────────────────────────────────────┤ + TÜ  + AMKT  + Text       │
+│ K1-7  240 Wh / 72 kg · Vorwoche 214 / 71      │ Bemerkung …                │
+└───────────────────────────────────────────────┴────────────────────────────┘
+```
+
+- **Selecting a session** (click or arrow keys) shows it in the panel;
+  the selected cell is marked. The week stays fully visible, and its
+  days with no sessions are narrow, so there is room for the panel.
+- **Changes are saved** when another session is selected or the panel
+  closed, with undo as today; a hint shows unsaved changes.
+- **The panel can be undocked** into a movable window, for a second
+  screen or a small one, and remembers where it was. Closed, the week
+  takes the whole width again.
+- Editing inside the day cell itself is too narrow for lines of weight
+  steps (`70/3/2 80/2/2 85/1/2`) at seven columns; the panel gives them
+  room.
 
 ### 2.4 A month view with the competitions
 
@@ -189,6 +210,30 @@ Questions for the coach:
 5. Did he draw the plan into WinWoTA's chart by double-clicking, or only
    look at it?
 
+### 2.6 ITP and Rahmenorientierung are not one view
+
+In Planung, the tabs "ITP / RO" and "Laststufen" both switch between
+"ITP" and "Rahmenorientierung" with a radio button. The two are not
+two modes of one thing:
+
+- the **Rahmenorientierung** belongs to a MAZ, for the whole group, in
+  percent of the target performance;
+- the **ITP** belongs to one athlete in a MAZ, in kg.
+
+With "Rahmenorientierung" chosen, the athlete box beside it still shows
+an athlete, although it means nothing then. WinWoTA had no such switch:
+the framework plan was opened from the MAZ ("Erfassung MAZ ›
+Rahmenorientierung"), the ITP from the ITP menu, each in its own window.
+
+Proposal, as in WinWoTA:
+
+- **Planung › MAZ** keeps its button "Rahmenorientierung". Today it
+  switches the ITP tab into RO mode; instead it opens the framework plan
+  of the selected MAZ as a view of its own: its weeks, and its planned
+  weight steps in %, with only a MAZ to choose and a way back to the MAZ.
+- **Planung › ITP** and **Planung › Laststufen** are the athlete's only,
+  in kg, without the switch.
+
 ## 3. Further small things that stay close to WinWoTA
 
 - **The previous competitions in the session editor**: the best
@@ -227,23 +272,26 @@ competitions.
 flowchart LR
     A["1 · Einheiten pro Tag<br/>(1–3 rows)"] --> B["2 · Vorwoche<br/>in editor and summary"]
     A --> C["3 · Two weeks<br/>at once"]
-    D["4 · Editor movable,<br/>non-modal"] --> E["Editor docked<br/>(to try)"]
+    D["4 · Session panel<br/>at the side"] --> E["Panel undocked<br/>as a window"]
+    A --> D
+    I["8 · RO opened from<br/>the MAZ, no switch"]
     F["5 · Monat view,<br/>competition dates"] --> G["7 · Youth competitions:<br/>types, one per week, norms"]
     H["6 · Sawtooth chart<br/>after asking the coach"]
 ```
 
 | Step | What | Size |
 |---|---|---|
-| 1 | Setting "Einheiten pro Tag"; rows grow with the data; "Weitere Einheit"; "3 TE" goes | small |
+| 1 | Setting "Einheiten pro Tag"; rows grow with the data; "Weitere Einheit"; "3 TE" goes; empty days narrow, scrolling when too wide | small |
 | 2 | Previous week per exercise line in the session editor; previous week and difference in the K1–K7 summary | small |
 | 3 | "Vorwoche anzeigen": the previous week above the current one | medium |
-| 4 | Session editor movable and non-modal, its position remembered | small |
+| 4 | Session panel docked at the side of the week, undockable into a window | medium |
 | 5 | Monat view: weeks with load and WH, sessions, competition dates; all athletes; print | large |
 | 6 | Sawtooth chart: weight per week as Ziel, Ist and ideal line, reps with h / m / g below, comparison MAZ, reachable from week and Analyse | medium |
 | 7 | Youth competition types, one-per-week warning, DM norms as an editable table | small |
+| 8 | Rahmenorientierung opened from the MAZ; ITP and Laststufen without the RO switch | small |
 
-Steps 1, 2 and 4 are small and independent; each can go to the coach on
-its own for feedback.
+Steps 1, 2 and 8 are small and independent; each can go to the coach on
+its own for feedback. Step 4 builds on the narrow empty days of step 1.
 
 ## 6. Ideas set aside
 
