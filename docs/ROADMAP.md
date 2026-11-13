@@ -50,7 +50,8 @@ No new data, every user benefits at once.
       or landscape.
 - [ ] **One sidebar instead of two tab bars**, with an athlete and a MAZ
       picker as the headers of their views. See
-      [NAVIGATION.md](NAVIGATION.md).
+      [NAVIGATION.md](NAVIGATION.md), and [UX-PLAN.md](UX-PLAN.md) for
+      the screens behind it and the order of work.
 
 ## Phase 2 – Weightlifting planning
 
