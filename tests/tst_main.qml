@@ -73,6 +73,29 @@ Item {
             verify(tabs.mapToItem(null, tabs.width, 0).x <= w.width)
         }
 
+        // No icon image without an icon: one asks the desktop's icon theme
+        // for a nameless icon, which on Linux searches every folder of every
+        // theme. With a field's or check box's unused icon that made the
+        // start take seconds.
+        function test_noEmptyIconImages() {
+            const w = createTemporaryObject(mainComponent, null)
+            waitForRendering(w.contentItem)
+            let count = 0
+            const empty = []
+            const walk = (item) => {
+                if (String(item).indexOf("QQuickIconImage") === 0) {
+                    ++count
+                    if (String(item.source) === "" && item.name === "")
+                        empty.push(String(item.parent))
+                }
+                for (const child of item.children)
+                    walk(child)
+            }
+            walk(w.contentItem)
+            verify(count > 10)
+            compare(empty.length, 0, empty.slice(0, 5).join(", "))
+        }
+
         function test_choosingOnOnePageSelectsEverywhere() {
             const w = createTemporaryObject(mainComponent, null)
             const pages = ["weekPage", "planningPage", "analysisPage", "competitionsPage"]
