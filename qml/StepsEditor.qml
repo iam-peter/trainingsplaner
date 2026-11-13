@@ -52,6 +52,14 @@ RowLayout {
             item.showKg()
     }
 
+    // ↑ / ↓ in reps, sets or UG: one more or less, between empty and max
+    function bump(field, index, key, delta, max) {
+        const v = Math.max(0, Math.min(max, (parseInt(field.text) || 0) + delta))
+        field.text = v > 0 ? String(v) : ""
+        typed(index)
+        setStep(index, key, v)
+    }
+
     // The step's kg typed by hand: no longer a proposal
     function typed(index) {
         if (proposed.indexOf(index) >= 0)
@@ -188,6 +196,7 @@ RowLayout {
                 RowLayout {
                     spacing: 1
                     TextField {
+                        id: repsField
                         objectName: "reps" + stepItem.index
                         implicitWidth: 28
                         implicitHeight: 26
@@ -199,10 +208,13 @@ RowLayout {
                             root.typed(stepItem.index)
                             root.setStep(stepItem.index, "reps", parseInt(text) || 0)
                         }
+                        Keys.onUpPressed: root.bump(repsField, stepItem.index, "reps", 1, 999)
+                        Keys.onDownPressed: root.bump(repsField, stepItem.index, "reps", -1, 999)
                         ToolTip.visible: activeFocus
-                        ToolTip.text: "SG: Wiederholungen pro Satz"
+                        ToolTip.text: "SG: Wiederholungen pro Satz (↑ / ↓)"
                     }
                     TextField {
+                        id: setsField
                         objectName: "sets" + stepItem.index
                         implicitWidth: 28
                         implicitHeight: 26
@@ -210,10 +222,14 @@ RowLayout {
                         validator: IntValidator { bottom: 0; top: 99 }
                         text: root.stepValue(stepItem.index, "sets")
                         onTextEdited: root.setStep(stepItem.index, "sets", parseInt(text) || 0)
+                        Keys.onUpPressed: root.bump(setsField, stepItem.index, "sets", 1, 99)
+                        Keys.onDownPressed: root.bump(setsField, stepItem.index, "sets", -1, 99)
                         ToolTip.visible: activeFocus
-                        ToolTip.text: "ANZ: Anzahl Sätze (leer: 1 Satz)"
+                        ToolTip.text: "ANZ: Anzahl Sätze, leer: 1 Satz (↑ / ↓)"
                     }
                     TextField {
+                        id: failedField
+                        objectName: "failed" + stepItem.index
                         visible: root.actual
                         implicitWidth: 24
                         implicitHeight: 26
@@ -221,8 +237,10 @@ RowLayout {
                         validator: IntValidator { bottom: 0; top: 9 }
                         text: root.stepValue(stepItem.index, "failed")
                         onTextEdited: root.setStep(stepItem.index, "failed", parseInt(text) || 0)
+                        Keys.onUpPressed: root.bump(failedField, stepItem.index, "failed", 1, 9)
+                        Keys.onDownPressed: root.bump(failedField, stepItem.index, "failed", -1, 9)
                         ToolTip.visible: activeFocus
-                        ToolTip.text: "UG: ungültige Versuche"
+                        ToolTip.text: "UG: ungültige Versuche (↑ / ↓)"
                     }
                 }
             }

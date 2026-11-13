@@ -79,6 +79,34 @@ Item {
             compare(findChild(e, "kg1").text, "")
         }
 
+        function test_arrowKeysStepCounts() {
+            const e = createTemporaryObject(stepsComponent, window, { actual: true })
+            typeInto(findChild(e, "kg0"), "60")
+            const reps = findChild(e, "reps0")
+            waitForRendering(window)
+            mouseClick(reps)
+            keyClick(Qt.Key_Up)
+            keyClick(Qt.Key_Up)
+            keyClick(Qt.Key_Up)
+            compare(reps.text, "3")
+            keyClick(Qt.Key_Down)
+            compare(reps.text, "2")
+            const sets = findChild(e, "sets0")
+            mouseClick(sets)
+            keyClick(Qt.Key_Up)
+            compare(sets.text, "1")
+            keyClick(Qt.Key_Down)
+            keyClick(Qt.Key_Down)
+            compare(sets.text, "")
+            const failed = findChild(e, "failed0")
+            mouseClick(failed)
+            for (let i = 0; i < 12; ++i)
+                keyClick(Qt.Key_Up)
+            compare(failed.text, "9")
+            compare(e.value()[0].reps, 2)
+            compare(e.value()[0].failed, 9)
+        }
+
         function test_noPlaceholderForSets() {
             const e = createTemporaryObject(stepsComponent, window)
             compare(findChild(e, "sets0").placeholderText, "")
