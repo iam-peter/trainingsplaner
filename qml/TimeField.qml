@@ -8,6 +8,14 @@ import Trainingsplaner
 TextField {
     id: field
 
+    // For a linked pair of fields (RangeLink): an edit starts when the
+    // field gets the focus or its clock opens, and is done when the field
+    // is left or a time picked
+    signal editStarted()
+    signal editDone()
+
+    onActiveFocusChanged: if (activeFocus) editStarted()
+
     placeholderText: "HH:MM"
     // Room for HH:MM and the clock beside the style's own padding
     implicitWidth: Math.ceil(digits.advanceWidth) + leftPadding + rightPadding + 8
@@ -48,6 +56,7 @@ TextField {
             text = n
             textEdited()
         }
+        editDone()
     }
 
     TextMetrics {
@@ -63,6 +72,7 @@ TextField {
         toolTip: "Uhrzeit wählen"
         enabled: !field.readOnly && field.enabled
         onClicked: {
+            field.editStarted()
             const n = field.normalized(field.text)
             picker.hour = n !== "" ? parseInt(n.slice(0, 2)) : -1
             picker.minute = n !== "" ? parseInt(n.slice(3)) : -1
@@ -77,10 +87,12 @@ TextField {
         onPicked: (h, m) => {
             field.text = picker.two(h) + ":" + picker.two(m)
             field.textEdited()
+            field.editDone()
         }
         onCleared: {
             field.text = ""
             field.textEdited()
+            field.editDone()
         }
     }
 }

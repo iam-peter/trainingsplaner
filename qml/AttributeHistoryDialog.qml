@@ -112,13 +112,16 @@ EditorDialog {
                 required property string text
                 width: ListView.view.width - rowBar.room
                 spacing: 8
+                RangeLink { from: rowFrom; to: rowTo; kind: "date" }
                 DateField {
+                    id: rowFrom
                     objectName: "fromField"
                     Layout.preferredWidth: dialog.wDate
                     text: row.from
                     onTextEdited: { rows.setProperty(row.index, "from", text); dialog.dirty = true }
                 }
                 DateField {
+                    id: rowTo
                     objectName: "toField"
                     Layout.preferredWidth: dialog.wDate
                     text: row.to

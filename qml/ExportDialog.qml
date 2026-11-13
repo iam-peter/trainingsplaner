@@ -69,6 +69,7 @@ AppDialog {
                 WeekField { id: fromWeek }
                 Label { text: "bis" }
                 WeekField { id: toWeek }
+                RangeLink { from: fromWeek; to: toWeek; kind: "week" }
             }
 
             Label {

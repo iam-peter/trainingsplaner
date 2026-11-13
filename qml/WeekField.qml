@@ -10,6 +10,14 @@ TextField {
     id: field
 
     signal weekPicked(string monday)
+    // For a linked pair of fields (RangeLink): an edit starts when the
+    // field gets the focus or its calendar opens, and is done when the
+    // field is left or a week picked
+    signal editStarted()
+    signal editDone()
+
+    onActiveFocusChanged: if (activeFocus) editStarted()
+    onEditingFinished: editDone()
 
     // The week's Monday, "" while the text is no week
     readonly property string monday: Store.weekFromLabel(text)
@@ -30,7 +38,10 @@ TextField {
         iconName: "calendar-days"
         toolTip: "Woche im Kalender wählen"
         enabled: !field.readOnly && field.enabled
-        onClicked: calendar.open()
+        onClicked: {
+            field.editStarted()
+            calendar.open()
+        }
     }
 
     WeekCalendar {
@@ -43,6 +54,7 @@ TextField {
             field.text = Store.weekLabel(m)
             field.textEdited()
             field.weekPicked(m)
+            field.editDone()
             field.forceActiveFocus()
         }
     }

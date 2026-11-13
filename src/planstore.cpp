@@ -99,6 +99,12 @@ QVariantMap Plan::saveMaz(const QVariantMap &v)
         error = QStringLiteral("„bis“ liegt vor „von“.");
     else if (m.weeks() > 104)
         error = QStringLiteral("Ein MAZ kann höchstens 104 Wochen lang sein.");
+    else if (m.buildUp.isValid() && (m.buildUp < m.from || m.buildUp > m.to))
+        error = QStringLiteral("Die Aufbauphase muss zwischen „von“ und „bis“ beginnen.");
+    else if (m.peakPhase.isValid() && (m.peakPhase < m.from || m.peakPhase > m.to))
+        error = QStringLiteral("Die Leistungsausprägung muss zwischen „von“ und „bis“ beginnen.");
+    else if (m.buildUp.isValid() && m.peakPhase.isValid() && m.peakPhase < m.buildUp)
+        error = QStringLiteral("Die Leistungsausprägung beginnt vor der Aufbauphase.");
     if (!error.isEmpty())
         return {{QStringLiteral("id"), m.id}, {QStringLiteral("error"), error}};
     const QString id = Planning::saveMaz(m);

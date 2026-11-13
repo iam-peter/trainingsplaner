@@ -281,9 +281,30 @@ Page {
             RowLayout {
                 spacing: 8
                 Label { text: "von" }
-                SpinBox { id: fromYear; from: 1990; to: 2100; value: new Date().getFullYear() - 4; editable: true; textFromValue: v => String(v); onValueModified: page.reloadTrend() }
+                // The other year follows, so "von" never lies after "bis"
+                SpinBox {
+                    id: fromYear
+                    objectName: "fromYear"
+                    from: 1990; to: 2100; value: new Date().getFullYear() - 4; editable: true
+                    textFromValue: v => String(v)
+                    onValueModified: {
+                        if (toYear.value < value)
+                            toYear.value = value
+                        page.reloadTrend()
+                    }
+                }
                 Label { text: "bis" }
-                SpinBox { id: toYear; from: 1990; to: 2100; value: new Date().getFullYear(); editable: true; textFromValue: v => String(v); onValueModified: page.reloadTrend() }
+                SpinBox {
+                    id: toYear
+                    objectName: "toYear"
+                    from: 1990; to: 2100; value: new Date().getFullYear(); editable: true
+                    textFromValue: v => String(v)
+                    onValueModified: {
+                        if (fromYear.value > value)
+                            fromYear.value = value
+                        page.reloadTrend()
+                    }
+                }
                 Label { text: "Bestes Resultat:" }
                 ComboBox {
                     id: periodBox

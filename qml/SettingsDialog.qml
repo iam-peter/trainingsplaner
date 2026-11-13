@@ -286,6 +286,7 @@ AppDialog {
                                 id: _toField
                                 objectName: "toTime" + index
                             }
+                            RangeLink { from: _fromField; to: _toField }
                         }
                     }
                 }

@@ -87,6 +87,10 @@ EditorDialog {
             error = "„" + (fromBox.valid ? toBox.text : fromBox.text) + "“ ist keine Uhrzeit."
             return
         }
+        if (fromBox.time !== "" && toBox.time !== "" && toBox.time < fromBox.time) {
+            error = "„bis“ liegt vor „von“."
+            return
+        }
         error = ""
         Store.saveSession(athleteId, monday, variant, {
             day: day,
@@ -239,6 +243,7 @@ EditorDialog {
                     objectName: "toBox"
                     onTextEdited: dialog.dirty = true
                 }
+                RangeLink { from: fromBox; to: toBox }
                 Label {
                     objectName: "errorLabel"
                     visible: dialog.error !== ""

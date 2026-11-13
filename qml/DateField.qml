@@ -7,6 +7,15 @@ import Trainingsplaner
 TextField {
     id: field
 
+    // For a linked pair of fields (RangeLink): an edit starts when the
+    // field gets the focus or its calendar opens, and is done when the
+    // field is left or a date picked
+    signal editStarted()
+    signal editDone()
+
+    onActiveFocusChanged: if (activeFocus) editStarted()
+    onEditingFinished: editDone()
+
     placeholderText: "TT.MM.JJJJ"
     implicitWidth: 136
 
@@ -16,7 +25,10 @@ TextField {
         iconName: "calendar-days"
         toolTip: "Im Kalender wählen"
         enabled: !field.readOnly && field.enabled
-        onClicked: calendar.open()
+        onClicked: {
+            field.editStarted()
+            calendar.open()
+        }
     }
 
     DateCalendar {
@@ -27,6 +39,7 @@ TextField {
         onPicked: (d) => {
             field.text = Store.formatDate(d)
             field.textEdited()
+            field.editDone()
             field.forceActiveFocus()
         }
     }

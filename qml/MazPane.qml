@@ -115,6 +115,7 @@ RowLayout {
                 WeekField { id: fromField; onTextEdited: pane.dirty = true }
                 Label { text: "bis:" }
                 WeekField { id: toField; onTextEdited: pane.dirty = true }
+                RangeLink { from: fromField; to: toField; kind: "week" }
                 Label { text: "Aufbauphase ab:" }
                 WeekField { id: buildUpField; onTextEdited: pane.dirty = true }
                 Label { text: "Leistungsausprägung ab:" }

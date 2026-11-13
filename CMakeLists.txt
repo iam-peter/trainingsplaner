@@ -78,6 +78,7 @@ qt_add_qml_module(tpqml
         qml/DateCalendar.qml
         qml/DateField.qml
         qml/TimePicker.qml
+        qml/RangeLink.qml
         qml/TimeField.qml
         qml/WeekField.qml
         qml/ValueComboBox.qml
