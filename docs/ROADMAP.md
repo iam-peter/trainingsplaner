@@ -57,7 +57,8 @@ and order in [UX-PLAN.md](UX-PLAN.md)):
 - [x] **The previous week and the ITP** beside each exercise in the
       session editor and in the K1–K7 summary; the week's MAZ, phase and
       next competition above the days.
-- [ ] **Two weeks at once**: the previous week above the current one.
+- [x] **Two weeks at once**: the previous week above the current one
+      ("Vorwoche").
 - [ ] **A session panel at the side of the week** instead of the modal
       dialog, undockable into a window; empty days narrower.
 - [ ] **Rahmenorientierung opened from the MAZ**, without the ITP / RO

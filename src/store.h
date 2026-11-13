@@ -41,6 +41,8 @@ class Store : public QObject
     Q_PROPERTY(double weightStep READ weightStep WRITE setWeightStep NOTIFY settingsChanged)
     // Rows of sessions the week plan shows at least: 1-3, WinWoTA's 2 unless set
     Q_PROPERTY(int sessionsPerDay READ sessionsPerDay WRITE setSessionsPerDay NOTIFY settingsChanged)
+    // The week plan shows the week before above the week ("Vorwoche")
+    Q_PROPERTY(bool showPreviousWeek READ showPreviousWeek WRITE setShowPreviousWeek NOTIFY settingsChanged)
     Q_PROPERTY(QString clipboardLabel READ clipboardLabel NOTIFY clipboardChanged)
     Q_PROPERTY(QString sessionClipboardLabel READ sessionClipboardLabel NOTIFY clipboardChanged)
     // What Ctrl+Z / Ctrl+Y would do, "" when there is nothing
@@ -82,6 +84,8 @@ public:
     void setWeightStep(double v);
     int sessionsPerDay() const;
     void setSessionsPerDay(int n);
+    bool showPreviousWeek() const;
+    void setShowPreviousWeek(bool on);
     // Next weight up or down by weightStep, rounded to whole kg (100, 102, 105, 107 ...)
     Q_INVOKABLE int stepWeight(int kg, int direction) const;
     // How much this athlete usually adds from one weight step to the next

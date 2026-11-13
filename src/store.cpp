@@ -736,6 +736,19 @@ void Store::setSessionsPerDay(int n)
     emit settingsChanged();
 }
 
+bool Store::showPreviousWeek() const
+{
+    return QSettings().value(QStringLiteral("week/showPrevious"), false).toBool();
+}
+
+void Store::setShowPreviousWeek(bool on)
+{
+    if (on == showPreviousWeek())
+        return;
+    QSettings().setValue(QStringLiteral("week/showPrevious"), on);
+    emit settingsChanged();
+}
+
 int Store::stepWeight(int kg, int direction) const
 {
     return Steps::nextWeight(kg, weightStep(), direction);

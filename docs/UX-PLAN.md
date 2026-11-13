@@ -45,9 +45,9 @@ decide how the program feels. That is where his wishes are, too:
 
 | # | What he asked for | Where in this plan | State |
 |---|---|---|---|
-| W1 | See the previous week while entering a session | 3.1, 3.2 | done (per line and in K1–K7); two weeks at once planned |
+| W1 | See the previous week while entering a session | 3.1, 3.2 | done |
 | W2 | As many sessions per day as he uses (one), not always two | 3.1 | done |
-| W3 | Two weeks at once when there is room | 3.1 | planned |
+| W3 | Two weeks at once when there is room | 3.1 | done |
 | W4 | The session editor beside the week, not over it | 3.2 | planned |
 | W5 | A month view with the competitions, instead of his paper calendar | 3.3 | planned |
 | W6 | A chart of Ist against Ziel showing raised and lowered weeks | 3.5 | to clarify with him |
@@ -133,10 +133,14 @@ Sessions keep their numbers 1–3, as in the old export format. (W2)
 - **Plan and Ist count together**: in the Ist, a planned session keeps
   its place and its day stays wide, ready for its Ist.
 
-**Woche | 2 Wochen | Monat** in the toolbar. "2 Wochen" shows the
-previous week above the current one, dimmed and labelled
-(`Vorwoche 45/2026 · Ist`); clicking into it switches to that week. With
-one row per day and narrow empty days there is room for both. (W3)
+**Two weeks** (done). "Vorwoche" in the toolbar, where WinWoTA had its
+"3 TE" box, shows the week before above the week, dimmed and labelled
+(`Vorwoche 45/2026 · Ist`, its Plan when it has no Ist), in the same
+columns; the choice is kept. It is read only: a click into it switches to
+that week as shown. With one row per day and narrow empty days there is
+room for both; with two rows each the cells get small, and the time of a
+session is left out where it would cover its lines. When the month view
+comes, "Woche | 2 Wochen | Monat" can replace the box. (W3)
 
 **Plan and Ist** stay two weeks, switched as now, as in WinWoTA. A planned
 session in the past without an Ist is marked "offen" (in the month view
@@ -451,7 +455,7 @@ flowchart LR
 | ✓ | Next weight proposed, ↑ / ↓ counting, totals from text, earlier entries, no placeholder, ranges in order | – | W7–W12 |
 | ✓ 1 | Setting "Einheiten pro Tag"; rows grow with the data; "Weitere Einheit"; "3 TE" goes; empty days narrow, scrolling when too wide | small | W2 |
 | ✓ 2 | Last week and the ITP per exercise line in the session editor; last week, target and difference in the K1–K7 summary; the info line of the week | small | W1 |
-| 3 | "2 Wochen": the previous week above the current one | medium | W3 |
+| ✓ 3 | "Vorwoche": the previous week above the current one | medium | W3 |
 | 4 | Session panel at the side of the week, undockable; Vorlage from last week | medium | W4 |
 | 5 | Rahmenorientierung opened from the MAZ; ITP and Laststufen without the switch | small | W13 |
 | 6 | The week's load h / m / g read from the ITP wherever a week is shown | small | 3.1, 3.3, 3.5 |

@@ -22,6 +22,52 @@ Page {
     // (Store.weekContext)
     property var context: ({})
 
+    // "Vorwoche": the week before, above the week, read only; its Ist where
+    // it has one, else its Plan
+    readonly property bool showPrevious: Store.showPreviousWeek
+    readonly property string previousMonday: Store.addWeeks(monday, -1)
+    readonly property string previousVariant: context.previous ? context.previous.variant : "I"
+    property var previousData: ({})
+    readonly property var previousNumbers: {
+        const days = [[], [], [], [], [], [], []]
+        for (const s of (previousData.sessions || [])) {
+            if (days[s.day - 1].indexOf(s.number) < 0)
+                days[s.day - 1].push(s.number)
+        }
+        for (const d of days)
+            d.sort()
+        return days
+    }
+    readonly property int previousRows: {
+        if (!showPrevious)
+            return 0
+        let n = compact ? 1 : Store.sessionsPerDay
+        for (const d of previousNumbers)
+            n = Math.max(n, compact ? d.length : (d.length > 0 ? d[d.length - 1] : 0))
+        return Math.min(3, n)
+    }
+    function previousNumberAt(day, row) {
+        return compact ? (previousNumbers[day - 1][row - 1] || 0) : row
+    }
+    function previousSessionAt(day, number) {
+        for (const s of (previousData.sessions || [])) {
+            if (s.day === day && s.number === number)
+                return s
+        }
+        return null
+    }
+    // Shows the week before as it was shown above
+    function openPrevious() {
+        const v = previousVariant
+        monday = previousMonday
+        variant = v
+    }
+    // 1-7 when today is in the week before (planning next week), else 0
+    readonly property int previousTodayDay: {
+        const t = Store.today()
+        return Store.mondayOf(t) === previousMonday ? (new Date(t + "T12:00:00").getDay() + 6) % 7 + 1 : 0
+    }
+
     // The week's place in the cycle, for the line above the days
     readonly property string cycleText: {
         const parts = []
@@ -115,8 +161,9 @@ Page {
         const ordered = free.filter(n => n >= start).concat(free.filter(n => n < start))
         return ordered[row - used.length - 1] || 0
     }
-    // Days with a session in either variant
-    readonly property var usedDays: dayNumbers.map(d => d.length > 0)
+    // Days with a session in either variant, or in the week before when
+    // that is shown, so the two weeks keep the same columns
+    readonly property var usedDays: dayNumbers.map((d, i) => d.length > 0 || (showPrevious && previousNumbers[i].length > 0))
     // A day without sessions is a narrow column, once another day has some
     function narrowDay(day) {
         return usedDays.indexOf(true) >= 0 && !usedDays[day - 1]
@@ -171,12 +218,18 @@ Page {
             weekData = {}
             otherWeek = {}
             context = {}
+            previousData = {}
             noteOwner = null
             return
         }
         weekData = Store.week(athleteId, monday, variant)
         otherWeek = Store.week(athleteId, monday, variant === "P" ? "I" : "P")
         context = Store.weekContext(athleteId, monday)
+        // From the week's own values: bindings on them may not have followed
+        // the change yet that started this reload
+        previousData = Store.showPreviousWeek
+                       ? Store.week(athleteId, Store.addWeeks(monday, -1), context.previous ? context.previous.variant : "I")
+                       : {}
         let counts = [0, 0, 0, 0]
         for (const w of [weekData, otherWeek])
             for (const s of (w.sessions || []))
@@ -317,6 +370,7 @@ Page {
         sessionDialog.edit(athleteId, monday, variant, day, number)
     }
 
+    onShowPreviousChanged: reload()
     onAthleteIdChanged: { extraRows = 0; reload() }
     onMondayChanged: { extraRows = 0; reload() }
     onVariantChanged: reload()
@@ -420,6 +474,15 @@ Page {
                 text: "Ist"
                 checked: page.variant === "I"
                 onToggled: if (checked) page.variant = "I"
+            }
+            CheckBox {
+                id: previousBox
+                objectName: "previousBox"
+                text: "Vorwoche"
+                checked: Store.showPreviousWeek
+                onToggled: Store.showPreviousWeek = checked
+                ToolTip.visible: hovered
+                ToolTip.text: "Die Woche davor über dieser Woche zeigen"
             }
 
             Item { Layout.fillWidth: true }
@@ -539,8 +602,12 @@ Page {
                 columnSpacing: 4
 
                 readonly property real headHeight: dayHeads.count > 0 && dayHeads.itemAt(0) ? dayHeads.itemAt(0).implicitHeight : 0
-                readonly property real minimumRows: headHeight + page.rows * (44 + rowSpacing)
-                readonly property int rowHeight: Math.max(44, Math.floor((gridArea.height - gridArea.bottomRoom - headHeight - page.rows * rowSpacing) / page.rows))
+                // The two weeks' labels, while the week before is shown
+                readonly property real labelsHeight: page.showPrevious ? 2 * (weekLabelHeight + rowSpacing) : 0
+                readonly property int weekLabelHeight: 18
+                readonly property int allRows: page.rows + page.previousRows
+                readonly property real minimumRows: headHeight + labelsHeight + allRows * (44 + rowSpacing)
+                readonly property int rowHeight: Math.max(44, Math.floor((gridArea.height - gridArea.bottomRoom - headHeight - labelsHeight - allRows * rowSpacing) / allRows))
                 readonly property real minimumWidth: {
                     let w = 6 * columnSpacing
                     for (let d = 1; d <= 7; ++d)
@@ -574,6 +641,54 @@ Page {
                             color: page.todayDay === index + 1 ? Styles.TokenInterface.semantics.primary_default : Styles.TokenInterface.semantics.text_muted
                         }
                     }
+                }
+
+                Label {
+                    objectName: "previousLabel"
+                    visible: page.showPrevious
+                    Layout.columnSpan: 7
+                    Layout.preferredHeight: grid.weekLabelHeight
+                    text: "Vorwoche " + Store.weekLabel(page.previousMonday) + " · " + (page.previousVariant === "I" ? "Ist" : "Plan")
+                          + ((page.previousData.sessions || []).length === 0 ? " · keine Einheiten" : "")
+                    font.pixelSize: 11
+                    font.bold: true
+                    color: Styles.TokenInterface.semantics.text_muted
+                }
+
+                Repeater {
+                    id: previousCells
+                    model: page.previousRows * 7
+                    SessionCell {
+                        required property int index
+                        readonly property int day: index % 7 + 1
+                        readonly property int row: Math.floor(index / 7) + 1
+                        readonly property int number: page.previousNumberAt(day, row)
+                        objectName: "previous" + day + "_" + number
+                        readOnly: true
+                        narrow: page.narrowDay(day)
+                        opacity: 0.6
+                        Layout.fillWidth: !narrow
+                        Layout.preferredWidth: narrow ? page.narrowWidth : 1
+                        Layout.minimumWidth: narrow ? page.narrowWidth : page.wideMinimum
+                        Layout.maximumWidth: narrow ? page.narrowWidth : Number.POSITIVE_INFINITY
+                        Layout.preferredHeight: grid.rowHeight
+                        Layout.minimumHeight: 44
+                        today: page.previousTodayDay === day
+                        sessionNumber: number
+                        session: number > 0 ? page.previousSessionAt(day, number) : null
+                        onClicked: page.openPrevious()
+                        onExerciseClicked: page.openPrevious()
+                    }
+                }
+
+                Label {
+                    objectName: "currentLabel"
+                    visible: page.showPrevious
+                    Layout.columnSpan: 7
+                    Layout.preferredHeight: grid.weekLabelHeight
+                    text: "Woche " + Store.weekLabel(page.monday) + " · " + (page.variant === "I" ? "Ist" : "Plan")
+                    font.pixelSize: 11
+                    font.bold: true
                 }
 
                 Repeater {

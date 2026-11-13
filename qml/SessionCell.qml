@@ -17,6 +17,9 @@ Rectangle {
     // A narrow column for a day without sessions: no session number, the
     // "+" always shown
     property bool narrow: false
+    // Shown for comparison (the week before): no "+", no keys, a click
+    // only asks to go there
+    property bool readOnly: false
     signal clicked()
     signal deleteRequested()
     signal moveRequested(int days, int sessions)
@@ -63,7 +66,7 @@ Rectangle {
         id: hover
     }
 
-    activeFocusOnTab: true
+    activeFocusOnTab: !readOnly
     Keys.onReturnPressed: cell.clicked()
     Keys.onEnterPressed: cell.clicked()
     Keys.onSpacePressed: cell.clicked()
@@ -91,6 +94,11 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         onClicked: (mouseEvent) => {
+            if (cell.readOnly) {
+                if (mouseEvent.button === Qt.LeftButton)
+                    cell.clicked()
+                return
+            }
             cell.forceActiveFocus()
             if (mouseEvent.button === Qt.RightButton)
                 cell.menuRequested(0, mouseEvent.x, mouseEvent.y)
@@ -111,7 +119,7 @@ Rectangle {
 
     IconImage {
         anchors.centerIn: parent
-        visible: !cell.filled && (hover.hovered || cell.narrow)
+        visible: !cell.filled && !cell.readOnly && (hover.hovered || cell.narrow)
         source: Theme.icon("plus")
         sourceSize: cell.narrow ? Qt.size(20, 20) : Qt.size(28, 28)
         color: _plusStyle.icon.color
@@ -119,6 +127,7 @@ Rectangle {
     }
 
     ColumnLayout {
+        id: lines
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
@@ -157,6 +166,11 @@ Rectangle {
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
                     // Other lines pass clicks on to the cell (open the session)
                     onClicked: (mouseEvent) => {
+                        if (cell.readOnly) {
+                            if (mouseEvent.button === Qt.LeftButton)
+                                cell.clicked()
+                            return
+                        }
                         cell.forceActiveFocus()
                         if (mouseEvent.button === Qt.RightButton) {
                             const p = mapToItem(cell, mouseEvent.x, mouseEvent.y)
@@ -217,13 +231,14 @@ Rectangle {
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottomMargin: 4
-        visible: cell.filled && cell.session.from !== ""
+        // Only where it does not cover the lines (small rows, two weeks)
+        visible: cell.filled && cell.session.from !== "" && lines.y + lines.implicitHeight + height + 6 <= cell.height
         text: cell.filled ? cell.session.from + " Uhr" : ""
         font.pixelSize: 11
         color: _cellStyle.text.color
     }
 
-    ToolTip.visible: mouse.containsMouse && (filled ? session.note !== "" : narrow)
-    ToolTip.text: filled ? session.note : sessionNumber + ". TE anlegen"
+    ToolTip.visible: mouse.containsMouse && (readOnly || (filled ? session.note !== "" : narrow))
+    ToolTip.text: readOnly ? "Zu dieser Woche wechseln" : filled ? session.note : sessionNumber + ". TE anlegen"
     ToolTip.delay: 600
 }
