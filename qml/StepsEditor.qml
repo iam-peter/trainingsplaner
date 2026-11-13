@@ -31,6 +31,10 @@ RowLayout {
             last.focusKg()
     }
 
+    // Where the weights begin, past the "KG:" labels, for what lines up
+    // under them
+    readonly property real stepsX: stepsFlow.x
+
     signal changed()
 
     // A weight typed into a step proposes the next one, weight + jump, as
@@ -125,6 +129,7 @@ RowLayout {
     }
 
     Flow {
+        id: stepsFlow
         Layout.fillWidth: true
         spacing: 8
         Repeater {

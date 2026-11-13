@@ -18,6 +18,60 @@ Page {
     property var otherWeek: ({})
     // A row asked for with "Weitere Einheit", until the week changes
     property int extraRows: 0
+    // Last week, the ITP's targets, the MAZ and the next competition
+    // (Store.weekContext)
+    property var context: ({})
+
+    // The week's place in the cycle, for the line above the days
+    readonly property string cycleText: {
+        const parts = []
+        const z = context.maz
+        if (z && z.has)
+            parts.push(z.name + (z.phase ? " · " + z.phase : "") + " · Woche " + z.week + " von " + z.weeks)
+        if (context.load > 0)
+            parts.push("Bel. " + context.load)
+        if (context.position)
+            parts.push("WK-Lage " + context.position)
+        return parts.join("   ·   ")
+    }
+    readonly property string nextCompetitionText: {
+        const n = context.next
+        if (!n || !n.has)
+            return ""
+        return "Nächster Wettkampf: " + n.name + ", " + n.date
+               + (n.days === 0 ? " (heute)" : n.days === 1 ? " (morgen)" : " (in " + n.days + " Tagen)")
+    }
+    // "Vorwoche 45/2026 (Ist): 241Wh / 63kg   ·   ITP: 230Wh / 66kg   ·   Woche gegen ITP: −7 % WH"
+    readonly property var comparison: {
+        const parts = []
+        const p = context.previous
+        if (p && p.has)
+            parts.push("Vorwoche " + p.label + " (" + (p.variant === "I" ? "Ist" : "Plan") + "): "
+                       + p.k17.wh + "Wh / " + p.k17.mhg + "kg")
+        const t = context.target
+        let deviation = 0
+        if (t && t.has && t.k17.wh > 0) {
+            parts.push("ITP: " + t.k17.wh + "Wh" + (t.k17.mhg > 0 ? " / " + t.k17.mhg + "kg" : ""))
+            const cur = weekData.k17Stats ? weekData.k17Stats.wh : 0
+            if (cur > 0) {
+                deviation = Math.round((cur - t.k17.wh) * 100 / t.k17.wh)
+                parts.push("Woche gegen ITP: " + (deviation > 0 ? "+" : deviation < 0 ? "−" : "±")
+                           + Math.abs(deviation) + " % WH")
+            }
+        }
+        return { text: parts.join("   ·   "), deviation: deviation }
+    }
+    // A group's figures beside its own: "VW 36 · ITP 32"
+    function groupComparison(index) {
+        const parts = []
+        const p = context.previous
+        if (p && p.has && p.groups[index] && p.groups[index].wh > 0)
+            parts.push("VW " + p.groups[index].wh)
+        const t = context.target
+        if (t && t.has && t.groups[index] > 0)
+            parts.push("ITP " + t.groups[index])
+        return parts.join(" · ")
+    }
 
     // The session numbers of each day in either variant, sorted
     readonly property var dayNumbers: {
@@ -115,11 +169,14 @@ Page {
         saveNote()
         if (!hasAthlete) {
             weekData = {}
+            otherWeek = {}
+            context = {}
             noteOwner = null
             return
         }
         weekData = Store.week(athleteId, monday, variant)
         otherWeek = Store.week(athleteId, monday, variant === "P" ? "I" : "P")
+        context = Store.weekContext(athleteId, monday)
         let counts = [0, 0, 0, 0]
         for (const w of [weekData, otherWeek])
             for (const s of (w.sessions || []))
@@ -438,6 +495,26 @@ Page {
         // only as far as its cells do, which then set their heights apart.
         // A day without sessions is narrow; when even the narrow days do not
         // fit, the area scrolls sideways instead of squeezing the text.
+        // Where the week stands: its MAZ and phase, the ITP's load, the next
+        // competition
+        RowLayout {
+            objectName: "cycleLine"
+            visible: page.cycleText !== "" || page.nextCompetitionText !== ""
+            Layout.fillWidth: true
+            spacing: 24
+            Label {
+                text: page.cycleText
+                visible: text !== ""
+                font.bold: true
+            }
+            Label {
+                text: page.nextCompetitionText
+                visible: text !== ""
+                color: Styles.TokenInterface.semantics.primary_default
+            }
+            Item { Layout.fillWidth: true }
+        }
+
         Flickable {
             id: gridArea
             objectName: "gridArea"
@@ -649,6 +726,20 @@ Page {
                         ToolTip.text: "Gruppen K1–K5: WH / MHG / Tonnage"
                     }
                 }
+                // Last week and the ITP's targets, and how far the week is off
+                Label {
+                    objectName: "weekComparison"
+                    visible: text !== ""
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 8
+                    Layout.rightMargin: 8
+                    Layout.bottomMargin: 6
+                    Layout.topMargin: -4
+                    text: page.comparison.text
+                    elide: Text.ElideRight
+                    color: Math.abs(page.comparison.deviation) >= 10 ? Styles.TokenInterface.semantics.danger_default
+                                                                     : Styles.TokenInterface.semantics.text_muted
+                }
                 Rectangle { Layout.fillWidth: true; height: 1; color: Styles.TokenInterface.semantics.stroke_subtle }
                 RowLayout {
                     Layout.fillWidth: true
@@ -688,6 +779,14 @@ Page {
                                     ToolTip.delay: 400
                                     ToolTip.text: Glossary.group(index + 1)
                                                   + "\nJe Zeile: Übung  WH  MHG  BW  Wdh/Sätze beim BW"
+                                }
+                                Label {
+                                    objectName: "groupComparison" + (index + 1)
+                                    Layout.alignment: Qt.AlignHCenter
+                                    visible: text !== ""
+                                    text: page.groupComparison(index)
+                                    font.pixelSize: 11
+                                    color: Styles.TokenInterface.semantics.text_muted
                                 }
                                 Repeater {
                                     model: modelData.lines

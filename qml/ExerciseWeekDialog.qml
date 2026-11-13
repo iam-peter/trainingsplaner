@@ -25,10 +25,14 @@ EditorDialog {
     property int nextUid: 0
     property var copiedSteps: null
 
+    // Last week and the ITP's targets (Store.weekContext)
+    property var context: ({})
+
     function edit(a, m, v, ex) {
         athleteId = a
         monday = m
         variant = v
+        context = Store.weekContext(a, m)
         load(ex)
         open()
     }
@@ -280,6 +284,15 @@ EditorDialog {
             Label { text: "BW " + (dialog.weekStats.bw || 0) + (dialog.weekStats.repsSets ? "  (" + dialog.weekStats.repsSets + ")" : "") }
             Label { text: "Tonnage " + ((dialog.weekStats.tonnage || 0) / 1000).toLocaleString(Qt.locale("de_DE"), "f", 1) + " t" }
             Item { Layout.fillWidth: true }
+            Label {
+                objectName: "previousWeek"
+                readonly property var prev: dialog.valid && dialog.context.previous
+                                            ? dialog.context.previous.perExercise[String(dialog.exercise)] : undefined
+                visible: prev !== undefined && !prev.empty
+                text: prev ? "Vorwoche" + (dialog.context.previous.variant === "P" ? " (Plan)" : "")
+                             + ":  WH " + prev.wh + "  MHG " + prev.mhg + "  BW " + prev.bw : ""
+                color: Styles.TokenInterface.semantics.text_muted
+            }
             Label {
                 readonly property var itp: dialog.valid ? (Plan.mazList, Plan.itpForWeek(dialog.athleteId, dialog.monday, dialog.exercise)) : null
                 visible: itp !== null && itp.has

@@ -164,6 +164,15 @@ public:
     // The athlete's earlier weight steps of the exercise, each sequence
     // once, newest first: [{text: "50/5/2  55/3/2", steps: [{kg, reps, sets}]}]
     Q_INVOKABLE QVariantList recentSteps(const QString &athleteId, int exercise) const;
+    // What a week is seen against:
+    //   previous: last week, its Ist where it has one, else its Plan:
+    //     {has, label, variant, perExercise {ex: stats}, k17, k15, groups [stats x7]}
+    //   target: the ITP's targets for the week:
+    //     {has, perExercise {ex: {wh, mhg, bw, repsSets}}, k17 {wh, mhg, bw}, groups [wh x7, 0 = none]}
+    //   maz: the athlete's MAZ around the week: {has, name, shortName, week, weeks, phase}
+    //   load, position: the ITP's "Bel." and "WK" of the week (0 / "" when not set)
+    //   next: the next competition from the week's Monday on: {has, name, date, days}
+    Q_INVOKABLE QVariantMap weekContext(const QString &athleteId, const QString &monday) const;
     Q_INVOKABLE QVariantList exerciseHistory(const QString &athleteId, const QString &monday,
                                              const QString &variant, int exercise, int weeks) const;
     // Per week up to the given one (oldest first): {labels, wh, mhg, bw}

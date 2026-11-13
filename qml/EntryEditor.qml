@@ -18,6 +18,23 @@ Frame {
     // Whose week this is, for the proposals while typing
     property string athleteId
     property string monday
+    // Last week and the ITP's targets (Store.weekContext)
+    property var context: ({})
+
+    // "Vorwoche WH 18 · MHG 54 · BW 60   ITP WH 18 · MHG 56 · BW 62"
+    readonly property string comparison: {
+        if (kind !== 0 || exercise <= 0)
+            return ""
+        const parts = []
+        const prev = context.previous && context.previous.perExercise ? context.previous.perExercise[String(exercise)] : undefined
+        if (prev && !prev.empty)
+            parts.push("Vorwoche" + (context.previous.variant === "P" ? " (Plan)" : "") + "  WH " + prev.wh
+                       + " · MHG " + prev.mhg + " · BW " + prev.bw)
+        const itp = context.target && context.target.perExercise ? context.target.perExercise[String(exercise)] : undefined
+        if (itp)
+            parts.push("ITP  WH " + itp.wh + " · MHG " + itp.mhg + " · BW " + itp.bw)
+        return parts.join("      ")
+    }
 
     property int kind: 0            // 0 weights, 1 exercise text, 2 free text
     property int exercise: 0
@@ -168,17 +185,33 @@ Frame {
             }
         }
 
-        // Weight steps
-        StepsEditor {
-            id: stepsEditor
+        // Weight steps, and under them last week and the ITP
+        ColumnLayout {
             visible: editor.kind === 0
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignTop
-            initialSteps: editor.source.steps || []
-            actual: editor.actual
-            jump: editor.kind === 0 && editor.exercise > 0 ? Store.usualJump(editor.athleteId, editor.monday, editor.exercise) : 5
-            suggestions: editor.kind === 0 && editor.exercise > 0 ? Store.recentSteps(editor.athleteId, editor.exercise) : []
-            onChanged: editor.changed()
+            spacing: 4
+            StepsEditor {
+                id: stepsEditor
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignTop
+                initialSteps: editor.source.steps || []
+                actual: editor.actual
+                jump: editor.kind === 0 && editor.exercise > 0 ? Store.usualJump(editor.athleteId, editor.monday, editor.exercise) : 5
+                suggestions: editor.kind === 0 && editor.exercise > 0 ? Store.recentSteps(editor.athleteId, editor.exercise) : []
+                onChanged: editor.changed()
+            }
+            Label {
+                objectName: "comparison"
+                visible: editor.comparison !== ""
+                Layout.fillWidth: true
+                // Under the weights, past the "KG:" labels
+                Layout.leftMargin: stepsEditor.stepsX
+                text: editor.comparison
+                elide: Text.ElideRight
+                font.pixelSize: 11
+                color: Styles.TokenInterface.semantics.text_muted
+            }
         }
 
         // General exercise as text

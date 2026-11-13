@@ -45,7 +45,7 @@ decide how the program feels. That is where his wishes are, too:
 
 | # | What he asked for | Where in this plan | State |
 |---|---|---|---|
-| W1 | See the previous week while entering a session | 3.1, 3.2 | planned |
+| W1 | See the previous week while entering a session | 3.1, 3.2 | done (per line and in K1–K7); two weeks at once planned |
 | W2 | As many sessions per day as he uses (one), not always two | 3.1 | done |
 | W3 | Two weeks at once when there is room | 3.1 | planned |
 | W4 | The session editor beside the week, not over it | 3.2 | planned |
@@ -101,15 +101,17 @@ the steps below (section 8).
 2. **The session panel** at the side instead of a dialog over the week:
    see 3.2. (W4)
 3. **The next weight proposed** in grey: see section 4. (W7)
-4. **Last week and the ITP per exercise**, under each line of the
-   session: `Vorwoche WH 18 · MHG 54 · BW 60 · ITP WH 18 · MHG 56 · BW 62`.
+4. **Last week and the ITP per exercise** (done), under each line of the
+   session (and in Erfassung TÜ): `Vorwoche WH 18 · MHG 54 · BW 60 · ITP WH 18 · MHG 56 · BW 62`.
    Last week means its Ist where it has one, otherwise its Plan; the
    label says which. (W1)
 5. **Earlier lines offered** under the first weight. (W9)
-6. **A line about the week's place in the cycle**, from the MAZ and the
+6. **A line about the week's place in the cycle** (done; the load as a
+   number until its meaning is known, question 8), from the MAZ and the
    ITP: the MAZ, the phase, the week of the cycle, its load h / m / g,
    and the next competition with the days left.
-7. **The K1–K7 summary with last week and the target**: this week (Plan
+7. **The K1–K7 summary with last week and the target** (done, as a line
+   under K1-7 and per complex, the difference marked from 10 %): this week (Plan
    or Ist), last week, the ITP's targets for this week, and the
    difference to the target where it is large. (W1)
 
@@ -448,7 +450,7 @@ flowchart LR
 |---|---|---|---|
 | ✓ | Next weight proposed, ↑ / ↓ counting, totals from text, earlier entries, no placeholder, ranges in order | – | W7–W12 |
 | ✓ 1 | Setting "Einheiten pro Tag"; rows grow with the data; "Weitere Einheit"; "3 TE" goes; empty days narrow, scrolling when too wide | small | W2 |
-| 2 | Last week and the ITP per exercise line in the session editor; last week, target and difference in the K1–K7 summary; the info line of the week | small | W1 |
+| ✓ 2 | Last week and the ITP per exercise line in the session editor; last week, target and difference in the K1–K7 summary; the info line of the week | small | W1 |
 | 3 | "2 Wochen": the previous week above the current one | medium | W3 |
 | 4 | Session panel at the side of the week, undockable; Vorlage from last week | medium | W4 |
 | 5 | Rahmenorientierung opened from the MAZ; ITP and Laststufen without the switch | small | W13 |
@@ -500,6 +502,9 @@ Kept for later, and only if the coach wants them:
    summary page was?
 7. What did WinWoTA's "Langfristiger Leistungsaufbau" show, and does he
    use it? (To look at on the old PC.)
+8. Which values does WinWoTA's "Bel." (load of a week, a number in the
+   data) take, and how do they map to h / m / g? Until then the week
+   shows the number as stored. (To look at on the old PC.)
 
 ## 10. Background
 

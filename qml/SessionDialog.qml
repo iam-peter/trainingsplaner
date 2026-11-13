@@ -15,6 +15,8 @@ EditorDialog {
     property int number: 1
     property bool exists: false
     property var weekStats: ({})
+    // Last week and the ITP's targets (Store.weekContext), beside each line
+    property var context: ({})
 
     // Initial entry data by uid; the ListModel only holds the uids so that
     // moving or removing rows keeps the other editors intact.
@@ -28,6 +30,7 @@ EditorDialog {
         variant = v
         day = d
         number = n
+        context = Store.weekContext(a, m)
         const s = Store.session(a, m, v, d, n)
         exists = s.exists
         entryModel.clear()
@@ -194,6 +197,7 @@ EditorDialog {
                         actual: dialog.variant === "I"
                         athleteId: dialog.athleteId
                         monday: dialog.monday
+                        context: dialog.context
                         weekStats: dialog.weekStats
                         canMoveUp: index > 0
                         canMoveDown: index < entryRepeater.count - 1

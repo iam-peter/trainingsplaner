@@ -7,6 +7,7 @@
 #include "database.h"
 #include "demo.h"
 #include "exerciseweek.h"
+#include "planning.h"
 #include "weekreport.h"
 
 #include <QCoreApplication>
@@ -806,6 +807,7 @@ QVariantMap Store::week(const QString &athleteId, const QString &monday,
             {QStringLiteral("title"), g.stats.wh > 0 ? QStringLiteral("K%1: %2").arg(g.group).arg(g.stats.wh)
                                                      : QStringLiteral("K%1:").arg(g.group)},
             {QStringLiteral("lines"), lines},
+            {QStringLiteral("wh"), g.stats.wh},
         });
     }
 
@@ -817,6 +819,7 @@ QVariantMap Store::week(const QString &athleteId, const QString &monday,
         {QStringLiteral("injured"), w.injured},
         {QStringLiteral("k17"), QStringLiteral("K1-7: ") + sum.groups1to7.summary()},
         {QStringLiteral("k15"), QStringLiteral("K1-5: ") + sum.groups1to5.summary()},
+        {QStringLiteral("k17Stats"), statsMap(sum.groups1to7)},
         {QStringLiteral("groups"), groups},
         {QStringLiteral("empty"), w.sessions.isEmpty()},
     };
@@ -1270,6 +1273,135 @@ QVariantMap Store::competitionTrend(const QString &athleteId, int fromYear, int 
     return {{QStringLiteral("labels"), labels}, {QStringLiteral("total"), total},
             {QStringLiteral("snatch"), snatch}, {QStringLiteral("cleanJerk"), cleanJerk},
             {QStringLiteral("norm"), normValue}};
+}
+
+QVariantMap Store::weekContext(const QString &athleteId, const QString &monday) const
+{
+    QVariantMap result;
+    const QDate m = toDate(monday);
+    if (athleteId.isEmpty() || !m.isValid())
+        return result;
+
+    // Last week: what was done, else what was planned
+    const QDate prevMonday = m.addDays(-7);
+    Week prev = Database::loadWeek(athleteId, prevMonday, Variant::Actual);
+    WeekSummary prevSum = prev.summary();
+    QString prevVariant = QStringLiteral("I");
+    if (prevSum.groups1to7.isEmpty() && prevSum.perExercise.isEmpty()) {
+        prev = Database::loadWeek(athleteId, prevMonday, Variant::Plan);
+        prevSum = prev.summary();
+        prevVariant = QStringLiteral("P");
+    }
+    QVariantMap prevPer;
+    for (auto it = prevSum.perExercise.cbegin(); it != prevSum.perExercise.cend(); ++it)
+        prevPer.insert(QString::number(it.key()), statsMap(it.value()));
+    QVariantList prevGroups;
+    for (const GroupSummary &g : prevSum.groups)
+        prevGroups.append(statsMap(g.stats));
+    result.insert(QStringLiteral("previous"), QVariantMap{
+        {QStringLiteral("has"), !prevPer.isEmpty()},
+        {QStringLiteral("label"), Weeks::label(prevMonday)},
+        {QStringLiteral("variant"), prevVariant},
+        {QStringLiteral("perExercise"), prevPer},
+        {QStringLiteral("k17"), statsMap(prevSum.groups1to7)},
+        {QStringLiteral("k15"), statsMap(prevSum.groups1to5)},
+        {QStringLiteral("groups"), prevGroups},
+    });
+
+    // The ITP's targets: per exercise, and per complex (its own target, else
+    // the sum of its exercises')
+    QVariantMap targetPer;
+    int groupWh[Catalog::summaryGroups] = {};
+    bool groupOwn[Catalog::summaryGroups] = {};
+    double weighted = 0;
+    int whSum = 0;
+    int bwMax = 0;
+    const QList<WeekTarget> targets = Planning::targets(athleteId, m, m);
+    for (const WeekTarget &t : targets) {
+        if (t.exercise < 0 && -t.exercise <= Catalog::summaryGroups && t.wh > 0) {
+            groupWh[-t.exercise - 1] = t.wh;
+            groupOwn[-t.exercise - 1] = true;
+        }
+    }
+    for (const WeekTarget &t : targets) {
+        if (t.isEmpty())
+            continue;
+        targetPer.insert(QString::number(t.exercise), QVariantMap{
+            {QStringLiteral("wh"), t.wh}, {QStringLiteral("mhg"), t.mhg}, {QStringLiteral("bw"), t.bw},
+            {QStringLiteral("repsSets"), t.bwReps > 0 ? QStringLiteral("%1/%2").arg(t.bwReps).arg(t.bwSets) : QString()}});
+        const Exercise *e = t.exercise > 0 ? Catalog::find(t.exercise) : nullptr;
+        const int group = t.exercise < 0 ? -t.exercise : (e ? e->group : 0);
+        if (group < 1 || group > Catalog::summaryGroups)
+            continue;
+        // A complex with its own target counts once, by that target
+        if (t.exercise > 0 && groupOwn[group - 1])
+            continue;
+        if (t.exercise > 0)
+            groupWh[group - 1] += t.wh;
+        if (t.wh > 0 && t.mhg > 0) {
+            weighted += double(t.wh) * t.mhg;
+            whSum += t.wh;
+        }
+        bwMax = qMax(bwMax, t.bw);
+    }
+    QVariantList targetGroups;
+    int k17 = 0;
+    for (int g = 0; g < Catalog::summaryGroups; ++g) {
+        targetGroups.append(groupWh[g]);
+        k17 += groupWh[g];
+    }
+    result.insert(QStringLiteral("target"), QVariantMap{
+        {QStringLiteral("has"), !targetPer.isEmpty()},
+        {QStringLiteral("perExercise"), targetPer},
+        {QStringLiteral("k17"), QVariantMap{{QStringLiteral("wh"), k17},
+                                            {QStringLiteral("mhg"), whSum > 0 ? int(std::floor(weighted / whSum + 0.5)) : 0},
+                                            {QStringLiteral("bw"), bwMax}}},
+        {QStringLiteral("groups"), targetGroups},
+    });
+
+    // The MAZ around the week, its phase, and the ITP's load and position
+    QVariantMap maz{{QStringLiteral("has"), false}};
+    for (const Maz &z : Planning::mazForAthlete(athleteId)) {
+        if (z.from.isValid() && z.to.isValid() && m >= z.from && m <= z.to) {
+            QString phase;
+            if (z.peakPhase.isValid() && m >= z.peakPhase)
+                phase = QStringLiteral("Leistungsausprägung");
+            else if (z.buildUp.isValid() && m >= z.buildUp)
+                phase = QStringLiteral("Aufbauphase");
+            else if (z.buildUp.isValid() || z.peakPhase.isValid())
+                phase = QStringLiteral("Grundlagenphase");
+            maz = {{QStringLiteral("has"), true}, {QStringLiteral("name"), z.name},
+                   {QStringLiteral("shortName"), z.shortName},
+                   {QStringLiteral("week"), int(z.from.daysTo(m) / 7) + 1},
+                   {QStringLiteral("weeks"), z.weeks()}, {QStringLiteral("phase"), phase}};
+            break;
+        }
+    }
+    result.insert(QStringLiteral("maz"), maz);
+    int load = 0;
+    QString position;
+    for (const WeekMeta &w : Planning::meta(athleteId, m, m)) {
+        load = w.load;
+        position = w.position;
+    }
+    result.insert(QStringLiteral("load"), load);
+    result.insert(QStringLiteral("position"), position);
+
+    // The next competition from the week on
+    QVariantMap next{{QStringLiteral("has"), false}};
+    const QDate from = qMax(m, QDate::currentDate());
+    const QList<Competition> comps = Competitions::forAthlete(athleteId);
+    for (auto it = comps.crbegin(); it != comps.crend(); ++it) {
+        if (it->date >= from) {
+            next = {{QStringLiteral("has"), true},
+                    {QStringLiteral("name"), it->name.isEmpty() ? Competitions::typeShortNames().value(it->type) : it->name},
+                    {QStringLiteral("date"), Dates::text(it->date)},
+                    {QStringLiteral("days"), int(QDate::currentDate().daysTo(it->date))}};
+            break;
+        }
+    }
+    result.insert(QStringLiteral("next"), next);
+    return result;
 }
 
 QVariantList Store::recentTexts(const QString &athleteId, int kind, int exercise) const
