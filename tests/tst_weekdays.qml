@@ -53,8 +53,7 @@ Item {
                         Store.removeSession(athlete, monday, v, d, n)
             Store.sessionsPerDay = perDayBefore
             page.monday = "2026-11-02"
-            if (DialogStack.open > 0)
-                findChild(page, "sessionDialog").close()
+            findChild(page, "sessionEditor").close()
         }
 
         function test_rowsFollowTheSetting() {
@@ -138,6 +137,27 @@ Item {
             tryVerify(() => c.x + c.width <= area.contentX + area.width + 1)
         }
 
+        // The panel goes into a window of its own and back, and stays open
+        function test_panelUndocks() {
+            session(1, 1)
+            page.openSession(1, 1)
+            const editor = findChild(page, "sessionEditor")
+            tryCompare(editor, "opened", true)
+            verify(findChild(page, "panelSlot").visible)
+            mouseClick(findChild(editor, "floatButton"))
+            tryCompare(editor, "floating", true)
+            const win = findChild(page, "floatWindow")
+            tryCompare(win, "visible", true)
+            compare(editor.parent, win.contentItem)
+            verify(!findChild(page, "panelSlot").visible)
+            mouseClick(findChild(editor, "floatButton"))
+            tryCompare(editor, "floating", false)
+            tryCompare(win, "visible", false)
+            compare(editor.parent, findChild(page, "panelSlot"))
+            verify(editor.opened)
+            editor.close()
+        }
+
         function test_furtherSession() {
             Store.sessionsPerDay = 1
             session(2, 1)
@@ -145,7 +165,7 @@ Item {
             verify(page.canAddSession(2))
             page.addSession(2)
             compare(page.rows, 2)
-            const dialog = findChild(page, "sessionDialog")
+            const dialog = findChild(page, "sessionEditor")
             tryCompare(dialog, "opened", true)
             compare(dialog.day, 2)
             compare(dialog.number, 2)

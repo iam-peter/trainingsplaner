@@ -114,104 +114,169 @@ Frame {
         repsTyped = totalReps > 0 && totalReps !== repsFromText(entryText)
     }
 
-    // The same 12 px on every side: the icon buttons on the right are
-    // pulled out by the free space around their icons (8 px), so the icons
-    // end 12 px from the border like the fields on the left
-    padding: 12
+    // Two rows, to fit beside the week: the exercise with its figures and
+    // buttons, then its weights or text
+    padding: 10
     background: Rectangle {
         color: Styles.TokenInterface.semantics.background_default
         border.color: Styles.TokenInterface.semantics.stroke_subtle
         radius: Styles.Primitives.radius.r4
     }
 
-    RowLayout {
+    ColumnLayout {
         anchors.left: parent.left
         anchors.right: parent.right
-        spacing: 8
+        spacing: 6
 
-        // Exercise number with picker
-        ColumnLayout {
-            visible: editor.kind !== 2
-            spacing: 2
-            Layout.alignment: Qt.AlignTop
-            RowLayout {
-                spacing: 2
-                TextField {
-                    id: numberField
-                    objectName: "exerciseField"
-                    implicitWidth: 42
-                    horizontalAlignment: TextInput.AlignHCenter
-                    font.bold: true
-                    font.pixelSize: 15
-                    validator: IntValidator { bottom: 0; top: 99 }
-                    text: editor.exercise > 0 ? editor.exercise : ""
-                    onTextEdited: {
-                        editor.exercise = parseInt(text) || 0
-                        editor.changed()
-                    }
-                    error: text !== "" && !editor.exerciseValid
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 6
+
+            // Exercise number with picker
+            TextField {
+                id: numberField
+                objectName: "exerciseField"
+                visible: editor.kind !== 2
+                implicitWidth: 42
+                horizontalAlignment: TextInput.AlignHCenter
+                font.bold: true
+                font.pixelSize: 15
+                validator: IntValidator { bottom: 0; top: 99 }
+                text: editor.exercise > 0 ? editor.exercise : ""
+                onTextEdited: {
+                    editor.exercise = parseInt(text) || 0
+                    editor.changed()
                 }
-                IconButton {
-                    implicitWidth: 30
-                    implicitHeight: numberField.height
-                    iconName: "layout-grid"
-                    toolTip: "Übung auswählen"
-                    onClicked: picker.open()
+                error: text !== "" && !editor.exerciseValid
+
+                ExercisePicker {
+                    id: picker
+                    y: numberField.height + 2
+                    textExercises: editor.kind === 1
+                    current: editor.exercise
+                    onPicked: (id) => {
+                        editor.exercise = id
+                        editor.changed()
+                        if (editor.kind === 0)
+                            stepsEditor.focusFirst()
+                        else if (editor.kind === 1)
+                            exerciseTextField.forceActiveFocus()
+                    }
                 }
             }
+            IconButton {
+                visible: editor.kind !== 2
+                implicitWidth: 30
+                implicitHeight: numberField.height
+                iconName: "layout-grid"
+                toolTip: "Übung auswählen"
+                onClicked: picker.open()
+            }
             Label {
-                Layout.preferredWidth: 150
-                text: editor.exercise === 0 ? (editor.kind === 1 ? "AMKT-Übung" : "Übung")
-                      : editor.exerciseValid ? editor.exerciseInfo.name
+                objectName: "exerciseName"
+                Layout.fillWidth: true
+                Layout.leftMargin: 4
+                text: editor.kind === 2 ? "Text"
+                      : editor.exercise === 0 ? (editor.kind === 1 ? "AMKT-Übung" : "Übung")
+                      : editor.exerciseValid ? editor.exerciseInfo.name + (editor.kind === 1 ? "  · AMKT" : "")
                       : editor.exerciseInfo ? "Nr. nicht für " + (editor.kind === 1 ? "Text" : "Gewichte")
                       : "unbekannte Nr."
                 elide: Text.ElideRight
-                font.pixelSize: 11
-                color: editor.exercise !== 0 && !editor.exerciseValid ? Styles.TokenInterface.semantics.danger_default : Styles.TokenInterface.semantics.text_muted
+                font.bold: editor.exerciseValid
+                color: editor.exercise !== 0 && !editor.exerciseValid && editor.kind !== 2
+                       ? Styles.TokenInterface.semantics.danger_default
+                       : editor.exerciseValid ? Styles.TokenInterface.semantics.text_default
+                       : Styles.TokenInterface.semantics.text_muted
             }
-            ExercisePicker {
-                id: picker
-                y: numberField.height + 2
-                textExercises: editor.kind === 1
-                current: editor.exercise
-                onPicked: (id) => {
-                    editor.exercise = id
-                    editor.changed()
-                    if (editor.kind === 0)
-                        stepsEditor.focusFirst()
-                    else if (editor.kind === 1)
-                        exerciseTextField.forceActiveFocus()
+            // Info, move, remove; out of the Tab order, which goes from the
+            // exercise straight to its weights
+            RowLayout {
+                Layout.rightMargin: -6
+                spacing: 0
+                IconToolButton {
+                    activeFocusOnTab: false
+                    visible: editor.kind === 0
+                    enabled: editor.exerciseValid
+                    iconName: "list"
+                    toolTip: "Info: frühere Einheiten dieser Übung"
+                    onClicked: editor.infoRequested(editor.exercise, false)
+                }
+                IconToolButton {
+                    activeFocusOnTab: false
+                    visible: editor.kind === 0
+                    enabled: editor.exerciseValid
+                    iconName: "chart-line"
+                    toolTip: "Grafik der letzten Wochen"
+                    onClicked: editor.infoRequested(editor.exercise, true)
+                }
+                IconToolButton {
+                    activeFocusOnTab: false
+                    iconName: "arrow-up"
+                    toolTip: "Nach oben"
+                    enabled: editor.canMoveUp
+                    onClicked: editor.moveRequested(-1)
+                }
+                IconToolButton {
+                    activeFocusOnTab: false
+                    iconName: "arrow-down"
+                    toolTip: "Nach unten"
+                    enabled: editor.canMoveDown
+                    onClicked: editor.moveRequested(1)
+                }
+                IconToolButton {
+                    activeFocusOnTab: false
+                    iconName: "trash-2"
+                    toolTip: "Zeile entfernen"
+                    onClicked: editor.removeRequested()
                 }
             }
         }
 
         // Weight steps, and under them last week and the ITP
-        ColumnLayout {
+        StepsEditor {
+            id: stepsEditor
             visible: editor.kind === 0
             Layout.fillWidth: true
-            Layout.alignment: Qt.AlignTop
-            spacing: 4
-            StepsEditor {
-                id: stepsEditor
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignTop
-                initialSteps: editor.source.steps || []
-                actual: editor.actual
-                jump: editor.kind === 0 && editor.exercise > 0 ? Store.usualJump(editor.athleteId, editor.monday, editor.exercise) : 5
-                suggestions: editor.kind === 0 && editor.exercise > 0 ? Store.recentSteps(editor.athleteId, editor.exercise) : []
-                onChanged: editor.changed()
+            initialSteps: editor.source.steps || []
+            actual: editor.actual
+            jump: editor.kind === 0 && editor.exercise > 0 ? Store.usualJump(editor.athleteId, editor.monday, editor.exercise) : 5
+            suggestions: editor.kind === 0 && editor.exercise > 0 ? Store.recentSteps(editor.athleteId, editor.exercise) : []
+            onChanged: editor.changed()
+        }
+        // Under the weights, past the "KG:" labels: this session's figures,
+        // the week's in brackets, as WinWoTA's "TE (WO)"; then last week and
+        // the ITP
+        RowLayout {
+            visible: editor.kind === 0
+            Layout.fillWidth: true
+            Layout.leftMargin: stepsEditor.stepsX
+            spacing: 16
+            Label {
+                objectName: "figures"
+                text: "WH " + (editor.entryStats.wh || 0) + " (" + (editor.week ? editor.week.wh : 0) + ")"
+                      + " · MHG " + (editor.entryStats.mhg || 0) + " (" + (editor.week ? editor.week.mhg : 0) + ")"
+                      + " · BW " + (editor.entryStats.bw || 0) + " (" + (editor.week ? editor.week.bw : 0) + ")"
+                      + (editor.entryStats.repsSets ? " " + editor.entryStats.repsSets : "")
+                font.bold: true
+                font.pixelSize: 12
+                HoverHandler { id: figuresHover }
+                ToolTip.visible: figuresHover.hovered
+                ToolTip.delay: 400
+                ToolTip.text: "Diese Einheit, in Klammern die ganze Woche:\nWH, MHG, BW und Wdh/Sätze beim BW"
             }
             Label {
                 objectName: "comparison"
                 visible: editor.comparison !== ""
                 Layout.fillWidth: true
-                // Under the weights, past the "KG:" labels
-                Layout.leftMargin: stepsEditor.stepsX
                 text: editor.comparison
                 elide: Text.ElideRight
                 font.pixelSize: 11
                 color: Styles.TokenInterface.semantics.text_muted
+                HoverHandler { id: comparisonHover }
+                ToolTip.visible: comparisonHover.hovered && truncated
+                ToolTip.text: editor.comparison
             }
+            Item { Layout.fillWidth: !parent.children[1].visible }
         }
 
         // General exercise as text
@@ -219,7 +284,6 @@ Frame {
             spacing: 8
             visible: editor.kind === 1
             Layout.fillWidth: true
-            Layout.alignment: Qt.AlignTop
             Label { text: "Text:" }
             TextField {
                 id: exerciseTextField
@@ -260,103 +324,23 @@ Frame {
         }
 
         // Free text
-        RowLayout {
-            spacing: 8
+        TextField {
+            id: freeTextField
+            objectName: "freeText"
             visible: editor.kind === 2
             Layout.fillWidth: true
-            Layout.alignment: Qt.AlignTop
-            Label { text: "Text:" }
-            TextField {
-                id: freeTextField
-                objectName: "freeText"
-                Layout.fillWidth: true
-                text: editor.entryText
-                placeholderText: "z.B. Athletik 30 min."
-                onTextEdited: { editor.entryText = text; editor.changed() }
-                Keys.onPressed: (event) => noteSuggestions.handleKey(event)
-                SuggestionPopup {
-                    id: noteSuggestions
-                    field: freeTextField
-                    suggestions: editor.kind === 2 ? Store.recentTexts(editor.athleteId, 2, 0) : []
-                    onChosen: (item) => {
-                        freeTextField.text = item.text
-                        editor.entryText = item.text
-                        editor.changed()
-                    }
-                }
-            }
-        }
-
-        // Figures: this session (week)
-        GridLayout {
-            visible: editor.kind === 0
-            Layout.alignment: Qt.AlignTop
-            columns: 2
-            columnSpacing: 16
-            rowSpacing: 4
-            Label {
-                Layout.preferredWidth: 76
-                horizontalAlignment: Text.AlignHCenter
-                font.bold: true
-                text: (editor.entryStats.mhg || 0) + " (" + (editor.week ? editor.week.mhg : 0) + ")"
-            }
-            Label {
-                Layout.preferredWidth: 76
-                horizontalAlignment: Text.AlignHCenter
-                font.bold: true
-                text: (editor.entryStats.bw || 0) + " (" + (editor.week ? editor.week.bw : 0) + ")"
-            }
-            Label {
-                Layout.preferredWidth: 76
-                horizontalAlignment: Text.AlignHCenter
-                font.bold: true
-                text: (editor.entryStats.wh || 0) + " (" + (editor.week ? editor.week.wh : 0) + ")"
-            }
-            Label {
-                Layout.preferredWidth: 76
-                horizontalAlignment: Text.AlignHCenter
-                font.bold: true
-                text: (editor.entryStats.repsSets || "–") + " (" + (editor.week ? editor.week.repsSets : "–") + ")"
-            }
-        }
-
-        // Move / remove
-        ColumnLayout {
-            Layout.alignment: Qt.AlignTop
-            Layout.rightMargin: -8
-            spacing: 0
-            RowLayout {
-                spacing: 0
-                IconToolButton {
-                    visible: editor.kind === 0
-                    enabled: editor.exerciseValid
-                    iconName: "list"
-                    toolTip: "Info: frühere Einheiten dieser Übung"
-                    onClicked: editor.infoRequested(editor.exercise, false)
-                }
-                IconToolButton {
-                    visible: editor.kind === 0
-                    enabled: editor.exerciseValid
-                    iconName: "chart-line"
-                    toolTip: "Grafik der letzten Wochen"
-                    onClicked: editor.infoRequested(editor.exercise, true)
-                }
-                IconToolButton {
-                    iconName: "arrow-up"
-                    toolTip: "Nach oben"
-                    enabled: editor.canMoveUp
-                    onClicked: editor.moveRequested(-1)
-                }
-                IconToolButton {
-                    iconName: "arrow-down"
-                    toolTip: "Nach unten"
-                    enabled: editor.canMoveDown
-                    onClicked: editor.moveRequested(1)
-                }
-                IconToolButton {
-                    iconName: "trash-2"
-                    toolTip: "Zeile entfernen"
-                    onClicked: editor.removeRequested()
+            text: editor.entryText
+            placeholderText: "z.B. Athletik 30 min."
+            onTextEdited: { editor.entryText = text; editor.changed() }
+            Keys.onPressed: (event) => noteSuggestions.handleKey(event)
+            SuggestionPopup {
+                id: noteSuggestions
+                field: freeTextField
+                suggestions: editor.kind === 2 ? Store.recentTexts(editor.athleteId, 2, 0) : []
+                onChosen: (item) => {
+                    freeTextField.text = item.text
+                    editor.entryText = item.text
+                    editor.changed()
                 }
             }
         }

@@ -15,13 +15,14 @@ AppDialog {
     readonly property var keys: [
         ["Strg+← / Strg+→", "Vorige / nächste Woche"],
         ["Pfeiltasten", "Zwischen den Trainingseinheiten wechseln"],
-        ["Enter", "Trainingseinheit bearbeiten"],
+        ["Enter", "Trainingseinheit neben der Woche bearbeiten"],
         ["Entf", "Trainingseinheit löschen (mit Rückfrage)"],
         ["Strg+C / Strg+V", "Trainingseinheit kopieren / einfügen"],
         ["Menütaste, Rechtsklick", "Weitere Befehle zur Trainingseinheit"],
         ["Strg+Z / Strg+Y", "Rückgängig / Wiederholen"],
-        ["Strg+S", "Speichern"],
-        ["Esc", "Dialog schließen"],
+        ["Strg+S", "Trainingseinheit speichern (sonst beim Wechsel)"],
+        ["Esc", "Trainingseinheit oder Dialog schließen"],
+        ["↑ / ↓ in einem Feld", "Gewicht, Wiederholungen, Sätze, UG weiterzählen"],
         ["Strg+P", "Wochenplan drucken"],
         ["Strg+1 … Strg+5", "Sportler, Wochenplan, Planung, Analyse, Wettkämpfe"],
         ["F1", "Diese Hilfe"]
@@ -130,9 +131,12 @@ AppDialog {
                     text: "<b>Daten aus dem alten Programm:</b> Daten › Importieren liest die Datensicherung "
                           + "(winwotaxp.bak) ein. Neuere Einträge im Programm bleiben dabei erhalten.<br><br>"
                           + "<b>Sportler:</b> unter „Sportler“ anlegen und bearbeiten; Kader, Verein usw. mit Zeiträumen (Stift-Symbol daneben).<br><br>"
-                          + "<b>Wochenplan:</b> Sportler und Woche wählen. Ein Klick in eine Trainingseinheit öffnet sie, "
-                          + "ein Klick auf eine Übung bearbeitet diese Übung für die ganze Woche. Plan und Ist umschalten "
-                          + "oben. „Woche kopieren“ und „Einfügen“ übertragen ganze Wochen, auch zu anderen Sportlern.<br><br>"
+                          + "<b>Wochenplan:</b> Sportler und Woche wählen. Ein Klick in eine Trainingseinheit öffnet sie "
+                          + "neben der Woche; Änderungen werden beim Wechsel zu einer anderen Einheit oder beim Schließen "
+                          + "gespeichert und lassen sich rückgängig machen. Mit dem Pfeil-Symbol kommt sie in ein eigenes "
+                          + "Fenster. Ein Klick auf eine Übung bearbeitet diese Übung für die ganze Woche. Plan und Ist umschalten "
+                          + "oben, „Vorwoche“ zeigt die Woche davor darüber; wie viele Einheiten pro Tag die Woche zeigt, "
+                          + "steht unter Einstellungen › Trainingszeiten. „Woche kopieren“ und „Einfügen“ übertragen ganze Wochen, auch zu anderen Sportlern.<br><br>"
                           + "<b>Planung:</b> MAZ anlegen, Rahmenorientierung (RO) in Prozent eintragen und daraus den "
                           + "individuellen Trainingsplan (ITP) berechnen.<br><br>"
                           + "<b>Analyse:</b> Abschnittsanalyse über beliebige Wochen oder eine MAZ, Grafik je Übung, "

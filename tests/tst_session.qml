@@ -8,19 +8,21 @@ Item {
     width: 1200
     height: 900
 
-    SessionDialog {
+    SessionEditor {
         id: dialog
+        width: 640
+        height: 880
     }
 
     TestCase {
-        name: "SessionDialog"
+        name: "SessionEditor"
         when: windowShown
 
         readonly property string athlete: "test_tina"
         readonly property string monday: "2026-11-09"
 
         function entry(i) {
-            return findChild(dialog.contentItem, "entry" + i)
+            return findChild(dialog, "entry" + i)
         }
 
         function typeInto(item, text) {
@@ -80,8 +82,8 @@ Item {
             tryCompare(findChild(entry(2), "freeText"), "activeFocus", true)
             keyClick("D"); keyClick("e"); keyClick("h"); keyClick("n"); keyClick("e"); keyClick("n")
 
-            dialog.save()
-            tryCompare(dialog, "visible", false)
+            verify(dialog.save())
+            compare(dialog.dirty, false)
 
             const week = Store.week(athlete, monday, "P")
             compare(week.sessions.length, 1)
@@ -140,8 +142,8 @@ Item {
             dialog.edit(athlete, monday, "P", 1, 2)
             tryCompare(dialog, "opened", true)
             verify(!dialog.exists)
-            dialog.save()
-            tryCompare(dialog, "visible", false)
+            verify(dialog.save())
+            compare(dialog.dirty, false)
             verify(!Store.session(athlete, monday, "P", 1, 2).exists)
 
             Store.saveSession(athlete, monday, "P", { day: 1, number: 2, note: "locker", entries: [] })
@@ -149,7 +151,7 @@ Item {
             dialog.edit(athlete, monday, "P", 1, 2)
             tryCompare(dialog, "opened", true)
             const before = DialogStack.open
-            mouseClick(findChild(dialog.footer, "deleteButton"))
+            mouseClick(findChild(dialog, "deleteButton"))
             tryCompare(DialogStack, "open", before + 1)
             verify(dialog.visible)           // the editor stays behind the question
             keyClick(Qt.Key_Escape)          // Nein
@@ -157,9 +159,10 @@ Item {
             verify(dialog.visible)
 
             // Emptied and saved: gone, like TE löschen
-            findChild(dialog.contentItem, "noteField").text = ""
-            dialog.save()
-            tryCompare(dialog, "visible", false)
+            findChild(dialog, "noteField").text = ""
+            dialog.dirty = true
+            verify(dialog.save())
+            compare(dialog.dirty, false)
             verify(!Store.session(athlete, monday, "P", 1, 2).exists)
         }
 
@@ -168,27 +171,60 @@ Item {
             dialog.edit(athlete, monday, "P", 1, 2)
             tryCompare(dialog, "opened", true)
             dialog.addEntry({ kind: 2, text: "locker" }, false)
-            findChild(dialog.contentItem, "fromBox").text = "25:00"
+            dialog.dirty = true
+            findChild(dialog, "fromBox").text = "25:00"
             dialog.save()
             verify(dialog.visible)
             compare(dialog.error, "„25:00“ ist keine Uhrzeit.")
             verify(!Store.session(athlete, monday, "P", 1, 2).exists)
-            findChild(dialog.contentItem, "fromBox").text = "9:5"
-            dialog.save()
-            tryCompare(dialog, "visible", false)
+            findChild(dialog, "fromBox").text = "9:5"
+            verify(dialog.save())
+            compare(dialog.dirty, false)
             compare(Store.session(athlete, monday, "P", 1, 2).from, "09:05")
         }
 
-        function test_3_cancelAsksWhenChanged() {
+        // Changes are saved when the panel closes, or another session is
+        // chosen; one that cannot be saved keeps the panel where it is
+        function test_3_closingAndSwitchingSave() {
             dialog.edit(athlete, monday, "P", 1, 2)
             tryCompare(dialog, "opened", true)
-            dialog.addEntry({ kind: 2 }, true)
+            dialog.addEntry({ kind: 2, text: "locker" }, true)
             verify(dialog.dirty)
-            // The real button: its role closed the dialog before it asked
-            mouseClick(findChild(dialog.footer, "cancelButton"))
-            // Still open, a confirmation is shown instead.
-            tryCompare(DialogStack, "open", 2)
-            compare(dialog.visible, true)
+            verify(dialog.close())
+            compare(dialog.opened, false)
+            compare(Store.session(athlete, monday, "P", 1, 2).entries[0].text, "locker")
+
+            dialog.edit(athlete, monday, "P", 1, 2)
+            dialog.addEntry({ kind: 2, text: "Dehnen" }, true)
+            verify(dialog.edit(athlete, monday, "P", 3, 2))
+            compare(dialog.day, 3)
+            compare(Store.session(athlete, monday, "P", 1, 2).entries.length, 2)
+
+            dialog.addEntry({ kind: 2, text: "Lauf" }, true)
+            findChild(dialog, "fromBox").text = "25:00"
+            verify(!dialog.edit(athlete, monday, "P", 1, 2))
+            compare(dialog.day, 3)
+            verify(dialog.error !== "")
+            findChild(dialog, "fromBox").text = ""
+            verify(dialog.close())
+            Store.removeSession(athlete, monday, "P", 3, 2)
+        }
+
+        // "Wie Vorwoche" takes the lines of the same session last week
+        function test_7_lastWeek() {
+            const before = Store.addWeeks(monday, -1)
+            Store.saveSession(athlete, before, "I", { day: 1, number: 2, entries: [
+                { kind: 0, exercise: 1, steps: [{ kg: 50, reps: 3, sets: 2 }] }, { kind: 2, text: "Dehnen" }] })
+            dialog.edit(athlete, monday, "P", 1, 2)
+            const button = findChild(dialog, "lastWeekButton")
+            tryVerify(() => button.visible)
+            mouseClick(button)
+            tryVerify(() => entry(1) !== null)
+            verify(dialog.dirty)
+            compare(entry(0).value().steps[0].kg, 50)
+            verify(!button.visible)
+            dialog.dirty = false
+            Store.removeSession(athlete, before, "I", 1, 2)
         }
 
         function test_4_weekFiguresIncludeOtherSessions() {

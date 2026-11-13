@@ -48,7 +48,7 @@ decide how the program feels. That is where his wishes are, too:
 | W1 | See the previous week while entering a session | 3.1, 3.2 | done |
 | W2 | As many sessions per day as he uses (one), not always two | 3.1 | done |
 | W3 | Two weeks at once when there is room | 3.1 | done |
-| W4 | The session editor beside the week, not over it | 3.2 | planned |
+| W4 | The session editor beside the week, not over it | 3.2 | done |
 | W5 | A month view with the competitions, instead of his paper calendar | 3.3 | planned |
 | W6 | A chart of Ist against Ziel showing raised and lowered weeks | 3.5 | to clarify with him |
 | W7 | The next weight filled in by the athlete's usual jump | 4 | done |
@@ -149,9 +149,9 @@ correct what differed. No new states or workflow.
 
 ### 3.2 Trainingseinheit (the session panel)
 
-Today the session dialog is modal and covers the week. Instead it becomes
-a panel at the side of the week, like a property editor (marker 2 in the
-mock-up):
+Done. The session dialog was modal and covered the week; it is now a
+panel at the side of the week, like a property editor (marker 2 in the
+mock-up), in a split the coach can widen or narrow:
 
 - **Selecting a session** (click, or arrow keys and Enter) shows it in
   the panel; the selected cell is framed. The week stays fully visible.
@@ -159,15 +159,22 @@ mock-up):
   and WH (ges.), free text; "+ TÜ", "+ AMKT", "+ Text" add one; the time
   "von – bis" and the note below. Each line shows its WH, MHG and BW, and
   under it last week and the ITP (W1).
-- **Saving**: changes are saved when another session is selected or the
-  panel is closed, and can be undone as today (Ctrl+Z). A small note in
-  the panel's foot says so; "Speichern" (Ctrl+S) saves at once.
+- **Saving**: changes are saved when another session is selected, the
+  week changes or the panel is closed (×, Esc), and can be undone as
+  today (Ctrl+Z). A small note in the panel's foot says so; "Speichern"
+  (Ctrl+S) saves at once. A session that cannot be saved (an impossible
+  time) keeps the panel on it and says why.
+- **Each line in two rows**, to fit: the exercise with its buttons, then
+  its weights or text, and under the weights the session's figures (the
+  week's in brackets, as WinWoTA's "TE (WO)") beside last week and the
+  ITP. Tab goes from the exercise straight to its weights.
 - **"Ist = Plan"** in the panel's foot, for the Ist week.
 - **Undocking**: the panel can be taken out into a movable window, for a
   second screen or a small one, and remembers where it was. Closed, the
   week takes the whole width again.
-- **"Vorlage …"** takes the lines of an earlier session (by date) or of
-  the same weekday last week. WinWoTA had "Woche kopieren" only.
+- **"Wie Vorwoche"** in an empty session takes the lines of the same
+  session last week (its Ist, else its Plan). WinWoTA had "Woche
+  kopieren" only. Taking an earlier session by date is left for later.
 
 Erfassung TÜ (one exercise across the week, opened from an exercise line)
 stays a dialog, as in WinWoTA, with the same entry help as the panel.
@@ -456,7 +463,7 @@ flowchart LR
 | ✓ 1 | Setting "Einheiten pro Tag"; rows grow with the data; "Weitere Einheit"; "3 TE" goes; empty days narrow, scrolling when too wide | small | W2 |
 | ✓ 2 | Last week and the ITP per exercise line in the session editor; last week, target and difference in the K1–K7 summary; the info line of the week | small | W1 |
 | ✓ 3 | "Vorwoche": the previous week above the current one | medium | W3 |
-| 4 | Session panel at the side of the week, undockable; Vorlage from last week | medium | W4 |
+| ✓ 4 | Session panel at the side of the week, undockable; "Wie Vorwoche" | medium | W4 |
 | 5 | Rahmenorientierung opened from the MAZ; ITP and Laststufen without the switch | small | W13 |
 | 6 | The week's load h / m / g read from the ITP wherever a week is shown | small | 3.1, 3.3, 3.5 |
 | 7 | Monat: weeks with load and WH, sessions, competition dates, Termine, all athletes, print | large | W5 |

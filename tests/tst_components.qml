@@ -8,7 +8,7 @@ TestCase {
     name: "Components"
 
     readonly property var files: [
-        "Main", "WeekPage", "SessionCell", "SessionDialog", "EntryEditor", "ExercisePicker",
+        "Main", "WeekPage", "SessionCell", "SessionEditor", "EntryEditor", "ExercisePicker",
         "AthletesPage", "SettingsDialog", "IconButton", "IconToolButton", "StepsEditor",
         "ExerciseWeekDialog", "ExerciseRowEditor", "ExportDialog", "AttributeHistoryDialog", "DayInfoDialog", "TrendChart", "ExerciseHistoryDialog", "AttemptField", "CompetitionsPage", "MazPane", "ItpGrid", "PlanningPage", "ReportView", "AnalysisPage", "WeekCalendar", "AppDialog", "DialogStack", "Theme"
     ]

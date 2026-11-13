@@ -85,7 +85,7 @@ qt_add_qml_module(tpqml
         qml/SearchField.qml
         qml/WeekPage.qml
         qml/SessionCell.qml
-        qml/SessionDialog.qml
+        qml/SessionEditor.qml
         qml/EntryEditor.qml
         qml/ExercisePicker.qml
         qml/AthletesPage.qml

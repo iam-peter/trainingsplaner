@@ -59,8 +59,8 @@ and order in [UX-PLAN.md](UX-PLAN.md)):
       next competition above the days.
 - [x] **Two weeks at once**: the previous week above the current one
       ("Vorwoche").
-- [ ] **A session panel at the side of the week** instead of the modal
-      dialog, undockable into a window; empty days narrower.
+- [x] **A session panel at the side of the week** instead of the modal
+      dialog, undockable into a window; "Wie Vorwoche" for an empty one.
 - [ ] **Rahmenorientierung opened from the MAZ**, without the ITP / RO
       switch in the ITP and Laststufen tabs.
 - [x] **"von" and "bis" fields keep their order**: the other one follows,

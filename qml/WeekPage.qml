@@ -3,6 +3,7 @@ import TrainingsplanerStyle as Styles
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
+import QtCore
 import Trainingsplaner
 
 Page {
@@ -288,6 +289,9 @@ Page {
     function openExercise(exercise) {
         if (!hasAthlete)
             return
+        // It edits the same lines as the session panel: save the panel first
+        if (!sessionEditor.save())
+            return
         saveNote()
         exerciseDialog.edit(athleteId, monday, variant, exercise)
     }
@@ -346,7 +350,8 @@ Page {
     }
 
     // Keyboard shortcuts while the week plan is shown and no dialog is open
-    readonly property bool shortcutsActive: visible && DialogStack.open === 0
+    // Not while typing in the session panel, where Ctrl+←/→ move the cursor
+    readonly property bool shortcutsActive: visible && DialogStack.open === 0 && !sessionEditor.activeFocus
     Shortcut {
         sequence: "Ctrl+Left"
         enabled: page.shortcutsActive
@@ -367,13 +372,24 @@ Page {
         if (!hasAthlete || !(day >= 1 && day <= 7) || !(number >= 1 && number <= 3))
             return
         saveNote()
-        sessionDialog.edit(athleteId, monday, variant, day, number)
+        // The session shown before is saved first; when it cannot be (an
+        // impossible time), it stays
+        if (!sessionEditor.edit(athleteId, monday, variant, day, number))
+            return
+        sessionEditor.forceActiveFocus()
+    }
+
+    // Is this the session in the panel?
+    function isEdited(day, number) {
+        return sessionEditor.opened && sessionEditor.athleteId === athleteId && sessionEditor.monday === monday
+               && sessionEditor.variant === variant && sessionEditor.day === day && sessionEditor.number === number
     }
 
     onShowPreviousChanged: reload()
-    onAthleteIdChanged: { extraRows = 0; reload() }
-    onMondayChanged: { extraRows = 0; reload() }
-    onVariantChanged: reload()
+    // Another week, athlete or variant: the panel saves and closes
+    onAthleteIdChanged: { sessionEditor.close(); extraRows = 0; reload() }
+    onMondayChanged: { sessionEditor.close(); extraRows = 0; reload() }
+    onVariantChanged: { sessionEditor.close(); reload() }
     Connections {
         target: Store
         function onDataVersionChanged() { page.reload() }
@@ -544,373 +560,390 @@ Page {
         }
     }
 
-    ColumnLayout {
+    // The week, and beside it the session panel while one is open
+    SplitView {
+        id: split
         anchors.fill: parent
-        // Lined up with the toolbar above (8 px from the window edge)
-        anchors.margins: 8
-        spacing: 8
+        orientation: Qt.Horizontal
         visible: page.hasAthlete
-
-        // Day columns with one row per session number, in an area that takes
-        // the room left: the rows get its share in whole pixels, so all are
-        // exactly as high (shared out by the layout, an odd height made one
-        // row a pixel higher). The area, not the grid, fills: a grid fills
-        // only as far as its cells do, which then set their heights apart.
-        // A day without sessions is narrow; when even the narrow days do not
-        // fit, the area scrolls sideways instead of squeezing the text.
-        // Where the week stands: its MAZ and phase, the ITP's load, the next
-        // competition
-        RowLayout {
-            objectName: "cycleLine"
-            visible: page.cycleText !== "" || page.nextCompetitionText !== ""
-            Layout.fillWidth: true
-            spacing: 24
-            Label {
-                text: page.cycleText
-                visible: text !== ""
-                font.bold: true
-            }
-            Label {
-                text: page.nextCompetitionText
-                visible: text !== ""
-                color: Styles.TokenInterface.semantics.primary_default
-            }
-            Item { Layout.fillWidth: true }
+        handle: Rectangle {
+            implicitWidth: 6
+            color: SplitHandle.pressed || SplitHandle.hovered ? Styles.TokenInterface.semantics.stroke_subtle : "transparent"
         }
 
-        Flickable {
-            id: gridArea
-            objectName: "gridArea"
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.minimumHeight: grid.minimumRows + bottomRoom
-            clip: true
-            boundsBehavior: Flickable.StopAtBounds
-            flickableDirection: Flickable.HorizontalFlick
-            interactive: contentWidth > width
-            contentWidth: Math.max(width, grid.minimumWidth)
-            contentHeight: height
-            // Room for the scroll bar below the days while it shows
-            readonly property real bottomRoom: contentWidth > width ? hBar.height + 4 : 0
-            ScrollBar.horizontal: AppScrollBar { id: hBar }
-
-            GridLayout {
-                id: grid
-                width: gridArea.contentWidth
-                columns: 7
-                rowSpacing: 4
-                columnSpacing: 4
-
-                readonly property real headHeight: dayHeads.count > 0 && dayHeads.itemAt(0) ? dayHeads.itemAt(0).implicitHeight : 0
-                // The two weeks' labels, while the week before is shown
-                readonly property real labelsHeight: page.showPrevious ? 2 * (weekLabelHeight + rowSpacing) : 0
-                readonly property int weekLabelHeight: 18
-                readonly property int allRows: page.rows + page.previousRows
-                readonly property real minimumRows: headHeight + labelsHeight + allRows * (44 + rowSpacing)
-                readonly property int rowHeight: Math.max(44, Math.floor((gridArea.height - gridArea.bottomRoom - headHeight - labelsHeight - allRows * rowSpacing) / allRows))
-                readonly property real minimumWidth: {
-                    let w = 6 * columnSpacing
-                    for (let d = 1; d <= 7; ++d)
-                        w += page.narrowDay(d) ? page.narrowWidth : page.wideMinimum
-                    return w
-                }
-
-                Repeater {
-                    id: dayHeads
-                    model: 7
-                    ColumnLayout {
-                        required property int index
-                        readonly property bool narrow: page.narrowDay(index + 1)
-                        objectName: "dayHead" + (index + 1)
-                        Layout.fillWidth: !narrow
-                        Layout.preferredWidth: narrow ? page.narrowWidth : 1
-                        Layout.minimumWidth: narrow ? page.narrowWidth : page.wideMinimum
-                        Layout.maximumWidth: narrow ? page.narrowWidth : Number.POSITIVE_INFINITY
-                        spacing: 0
-                        Label {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: parent.narrow ? ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"][index] : Store.dayName(index + 1)
-                            font.bold: true
-                            color: page.todayDay === index + 1 ? Styles.TokenInterface.semantics.primary_default : Styles.TokenInterface.semantics.text_default
-                        }
-                        Label {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: page.todayDay === index + 1 && !parent.narrow ? "heute, " + Store.dayDate(page.monday, index + 1)
-                                                                                : Store.dayDate(page.monday, index + 1)
-                            font.pixelSize: 11
-                            color: page.todayDay === index + 1 ? Styles.TokenInterface.semantics.primary_default : Styles.TokenInterface.semantics.text_muted
-                        }
-                    }
-                }
-
-                Label {
-                    objectName: "previousLabel"
-                    visible: page.showPrevious
-                    Layout.columnSpan: 7
-                    Layout.preferredHeight: grid.weekLabelHeight
-                    text: "Vorwoche " + Store.weekLabel(page.previousMonday) + " · " + (page.previousVariant === "I" ? "Ist" : "Plan")
-                          + ((page.previousData.sessions || []).length === 0 ? " · keine Einheiten" : "")
-                    font.pixelSize: 11
-                    font.bold: true
-                    color: Styles.TokenInterface.semantics.text_muted
-                }
-
-                Repeater {
-                    id: previousCells
-                    model: page.previousRows * 7
-                    SessionCell {
-                        required property int index
-                        readonly property int day: index % 7 + 1
-                        readonly property int row: Math.floor(index / 7) + 1
-                        readonly property int number: page.previousNumberAt(day, row)
-                        objectName: "previous" + day + "_" + number
-                        readOnly: true
-                        narrow: page.narrowDay(day)
-                        opacity: 0.6
-                        Layout.fillWidth: !narrow
-                        Layout.preferredWidth: narrow ? page.narrowWidth : 1
-                        Layout.minimumWidth: narrow ? page.narrowWidth : page.wideMinimum
-                        Layout.maximumWidth: narrow ? page.narrowWidth : Number.POSITIVE_INFINITY
-                        Layout.preferredHeight: grid.rowHeight
-                        Layout.minimumHeight: 44
-                        today: page.previousTodayDay === day
-                        sessionNumber: number
-                        session: number > 0 ? page.previousSessionAt(day, number) : null
-                        onClicked: page.openPrevious()
-                        onExerciseClicked: page.openPrevious()
-                    }
-                }
-
-                Label {
-                    objectName: "currentLabel"
-                    visible: page.showPrevious
-                    Layout.columnSpan: 7
-                    Layout.preferredHeight: grid.weekLabelHeight
-                    text: "Woche " + Store.weekLabel(page.monday) + " · " + (page.variant === "I" ? "Ist" : "Plan")
-                    font.pixelSize: 11
-                    font.bold: true
-                }
-
-                Repeater {
-                    id: cells
-                    model: page.rows * 7
-                    SessionCell {
-                        required property int index
-                        readonly property int day: index % 7 + 1
-                        readonly property int row: Math.floor(index / 7) + 1
-                        readonly property int number: page.numberAt(day, row)
-                        objectName: "cell" + day + "_" + number
-                        enabled: number > 0
-                        narrow: page.narrowDay(day)
-                        Layout.fillWidth: !narrow
-                        Layout.preferredWidth: narrow ? page.narrowWidth : 1
-                        Layout.minimumWidth: narrow ? page.narrowWidth : page.wideMinimum
-                        Layout.maximumWidth: narrow ? page.narrowWidth : Number.POSITIVE_INFINITY
-                        // Every row of sessions as high as the others, as in the
-                        // old program, so the grid keeps its shape from week to
-                        // week: exactly the rows' share, set rather than filled
-                        // (a maximum would also cap the grid, which then shrank)
-                        Layout.preferredHeight: grid.rowHeight
-                        Layout.minimumHeight: 44
-                        today: page.todayDay === day
-                        sessionNumber: number
-                        session: page.sessionAt(day, number)
-                        onClicked: page.openSession(day, number)
-                        onExerciseClicked: (exercise) => page.openExercise(exercise)
-                        onDeleteRequested: page.askRemoveSession(day, number)
-                        onMoveRequested: (days, sessions) => page.focusRow(day + days, row + sessions)
-                        onCopyRequested: page.copySession(day, number)
-                        onPasteRequested: page.pasteSession(day, number)
-                        onMenuRequested: (exercise, x, y) => sessionMenu.show(this, day, number, exercise, x, y)
-                        // Keep a cell reached by the keys in view
-                        onActiveFocusChanged: {
-                            if (!activeFocus)
-                                return
-                            if (x < gridArea.contentX)
-                                gridArea.contentX = x
-                            else if (x + width > gridArea.contentX + gridArea.width)
-                                gridArea.contentX = x + width - gridArea.width
-                        }
-                    }
-                }
-            }
-        }
-
-        Label {
-            Layout.fillWidth: true
-            text: "Je Zeile: Übung  WH  MHG  BW  Wdh/Sätze beim BW  ·  Klick auf eine Übung bearbeitet sie für die ganze Woche, Klick daneben die Trainingseinheit  ·  Pfeiltasten, Enter, Entf  ·  F1: Hilfe"
-            font.pixelSize: 11
-            color: Styles.TokenInterface.semantics.text_muted
-            elide: Text.ElideRight
-            HoverHandler { id: legendHover }
-            ToolTip.visible: legendHover.hovered
-            ToolTip.delay: 400
-            ToolTip.text: ["WH", "MHG", "BW", "SG/ANZ"].map(t => Glossary.explain(t)).join("\n")
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            // Only as high as its content: the note's fillHeight would
-            // otherwise make the row take room from the week
-            Layout.fillHeight: false
-            spacing: 8
-            Label {
-                text: "Bemerkung:"
-                Layout.alignment: Qt.AlignTop
-            }
-            ScrollView {
-                // No overshoot at the ends
-                Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds
-                Layout.fillWidth: true
-                // As high as the row: its bottom on the line of Zusatzinfo's
-                Layout.fillHeight: true
-                Layout.preferredHeight: 56
-                TextArea {
-                    id: noteField
-                    wrapMode: TextEdit.Wrap
-                    placeholderText: "Bemerkung zur Woche"
-                    onEditingFinished: page.saveNote()
-                }
-            }
-            ColumnLayout {
-                Layout.alignment: Qt.AlignTop
-                // As wide as its widest item; the button's fillWidth would
-                // otherwise make it share the width with the note
-                Layout.fillWidth: false
-                spacing: 4
-                CheckBox {
-                    id: injuredBox
-                    text: "verletzt/krank"
-                    onToggled: page.saveNote()
-                }
-                // As wide as the column: its right edge on the page's
-                IconButton {
-                    Layout.fillWidth: true
-                    iconName: "clipboard-list"
-                    text: "Zusatzinfo"
-                    toolTip: "Körpergewicht, Körperfett, Nahrungsergänzung …"
-                    onClicked: dayInfoDialog.edit(page.athleteId, page.monday)
-                }
-            }
-        }
-
-        Label {
-            Layout.fillWidth: true
-            visible: text !== ""
-            text: page.hasAthlete ? (Store.dataVersion, Store.weekInfoSummary(page.athleteId, page.monday)) : ""
-            color: Styles.TokenInterface.semantics.text_muted
-            elide: Text.ElideRight
-        }
-
-        // Weekly summary K1-K7 as in the old program
-        Frame {
-            Layout.fillWidth: true
-            padding: 0
-            background: Rectangle {
-                color: Styles.TokenInterface.semantics.background_elevated
-                border.color: Styles.TokenInterface.semantics.stroke_subtle
-            }
+        Item {
+            SplitView.fillWidth: true
+            SplitView.minimumWidth: 420
 
             ColumnLayout {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                spacing: 0
+                anchors.fill: parent
+                // Lined up with the toolbar above (8 px from the window edge)
+                anchors.margins: 8
+                spacing: 8
 
+                // Day columns with one row per session number, in an area that takes
+                // the room left: the rows get its share in whole pixels, so all are
+                // exactly as high (shared out by the layout, an odd height made one
+                // row a pixel higher). The area, not the grid, fills: a grid fills
+                // only as far as its cells do, which then set their heights apart.
+                // A day without sessions is narrow; when even the narrow days do not
+                // fit, the area scrolls sideways instead of squeezing the text.
+                // Where the week stands: its MAZ and phase, the ITP's load, the next
+                // competition
                 RowLayout {
-                    spacing: 8
+                    objectName: "cycleLine"
+                    visible: page.cycleText !== "" || page.nextCompetitionText !== ""
                     Layout.fillWidth: true
-                    Layout.margins: 8
+                    spacing: 24
                     Label {
-                        Layout.fillWidth: true
-                        Layout.preferredWidth: 1
-                        text: page.weekData.k17 || ""
+                        text: page.cycleText
+                        visible: text !== ""
                         font.bold: true
-                        HoverHandler { id: k17Hover }
-                        ToolTip.visible: k17Hover.hovered
-                        ToolTip.delay: 400
-                        ToolTip.text: "Alle Gruppen K1–K7: WH / MHG / Tonnage\n" + Glossary.explain("MHG")
                     }
                     Label {
-                        Layout.fillWidth: true
-                        Layout.preferredWidth: 1
-                        text: page.weekData.k15 || ""
-                        font.bold: true
-                        HoverHandler { id: k15Hover }
-                        ToolTip.visible: k15Hover.hovered
-                        ToolTip.delay: 400
-                        ToolTip.text: "Gruppen K1–K5: WH / MHG / Tonnage"
+                        text: page.nextCompetitionText
+                        visible: text !== ""
+                        color: Styles.TokenInterface.semantics.primary_default
                     }
+                    Item { Layout.fillWidth: true }
                 }
-                // Last week and the ITP's targets, and how far the week is off
-                Label {
-                    objectName: "weekComparison"
-                    visible: text !== ""
-                    Layout.fillWidth: true
-                    Layout.leftMargin: 8
-                    Layout.rightMargin: 8
-                    Layout.bottomMargin: 6
-                    Layout.topMargin: -4
-                    text: page.comparison.text
-                    elide: Text.ElideRight
-                    color: Math.abs(page.comparison.deviation) >= 10 ? Styles.TokenInterface.semantics.danger_default
-                                                                     : Styles.TokenInterface.semantics.text_muted
-                }
-                Rectangle { Layout.fillWidth: true; height: 1; color: Styles.TokenInterface.semantics.stroke_subtle }
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 0
-                    Repeater {
-                        model: page.weekData.groups || []
-                        // All cells stretch to the tallest one; a line on
-                        // the left separates them.
-                        Item {
-                            required property var modelData
-                            required property int index
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            Layout.preferredWidth: 1
-                            Layout.preferredHeight: Math.max(54, groupColumn.implicitHeight + 10)
 
-                            Rectangle {
-                                visible: index > 0
-                                width: 1
-                                height: parent.height
-                                color: Styles.TokenInterface.semantics.stroke_subtle
-                            }
+                Flickable {
+                    id: gridArea
+                    objectName: "gridArea"
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.minimumHeight: grid.minimumRows + bottomRoom
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+                    flickableDirection: Flickable.HorizontalFlick
+                    interactive: contentWidth > width
+                    contentWidth: Math.max(width, grid.minimumWidth)
+                    contentHeight: height
+                    // Room for the scroll bar below the days while it shows
+                    readonly property real bottomRoom: contentWidth > width ? hBar.height + 4 : 0
+                    ScrollBar.horizontal: AppScrollBar { id: hBar }
 
+                    GridLayout {
+                        id: grid
+                        width: gridArea.contentWidth
+                        columns: 7
+                        rowSpacing: 4
+                        columnSpacing: 4
+
+                        readonly property real headHeight: dayHeads.count > 0 && dayHeads.itemAt(0) ? dayHeads.itemAt(0).implicitHeight : 0
+                        // The two weeks' labels, while the week before is shown
+                        readonly property real labelsHeight: page.showPrevious ? 2 * (weekLabelHeight + rowSpacing) : 0
+                        readonly property int weekLabelHeight: 18
+                        readonly property int allRows: page.rows + page.previousRows
+                        readonly property real minimumRows: headHeight + labelsHeight + allRows * (44 + rowSpacing)
+                        readonly property int rowHeight: Math.max(44, Math.floor((gridArea.height - gridArea.bottomRoom - headHeight - labelsHeight - allRows * rowSpacing) / allRows))
+                        readonly property real minimumWidth: {
+                            let w = 6 * columnSpacing
+                            for (let d = 1; d <= 7; ++d)
+                                w += page.narrowDay(d) ? page.narrowWidth : page.wideMinimum
+                            return w
+                        }
+
+                        Repeater {
+                            id: dayHeads
+                            model: 7
                             ColumnLayout {
-                                id: groupColumn
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                anchors.top: parent.top
-                                anchors.topMargin: 4
-                                spacing: 1
+                                required property int index
+                                readonly property bool narrow: page.narrowDay(index + 1)
+                                objectName: "dayHead" + (index + 1)
+                                Layout.fillWidth: !narrow
+                                Layout.preferredWidth: narrow ? page.narrowWidth : 1
+                                Layout.minimumWidth: narrow ? page.narrowWidth : page.wideMinimum
+                                Layout.maximumWidth: narrow ? page.narrowWidth : Number.POSITIVE_INFINITY
+                                spacing: 0
                                 Label {
                                     Layout.alignment: Qt.AlignHCenter
-                                    text: modelData.title
+                                    text: parent.narrow ? ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"][index] : Store.dayName(index + 1)
                                     font.bold: true
-                                    HoverHandler { id: groupHover }
-                                    ToolTip.visible: groupHover.hovered
-                                    ToolTip.delay: 400
-                                    ToolTip.text: Glossary.group(index + 1)
-                                                  + "\nJe Zeile: Übung  WH  MHG  BW  Wdh/Sätze beim BW"
+                                    color: page.todayDay === index + 1 ? Styles.TokenInterface.semantics.primary_default : Styles.TokenInterface.semantics.text_default
                                 }
                                 Label {
-                                    objectName: "groupComparison" + (index + 1)
                                     Layout.alignment: Qt.AlignHCenter
-                                    visible: text !== ""
-                                    text: page.groupComparison(index)
+                                    text: page.todayDay === index + 1 && !parent.narrow ? "heute, " + Store.dayDate(page.monday, index + 1)
+                                                                                        : Store.dayDate(page.monday, index + 1)
                                     font.pixelSize: 11
-                                    color: Styles.TokenInterface.semantics.text_muted
+                                    color: page.todayDay === index + 1 ? Styles.TokenInterface.semantics.primary_default : Styles.TokenInterface.semantics.text_muted
                                 }
-                                Repeater {
-                                    model: modelData.lines
-                                    Label {
-                                        required property string modelData
-                                        Layout.alignment: Qt.AlignHCenter
-                                        text: modelData
-                                        font.family: "JetBrains Mono"
-                                        font.pixelSize: 12
+                            }
+                        }
+
+                        Label {
+                            objectName: "previousLabel"
+                            visible: page.showPrevious
+                            Layout.columnSpan: 7
+                            Layout.preferredHeight: grid.weekLabelHeight
+                            text: "Vorwoche " + Store.weekLabel(page.previousMonday) + " · " + (page.previousVariant === "I" ? "Ist" : "Plan")
+                                  + ((page.previousData.sessions || []).length === 0 ? " · keine Einheiten" : "")
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: Styles.TokenInterface.semantics.text_muted
+                        }
+
+                        Repeater {
+                            id: previousCells
+                            model: page.previousRows * 7
+                            SessionCell {
+                                required property int index
+                                readonly property int day: index % 7 + 1
+                                readonly property int row: Math.floor(index / 7) + 1
+                                readonly property int number: page.previousNumberAt(day, row)
+                                objectName: "previous" + day + "_" + number
+                                readOnly: true
+                                narrow: page.narrowDay(day)
+                                opacity: 0.6
+                                Layout.fillWidth: !narrow
+                                Layout.preferredWidth: narrow ? page.narrowWidth : 1
+                                Layout.minimumWidth: narrow ? page.narrowWidth : page.wideMinimum
+                                Layout.maximumWidth: narrow ? page.narrowWidth : Number.POSITIVE_INFINITY
+                                Layout.preferredHeight: grid.rowHeight
+                                Layout.minimumHeight: 44
+                                today: page.previousTodayDay === day
+                                sessionNumber: number
+                                session: number > 0 ? page.previousSessionAt(day, number) : null
+                                onClicked: page.openPrevious()
+                                onExerciseClicked: page.openPrevious()
+                            }
+                        }
+
+                        Label {
+                            objectName: "currentLabel"
+                            visible: page.showPrevious
+                            Layout.columnSpan: 7
+                            Layout.preferredHeight: grid.weekLabelHeight
+                            text: "Woche " + Store.weekLabel(page.monday) + " · " + (page.variant === "I" ? "Ist" : "Plan")
+                            font.pixelSize: 11
+                            font.bold: true
+                        }
+
+                        Repeater {
+                            id: cells
+                            model: page.rows * 7
+                            SessionCell {
+                                required property int index
+                                readonly property int day: index % 7 + 1
+                                readonly property int row: Math.floor(index / 7) + 1
+                                readonly property int number: page.numberAt(day, row)
+                                objectName: "cell" + day + "_" + number
+                                enabled: number > 0
+                                narrow: page.narrowDay(day)
+                                Layout.fillWidth: !narrow
+                                Layout.preferredWidth: narrow ? page.narrowWidth : 1
+                                Layout.minimumWidth: narrow ? page.narrowWidth : page.wideMinimum
+                                Layout.maximumWidth: narrow ? page.narrowWidth : Number.POSITIVE_INFINITY
+                                // Every row of sessions as high as the others, as in the
+                                // old program, so the grid keeps its shape from week to
+                                // week: exactly the rows' share, set rather than filled
+                                // (a maximum would also cap the grid, which then shrank)
+                                Layout.preferredHeight: grid.rowHeight
+                                Layout.minimumHeight: 44
+                                today: page.todayDay === day
+                                selected: page.isEdited(day, number)
+                                sessionNumber: number
+                                session: page.sessionAt(day, number)
+                                onClicked: page.openSession(day, number)
+                                onExerciseClicked: (exercise) => page.openExercise(exercise)
+                                onDeleteRequested: page.askRemoveSession(day, number)
+                                onMoveRequested: (days, sessions) => page.focusRow(day + days, row + sessions)
+                                onCopyRequested: page.copySession(day, number)
+                                onPasteRequested: page.pasteSession(day, number)
+                                onMenuRequested: (exercise, x, y) => sessionMenu.show(this, day, number, exercise, x, y)
+                                // Keep a cell reached by the keys in view
+                                onActiveFocusChanged: {
+                                    if (!activeFocus)
+                                        return
+                                    if (x < gridArea.contentX)
+                                        gridArea.contentX = x
+                                    else if (x + width > gridArea.contentX + gridArea.width)
+                                        gridArea.contentX = x + width - gridArea.width
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Label {
+                    Layout.fillWidth: true
+                    text: "Je Zeile: Übung  WH  MHG  BW  Wdh/Sätze beim BW  ·  Klick auf eine Übung bearbeitet sie für die ganze Woche, Klick daneben die Trainingseinheit  ·  Pfeiltasten, Enter, Entf  ·  F1: Hilfe"
+                    font.pixelSize: 11
+                    color: Styles.TokenInterface.semantics.text_muted
+                    elide: Text.ElideRight
+                    HoverHandler { id: legendHover }
+                    ToolTip.visible: legendHover.hovered
+                    ToolTip.delay: 400
+                    ToolTip.text: ["WH", "MHG", "BW", "SG/ANZ"].map(t => Glossary.explain(t)).join("\n")
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    // Only as high as its content: the note's fillHeight would
+                    // otherwise make the row take room from the week
+                    Layout.fillHeight: false
+                    spacing: 8
+                    Label {
+                        text: "Bemerkung:"
+                        Layout.alignment: Qt.AlignTop
+                    }
+                    ScrollView {
+                        // No overshoot at the ends
+                        Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds
+                        Layout.fillWidth: true
+                        // As high as the row: its bottom on the line of Zusatzinfo's
+                        Layout.fillHeight: true
+                        Layout.preferredHeight: 56
+                        TextArea {
+                            id: noteField
+                            wrapMode: TextEdit.Wrap
+                            placeholderText: "Bemerkung zur Woche"
+                            onEditingFinished: page.saveNote()
+                        }
+                    }
+                    ColumnLayout {
+                        Layout.alignment: Qt.AlignTop
+                        // As wide as its widest item; the button's fillWidth would
+                        // otherwise make it share the width with the note
+                        Layout.fillWidth: false
+                        spacing: 4
+                        CheckBox {
+                            id: injuredBox
+                            text: "verletzt/krank"
+                            onToggled: page.saveNote()
+                        }
+                        // As wide as the column: its right edge on the page's
+                        IconButton {
+                            Layout.fillWidth: true
+                            iconName: "clipboard-list"
+                            text: "Zusatzinfo"
+                            toolTip: "Körpergewicht, Körperfett, Nahrungsergänzung …"
+                            onClicked: dayInfoDialog.edit(page.athleteId, page.monday)
+                        }
+                    }
+                }
+
+                Label {
+                    Layout.fillWidth: true
+                    visible: text !== ""
+                    text: page.hasAthlete ? (Store.dataVersion, Store.weekInfoSummary(page.athleteId, page.monday)) : ""
+                    color: Styles.TokenInterface.semantics.text_muted
+                    elide: Text.ElideRight
+                }
+
+                // Weekly summary K1-K7 as in the old program
+                Frame {
+                    Layout.fillWidth: true
+                    padding: 0
+                    background: Rectangle {
+                        color: Styles.TokenInterface.semantics.background_elevated
+                        border.color: Styles.TokenInterface.semantics.stroke_subtle
+                    }
+
+                    ColumnLayout {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        spacing: 0
+
+                        RowLayout {
+                            spacing: 8
+                            Layout.fillWidth: true
+                            Layout.margins: 8
+                            Label {
+                                Layout.fillWidth: true
+                                Layout.preferredWidth: 1
+                                text: page.weekData.k17 || ""
+                                font.bold: true
+                                HoverHandler { id: k17Hover }
+                                ToolTip.visible: k17Hover.hovered
+                                ToolTip.delay: 400
+                                ToolTip.text: "Alle Gruppen K1–K7: WH / MHG / Tonnage\n" + Glossary.explain("MHG")
+                            }
+                            Label {
+                                Layout.fillWidth: true
+                                Layout.preferredWidth: 1
+                                text: page.weekData.k15 || ""
+                                font.bold: true
+                                HoverHandler { id: k15Hover }
+                                ToolTip.visible: k15Hover.hovered
+                                ToolTip.delay: 400
+                                ToolTip.text: "Gruppen K1–K5: WH / MHG / Tonnage"
+                            }
+                        }
+                        // Last week and the ITP's targets, and how far the week is off
+                        Label {
+                            objectName: "weekComparison"
+                            visible: text !== ""
+                            Layout.fillWidth: true
+                            Layout.leftMargin: 8
+                            Layout.rightMargin: 8
+                            Layout.bottomMargin: 6
+                            Layout.topMargin: -4
+                            text: page.comparison.text
+                            elide: Text.ElideRight
+                            color: Math.abs(page.comparison.deviation) >= 10 ? Styles.TokenInterface.semantics.danger_default
+                                                                             : Styles.TokenInterface.semantics.text_muted
+                        }
+                        Rectangle { Layout.fillWidth: true; height: 1; color: Styles.TokenInterface.semantics.stroke_subtle }
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 0
+                            Repeater {
+                                model: page.weekData.groups || []
+                                // All cells stretch to the tallest one; a line on
+                                // the left separates them.
+                                Item {
+                                    required property var modelData
+                                    required property int index
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    Layout.preferredWidth: 1
+                                    Layout.preferredHeight: Math.max(54, groupColumn.implicitHeight + 10)
+
+                                    Rectangle {
+                                        visible: index > 0
+                                        width: 1
+                                        height: parent.height
+                                        color: Styles.TokenInterface.semantics.stroke_subtle
+                                    }
+
+                                    ColumnLayout {
+                                        id: groupColumn
+                                        anchors.left: parent.left
+                                        anchors.right: parent.right
+                                        anchors.top: parent.top
+                                        anchors.topMargin: 4
+                                        spacing: 1
+                                        Label {
+                                            Layout.alignment: Qt.AlignHCenter
+                                            text: modelData.title
+                                            font.bold: true
+                                            HoverHandler { id: groupHover }
+                                            ToolTip.visible: groupHover.hovered
+                                            ToolTip.delay: 400
+                                            ToolTip.text: Glossary.group(index + 1)
+                                                          + "\nJe Zeile: Übung  WH  MHG  BW  Wdh/Sätze beim BW"
+                                        }
+                                        Label {
+                                            objectName: "groupComparison" + (index + 1)
+                                            Layout.alignment: Qt.AlignHCenter
+                                            visible: text !== ""
+                                            text: page.groupComparison(index)
+                                            font.pixelSize: 11
+                                            color: Styles.TokenInterface.semantics.text_muted
+                                        }
+                                        Repeater {
+                                            model: modelData.lines
+                                            Label {
+                                                required property string modelData
+                                                Layout.alignment: Qt.AlignHCenter
+                                                text: modelData
+                                                font.family: "JetBrains Mono"
+                                                font.pixelSize: 12
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -919,6 +952,83 @@ Page {
                 }
             }
         }
+
+        // Where the session panel sits beside the week
+        Item {
+            id: panelSlot
+            objectName: "panelSlot"
+            visible: sessionEditor.opened && !sessionEditor.floating
+            SplitView.preferredWidth: panelSettings.dockWidth
+            SplitView.minimumWidth: 420
+            onWidthChanged: if (visible && width > 0) panelSettings.dockWidth = width
+        }
+    }
+
+    Settings {
+        id: panelSettings
+        category: "sessionPanel"
+        property bool floating: false
+        property real dockWidth: 560
+        property int windowX: -1
+        property int windowY: -1
+        property int windowWidth: 640
+        property int windowHeight: 780
+    }
+
+    SessionEditor {
+        id: sessionEditor
+        objectName: "sessionEditor"
+        parent: floating ? floatWindow.contentItem : panelSlot
+        anchors.fill: parent
+        visible: opened
+        floating: panelSettings.floating
+        onFloatingToggled: {
+            panelSettings.floating = !panelSettings.floating
+            // Docked again: the keys go to the week's window
+            if (!panelSettings.floating)
+                Qt.callLater(() => {
+                    page.Window.window.requestActivate()
+                    sessionEditor.forceActiveFocus()
+                })
+        }
+        // Back to the session's cell, when it is in the week shown
+        onClosed: {
+            if (athleteId === page.athleteId && monday === page.monday && variant === page.variant)
+                page.focusSession(day, number)
+        }
+        Connections {
+            target: Store
+            // Changed elsewhere (undo, the TÜ dialog, Ist = Plan in the menu):
+            // show it, unless there are changes of its own
+            function onDataVersionChanged() {
+                if (sessionEditor.opened && !sessionEditor.dirty && !sessionEditor.saving)
+                    sessionEditor.reload()
+            }
+        }
+    }
+
+    // The session panel in a window of its own, for a second screen
+    ApplicationWindow {
+        id: floatWindow
+        objectName: "floatWindow"
+        title: "Trainingseinheit – " + sessionEditor.title
+        visible: sessionEditor.opened && sessionEditor.floating
+        minimumWidth: 460
+        minimumHeight: 420
+        width: panelSettings.windowWidth
+        height: panelSettings.windowHeight
+        Component.onCompleted: {
+            if (panelSettings.windowX >= 0) {
+                x = panelSettings.windowX
+                y = panelSettings.windowY
+            }
+        }
+        onXChanged: if (visible) panelSettings.windowX = x
+        onYChanged: if (visible) panelSettings.windowY = y
+        onWidthChanged: if (visible) panelSettings.windowWidth = width
+        onHeightChanged: if (visible) panelSettings.windowHeight = height
+        // Closing the window closes the session, saved
+        onClosing: (close) => { close.accepted = sessionEditor.close() }
     }
 
     ColumnLayout {
@@ -939,10 +1049,6 @@ Page {
         }
     }
 
-    SessionDialog {
-        id: sessionDialog
-        objectName: "sessionDialog"
-    }
 
     ExerciseWeekDialog {
         id: exerciseDialog

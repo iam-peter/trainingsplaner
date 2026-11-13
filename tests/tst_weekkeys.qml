@@ -101,14 +101,20 @@ Item {
             keyClick(Qt.Key_Left, Qt.ControlModifier)
             compare(page.monday, monday)
 
+            // Enter opens the session in the panel beside the week; while
+            // typing there the week stays, Esc closes it and goes back
             page.focusSession(2, 2)
             keyClick(Qt.Key_Return)
-            tryCompare(DialogStack, "open", 1)
-            // An open dialog keeps the week where it is
+            const editor = findChild(page, "sessionEditor")
+            tryCompare(editor, "opened", true)
+            compare(DialogStack.open, 0)
+            verify(cell(2, 2).selected)
+            verify(editor.activeFocus)
             keyClick(Qt.Key_Right, Qt.ControlModifier)
             compare(page.monday, monday)
             keyClick(Qt.Key_Escape)
-            tryCompare(DialogStack, "open", 0)
+            tryCompare(editor, "opened", false)
+            tryVerify(() => cell(2, 2).activeFocus)
         }
     }
 }

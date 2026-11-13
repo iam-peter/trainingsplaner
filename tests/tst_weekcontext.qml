@@ -106,16 +106,16 @@ Item {
             page.athleteId = athlete
             page.monday = monday
             page.openSession(1, 1)
-            const dialog = findChild(page, "sessionDialog")
+            const dialog = findChild(page, "sessionEditor")
             tryCompare(dialog, "opened", true)
-            const entry = findChild(dialog.contentItem, "entry0")
+            const entry = findChild(dialog, "entry0")
             tryVerify(() => entry !== null)
             const label = findChild(entry, "comparison")
             verify(label.visible)
             verify(label.text.indexOf("Vorwoche  WH 10 · MHG 54 · BW 60") === 0)
             verify(label.text.indexOf("ITP  WH 20 · MHG 60 · BW 70") > 0)
             dialog.close()
-            tryCompare(dialog, "opened", false)
+            compare(dialog.opened, false)
         }
     }
 }

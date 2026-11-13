@@ -20,6 +20,8 @@ Rectangle {
     // Shown for comparison (the week before): no "+", no keys, a click
     // only asks to go there
     property bool readOnly: false
+    // Shown in the session panel
+    property bool selected: false
     signal clicked()
     signal deleteRequested()
     signal moveRequested(int days, int sessions)
@@ -35,7 +37,7 @@ Rectangle {
     Styles.StyleCascade {
         id: _cellStyle
         base: [CellStyle.base]
-        overrides: [cell.today ? CellStyle.today : null, cell.activeFocus ? CellStyle.focus : null]
+        overrides: [cell.today ? CellStyle.today : null, cell.activeFocus || cell.selected ? CellStyle.focus : null]
         state: hover.hovered ? Styles.StyleState.Hover : Styles.StyleState.Idle
     }
     Styles.StyleCascade {
