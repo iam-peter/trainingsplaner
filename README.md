@@ -101,8 +101,9 @@ updates and uninstalling.
 - **Print / PDF** of the week plan with the old print options (notation,
   figures, notes, empty lines, fonts, paper A4, A5 or A3, portrait or
   landscape, margins, logo), of the month, and of all analyses and charts,
-  their tables drawn like the old program's reports; charts also as PNG
-  images, with the values shown on hover.
+  their tables drawn like the old program's reports, each shown in a page
+  preview first, as the old program did; charts also as PNG images, with
+  the values shown on hover.
 - **Everyday use**: keyboard shortcuts (arrow keys, Enter and Delete in
   the week grid, Ctrl+←/→ for weeks or months, Ctrl+C/V for sessions,
   Ctrl+S), undo and redo of every change to sessions, a right-click menu
@@ -199,6 +200,7 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `src/analysis.*` | section analysis and load tables |
 | `src/weekreport.*` | printed / PDF week plan |
 | `src/report.*` | analysis reports: headings, notes and tables, printed and as PDF, as text and CSV |
+| `src/printpreview.*` | the page preview shown before printing |
 | `src/youth.*` | the DGJ's youth rules: age class, weight classes, DM norms, competitions |
 | `src/store.*`, `src/planstore.*`, `src/analysisapi.*`, `src/itpmodel.*`, `src/reportmodel.*` | APIs and models for the QML user interface |
 | `qml/` | user interface |

@@ -52,6 +52,7 @@ qt_add_qml_module(tpqml
     OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Trainingsplaner
     SOURCES
         src/store.cpp src/store.h
+        src/printpreview.cpp src/printpreview.h
         src/planstore.cpp src/planstore.h
         src/itpmodel.cpp src/itpmodel.h
         src/analysisapi.cpp src/analysisapi.h
@@ -145,6 +146,15 @@ qt_add_executable(trainingsplaner WIN32 MACOSX_BUNDLE
 target_compile_definitions(trainingsplaner PRIVATE
     PROJECT_VERSION_STRING="${PROJECT_VERSION}")
 target_link_libraries(trainingsplaner PRIVATE tpqml tpqmlplugin)
+# Qt's own German texts (print dialog, print preview, file dialogs), built
+# in so every package has them
+set(QTBASE_DE_QM "${QT6_INSTALL_PREFIX}/${QT6_INSTALL_TRANSLATIONS}/qtbase_de.qm")
+if(EXISTS "${QTBASE_DE_QM}")
+    set_source_files_properties("${QTBASE_DE_QM}" PROPERTIES QT_RESOURCE_ALIAS qtbase_de.qm)
+    qt_add_resources(trainingsplaner "qt_translations" PREFIX "/i18n" FILES "${QTBASE_DE_QM}")
+else()
+    message(WARNING "qtbase_de.qm not found; Qt's own dialogs stay in English")
+endif()
 # The icon the file manager, taskbar and Dock show.
 set_target_properties(trainingsplaner PROPERTIES
     MACOSX_BUNDLE_BUNDLE_NAME Trainingsplaner

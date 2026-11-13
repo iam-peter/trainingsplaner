@@ -18,6 +18,7 @@
 #include <QTextStream>
 #include <QSvgRenderer>
 #include <QTimer>
+#include <QTranslator>
 #include <QtQml/qqmlextensionplugin.h>
 
 Q_IMPORT_QML_PLUGIN(TrainingsplanerPlugin)
@@ -64,6 +65,10 @@ int main(int argc, char *argv[])
     QApplication::setApplicationVersion(QStringLiteral(PROJECT_VERSION_STRING));
     QLocale::setDefault(QLocale(QLocale::German, QLocale::Germany));
     loadFonts();
+    // Qt's own dialogs (print, print preview, files) in German
+    QTranslator qtTranslator;
+    if (qtTranslator.load(QStringLiteral(":/i18n/qtbase_de.qm")))
+        QApplication::installTranslator(&qtTranslator);
     QApplication::setWindowIcon(appIcon());
     QGuiApplication::setDesktopFileName(QStringLiteral("trainingsplaner"));
 

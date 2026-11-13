@@ -58,6 +58,7 @@ decide how the program feels. That is where his wishes are, too:
 | W11 | No placeholder "1" in the sets field | 4 | done |
 | W12 | "von" never after "bis" | 4 | done |
 | W13 | ITP and Rahmenorientierung not behind one switch | 3.4 | done |
+| W14 | A print preview before printing, as WinWoTA's Seitenvorschau | – | done |
 
 ## 2. Principles
 

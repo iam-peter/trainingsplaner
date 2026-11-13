@@ -14,6 +14,8 @@
 #include <QLocale>
 #include <QPageLayout>
 #include <QPdfWriter>
+#include "printpreview.h"
+
 #include <QPrintDialog>
 #include <QPrinter>
 
@@ -543,11 +545,7 @@ bool AnalysisApi::printReport(const QVariantMap &report) const
     QPrinter printer(QPrinter::HighResolution);
     printer.setPageLayout(reportLayout());
     printer.setDocName(doc.title);
-    QPrintDialog dialog(&printer);
-    if (dialog.exec() != QDialog::Accepted)
-        return false;
-    Report::paint(&printer, doc);
-    return true;
+    return PrintPreview::show(&printer, doc.title, [&doc](QPrinter *device) { Report::paint(device, doc); });
 }
 
 QString AnalysisApi::saveReport(const QVariantMap &report, const QUrl &file) const

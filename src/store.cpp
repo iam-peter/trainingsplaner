@@ -8,6 +8,7 @@
 #include "demo.h"
 #include "exerciseweek.h"
 #include "planning.h"
+#include "printpreview.h"
 #include "report.h"
 #include "youth.h"
 #include "weekreport.h"
@@ -2028,18 +2029,16 @@ bool Store::printImage(const QImage &image, const QString &title)
                                       image.width() > image.height() ? QPageLayout::Landscape : QPageLayout::Portrait,
                                       QMarginsF(12, 12, 12, 12), QPageLayout::Millimeter));
     printer.setDocName(title);
-    QPrintDialog dialog(&printer);
-    if (dialog.exec() != QDialog::Accepted)
-        return false;
-    QPainter p(&printer);
-    const QRect page(0, 0, printer.width(), printer.height());
-    p.setFont(QFont(QStringLiteral("Inter"), 12, QFont::Bold));
-    const int titleH = p.fontMetrics().height() * 2;
-    p.drawText(QRect(0, 0, page.width(), titleH), Qt::AlignLeft | Qt::AlignVCenter, title);
-    const QSize fitted = image.size().scaled(page.width(), page.height() - titleH, Qt::KeepAspectRatio);
-    p.setRenderHint(QPainter::SmoothPixmapTransform);
-    p.drawImage(QRect(0, titleH, fitted.width(), fitted.height()), image);
-    return true;
+    return PrintPreview::show(&printer, title, [&image, &title](QPrinter *device) {
+        QPainter p(device);
+        const QRect page(0, 0, device->width(), device->height());
+        p.setFont(QFont(QStringLiteral("Inter"), 12, QFont::Bold));
+        const int titleH = p.fontMetrics().height() * 2;
+        p.drawText(QRect(0, 0, page.width(), titleH), Qt::AlignLeft | Qt::AlignVCenter, title);
+        const QSize fitted = image.size().scaled(page.width(), page.height() - titleH, Qt::KeepAspectRatio);
+        p.setRenderHint(QPainter::SmoothPixmapTransform);
+        p.drawImage(QRect(0, titleH, fitted.width(), fitted.height()), image);
+    });
 }
 
 bool Store::printWeek(const QString &athleteId, const QString &monday, const QString &variant)
@@ -2048,13 +2047,13 @@ bool Store::printWeek(const QString &athleteId, const QString &monday, const QSt
     QPrinter printer(QPrinter::HighResolution);
     printer.setPageLayout(options.pageLayout());
     const Athlete a = Database::athlete(athleteId);
-    printer.setDocName(QStringLiteral("Wochenplan %1 %2").arg(a.fullName(), weekLabel(monday)));
-    QPrintDialog dialog(&printer);
-    if (dialog.exec() != QDialog::Accepted)
-        return false;
-    WeekReport::render(&printer, loadWeek(athleteId, monday, variant),
-                       {trainer(), organisation(), a.fullName()}, options);
-    return true;
+    const QString title = QStringLiteral("Wochenplan %1 %2").arg(a.fullName(), weekLabel(monday));
+    printer.setDocName(title);
+    const Week week = loadWeek(athleteId, monday, variant);
+    const WeekReport::Header header{trainer(), organisation(), a.fullName()};
+    return PrintPreview::show(&printer, title, [&](QPrinter *device) {
+        WeekReport::render(device, week, header, options);
+    });
 }
 
 QUrl Store::suggestedPdfUrl(const QString &athleteId, const QString &monday) const
