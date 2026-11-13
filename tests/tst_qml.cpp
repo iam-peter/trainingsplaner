@@ -2,6 +2,9 @@
 #include "database.h"
 #include "update.h"
 
+#include <QGuiApplication>
+#include <QFontDatabase>
+#include <QDir>
 #include <QCryptographicHash>
 #include <QFile>
 #include <QJsonArray>
@@ -26,6 +29,15 @@ public slots:
     void applicationAvailable()
     {
         QCoreApplication::setOrganizationName(QStringLiteral("TrainingsplanerTest"));
+        // The program's fonts, as main() sets them, so tests (and screenshots
+        // taken with them) lay out as the program does
+        const QString fonts = QStringLiteral(":/qt/qml/Trainingsplaner/fonts/");
+        for (const QString &file : QDir(fonts).entryList({QStringLiteral("*.ttf")}))
+            QFontDatabase::addApplicationFont(fonts + file);
+        QFont font = QGuiApplication::font();
+        font.setFamilies({QStringLiteral("Inter")});
+        font.setHintingPreference(QFont::PreferNoHinting);
+        QGuiApplication::setFont(font);
         // As the program does at start
         QQuickStyle::setStyle(QStringLiteral("TrainingsplanerStyle"));
         QQuickStyle::setFallbackStyle(QStringLiteral("Basic"));

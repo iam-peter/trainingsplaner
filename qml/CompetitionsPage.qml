@@ -104,6 +104,9 @@ Page {
     Connections {
         target: Store
         function onAthletesChanged() { page.selectDefaultAthlete() }
+        // Competitions entered elsewhere (the month view): the list and the
+        // chart follow; the form keeps what is being edited
+        function onDataVersionChanged() { page.reload() }
     }
     Component.onCompleted: {
         selectDefaultAthlete()

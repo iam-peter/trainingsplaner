@@ -300,9 +300,21 @@ Page {
         // Charts
         ColumnLayout {
             id: chartTab
+            objectName: "chartTab"
             spacing: 8
             property var first: ({})
             property var second: ({})
+            // Built when it shows, and again when the data or the athlete
+            // change while it does; it was empty until a setting changed
+            onVisibleChanged: if (visible) reload()
+            Connections {
+                target: Store
+                function onDataVersionChanged() { if (chartTab.visible) chartTab.reload() }
+            }
+            Connections {
+                target: page
+                function onAthleteIdChanged() { if (chartTab.visible) chartTab.reload() }
+            }
             function reload() {
                 const ex = parseInt(chEx.text) || 1
                 const common = {
