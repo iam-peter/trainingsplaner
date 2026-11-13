@@ -453,7 +453,7 @@ AppDialog {
                         wrapMode: Text.Wrap
                         font.pixelSize: 11
                         color: Styles.TokenInterface.semantics.text_muted
-                        text: "Alle Daten des Projekts stehen in dieser einen Datei, jede Änderung wird sofort gespeichert. Datei › Speichern unter… legt eine Kopie an, Datei › Öffnen… wechselt zu einem anderen Projekt."
+                        text: "Alle Daten des Projekts stehen in dieser einen Datei, jede Änderung wird sofort gespeichert. Hantel-Menü › Speichern unter… legt eine Kopie an, Hantel-Menü › Öffnen… wechselt zu einem anderen Projekt."
                     }
                     Label { text: "Farbschema:" }
                     RowLayout {
@@ -484,7 +484,7 @@ AppDialog {
                         wrapMode: Text.Wrap
                         font.pixelSize: 11
                         color: Styles.TokenInterface.semantics.text_muted
-                        text: "Version und Updates: Datei › Über den Trainingsplaner."
+                        text: "Version und Updates: Hantel-Menü › Über den Trainingsplaner."
                     }
                 }
 

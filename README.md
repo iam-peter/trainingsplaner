@@ -129,7 +129,7 @@ What comes next: [docs/ROADMAP.md](docs/ROADMAP.md).
 
 Users of the older WinWoTA XP 2.61 can bring their data along: export it
 there ("Datenexport", option *komplett*, gives `winwotaxp.bak`), then use
-**Datei › Importieren** here. The exercise numbers are the same. Rows are
+**Importieren** in the dumbbell menu here. The exercise numbers are the same. Rows are
 merged by key and timestamp, so importing again is safe.
 
 This is an independent project. It is not affiliated with, endorsed by or
@@ -152,7 +152,7 @@ open `CMakeLists.txt` in Qt Creator and build *Release*. `windeployqt
 --qmldir qml trainingsplaner.exe` makes the folder self-contained.
 
 Each project is one SQLite file (`*.trainingsplaner`); every change is
-saved into it at once. *Datei* creates, opens and copies projects
+saved into it at once. The dumbbell menu creates, opens and copies projects
 (*Neues Projekt*, *Öffnen*, *Zuletzt geöffnet*, *Speichern unter*), and the
 program starts with the one used last. The first one is
 `%APPDATA%\Trainingsplaner\Trainingsplaner\trainingsplaner.sqlite`;
@@ -234,7 +234,7 @@ do not attach a real database or export.
 
 The only network access is the update check, which sends no training data:
 GitHub sees the program version (as user agent) and the IP address. It can
-be switched off under Datei › Über den Trainingsplaner.
+be switched off under Über den Trainingsplaner in the dumbbell menu.
 
 ## Licence
 

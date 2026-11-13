@@ -88,8 +88,9 @@ ApplicationWindow {
                 objectName: "fileButton"
                 iconName: "dumbbell"
                 text: "Datei"
+                // Only the dumbbell, without a tooltip; the name stays for
+                // screen readers
                 display: AbstractButton.IconOnly
-                toolTip: text
                 onClicked: fileMenu.open()
                 Menu {
                     id: fileMenu

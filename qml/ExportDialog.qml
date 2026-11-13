@@ -78,7 +78,7 @@ AppDialog {
                 wrapMode: Text.Wrap
                 font.pixelSize: 11
                 color: Styles.TokenInterface.semantics.text_muted
-                text: "Die Datei lässt sich auf einem anderen Rechner über „Datei“ › „Importieren“ einlesen. Gelöschte Einträge werden dabei ebenfalls entfernt."
+                text: "Die Datei lässt sich auf einem anderen Rechner über das Hantel-Menü › „Importieren“ einlesen. Gelöschte Einträge werden dabei ebenfalls entfernt."
             }
 
             Label {
