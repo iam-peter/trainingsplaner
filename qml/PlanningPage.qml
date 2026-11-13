@@ -248,7 +248,8 @@ Page {
                         iconName: "chart-line"
                         text: "Grafik"
                         enabled: page.athleteId !== "" && page.weeks > 0
-                        onClicked: chartDialog.open()
+                        onClicked: loadChart.show(page.athleteId, page.fromMonday, page.mazId,
+                                                  page.exercises.find(e => e > 0) || 1)
                     }
                 }
                 ItpGrid {
@@ -403,63 +404,9 @@ Page {
         }
     }
 
-    // ITP against the week plans
-    AppDialog {
-        id: chartDialog
-        title: "ITP und Trainingswochen"
-        width: Math.min(parent ? parent.width - 60 : 900, 1000)
-        height: Math.min(parent ? parent.height - 60 : 640, 680)
-        standardButtons: Dialog.Close
-        property var chartData: ({})
-        function reload() {
-            chartData = Plan.comparison(page.athleteId, page.fromMonday, page.weeks,
-                                   page.exercises[chartExercise.currentIndex] || 1, chartIst.checked ? "I" : "P")
-        }
-        onAboutToShow: reload()
-        contentItem: ColumnLayout {
-            spacing: 8
-            RowLayout {
-                spacing: 8
-                ComboBox {
-                    id: chartExercise
-                    implicitWidth: 260
-                    model: page.exercises.map(e => e < 0 ? "Komplex K" + (-e) : e + "  " + Store.exerciseName(e))
-                    onActivated: chartDialog.reload()
-                }
-                RadioButton { text: "Plan"; checked: true; onToggled: chartDialog.reload() }
-                RadioButton { id: chartIst; text: "Ist"; onToggled: chartDialog.reload() }
-                Item { Layout.fillWidth: true }
-                IconButton {
-                    iconName: "file-down"
-                    text: "Bild"
-                    toolTip: "Grafik als PNG-Bild speichern"
-                    onClicked: comparisonChart.saveImage()
-                }
-                IconButton {
-                    iconName: "printer"
-                    text: "Drucken"
-                    onClicked: comparisonChart.printChart()
-                }
-            }
-            TrendChart {
-                id: comparisonChart
-                documentTitle: chartDialog.title
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                labels: chartDialog.chartData.labels || []
-                leftTitle: "Intensität [kg]"
-                rightTitle: "Umfang [Wh]"
-                lines: [
-                    { name: "MHG ITP", color: "#a8a29e", values: chartDialog.chartData.itpMhg || [] },
-                    { name: "BW ITP", color: "#fdba74", values: chartDialog.chartData.itpBw || [] },
-                    { name: "MHG " + (chartIst.checked ? "Ist" : "Plan"), color: Styles.TokenInterface.semantics.chart_series[1], values: chartDialog.chartData.actMhg || [] },
-                    { name: "BW " + (chartIst.checked ? "Ist" : "Plan"), color: Styles.TokenInterface.semantics.primary_default, values: chartDialog.chartData.actBw || [] }
-                ]
-                bars: [
-                    { name: "WH ITP", color: "#cbd5e1", values: chartDialog.chartData.itpWh || [] },
-                    { name: "WH " + (chartIst.checked ? "Ist" : "Plan"), color: Styles.TokenInterface.semantics.chart_muted, values: chartDialog.chartData.actWh || [] }
-                ]
-            }
-        }
+    // The ITP against the weeks done: the load chart
+    LoadChartDialog {
+        id: loadChart
+        objectName: "loadChartDialog"
     }
 }

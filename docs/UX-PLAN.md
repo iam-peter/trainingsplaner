@@ -50,7 +50,7 @@ decide how the program feels. That is where his wishes are, too:
 | W3 | Two weeks at once when there is room | 3.1 | done |
 | W4 | The session editor beside the week, not over it | 3.2 | done |
 | W5 | A month view with the competitions, instead of his paper calendar | 3.3 | done |
-| W6 | A chart of Ist against Ziel showing raised and lowered weeks | 3.5 | to clarify with him |
+| W6 | A chart of Ist against Ziel showing raised and lowered weeks | 3.5 | built, to confirm with him |
 | W7 | The next weight filled in by the athlete's usual jump | 4 | done |
 | W8 | WH (ges.) of an AMKT line from its text (4x12) | 4 | done |
 | W9 | Earlier entries offered while typing | 4 | done |
@@ -264,7 +264,7 @@ So, as in WinWoTA (done):
   from there: the week's info line (done), the month view and the load
   chart (when they come).
 
-### 3.5 Belastungsverlauf: Ist against Ziel (to clarify with the coach)
+### 3.5 Belastungsverlauf: Ist against Ziel
 
 He described a chart of Ist against Ziel where the raised and lowered
 weeks (gehobene / gesenkte Wochen) show as a sawtooth. (W6)
@@ -309,9 +309,15 @@ The chart:
 - **Opened from the week** (the current week marked) and from Analyse,
   not only from inside the ITP.
 
-The Trainingsplaner already has most of it as Planung › ITP › Grafik
-("ITP und Trainingswochen", WH as bars, MHG and BW as lines, one exercise),
-so this is a rework, not a new chart.
+Built ("Belastungsverlauf", replacing Planung › ITP › Grafik): opened
+with "Verlauf" in the week (on the week's MAZ, or twelve weeks around
+it), with "Grafik" in the ITP and "Belastungsverlauf" in Analyse. It
+draws the weight of one exercise and the reps of K1-7 as described
+above, in kg or % of the MAZ target or MAZ-WK, with today marked, the
+weeks planned after it thin, a tooltip per week, and the table below
+to copy and print. Not built yet: the comparison with another MAZ, and
+saving the chart as an image. Whether it is what the coach described
+is still to ask him (section 9, question 1).
 
 ### 3.6 Wettkämpfe
 
@@ -495,7 +501,7 @@ flowchart LR
 | ✓ 4b | Erfassung TÜ as the session panel's second view; what the panel changes marked in the week | medium | W4 |
 | ✓ 6 | The week's load h / m / g read from the ITP wherever a week is shown | small | 3.1, 3.3, 3.5 |
 | ✓ 7 | Monat: weeks with load and WH, sessions, competition dates, Termine, all athletes, print | large | W5 |
-| 8 | Load chart: weight as Ziel, Ist and ideal line, expected course, reps with h / m / g, table below, Bezug, comparison MAZ, reachable from week and Analyse | medium | W6 |
+| ✓ 8 | Load chart: weight as Ziel, Ist and ideal line, expected course, reps with h / m / g, table below, Bezug, reachable from week and Analyse (comparison MAZ later) | medium | W6 |
 | 9 | Youth competition types, one-per-week warning, DM norms as an editable table | small | 6.2 |
 
 Steps 1, 2 and 5 are small and independent; each can go to the coach on

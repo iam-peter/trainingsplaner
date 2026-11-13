@@ -38,10 +38,15 @@ public:
     Q_INVOKABLE bool copyPlan(const QString &fromOwner, const QString &fromMonday, const QString &toOwner,
                               const QString &toMonday, int weeks);
 
-    // Chart: ITP targets against the week plans (basis "P" or "I") for an
-    // exercise or group: {labels, itpWh, itpMhg, itpBw, actWh, actMhg, actBw}
-    Q_INVOKABLE QVariantMap comparison(const QString &athleteId, const QString &fromMonday, int weeks,
-                                       int exercise, const QString &basis) const;
+    // The load chart: an athlete's weeks of a MAZ (mazId), or of weeks
+    // from fromMonday, for one exercise. Per week: label, load (h/m/g),
+    // the ITP's target and the Ist and the Plan of the exercise (mhg, bw),
+    // and of K1-7 (wh); null where there is none. With reference "ziel" or
+    // "wk" the weights are in % of the athlete's MAZ target or of the
+    // result the MAZ started from. todayIndex: the week of today, -1
+    // outside. report: the same numbers as a table.
+    Q_INVOKABLE QVariantMap loadCourse(const QString &athleteId, const QString &mazId, const QString &fromMonday,
+                                       int weeks, int exercise, const QString &reference) const;
 
     // Planned weight steps per week: [{monday, label, text, wh, mhg, bw}]
     Q_INVOKABLE QVariantList plannedSteps(const QString &owner, int exercise, const QString &fromMonday,

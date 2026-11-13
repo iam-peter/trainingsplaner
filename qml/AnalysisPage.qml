@@ -65,6 +65,15 @@ Page {
                 AppTabButton { text: "Datenprüfung" }
                 AppTabButton { text: "Grafik" }
             }
+            // The load over the cycle, against the ITP
+            IconButton {
+                objectName: "loadChartButton"
+                iconName: "chart-line"
+                text: "Belastungsverlauf"
+                enabled: page.athleteId !== ""
+                toolTip: "Gewicht und Wiederholungen über die Wochen des MAZ, gegen das ITP"
+                onClicked: loadChart.show(page.athleteId, "", "", 1)
+            }
             Item { Layout.fillWidth: true }
             // For what the tab shows: its report, or the chart
             IconButton {
@@ -91,6 +100,11 @@ Page {
                 onClicked: page.report ? page.report.saveAs() : analysisChart.saveImage()
             }
         }
+    }
+
+    LoadChartDialog {
+        id: loadChart
+        objectName: "loadChartDialog"
     }
 
     // The report of the tab shown, null on the chart

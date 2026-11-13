@@ -72,8 +72,9 @@ and order in [UX-PLAN.md](UX-PLAN.md)):
       earlier lines and texts offered while typing.
 - [x] **A month view** with the sessions and the competition dates, for
       one athlete or all, printable.
-- [ ] **The load chart** (Ist against Ziel per week, the sawtooth of
-      raised and lowered weeks), after asking the coach what it shows.
+- [x] **The load chart** ("Belastungsverlauf"): weight per week as Ziel,
+      Ist and ideal line, reps with h / m / g, from the week, the ITP and
+      Analyse; to confirm with the coach.
 - [ ] **Youth competitions** of the DGJ: types, one per week, DM norms.
 - [ ] Later, if wanted: one sidebar instead of two tab bars
       ([NAVIGATION.md](NAVIGATION.md)).

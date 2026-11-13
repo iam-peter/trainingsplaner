@@ -1,9 +1,12 @@
 #include "planstore.h"
 
 #include "bakexport.h"
+#include "catalog.h"
 #include "database.h"
 #include "planning.h"
+#include "report.h"
 
+#include <QSet>
 #include <QSettings>
 
 namespace {
@@ -202,36 +205,145 @@ bool Plan::copyPlan(const QString &fromOwner, const QString &fromMonday, const Q
     return ok;
 }
 
-QVariantMap Plan::comparison(const QString &athleteId, const QString &fromMonday, int weeks, int exercise,
-                             const QString &basis) const
+QVariantMap Plan::loadCourse(const QString &athleteId, const QString &mazId, const QString &fromMonday,
+                             int weeks, int exercise, const QString &reference) const
 {
-    const QDate from = isoDate(fromMonday);
-    const int n = qBound(1, weeks, 260);
-    const QDate to = from.addDays(7 * (n - 1));
-    QMap<QDate, WeekTarget> itp;
-    for (const WeekTarget &t : Planning::targets(athleteId, from, to)) {
-        if (t.exercise == exercise)
-            itp.insert(t.monday, t);
+    QVariantMap result;
+    if (athleteId.isEmpty() || exercise == 0)
+        return result;
+    QDate from = isoDate(fromMonday);
+    int n = qBound(1, weeks, 104);
+    MazAthlete ma;
+    bool inMaz = false;
+    if (!mazId.isEmpty()) {
+        const Maz z = Planning::maz(mazId);
+        if (z.from.isValid() && z.weeks() > 0) {
+            from = z.from;
+            n = qMin(z.weeks(), 104);
+        }
+        for (const MazAthlete &a : Planning::mazAthletes(mazId)) {
+            if (a.athleteId == athleteId) {
+                ma = a;
+                inMaz = true;
+            }
+        }
     }
-    const QMap<QDate, Stats> act = Planning::actualWeekly(
-        athleteId, basis == QLatin1String("I") ? Variant::Actual : Variant::Plan, exercise, from, to);
-    QVariantList labels, iWh, iMhg, iBw, aWh, aMhg, aBw;
+    if (!from.isValid())
+        return result;
+    const QDate to = from.addDays(7 * (n - 1));
+
+    // What the weights are measured against
+    int ref = 0;
+    QString unit = QStringLiteral("kg");
+    if (inMaz && (reference == QLatin1String("ziel") || reference == QLatin1String("wk"))) {
+        if (reference == QLatin1String("ziel")) {
+            ref = Planning::targetFor(ma, exercise);
+        } else {
+            const Exercise *e = Catalog::find(exercise);
+            ref = e && e->lift == Exercise::Snatch ? ma.compSnatch : ma.compCleanJerk;
+        }
+        if (ref > 0)
+            unit = QStringLiteral("%");
+    }
+    auto weight = [&](int kg) -> QVariant {
+        if (kg <= 0)
+            return QVariant();
+        return ref > 0 ? QVariant(qRound(kg * 100.0 / ref)) : QVariant(kg);
+    };
+
+    // Targets: the exercise's, and K1-7 per week (a complex's own target,
+    // else the sum of its exercises')
+    QMap<QDate, WeekTarget> target;
+    QMap<QDate, QMap<int, int>> groupWh;     // week -> group -> wh
+    QMap<QDate, QSet<int>> groupOwn;
+    const QList<WeekTarget> targets = Planning::targets(athleteId, from, to);
+    for (const WeekTarget &t : targets) {
+        if (t.exercise == exercise)
+            target.insert(t.monday, t);
+        if (t.exercise < 0 && -t.exercise <= Catalog::summaryGroups && t.wh > 0) {
+            groupWh[t.monday][-t.exercise] = t.wh;
+            groupOwn[t.monday].insert(-t.exercise);
+        }
+    }
+    for (const WeekTarget &t : targets) {
+        const Exercise *e = t.exercise > 0 ? Catalog::find(t.exercise) : nullptr;
+        if (e && e->group >= 1 && e->group <= Catalog::summaryGroups && !groupOwn[t.monday].contains(e->group))
+            groupWh[t.monday][e->group] += t.wh;
+    }
+    QMap<QDate, int> load;
+    for (const WeekMeta &m : Planning::meta(athleteId, from, to))
+        load.insert(m.monday, m.load);
+
+    // Done and planned: the exercise, and the reps of K1-7
+    struct Done { QMap<QDate, QList<Step>> exercise; QMap<QDate, int> wh17; };
+    auto collect = [&](Variant v) {
+        Done d;
+        for (const Database::WeightLine &l : Database::weightLines(athleteId, v, from, to)) {
+            if (l.exercise == exercise)
+                d.exercise[l.monday] += l.steps;
+            const Exercise *e = Catalog::find(l.exercise);
+            if (e && e->group >= 1 && e->group <= Catalog::summaryGroups)
+                d.wh17[l.monday] += Steps::compute(l.steps).wh;
+        }
+        return d;
+    };
+    const Done actual = collect(Variant::Actual);
+    const Done planned = collect(Variant::Plan);
+
+    const QDate todayMonday = Weeks::mondayOf(QDate::currentDate());
+    int todayIndex = -1;
+    QVariantList labels, mondays, loads;
+    QVariantList zMhg, zBw, zWh, iMhg, iBw, iWh, pMhg, pBw, pWh;
     auto opt = [](int v) { return v > 0 ? QVariant(v) : QVariant(); };
+    Report::Document doc;
+    const QString exName = Catalog::name(exercise);
+    doc.title = QStringLiteral("Belastungsverlauf TÜ %1 %2").arg(exercise).arg(exName);
+    QList<Report::Cells> rows;
+    rows.append(Report::cells({QStringLiteral("KW"), QStringLiteral("Bel."),
+                               QStringLiteral("BW Ziel"), QStringLiteral("BW Ist"), QStringLiteral("BW Plan"),
+                               QStringLiteral("MHG Ziel"), QStringLiteral("MHG Ist"), QStringLiteral("MHG Plan"),
+                               QStringLiteral("WH K1-7 Ziel"), QStringLiteral("WH K1-7 Ist"), QStringLiteral("WH K1-7 Plan")}));
+    auto text = [](const QVariant &v) { return v.isValid() ? v.toString() : QString(); };
     for (int i = 0; i < n; ++i) {
         const QDate m = from.addDays(7 * i);
-        labels.append(Weeks::label(m));
-        const WeekTarget t = itp.value(m);
-        iWh.append(t.wh);
-        iMhg.append(opt(t.mhg));
-        iBw.append(opt(t.bw));
-        const Stats s = act.value(m);
-        aWh.append(s.wh);
-        aMhg.append(opt(s.mhg));
-        aBw.append(opt(s.bw));
+        if (m == todayMonday)
+            todayIndex = i;
+        labels.append(QString::number(m.weekNumber()));
+        mondays.append(m.toString(Qt::ISODate));
+        loads.append(Planning::loadText(load.value(m)));
+        const WeekTarget t = target.value(m);
+        int z17 = 0;
+        for (int w : groupWh.value(m))
+            z17 += w;
+        const Stats a = Steps::compute(actual.exercise.value(m));
+        const Stats p = Steps::compute(planned.exercise.value(m));
+        zMhg.append(weight(t.mhg));
+        zBw.append(weight(t.bw));
+        zWh.append(opt(z17));
+        iMhg.append(weight(a.mhg));
+        iBw.append(weight(a.bw));
+        iWh.append(opt(actual.wh17.value(m)));
+        pMhg.append(weight(p.mhg));
+        pBw.append(weight(p.bw));
+        pWh.append(opt(planned.wh17.value(m)));
+        rows.append(Report::cells({QString::number(m.weekNumber()), Planning::loadText(load.value(m)),
+                                   text(zBw.last()), text(iBw.last()), text(pBw.last()),
+                                   text(zMhg.last()), text(iMhg.last()), text(pMhg.last()),
+                                   text(zWh.last()), text(iWh.last()), text(pWh.last())}));
     }
-    return {{QStringLiteral("labels"), labels}, {QStringLiteral("itpWh"), iWh}, {QStringLiteral("itpMhg"), iMhg},
-            {QStringLiteral("itpBw"), iBw}, {QStringLiteral("actWh"), aWh}, {QStringLiteral("actMhg"), aMhg},
-            {QStringLiteral("actBw"), aBw}};
+    doc.note(QStringLiteral("Gewichte in %1").arg(ref > 0 ? (reference == QLatin1String("ziel")
+                                                               ? QStringLiteral("% des MAZ-Ziels (%1 kg)").arg(ref)
+                                                               : QStringLiteral("% des MAZ-Wettkampfs (%1 kg)").arg(ref))
+                                                         : QStringLiteral("kg")));
+    doc.table(rows);
+    result = {{QStringLiteral("labels"), labels}, {QStringLiteral("mondays"), mondays}, {QStringLiteral("load"), loads},
+              {QStringLiteral("todayIndex"), todayIndex}, {QStringLiteral("unit"), unit},
+              {QStringLiteral("reference"), ref},
+              {QStringLiteral("target"), QVariantMap{{QStringLiteral("mhg"), zMhg}, {QStringLiteral("bw"), zBw}, {QStringLiteral("wh"), zWh}}},
+              {QStringLiteral("actual"), QVariantMap{{QStringLiteral("mhg"), iMhg}, {QStringLiteral("bw"), iBw}, {QStringLiteral("wh"), iWh}}},
+              {QStringLiteral("planned"), QVariantMap{{QStringLiteral("mhg"), pMhg}, {QStringLiteral("bw"), pBw}, {QStringLiteral("wh"), pWh}}},
+              {QStringLiteral("report"), Report::toVariant(doc)}};
+    return result;
 }
 
 QVariantList Plan::plannedSteps(const QString &owner, int exercise, const QString &fromMonday, int weeks) const

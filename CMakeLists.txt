@@ -96,6 +96,8 @@ qt_add_qml_module(tpqml
         qml/SuggestionPopup.qml
         qml/ExerciseEditor.qml
         qml/MonthView.qml
+        qml/LoadChart.qml
+        qml/LoadChartDialog.qml
         qml/CompetitionDateDialog.qml
         qml/ExerciseRowEditor.qml
         qml/ExportDialog.qml

@@ -652,6 +652,15 @@ Page {
                 ToolTip.text: "Kopierte Woche einfügen: " + Store.clipboardLabel
             }
             IconButton {
+                objectName: "loadChartButton"
+                visible: !page.monthMode
+                iconName: "chart-line"
+                text: "Verlauf"
+                enabled: page.hasAthlete
+                toolTip: "Belastungsverlauf: diese Woche im MAZ, gegen das ITP"
+                onClicked: loadChart.show(page.athleteId, page.monday, "", 1)
+            }
+            IconButton {
                 iconName: "printer"
                 text: "Drucken"
                 enabled: page.hasAthlete
@@ -1121,6 +1130,11 @@ Page {
         id: viewSettings
         category: "week"
         property bool monthMode: false
+    }
+
+    LoadChartDialog {
+        id: loadChart
+        objectName: "loadChartDialog"
     }
 
     CompetitionDateDialog {
