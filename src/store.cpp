@@ -1486,7 +1486,9 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
     QMap<QDate, QVariantList> compsByDate;
     QList<QVariantMap> upcoming;
     for (const auto &[id, name] : std::as_const(who)) {
-        for (const Competition &c : Competitions::forAthlete(id)) {
+        const QDate born = Database::athlete(id).born;
+        const QList<Competition> comps = Competitions::forAthlete(id);
+        for (const Competition &c : comps) {
             const bool hasResult = c.bodyWeight > 0 || c.bestSnatch() > 0 || c.bestCleanJerk() > 0;
             QVariantMap m{{QStringLiteral("athleteId"), id}, {QStringLiteral("athlete"), name},
                           {QStringLiteral("date"), c.date.toString(Qt::ISODate)},
@@ -1498,15 +1500,27 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
                           {QStringLiteral("place"), c.place}, {QStringLiteral("hasResult"), hasResult},
                           {QStringLiteral("days"), int(today.daysTo(c.date))}};
             if (c.date >= today) {
-                // For youth athletes: the DM norm, and a second competition in the week
-                const QVariantMap youth = youthStatus(id, c.date.toString(Qt::ISODate));
-                const QString norm = youth.value(QStringLiteral("dm")).toMap().value(QStringLiteral("text")).toString();
+                // For a DM: the norm (youthStatus says when there is one)
                 const bool dm = c.type == 1 || c.name.contains(QStringLiteral("DM"));
-                m.insert(QStringLiteral("norm"), dm ? norm : QString());
+                m.insert(QStringLiteral("norm"),
+                         dm ? youthStatus(id, c.date.toString(Qt::ISODate))
+                                  .value(QStringLiteral("dm")).toMap().value(QStringLiteral("text")).toString()
+                            : QString());
+                // Up to AK 17: another competition in the same week
+                bool twoInWeek = false;
+                if (born.isValid() && Youth::limitedToOnePerWeek(Youth::ageClass(born, c.date))) {
+                    const QDate monday = Weeks::mondayOf(c.date);
+                    for (const Competition &x : comps) {
+                        if (!(x.date == c.date && x.time == c.time) && Weeks::mondayOf(x.date) == monday) {
+                            twoInWeek = true;
+                            break;
+                        }
+                    }
+                }
                 m.insert(QStringLiteral("warning"),
-                         weekConflict(id, c.date.toString(Qt::ISODate), QString()).isEmpty()
-                             ? QString()
-                             : QStringLiteral("Zwei Wettkämpfe in KW %1 (bis AK 17 nur einer pro Woche)").arg(c.date.weekNumber()));
+                         twoInWeek ? QStringLiteral("Zwei Wettkämpfe in KW %1 (bis AK 17 nur einer pro Woche)")
+                                         .arg(c.date.weekNumber())
+                                   : QString());
                 upcoming.append(m);
             }
             compsByDate[c.date].append(m);
@@ -1695,18 +1709,22 @@ QVariantMap Store::youthStatus(const QString &athleteId, const QString &date) co
             {QStringLiteral("weightClass"), weightClass}, {QStringLiteral("dm"), dm}};
 }
 
-QString Store::weekConflict(const QString &athleteId, const QString &date, const QString &oldDate) const
+QString Store::weekConflict(const QString &athleteId, const QString &date, const QString &oldDate,
+                            const QString &oldTime) const
 {
     QDate at = Dates::parse(date);
     if (!at.isValid())
         at = QDate::fromString(date, Qt::ISODate);
     const QDate old = QDate::fromString(oldDate, Qt::ISODate);
+    const QTime oldAt = keyTime(oldTime);
     const Athlete a = Database::athlete(athleteId);
     if (!at.isValid() || a.id.isEmpty() || !Youth::limitedToOnePerWeek(Youth::ageClass(a.born, at)))
         return QString();
     const QDate monday = Weeks::mondayOf(at);
     for (const Competition &c : Competitions::forAthlete(athleteId)) {
-        if (c.date == old || c.date == at)
+        // Only the competition being moved is left out; another on the
+        // same day counts too
+        if (c.date == old && c.time == oldAt)
             continue;
         if (Weeks::mondayOf(c.date) == monday)
             return QStringLiteral("In dieser Woche ist schon ein Wettkampf: %1 am %2. Für Schüler und Jugend "
@@ -1730,22 +1748,34 @@ QString Store::saveCompetitionDate(const QString &athleteId, const QString &date
     c.athleteId = athleteId;
     const QDate od = QDate::fromString(oldDate, Qt::ISODate);
     const QTime ot = keyTime(oldTime);
+    const QList<Competition> all = Competitions::forAthlete(athleteId);
     if (od.isValid()) {
-        for (const Competition &x : Competitions::forAthlete(athleteId)) {
+        for (const Competition &x : all) {
             if (x.date == od && x.time == ot) {
                 c = x;
                 break;
             }
         }
     }
+    const bool moved = od.isValid() && od != d;
+    // A competition is keyed by athlete, date and time: saving over
+    // another one would replace it, results and all
+    for (const Competition &x : all) {
+        if (x.date == d && x.time == c.time && !(x.date == od && x.time == ot))
+            return QStringLiteral("Am %1 ist schon ein Wettkampf eingetragen (%2). Bitte einen anderen Tag "
+                                  "wählen oder den Wettkampf unter Wettkämpfe bearbeiten.")
+                .arg(Dates::text(d), x.name.isEmpty() ? Competitions::typeShortNames().value(x.type) : x.name);
+    }
     c.date = d;
     c.type = qBound(0, type, int(Competitions::typeNames().size()) - 1);
     c.name = name.trimmed();
     c.place = place.trimmed();
-    if (od.isValid() && (od != c.date))
-        Competitions::remove(athleteId, od, ot);
+    // Saved under the new date before the old one goes, so a failure
+    // loses nothing
     if (!Competitions::save(c))
         return QStringLiteral("Speichern fehlgeschlagen.");
+    if (moved)
+        Competitions::remove(athleteId, od, ot);
     bump();
     return QString();
 }

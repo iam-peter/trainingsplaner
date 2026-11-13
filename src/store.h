@@ -205,7 +205,8 @@ public:
     Q_INVOKABLE QVariantMap youthStatus(const QString &athleteId, const QString &date) const;
     // Why a competition on a date breaks the one-per-week rule for youth
     // athletes ("" when it does not); oldDate: the competition moved
-    Q_INVOKABLE QString weekConflict(const QString &athleteId, const QString &date, const QString &oldDate) const;
+    Q_INVOKABLE QString weekConflict(const QString &athleteId, const QString &date, const QString &oldDate,
+                                     const QString &oldTime = QString()) const;
     // A competition's date, type, name and place, keeping its results;
     // old date and time "" for a new one
     Q_INVOKABLE QString saveCompetitionDate(const QString &athleteId, const QString &date, int type,

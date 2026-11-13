@@ -97,6 +97,19 @@ Item {
             verify(Store.saveCompetitionDate("", "2020-03-08", 0, "x", "", "", "") !== "")
         }
 
+        // A new competition on a day that has one (no time either) would
+        // replace it, results and all: refused
+        function test_noOverwrite() {
+            verify(Store.saveCompetitionDate(athlete, "2020-03-07", 0, "Pokal", "", "", "").indexOf("schon") > 0)
+            compare(Store.competitions(athlete).find(x => x.date === "2020-03-07").bestSnatch, 52)
+            // Nor by moving another one there
+            compare(Store.saveCompetitionDate(athlete, "2020-03-14", 0, "Pokal", "", "", ""), "")
+            verify(Store.saveCompetitionDate(athlete, "2020-03-07", 0, "Pokal", "", "2020-03-14", "") !== "")
+            compare(Store.competitions(athlete).find(x => x.date === "2020-03-07").bestSnatch, 52)
+            verify(Store.competitions(athlete).some(x => x.date === "2020-03-14"))
+            Store.removeCompetition(athlete, "2020-03-14", "")
+        }
+
         function test_monthView() {
             page.athleteId = athlete
             page.monday = future

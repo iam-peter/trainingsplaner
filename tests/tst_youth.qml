@@ -83,8 +83,24 @@ Item {
             verify(dm.norm.indexOf("Norm DM Jugend -89 kg: 188 kg") === 0)
             // Two in one week, at AK 17
             verify(dm.warning.indexOf("Zwei Wettkämpfe") === 0)
-            Store.removeCompetition(athlete, d1, "")
             Store.removeCompetition(athlete, d2, "")
+            // Alone in its week: no warning (it is no conflict with itself)
+            const alone = Store.month(athlete, (year + 1) + "-12-01", false).upcoming.find(c => c.date === d1)
+            compare(alone.warning, "")
+            compare(Store.weekConflict(athlete, d1, d1, ""), "")
+            Store.removeCompetition(athlete, d1, "")
+        }
+
+        // Another competition on the same day counts too; only the one
+        // being moved is left out
+        function test_sameDayConflict() {
+            const d = year + "-06-13"
+            Store.saveCompetitionDate(athlete, d, 0, "Pokal", "", "", "")
+            Store.saveCompetition({ athleteId: athlete, date: d, time: "18:00", name: "Liga", type: 0 }, "", "")
+            verify(Store.weekConflict(athlete, d, d, "").indexOf("Liga") > 0)
+            compare(Store.weekConflict(athlete, d, d, "18:00").indexOf("Pokal") > 0, true)
+            Store.removeCompetition(athlete, d, "")
+            Store.removeCompetition(athlete, d, "18:00")
         }
 
         function test_dialogOffersYouthCompetitions() {

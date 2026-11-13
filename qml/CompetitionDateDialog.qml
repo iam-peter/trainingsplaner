@@ -102,7 +102,8 @@ AppDialog {
             wrapMode: Text.Wrap
             visible: text !== ""
             text: dialog.opened ? (Store.dataVersion, Store.weekConflict(athleteBox.value || "", dateField.text,
-                                                                         dialog.competition ? dialog.competition.date : ""))
+                                                                         dialog.competition ? dialog.competition.date : "",
+                                                                         dialog.competition ? dialog.competition.time : ""))
                                 : ""
             color: "#c2410c"
         }
