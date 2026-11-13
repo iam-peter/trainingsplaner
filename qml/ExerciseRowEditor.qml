@@ -13,6 +13,10 @@ Frame {
     property bool canPaste: false
     property int day: 1
     property int number: 1
+    // How much the athlete usually adds per step (Store.usualJump)
+    property int jump: 5
+    // Earlier lines of the exercise (Store.recentSteps)
+    property var suggestions: []
     readonly property var rowStats: stepsEditor.stats
 
     signal changed()
@@ -90,6 +94,8 @@ Frame {
             Layout.alignment: Qt.AlignTop
             initialSteps: row.source.steps || []
             actual: row.actual
+            jump: row.jump
+            suggestions: row.suggestions
             onChanged: row.changed()
         }
 

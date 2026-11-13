@@ -192,6 +192,8 @@ EditorDialog {
                         Layout.fillWidth: true
                         source: dialog.initial[uid]
                         actual: dialog.variant === "I"
+                        athleteId: dialog.athleteId
+                        monday: dialog.monday
                         weekStats: dialog.weekStats
                         canMoveUp: index > 0
                         canMoveDown: index < entryRepeater.count - 1

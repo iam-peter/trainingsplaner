@@ -80,6 +80,10 @@ public:
     void setWeightStep(double v);
     // Next weight up or down by weightStep, rounded to whole kg (100, 102, 105, 107 ...)
     Q_INVOKABLE int stepWeight(int kg, int direction) const;
+    // How much this athlete usually adds from one weight step to the next
+    // in this exercise, from the half year up to the week (Plan and Ist);
+    // without such steps the athlete's usual jump in any exercise, else 5
+    Q_INVOKABLE int usualJump(const QString &athleteId, const QString &monday, int exercise) const;
     QString clipboardLabel() const;
     QString sessionClipboardLabel() const { return m_sessionClipLabel; }
     QString undoLabel() const;
@@ -149,6 +153,13 @@ public:
 
     // Earlier uses of an exercise up to the given week (newest first):
     // [{week, day, monday, bw, mhg, wh, repsSets, steps ("13/4/3  15/3/2")}]
+    // Earlier texts of an AMKT exercise (kind 1) or free texts (kind 2,
+    // exercise ignored), each once, the athlete's newest first:
+    // [{text, totalReps}]
+    Q_INVOKABLE QVariantList recentTexts(const QString &athleteId, int kind, int exercise) const;
+    // The athlete's earlier weight steps of the exercise, each sequence
+    // once, newest first: [{text: "50/5/2  55/3/2", steps: [{kg, reps, sets}]}]
+    Q_INVOKABLE QVariantList recentSteps(const QString &athleteId, int exercise) const;
     Q_INVOKABLE QVariantList exerciseHistory(const QString &athleteId, const QString &monday,
                                              const QString &variant, int exercise, int weeks) const;
     // Per week up to the given one (oldest first): {labels, wh, mhg, bw}

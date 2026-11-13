@@ -15,12 +15,17 @@ Frame {
     property var weekStats: ({})
     property bool canMoveUp: false
     property bool canMoveDown: false
+    // Whose week this is, for the proposals while typing
+    property string athleteId
+    property string monday
 
     property int kind: 0            // 0 weights, 1 exercise text, 2 free text
     property int exercise: 0
     property string entryText: ""
     property int totalReps: 0
     property int combination: 0
+    // "WH (ges.)" typed by hand; until then it follows the text (4x12 → 48)
+    property bool repsTyped: false
     readonly property var entryStats: stepsEditor.stats
 
     signal changed()
@@ -49,6 +54,32 @@ Frame {
         }
     }
 
+    // Total reps of a text such as "4x12" or "3x10 + 2x8"; 0 when the
+    // text holds anything else ("4xMax", "Athletik"), so nothing is filled
+    function repsFromText(t) {
+        const terms = t.split(/[+,;]/).map(x => x.trim()).filter(x => x !== "")
+        if (terms.length === 0)
+            return 0
+        let sum = 0
+        for (const term of terms) {
+            const m = term.match(/^(\d+)\s*[x×*]\s*(\d+)$/i)
+            if (!m)
+                return 0
+            sum += parseInt(m[1]) * parseInt(m[2])
+        }
+        return sum
+    }
+
+    // The text changed: the total follows unless it was typed by hand
+    function takeText(text, reps) {
+        entryText = text
+        if (!repsTyped) {
+            totalReps = reps !== undefined && reps > 0 ? reps : repsFromText(text)
+            repsField.text = totalReps > 0 ? totalReps : ""
+        }
+        changed()
+    }
+
     function focusFirst() {
         if (kind === 2)
             freeTextField.forceActiveFocus()
@@ -62,6 +93,8 @@ Frame {
         entryText = source.text || ""
         totalReps = source.totalReps || 0
         combination = source.combination || 0
+        // A stored total that the text does not give was typed by hand
+        repsTyped = totalReps > 0 && totalReps !== repsFromText(entryText)
     }
 
     // The same 12 px on every side: the icon buttons on the right are
@@ -143,6 +176,8 @@ Frame {
             Layout.alignment: Qt.AlignTop
             initialSteps: editor.source.steps || []
             actual: editor.actual
+            jump: editor.kind === 0 && editor.exercise > 0 ? Store.usualJump(editor.athleteId, editor.monday, editor.exercise) : 5
+            suggestions: editor.kind === 0 && editor.exercise > 0 ? Store.recentSteps(editor.athleteId, editor.exercise) : []
             onChanged: editor.changed()
         }
 
@@ -159,15 +194,35 @@ Frame {
                 Layout.fillWidth: true
                 text: editor.entryText
                 placeholderText: "z.B. 4x12"
-                onTextEdited: { editor.entryText = text; editor.changed() }
+                onTextEdited: editor.takeText(text)
+                Keys.onPressed: (event) => textSuggestions.handleKey(event)
+                SuggestionPopup {
+                    id: textSuggestions
+                    field: exerciseTextField
+                    suggestions: editor.kind === 1 && editor.exercise > 0
+                                 ? Store.recentTexts(editor.athleteId, 1, editor.exercise) : []
+                    onChosen: (item) => {
+                        exerciseTextField.text = item.text
+                        editor.takeText(item.text, item.totalReps)
+                    }
+                }
             }
             Label { text: "WH (ges.):" }
             TextField {
+                id: repsField
+                objectName: "totalReps"
                 implicitWidth: 50
                 horizontalAlignment: TextInput.AlignHCenter
                 validator: IntValidator { bottom: 0; top: 9999 }
                 text: editor.totalReps > 0 ? editor.totalReps : ""
-                onTextEdited: { editor.totalReps = parseInt(text) || 0; editor.changed() }
+                onTextEdited: {
+                    // Emptied, it follows the text again
+                    editor.repsTyped = text !== ""
+                    editor.totalReps = parseInt(text) || editor.repsFromText(editor.entryText)
+                    editor.changed()
+                }
+                ToolTip.visible: activeFocus
+                ToolTip.text: "Aus dem Text, z.B. 4x12 = 48; von Hand überschreibbar"
             }
         }
 
@@ -185,6 +240,17 @@ Frame {
                 text: editor.entryText
                 placeholderText: "z.B. Athletik 30 min."
                 onTextEdited: { editor.entryText = text; editor.changed() }
+                Keys.onPressed: (event) => noteSuggestions.handleKey(event)
+                SuggestionPopup {
+                    id: noteSuggestions
+                    field: freeTextField
+                    suggestions: editor.kind === 2 ? Store.recentTexts(editor.athleteId, 2, 0) : []
+                    onChosen: (item) => {
+                        freeTextField.text = item.text
+                        editor.entryText = item.text
+                        editor.changed()
+                    }
+                }
             }
         }
 

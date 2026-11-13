@@ -18,6 +18,7 @@
 #include <QPainter>
 #include <QPrintDialog>
 #include <QPrinter>
+#include <QSet>
 #include <QSettings>
 #include <QStandardPaths>
 
@@ -725,6 +726,27 @@ int Store::stepWeight(int kg, int direction) const
     return Steps::nextWeight(kg, weightStep(), direction);
 }
 
+int Store::usualJump(const QString &athleteId, const QString &monday, int exercise) const
+{
+    const QDate to = toDate(monday);
+    if (athleteId.isEmpty() || !to.isValid())
+        return 5;
+    const QDate from = to.addDays(-7 * 26);
+    QList<QList<Step>> same;
+    QList<QList<Step>> all;
+    for (const Variant v : {Variant::Plan, Variant::Actual}) {
+        for (const Database::WeightLine &l : Database::weightLines(athleteId, v, from, to)) {
+            all.append(l.steps);
+            if (l.exercise == exercise)
+                same.append(l.steps);
+        }
+    }
+    int jump = Steps::usualJump(same);
+    if (jump == 0)
+        jump = Steps::usualJump(all);
+    return jump > 0 ? jump : 5;
+}
+
 QString Store::databasePath() const
 {
     return QDir::toNativeSeparators(Database::path());
@@ -1234,6 +1256,48 @@ QVariantMap Store::competitionTrend(const QString &athleteId, int fromYear, int 
     return {{QStringLiteral("labels"), labels}, {QStringLiteral("total"), total},
             {QStringLiteral("snatch"), snatch}, {QStringLiteral("cleanJerk"), cleanJerk},
             {QStringLiteral("norm"), normValue}};
+}
+
+QVariantList Store::recentTexts(const QString &athleteId, int kind, int exercise) const
+{
+    QVariantList list;
+    QSet<QString> seen;
+    const int k = kind == Entry::FreeText ? Entry::FreeText : Entry::ExerciseText;
+    for (const QString &content : Database::recentContents(athleteId, k, k == Entry::FreeText ? -1 : exercise, 80)) {
+        const Entry e = Entry::decode(k, exercise, content, 0);
+        const QString text = e.text.trimmed();
+        if (text.isEmpty() || seen.contains(text))
+            continue;
+        seen.insert(text);
+        list.append(QVariantMap{{QStringLiteral("text"), text}, {QStringLiteral("totalReps"), e.totalReps}});
+        if (list.size() >= 40)
+            break;
+    }
+    return list;
+}
+
+QVariantList Store::recentSteps(const QString &athleteId, int exercise) const
+{
+    QVariantList list;
+    QSet<QString> seen;
+    for (const QString &content : Database::recentContents(athleteId, Entry::Weights, exercise, 60)) {
+        QList<Step> steps = Steps::parse(content);
+        QVariantList stepList;
+        for (Step &st : steps) {
+            st.sets = qMax(1, st.sets);
+            st.failed = 0;
+            stepList.append(QVariantMap{{QStringLiteral("kg"), st.kg}, {QStringLiteral("reps"), st.reps},
+                                        {QStringLiteral("sets"), st.sets}, {QStringLiteral("failed"), 0}});
+        }
+        const QString text = stepsText(steps);
+        if (steps.isEmpty() || seen.contains(text))
+            continue;
+        seen.insert(text);
+        list.append(QVariantMap{{QStringLiteral("text"), text}, {QStringLiteral("steps"), stepList}});
+        if (list.size() >= 12)
+            break;
+    }
+    return list;
 }
 
 QVariantList Store::exerciseHistory(const QString &athleteId, const QString &monday,

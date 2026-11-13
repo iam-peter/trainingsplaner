@@ -5,6 +5,7 @@
 #include <QDateTime>
 #include <QList>
 #include <QString>
+#include <QStringList>
 #include <QVariantList>
 
 // Storage in a single SQLite file.
@@ -105,6 +106,10 @@ struct ExerciseUse
 };
 QList<ExerciseUse> exerciseUses(const QString &athleteId, Variant variant, int exercise,
                                 const QDate &fromMonday, const QDate &toMonday);
+// The contents of earlier lines of one kind, each once, newest first: for
+// weights the athlete's own lines of the exercise; for texts every
+// athlete's, the given one's first, of the exercise (exercise < 0: any)
+QStringList recentContents(const QString &athleteId, int kind, int exercise, int limit);
 // All weight lines of an athlete between two Mondays: (monday, exercise, steps)
 struct WeightLine
 {

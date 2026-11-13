@@ -93,6 +93,7 @@ qt_add_qml_module(tpqml
         qml/IconButton.qml
         qml/IconToolButton.qml
         qml/StepsEditor.qml
+        qml/SuggestionPopup.qml
         qml/ExerciseWeekDialog.qml
         qml/ExerciseRowEditor.qml
         qml/ExportDialog.qml

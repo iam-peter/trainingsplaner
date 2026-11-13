@@ -52,4 +52,9 @@ Stats compute(const QList<Step> &steps);
 // kg, as whole kg: with 2.5 that is 100, 102, 105, 107, 110 ...
 int nextWeight(int kg, double step, int direction);
 
+// The jump an athlete usually makes from one weight step to the next: the
+// most frequent rise between neighbouring steps of the given lines, the
+// smaller one on a tie; 0 when no line has two rising steps.
+int usualJump(const QList<QList<Step>> &lines);
+
 } // namespace Steps

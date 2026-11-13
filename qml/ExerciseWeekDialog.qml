@@ -13,6 +13,10 @@ EditorDialog {
     property string monday
     property string variant: "P"
     property int exercise: 0
+    // How much the athlete usually adds per step, for the proposals
+    readonly property int jump: exercise > 0 && athleteId !== "" ? Store.usualJump(athleteId, monday, exercise) : 5
+    // The athlete's earlier lines of the exercise, offered in each row
+    readonly property var recentSteps: exercise > 0 && athleteId !== "" ? Store.recentSteps(athleteId, exercise) : []
     property bool valid: false
     property var weekStats: ({})
 
@@ -229,6 +233,8 @@ EditorDialog {
                         Layout.fillWidth: true
                         source: dialog.initial[uid]
                         actual: dialog.variant === "I"
+                        jump: dialog.jump
+                        suggestions: dialog.recentSteps
                         onChanged: dialog.markChanged()
                         canPaste: dialog.copiedSteps !== null
                         onCopyRequested: (steps) => dialog.copiedSteps = steps

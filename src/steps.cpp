@@ -1,6 +1,7 @@
 #include "steps.h"
 
 #include <QLocale>
+#include <QMap>
 #include <QStringList>
 #include <QtMath>
 
@@ -100,6 +101,28 @@ int nextWeight(int kg, double step, int direction)
             --m;
     }
     return qBound(0, kgAt(m), 999);
+}
+
+int usualJump(const QList<QList<Step>> &lines)
+{
+    QMap<int, int> count;
+    for (const QList<Step> &line : lines) {
+        for (qsizetype i = 1; i < line.size(); ++i) {
+            const int jump = line[i].kg - line[i - 1].kg;
+            if (jump > 0 && line[i - 1].kg > 0)
+                ++count[jump];
+        }
+    }
+    int best = 0;
+    int bestCount = 0;
+    // QMap runs from the smallest jump up, so a tie keeps the smaller
+    for (auto it = count.cbegin(); it != count.cend(); ++it) {
+        if (it.value() > bestCount) {
+            best = it.key();
+            bestCount = it.value();
+        }
+    }
+    return best;
 }
 
 } // namespace Steps

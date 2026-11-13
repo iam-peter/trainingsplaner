@@ -623,6 +623,29 @@ QList<ExerciseUse> exerciseUses(const QString &athleteId, Variant variant, int e
     return list;
 }
 
+QStringList recentContents(const QString &athleteId, int kind, int exercise, int limit)
+{
+    QStringList list;
+    QSqlQuery q(db());
+    const bool ownOnly = kind == 0;
+    q.prepare(QStringLiteral("SELECT content, MAX(athlete_id = ?) AS own, MAX(monday) AS last FROM session_entries"
+                             " WHERE kind = ? AND (? < 0 OR exercise = ?) AND content <> ''%1"
+                             " GROUP BY content ORDER BY own DESC, last DESC LIMIT ?")
+                  .arg(ownOnly ? QStringLiteral(" AND athlete_id = ?") : QString()));
+    q.addBindValue(athleteId);
+    q.addBindValue(kind);
+    q.addBindValue(exercise);
+    q.addBindValue(exercise);
+    if (ownOnly)
+        q.addBindValue(athleteId);
+    q.addBindValue(limit);
+    if (!exec(q))
+        return list;
+    while (q.next())
+        list.append(q.value(0).toString());
+    return list;
+}
+
 QList<WeightLine> weightLines(const QString &athleteId, Variant variant, const QDate &fromMonday,
                               const QDate &toMonday)
 {
