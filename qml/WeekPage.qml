@@ -904,25 +904,48 @@ Page {
                                                                              : Styles.TokenInterface.semantics.text_muted
                         }
                         Rectangle { Layout.fillWidth: true; height: 1; color: Styles.TokenInterface.semantics.stroke_subtle }
-                        RowLayout {
+                        // The complexes side by side; where their lines do not
+                        // fit (the panel open, a small window) in more rows
+                        GridLayout {
+                            id: groupGrid
+                            objectName: "groupGrid"
                             Layout.fillWidth: true
-                            spacing: 0
+                            columnSpacing: 0
+                            rowSpacing: 0
+                            columns: Math.max(1, Math.min(7, Math.floor(width / cellMinimum)))
+                            // As wide as the longest line of the week, and its title
+                            readonly property real cellMinimum: Math.max(90, lineMetrics.advanceWidth + 16)
+                            TextMetrics {
+                                id: lineMetrics
+                                font.family: "JetBrains Mono"
+                                font.pixelSize: 12
+                                text: (page.weekData.groups || []).reduce(
+                                          (a, g) => g.lines.reduce((b, l) => l.length > b.length ? l : b, a), "")
+                            }
                             Repeater {
                                 model: page.weekData.groups || []
-                                // All cells stretch to the tallest one; a line on
-                                // the left separates them.
+                                // All cells of a row stretch to the tallest one;
+                                // lines on the left and above separate them.
                                 Item {
                                     required property var modelData
                                     required property int index
+                                    objectName: "group" + (index + 1)
+                                    clip: true
                                     Layout.fillWidth: true
                                     Layout.fillHeight: true
                                     Layout.preferredWidth: 1
                                     Layout.preferredHeight: Math.max(54, groupColumn.implicitHeight + 10)
 
                                     Rectangle {
-                                        visible: index > 0
+                                        visible: index % groupGrid.columns > 0
                                         width: 1
                                         height: parent.height
+                                        color: Styles.TokenInterface.semantics.stroke_subtle
+                                    }
+                                    Rectangle {
+                                        visible: index >= groupGrid.columns
+                                        width: parent.width
+                                        height: 1
                                         color: Styles.TokenInterface.semantics.stroke_subtle
                                     }
 

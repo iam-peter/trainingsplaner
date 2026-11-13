@@ -43,6 +43,21 @@ Item {
             page.monday = "2026-11-02"
         }
 
+        // With the panel open in a small window, the complexes take more
+        // rows rather than run into each other
+        function test_summaryWrapsWhenNarrow() {
+            window.width = 1000
+            page.openSession(1, 2)
+            const grid = findChild(page, "groupGrid")
+            tryVerify(() => grid.columns < 7)
+            waitForRendering(page)
+            for (let g = 1; g <= 7; ++g)
+                verify(findChild(grid, "group" + g).width + 1 >= grid.cellMinimum, "K" + g)
+            page.closePanel()
+            window.width = 1400
+            tryCompare(grid, "columns", 7)
+        }
+
         function test_sessionPanelMarksItsCell() {
             page.openSession(1, 2)
             verify(cell(1, 2).selected)
