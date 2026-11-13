@@ -49,7 +49,9 @@ Item {
         }
 
         // The report: "eigener Zeitraum", to Rahmenorientierung and back
-        // showed the MAZ instead of the own range
+        // showed the MAZ instead of the own range. The framework plan is
+        // opened from the MAZ now, in a view of its own, without the
+        // athlete's tabs and box.
         function test_itpOwnRangeSurvivesRo() {
             planning.showTab("itp")
             // The selection row is shown with the tab: laid out with the next frame
@@ -60,23 +62,27 @@ Item {
             box.currentIndex = 0
             box.activated(0)
             compare(planning.mazId, "")
-            mouseClick(findChild(planning, "roRadio"))
+            planning.openFramework("")
             compare(planning.roMode, true)
+            verify(!findChild(planning, "planningTabs").visible)
+            verify(findChild(planning, "roTabs").visible)
             verify(planning.mazId !== "")
             const roChoice = planning.mazId
-            mouseClick(findChild(planning, "itpRadio"))
+            waitForRendering(planning)
+            mouseClick(findChild(planning, "backToMaz"))
             compare(planning.roMode, false)
+            planning.showTab("itp")
             compare(planning.mazId, "")                 // still the own range
             compare(box.currentIndex, 0)                // and the box shows it
             compare(box.displayText, "eigener Zeitraum")
             // Back in RO, its own choice is there again
-            mouseClick(findChild(planning, "roRadio"))
+            planning.showTab("ro")
             compare(planning.mazId, roChoice)
-            compare(box.currentText.indexOf("Test-MAZ") >= 0 || box.currentText !== "", true)
-            // The box follows a MAZ chosen from elsewhere, also after a pick
-            planning.openFramework(mazB)
+            // The box follows a MAZ chosen from elsewhere (the MAZ's button)
+            findChild(planning, "mazPane").openFramework(mazB)
             compare(box.currentValue, mazB)
-            mouseClick(findChild(planning, "itpRadio"))
+            planning.closeFramework()
+            compare(findChild(planning, "planningTabs").currentIndex, 0)
         }
 
         // Abbrechen goes back to the old scheme; the radios show it

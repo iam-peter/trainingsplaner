@@ -61,8 +61,9 @@ and order in [UX-PLAN.md](UX-PLAN.md)):
       ("Vorwoche").
 - [x] **A session panel at the side of the week** instead of the modal
       dialog, undockable into a window; "Wie Vorwoche" for an empty one.
-- [ ] **Rahmenorientierung opened from the MAZ**, without the ITP / RO
+- [x] **Rahmenorientierung opened from the MAZ**, without the ITP / RO
       switch in the ITP and Laststufen tabs.
+- [ ] **Erfassung TÜ in the session panel** instead of its dialog.
 - [x] **"von" and "bis" fields keep their order**: the other one follows,
       keeping the span.
 - [x] **Quicker entry of a session**: the next weight proposed with the

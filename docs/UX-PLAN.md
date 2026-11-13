@@ -57,7 +57,7 @@ decide how the program feels. That is where his wishes are, too:
 | W10 | ↑ / ↓ to count reps, sets and failed attempts | 4 | done |
 | W11 | No placeholder "1" in the sets field | 4 | done |
 | W12 | "von" never after "bis" | 4 | done |
-| W13 | ITP and Rahmenorientierung not behind one switch | 3.4 | planned |
+| W13 | ITP and Rahmenorientierung not behind one switch | 3.4 | done |
 
 ## 2. Principles
 
@@ -176,8 +176,13 @@ mock-up), in a split the coach can widen or narrow:
   session last week (its Ist, else its Plan). WinWoTA had "Woche
   kopieren" only. Taking an earlier session by date is left for later.
 
-Erfassung TÜ (one exercise across the week, opened from an exercise line)
-stays a dialog, as in WinWoTA, with the same entry help as the panel.
+**Erfassung TÜ in the same panel** (planned). Erfassung TÜ (one exercise
+across the week, opened by clicking an exercise line) is still a dialog
+over the week, with the same problem the session dialog had. It becomes
+the panel's second view: the exercise's uses in the week (day, TE,
+weight steps), with the same entry help, last week and the ITP. The
+panel shows either a session or an exercise; switching saves, as between
+sessions.
 
 ### 3.3 Monat
 
@@ -226,14 +231,16 @@ the framework plan was opened from the MAZ ("Erfassung MAZ ›
 Rahmenorientierung"), the ITP from the ITP menu, each in its own window.
 (W13)
 
-So, as in WinWoTA:
+So, as in WinWoTA (done):
 
 - **Planung › MAZ** keeps its button "Rahmenorientierung", which opens
-  the framework plan of the selected MAZ as a view of its own: its weeks
-  (WH per complex, MHG and BW in %, load h / m / g), and its planned
-  weight steps in %, with only a MAZ to choose and a way back to the MAZ.
+  the framework plan of the selected MAZ as a view of its own: "‹ MAZ"
+  back, "Rahmenorientierung", and its two views "Werte" (WH per complex,
+  MHG and BW in %, load) and "Laststufen" (planned weight steps in %),
+  with only a MAZ to choose.
 - **Planung › ITP** and **Planung › Laststufen** are the athlete's, in
-  kg, without the switch. The ITP names its MAZ with a link to it.
+  kg, without the switch: an athlete and one of their MAZ (or an own
+  range) to choose. A link from the ITP to its MAZ is left for later.
 - **The load of a week** (h / m / g) is set in the RO and the ITP (the
   "Bel." column exists already); everything else reads it from there:
   the week's info line, the month view, the load chart.
@@ -451,6 +458,7 @@ flowchart LR
     A --> C["3 · 2 Wochen"]
     A --> D["4 · Session panel<br/>at the side"]
     D --> E["Panel undocked<br/>as a window"]
+    D --> D2["4b · Erfassung TÜ<br/>in the panel"]
     F["5 · RO opened from<br/>the MAZ, no switch"] --> G["6 · Load h / m / g<br/>read everywhere"]
     G --> H["7 · Monat with<br/>competition dates"]
     G --> I["8 · Load chart<br/>after asking the coach"]
@@ -464,7 +472,8 @@ flowchart LR
 | ✓ 2 | Last week and the ITP per exercise line in the session editor; last week, target and difference in the K1–K7 summary; the info line of the week | small | W1 |
 | ✓ 3 | "Vorwoche": the previous week above the current one | medium | W3 |
 | ✓ 4 | Session panel at the side of the week, undockable; "Wie Vorwoche" | medium | W4 |
-| 5 | Rahmenorientierung opened from the MAZ; ITP and Laststufen without the switch | small | W13 |
+| ✓ 5 | Rahmenorientierung opened from the MAZ; ITP and Laststufen without the switch | small | W13 |
+| 4b | Erfassung TÜ as the session panel's second view | medium | W4 |
 | 6 | The week's load h / m / g read from the ITP wherever a week is shown | small | 3.1, 3.3, 3.5 |
 | 7 | Monat: weeks with load and WH, sessions, competition dates, Termine, all athletes, print | large | W5 |
 | 8 | Load chart: weight as Ziel, Ist and ideal line, expected course, reps with h / m / g, table below, Bezug, comparison MAZ, reachable from week and Analyse | medium | W6 |

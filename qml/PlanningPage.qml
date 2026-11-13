@@ -9,7 +9,8 @@ import Trainingsplaner
 Page {
     id: page
 
-    // What the ITP/RO tabs show
+    // The framework plan (Rahmenorientierung) of a MAZ is shown, opened
+    // from the MAZ as in WinWoTA; otherwise the tabs are the athlete's
     property bool roMode: false
     property string athleteId
     property string mazId          // "" = own range
@@ -29,15 +30,26 @@ Page {
 
     // For start options: "maz", "itp", "ro", "laststufen"
     function showTab(name) {
-        if (name === "ro")
-            roMode = true
-        tabs.currentIndex = name === "itp" || name === "ro" ? 1 : name === "laststufen" ? 2 : 0
+        if (name === "ro") {
+            openFramework(roMazId)
+            return
+        }
+        roMode = false
+        tabs.currentIndex = name === "itp" ? 1 : name === "laststufen" ? 2 : 0
     }
 
+    // The framework plan of a MAZ ("" = the one chosen last), in its own
+    // view with a way back to the MAZ
     function openFramework(id) {
         roMode = true
-        chooseMaz(id)
-        tabs.currentIndex = 1
+        roTabs.currentIndex = 0
+        if (id !== "")
+            chooseMaz(id)
+    }
+
+    function closeFramework() {
+        roMode = false
+        tabs.currentIndex = 0
     }
 
     // The period chosen for ITP and for RO, kept apart, so switching
@@ -113,9 +125,36 @@ Page {
             anchors.rightMargin: 8
             AppTabBar {
                 id: tabs
+                objectName: "planningTabs"
+                visible: !page.roMode
                 Layout.preferredWidth: 420
                 AppTabButton { text: "MAZ" }
-                AppTabButton { text: "ITP / RO" }
+                AppTabButton { text: "ITP" }
+                AppTabButton { text: "Laststufen" }
+            }
+            // The framework plan, opened from a MAZ: back to it, and its
+            // two views
+            IconButton {
+                objectName: "backToMaz"
+                visible: page.roMode
+                iconName: "chevron-left"
+                text: "MAZ"
+                toolTip: "Zurück zum MAZ"
+                onClicked: page.closeFramework()
+            }
+            Label {
+                visible: page.roMode
+                text: "Rahmenorientierung"
+                font.bold: true
+                Layout.leftMargin: 4
+                Layout.rightMargin: 8
+            }
+            AppTabBar {
+                id: roTabs
+                objectName: "roTabs"
+                visible: page.roMode
+                Layout.preferredWidth: 280
+                AppTabButton { text: "Werte" }
                 AppTabButton { text: "Laststufen" }
             }
             Item { Layout.fillWidth: true }
@@ -128,24 +167,10 @@ Page {
         anchors.margins: 8
         spacing: 8
 
-        // Selection for the ITP/RO tabs
+        // Whose plan: the athlete and one of their MAZ (ITP), or a MAZ (RO)
         RowLayout {
-            visible: tabs.currentIndex > 0
+            visible: page.roMode || tabs.currentIndex > 0
             spacing: 8
-            RadioButton {
-                id: itpRadio
-                objectName: "itpRadio"
-                text: "ITP"
-                checked: !page.roMode
-                onToggled: if (checked) page.roMode = false
-            }
-            RadioButton {
-                id: roRadio
-                objectName: "roRadio"
-                text: "Rahmenorientierung"
-                checked: page.roMode
-                onToggled: if (checked) page.roMode = true
-            }
             ValueComboBox {
                 visible: !page.roMode
                 implicitWidth: 200
@@ -185,7 +210,7 @@ Page {
         }
 
         StackLayout {
-            currentIndex: tabs.currentIndex
+            currentIndex: page.roMode ? roTabs.currentIndex + 1 : tabs.currentIndex
             Layout.fillWidth: true
             Layout.fillHeight: true
 
