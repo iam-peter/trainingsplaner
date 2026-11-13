@@ -43,6 +43,9 @@ FocusScope {
     readonly property string title: Store.dayName(day) + ", " + Store.dayDate(monday, day) + " · " + number + ". TE · "
                                     + (variant === "P" ? "Plan" : "Ist") + " · Woche " + Store.weekLabel(monday)
 
+    // reload() is setting the fields: not a change of the user's
+    property bool loading: false
+
     function isSession(a, m, v, d, n) {
         return opened && athleteId === a && monday === m && variant === v && day === d && number === n
     }
@@ -79,7 +82,9 @@ FocusScope {
             addEntry(e, false)
         fromBox.text = s.from
         toBox.text = s.to
+        loading = true
         noteField.text = s.note
+        loading = false
         error = ""
         dirty = false
         recalc()
@@ -164,6 +169,7 @@ FocusScope {
     readonly property var lastWeek: {
         if (!opened)
             return null
+        Store.dataVersion
         const m = Store.addWeeks(monday, -1)
         for (const v of ["I", "P"]) {
             const s = Store.session(athleteId, m, v, day, number)
@@ -409,7 +415,8 @@ FocusScope {
                     objectName: "noteField"
                     placeholderText: "zur Trainingseinheit"
                     wrapMode: TextEdit.Wrap
-                    onTextChanged: if (activeFocus) editor.dirty = true
+                    // Not when reload() sets it (even with the focus here)
+                    onTextChanged: if (!editor.loading) editor.dirty = true
                 }
             }
         }

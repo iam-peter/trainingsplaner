@@ -185,12 +185,23 @@ ApplicationWindow {
     Shortcut {
         sequences: [StandardKey.Undo]
         enabled: DialogStack.open === 0 && Store.undoLabel !== ""
-        onActivated: window.showChange(Store.undo())
+        // The panel's changes are saved first, so undo takes them back
+        // rather than the panel writing them over the undone week later
+        onActivated: if (weekPage.savePanel()) window.showChange(Store.undo())
     }
     Shortcut {
         sequences: [StandardKey.Redo, "Ctrl+Y"]
         enabled: DialogStack.open === 0 && Store.redoLabel !== ""
-        onActivated: window.showChange(Store.redo())
+        onActivated: if (weekPage.savePanel()) window.showChange(Store.redo())
+    }
+
+    // What the session panel holds is saved before the program ends; when
+    // it cannot be (an impossible time), the program stays open on it
+    onClosing: (close) => {
+        if (!weekPage.closePanel()) {
+            close.accepted = false
+            tabs.currentIndex = weekTab
+        }
     }
 
     function showChange(change) {

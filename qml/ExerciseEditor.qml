@@ -90,7 +90,9 @@ FocusScope {
 
     // Another exercise from the number field or the picker
     function switchTo(ex) {
-        if (ex === exercise)
+        // Also called when the number field loses the focus as the panel
+        // closes: nothing to switch then
+        if (!opened || ex === exercise)
             return
         if (!edit(athleteId, monday, variant, ex))
             numberField.text = exercise > 0 ? exercise : ""

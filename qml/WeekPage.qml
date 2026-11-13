@@ -233,14 +233,20 @@ Page {
         }
     }
 
+    // Only what was typed or ticked here: a reload after a change from
+    // elsewhere (an import, undo) must not write the old note back
+    property bool noteDirty: false
+
     function saveNote() {
-        if (noteOwner === null)
+        if (noteOwner === null || !noteDirty)
             return
+        noteDirty = false
         Store.saveWeekNote(noteOwner.athleteId, noteOwner.monday, noteOwner.variant,
                            noteField.text, injuredBox.checked)
     }
 
     function reload() {
+        stale = false
         saveNote()
         if (!hasAthlete) {
             weekData = {}
@@ -269,6 +275,7 @@ Page {
         usualNumber = counts[2] > counts[1] && counts[2] >= counts[3] ? 2 : counts[3] > counts[1] ? 3 : 1
         noteField.text = weekData.note
         injuredBox.checked = weekData.injured
+        noteDirty = false
         noteOwner = { athleteId: athleteId, monday: monday, variant: variant }
     }
 
@@ -340,7 +347,9 @@ Page {
                 return
             }
         }
-        focusRow(day, number)
+        // Not found (gone, or never saved): the day's first row; the number
+        // is no row in the compact grid
+        focusRow(day, compact ? 1 : number)
     }
 
     // The cell in a day's row, moved to by the arrow keys
@@ -351,7 +360,7 @@ Page {
     }
 
     function askRemoveSession(day, number) {
-        if (!hasAthlete || !sessionAt(day, number))
+        if (!hasAthlete || !sessionAt(day, number) || !savePanel())
             return
         removeConfirm.day = day
         removeConfirm.number = number
@@ -359,12 +368,12 @@ Page {
     }
 
     function copySession(day, number) {
-        if (hasAthlete && sessionAt(day, number))
+        if (hasAthlete && sessionAt(day, number) && savePanel())
             Store.copySession(athleteId, monday, variant, day, number)
     }
 
     function pasteSession(day, number) {
-        if (hasAthlete && Store.sessionClipboardLabel !== "")
+        if (hasAthlete && Store.sessionClipboardLabel !== "" && savePanel())
             Store.pasteSession(athleteId, monday, variant, day, number)
     }
 
@@ -428,6 +437,30 @@ Page {
         return sessionEditor.close() && exerciseEditor.close()
     }
 
+    // Saves what the panel holds, which stays open: before the grid, the
+    // menu or undo change the week, which the panel would otherwise write
+    // back over later. False when it cannot be saved.
+    function savePanel() {
+        return sessionEditor.save() && exerciseEditor.save()
+    }
+
+    function undo() {
+        if (savePanel())
+            show(Store.undo())
+    }
+
+    function redo() {
+        if (savePanel())
+            show(Store.redo())
+    }
+
+    // Data changed while the page was hidden
+    property bool stale: false
+    onVisibleChanged: {
+        if (visible && stale)
+            reload()
+    }
+
     onShowPreviousChanged: reload()
     // Another week, athlete or variant: the panel saves and closes
     onAthleteIdChanged: { closePanel(); extraRows = 0; reload() }
@@ -435,7 +468,13 @@ Page {
     onVariantChanged: { closePanel(); reload() }
     Connections {
         target: Store
-        function onDataVersionChanged() { page.reload() }
+        // While another page is shown, only noted: reloaded when shown
+        function onDataVersionChanged() {
+            if (page.visible)
+                page.reload()
+            else
+                page.stale = true
+        }
         function onAthletesChanged() {
             if (page.athleteId !== "" && !Store.athletes.some(a => a.id === page.athleteId)) {
                 page.noteOwner = null
@@ -619,14 +658,14 @@ Page {
                     groupPosition: Styles.GroupStyle.Position.First
                     enabled: Store.undoLabel !== ""
                     toolTip: "Rückgängig: " + Store.undoLabel + " (Strg+Z)"
-                    onClicked: page.show(Store.undo())
+                    onClicked: page.undo()
                 }
                 IconButton {
                     iconName: "redo-2"
                     groupPosition: Styles.GroupStyle.Position.Last
                     enabled: Store.redoLabel !== ""
                     toolTip: "Wiederholen: " + Store.redoLabel + " (Strg+Y)"
-                    onClicked: page.show(Store.redo())
+                    onClicked: page.redo()
                 }
             }
 
@@ -635,7 +674,7 @@ Page {
                 iconName: "copy"
                 text: "Woche kopieren"
                 enabled: page.hasAthlete && page.weekData.empty === false
-                onClicked: Store.copyWeek(page.athleteId, page.monday, page.variant)
+                onClicked: if (page.savePanel()) Store.copyWeek(page.athleteId, page.monday, page.variant)
             }
             IconButton {
                 visible: !page.monthMode
@@ -643,6 +682,8 @@ Page {
                 text: "Einfügen"
                 enabled: page.hasAthlete && Store.clipboardLabel !== ""
                 onClicked: {
+                    if (!page.savePanel())
+                        return
                     if (page.weekData.empty)
                         Store.pasteWeek(page.athleteId, page.monday, page.variant)
                     else
@@ -939,6 +980,7 @@ Page {
                             id: noteField
                             wrapMode: TextEdit.Wrap
                             placeholderText: "Bemerkung zur Woche"
+                            onTextChanged: if (activeFocus) page.noteDirty = true
                             onEditingFinished: page.saveNote()
                         }
                     }
@@ -951,7 +993,7 @@ Page {
                         CheckBox {
                             id: injuredBox
                             text: "verletzt/krank"
-                            onToggled: page.saveNote()
+                            onToggled: { page.noteDirty = true; page.saveNote() }
                         }
                         // As wide as the column: its right edge on the page's
                         IconButton {
@@ -1268,7 +1310,7 @@ Page {
         Label {
             text: "Die angezeigte Woche enthält schon Trainingseinheiten.\nSie werden durch die kopierte Woche ersetzt:\n" + Store.clipboardLabel
         }
-        onAccepted: Store.pasteWeek(page.athleteId, page.monday, page.variant)
+        onAccepted: if (page.savePanel()) Store.pasteWeek(page.athleteId, page.monday, page.variant)
     }
 
     // Right click on a session or one of its lines
@@ -1330,7 +1372,7 @@ Page {
             // Ist = Plan: the planned session becomes the actual one
             text: page.variant === "P" ? "Als Ist übernehmen" : "Ist = Plan"
             enabled: sessionMenu.hasPlan
-            onTriggered: Store.planToActual(page.athleteId, page.monday, sessionMenu.day, sessionMenu.number)
+            onTriggered: if (page.savePanel()) Store.planToActual(page.athleteId, page.monday, sessionMenu.day, sessionMenu.number)
         }
         KeyMenuItem {
             text: "Löschen"
@@ -1342,19 +1384,20 @@ Page {
         KeyMenuItem {
             text: Store.undoLabel !== "" ? "Rückgängig: " + Store.undoLabel : "Rückgängig"
             enabled: Store.undoLabel !== ""
-            onTriggered: page.show(Store.undo())
+            onTriggered: page.undo()
             keys: "Strg+Z"
         }
         KeyMenuItem {
             text: Store.redoLabel !== "" ? "Wiederholen: " + Store.redoLabel : "Wiederholen"
             enabled: Store.redoLabel !== ""
-            onTriggered: page.show(Store.redo())
+            onTriggered: page.redo()
             keys: "Strg+Y"
         }
     }
 
     AppDialog {
         id: removeConfirm
+        objectName: "removeConfirm"
         property int day: 1
         property int number: 1
         title: "Trainingseinheit löschen?"
@@ -1363,8 +1406,8 @@ Page {
             text: Store.dayName(removeConfirm.day) + ", " + removeConfirm.number + ". TE ("
                   + (page.variant === "P" ? "Plan" : "Ist") + ") wird mit allen Übungen gelöscht."
         }
-        onAccepted: Store.removeSession(page.athleteId, page.monday, page.variant,
-                                        removeConfirm.day, removeConfirm.number)
+        onAccepted: if (page.savePanel()) Store.removeSession(page.athleteId, page.monday, page.variant,
+                                                              removeConfirm.day, removeConfirm.number)
         onClosed: page.focusSession(day, number)
     }
 
