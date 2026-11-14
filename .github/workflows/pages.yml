@@ -8,6 +8,8 @@ on:
     paths:
       - "pages/**"
       - "docs/screenshots/**"
+      - "docs/HANDBUCH.md"
+      - "docs/handbuch/**"
       - "logo/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
@@ -38,6 +40,10 @@ jobs:
           cp -r pages/. site/
           cp logo/trainingsplaner.svg logo/trainingsplaner.png site/
           cp docs/screenshots/*.png site/
+          # The handbook, from docs/HANDBUCH.md, with its pictures
+          mkdir -p site/handbuch
+          cp -r docs/handbuch/bilder site/handbuch/
+          python3 docs/handbuch/build_page.py docs/HANDBUCH.md site/handbuch.html
 
       - uses: actions/upload-pages-artifact@v3
         with:
