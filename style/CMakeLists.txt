@@ -63,6 +63,7 @@ qt_add_qml_module(tpstyle
         ToolButton.qml
         ToolSeparator.qml
         ToolTip.qml
+        TreeViewDelegate.qml
     RESOURCES
         images/check.svg
         images/chevron-down.svg
