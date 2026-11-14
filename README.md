@@ -5,6 +5,7 @@ figures WH, MHG and BW, and printed plans.
 
 **[Website](https://iam-peter.github.io/trainingsplaner/)** ·
 **[Download](https://github.com/iam-peter/trainingsplaner/releases)** ·
+**[Handbuch](docs/HANDBUCH.md)** (German) ·
 [Nightly](https://github.com/iam-peter/trainingsplaner/releases/tag/nightly)
 
 ![Week plan](docs/screenshots/week.png)
@@ -112,7 +113,10 @@ updates and uninstalling.
   (following the system or chosen in the settings), a style of its own
   (`style/`), help with a glossary (F1), an About dialog with the
   version, the update check and a link for reporting problems, and
-  example data to try the program on the first start.
+  example data to try the program on the first start: two invented
+  athletes with done and planned weeks, competitions, and a MAZ with
+  its Rahmenorientierung and ITP from the U17 sample plan of the RTK
+  2019, so every view has something to show.
 
 ![Session panel beside the week](docs/screenshots/session.png)
 
@@ -122,6 +126,8 @@ updates and uninstalling.
 
 ![Planning](docs/screenshots/planning.png)
 
+How to use each view, by example with the example data:
+[docs/HANDBUCH.md](docs/HANDBUCH.md) (German).
 How the interface came about and where it goes: [docs/UX-PLAN.md](docs/UX-PLAN.md).
 What comes next: [docs/ROADMAP.md](docs/ROADMAP.md).
 
@@ -215,7 +221,8 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `packaging/` | Debian package script |
 | `pages/` | website |
 | `docs/ROADMAP.md`, `docs/UX-PLAN.md`, `docs/NAVIGATION.md` | what comes next, the UI/UX plan with its background and mock-ups (`docs/ux/`), and the sidebar set aside |
-| `docs/screenshots/` | screenshots with invented demo data (the U17 sample plan of the RTK 2019 scaled for the ITP), retaken with `take_screenshots.qml` and `schemes.py` there |
+| `docs/HANDBUCH.md`, `docs/handbuch/bilder/` | the handbook in German, each view explained with the example data |
+| `docs/screenshots/` | screenshots of the README and the handbook, from the program's example data, retaken with `take_screenshots.qml` and `schemes.py` there |
 | `.github/workflows/` | CI, nightly, release and website |
 
 ### Old storage format

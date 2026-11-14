@@ -1346,6 +1346,7 @@ Page {
 
     DayInfoDialog {
         id: dayInfoDialog
+        objectName: "dayInfoDialog"
     }
 
     ExerciseHistoryDialog {

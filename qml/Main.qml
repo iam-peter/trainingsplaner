@@ -556,6 +556,7 @@ ApplicationWindow {
 
     WelcomeDialog {
         id: welcomeDialog
+        objectName: "welcomeDialog"
         onImportRequested: importDialog.open()
         onDemoCreated: (athleteId) => {
             window.athlete = athleteId
