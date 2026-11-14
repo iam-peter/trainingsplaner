@@ -49,10 +49,10 @@ Item {
             page("01-willkommen.png")
             welcome.close()
             tryCompare(welcome, "visible", false)
-            const anna = Store.createDemoData()
-            w.athlete = anna
+            const mira = Store.createDemoData()
+            w.athlete = mira
             const today = Store.mondayOf(Store.today())
-            const maz = Plan.mazForAthlete(anna)[0].id
+            const maz = Plan.mazForAthlete(mira)[0].id
 
             // The dumbbell menu
             const menu = findChild(w, "fileMenu")
@@ -104,7 +104,7 @@ Item {
 
             // Zusatzinfo
             const info = findChild(w, "dayInfoDialog")
-            info.edit(anna, today)
+            info.edit(mira, today)
             tryCompare(info, "opened", true)
             page("08-zusatzinfo.png")
             info.close()
@@ -115,7 +115,7 @@ Item {
             shot("month.png")
             page("09-monat.png")
             const comp = findChild(w, "competitionDialog")
-            comp.show(null, Store.addWeeks(today, 2).replace(/-(\d\d)$/, (m, d) => "-" + String(Number(d) + 5).padStart(2, "0")), anna)
+            comp.show(null, Store.addWeeks(today, 2).replace(/-(\d\d)$/, (m, d) => "-" + String(Number(d) + 5).padStart(2, "0")), mira)
             tryCompare(comp, "opened", true)
             // A name typed: the list of the DGJ's competitions closes
             const name = findChild(comp.contentItem, "nameField")
@@ -171,7 +171,7 @@ Item {
             // Competitions: results and chart
             keyClick(Qt.Key_5, Qt.ControlModifier)
             const competitions = findChild(w, "competitionsPage")
-            competitions.edit(Store.competitions(anna).find(c => c.total > 0))
+            competitions.edit(Store.competitions(mira).find(c => c.total > 0))
             shot("competitions.png")
             page("20-wettkaempfe.png")
             competitions.showChart()

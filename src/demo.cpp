@@ -258,8 +258,8 @@ bool isDemoMaz(const Maz &maz)
 QStringList create(const QDate &today)
 {
     const QList<Person> people = {
-        {QStringLiteral("Beispiel"), QStringLiteral("Anna"), Sex::Female, QDate(2007, 3, 14), 72, 90, 63.4},
-        {QStringLiteral("Beispiel"), QStringLiteral("Ben"), Sex::Male, QDate(2005, 8, 2), 105, 130, 80.6},
+        {QStringLiteral("Beispiel"), QStringLiteral("Mira"), Sex::Female, QDate(2007, 6, 21), 72, 90, 63.4},
+        {QStringLiteral("Beispiel"), QStringLiteral("Jonas"), Sex::Male, QDate(2005, 8, 2), 105, 130, 80.6},
     };
     const QDate monday = Weeks::mondayOf(today);
     const double loads[] = {0.96, 1.0, 1.03, 0.94, 1.0};

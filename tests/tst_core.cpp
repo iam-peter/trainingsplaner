@@ -752,7 +752,7 @@ void TestCore::reportRoundTripAndPdf()
 {
     Report::Document d;
     d.title = QStringLiteral("Abschnittsanalyse");
-    d.heading(QStringLiteral("Anna – Woche 1/2029 bis 2/2029"));
+    d.heading(QStringLiteral("Mira – Woche 1/2029 bis 2/2029"));
     d.note(QStringLiteral("erste Zeile\nzweite Zeile"));
     QList<Report::Cells> rows{Report::cells({QStringLiteral("TÜ"), QStringLiteral("1."), QStringLiteral("2.")})};
     rows[0][2].muted = true;
@@ -1085,7 +1085,7 @@ void TestCore::sectionAnalysis()
 
     Athlete a;
     a.lastName = QStringLiteral("Analyse");
-    a.firstName = QStringLiteral("Anna");
+    a.firstName = QStringLiteral("Mira");
     const QString id = Database::saveAthlete(a);
     const QDate w1(2028, 1, 3), w2 = w1.addDays(7), w3 = w1.addDays(14);
     auto session = [&](const QDate &monday, int day, QList<Entry> entries) {

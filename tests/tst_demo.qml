@@ -10,11 +10,11 @@ Item {
     TestCase {
         name: "Demo"
 
-        property string anna
+        property string mira
 
         function initTestCase() {
-            anna = Store.createDemoData()
-            verify(anna !== "")
+            mira = Store.createDemoData()
+            verify(mira !== "")
         }
 
         function cleanupTestCase() {
@@ -23,7 +23,7 @@ Item {
         }
 
         function test_mazAroundToday() {
-            const list = Plan.mazForAthlete(anna)
+            const list = Plan.mazForAthlete(mira)
             compare(list.length, 1)
             const z = list[0]
             const monday = Store.mondayOf(Store.today())
@@ -31,7 +31,7 @@ Item {
             compare(Plan.mondayFromLabel(z.to), Store.addWeeks(monday, 4))
             // The week plan names the MAZ and the week's load: the U17
             // plan's ninth week is "h"
-            const ctx = Store.weekContext(anna, monday)
+            const ctx = Store.weekContext(mira, monday)
             verify(ctx.maz.has)
             compare(ctx.maz.week, 9)
             compare(ctx.loadText, "h")
@@ -40,8 +40,8 @@ Item {
         // The Belastungsverlauf of the snatch: targets in every week, the
         // U17 plan's loads, done weeks up to last week, today marked
         function test_loadCourse() {
-            const z = Plan.mazForAthlete(anna)[0]
-            const c = Plan.loadCourse(anna, z.id, "", 0, 1, "kg")
+            const z = Plan.mazForAthlete(mira)[0]
+            const c = Plan.loadCourse(mira, z.id, "", 0, 1, "kg")
             compare(c.labels.length, 13)
             compare(c.load.join(""), "mhhghhghhghmg")
             compare(c.todayIndex, 8)
@@ -62,16 +62,16 @@ Item {
         // ITP is what "Vorlage" makes of it for her, so a new Vorlage
         // changes nothing
         function test_frameworkPlan() {
-            const z = Plan.mazForAthlete(anna)[0]
-            const ro = Plan.loadCourse(anna, z.id, "", 0, 1, "kg")
+            const z = Plan.mazForAthlete(mira)[0]
+            const ro = Plan.loadCourse(mira, z.id, "", 0, 1, "kg")
             const before = ro.target.bw.slice()
-            verify(Plan.itpFromRo(z.id, anna))
-            compare(Plan.loadCourse(anna, z.id, "", 0, 1, "kg").target.bw, before)
+            verify(Plan.itpFromRo(z.id, mira))
+            compare(Plan.loadCourse(mira, z.id, "", 0, 1, "kg").target.bw, before)
         }
 
         function test_competitionsToCome() {
             const today = Store.today()
-            const coming = Store.competitions(anna).filter(c => c.date > today)
+            const coming = Store.competitions(mira).filter(c => c.date > today)
             compare(coming.length, 2)
             verify(coming.some(c => c.name === "Deutsche Meisterschaft"))
         }
@@ -79,7 +79,7 @@ Item {
         function test_removedWithTheData() {
             Store.removeDemoData()
             verify(!Plan.mazList.some(z => z.name.indexOf("Beispiel-MAZ") === 0))
-            compare(Plan.mazForAthlete(anna).length, 0)
+            compare(Plan.mazForAthlete(mira).length, 0)
         }
     }
 }

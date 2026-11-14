@@ -68,8 +68,8 @@ those two views instead of being an entry of its own.
 
 - A picker changes only its section's selection, never the view.
 - An entry changes only the view, never a selection.
-- Both selections stay while one moves between sections: from Anna's
-  Wochenplan to the MAZ overview and back, Anna is still selected.
+- Both selections stay while one moves between sections: from Mira's
+  Wochenplan to the MAZ overview and back, Mira is still selected.
 - Moving between the subjects is an explicit link, never a side effect:
   in the MAZ overview every athlete's row has "ITP öffnen", which selects
   the athlete and opens the ITP; an athlete's ITP names its MAZ with a link

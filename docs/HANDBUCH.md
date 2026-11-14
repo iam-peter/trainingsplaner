@@ -2,7 +2,7 @@
 
 Dieses Handbuch zeigt jede Ansicht des Programms an einem Beispiel. Alle
 Bilder und Zahlen stammen aus den **Beispieldaten**, die das Programm selbst
-mitbringt. Die Sportler „Beispiel, Anna“ und „Beispiel, Ben“ sind frei
+mitbringt. Die Sportler „Beispiel, Mira“ und „Beispiel, Jonas“ sind frei
 erfunden. Ihr Makrozyklus folgt dem Musterplan U17 der
 Rahmentrainingskonzeption 2019 des BVDG, umgerechnet auf die Zielleistung
 der Sportler.
@@ -87,11 +87,11 @@ Diese Angaben gelten jeweils ab einem Datum: Das Stift-Symbol daneben zeigt
 den Verlauf, z. B. seit wann jemand im Landeskader ist. Eine Änderung gilt
 ab heute, der Verlauf davor bleibt erhalten.
 
-> **Beispiel:** Anna Beispiel, geboren am 14.03.2007 (19 Jahre), Verein
+> **Beispiel:** Mira Beispiel, geboren am 21.06.2007 (19 Jahre), Verein
 > „Beispielverein“.
 
-Der gewählte Sportler gilt für alle Seiten: Wer hier Anna wählt, sieht auch
-im Wochenplan, in der Planung und in den Wettkämpfen Anna.
+Der gewählte Sportler gilt für alle Seiten: Wer hier Mira wählt, sieht auch
+im Wochenplan, in der Planung und in den Wettkämpfen Mira.
 
 ---
 
@@ -250,7 +250,7 @@ vorsieht. Sie finden ihn an drei Stellen:
 - in der **Analyse** über **Belastungsverlauf**;
 - in der **Planung** unter **ITP** über **Grafik**.
 
-**So lesen Sie ihn**, am Beispiel Anna, Reißen WKÜ, Beispiel-MAZ Frauen
+**So lesen Sie ihn**, am Beispiel Mira, Reißen WKÜ, Beispiel-MAZ Frauen
 (Wochen 38 bis 50):
 
 - **Oben die Gewichte:** durchgezogen das Ist, gestrichelt das Ziel aus dem
@@ -264,7 +264,7 @@ vorsieht. Sie finden ihn an drei Stellen:
 
 > **Was man sieht:** Die gesenkten Wochen 41, 44, 47 und 50 geben die
 > „Sägezahn“-Form: Die Ziel-Gewichte steigen in den hohen Wochen und fallen
-> in den gesenkten zurück. Annas Ist (durchgezogen) folgt dem Ziel
+> in den gesenkten zurück. Miras Ist (durchgezogen) folgt dem Ziel
 > (gestrichelt) bis Woche 45 mit wenigen Kilo Abstand. Ab heute zeigen
 > dünne Linien, was für die nächsten Wochen geplant ist.
 
@@ -291,7 +291,7 @@ Männer oder Frauen, die Wochen von–bis, Beginn der **Aufbauphase** und der
 und **Zielleistung** im Reißen und Stoßen.
 
 > **Beispiel:** „Beispiel-MAZ Frauen“ (BF), Wochen 38/2026 bis 50/2026,
-> Aufbauphase ab 42, Leistungsausprägung ab 47. Anna: Gewichtsklasse 64,
+> Aufbauphase ab 42, Leistungsausprägung ab 47. Mira: Gewichtsklasse 64,
 > Ziel Reißen 76 kg, Stoßen 94 kg.
 
 ### Rahmenorientierung
@@ -315,7 +315,7 @@ den Gewichtsschritt (2,5 kg). Jede Zahl lässt sich danach von Hand ändern.
 Weiter rechts stehen die Spalten **Bel.** (Belastung h/m/g) und **WK**
 (Wettkampflage).
 
-> **Beispiel:** Woche 38/2026 für Anna: Reißen 16 WH, MHG 50 kg
+> **Beispiel:** Woche 38/2026 für Mira: Reißen 16 WH, MHG 50 kg
 > (65 % von 76), BW 52 kg (70 % von 76, auf 2,5 kg gerundet).
 
 Die Liste oben links wählt, welche Übungen das Raster zeigt (z. B. die
@@ -351,7 +351,7 @@ Zeitraum lassen sich Wochen oder eine MAZ wählen. Als Bezug Ist, Plan
 oder ITP, in kg oder in % des Ziels. Dazu wahlweise ein Vergleich mit
 einem anderen Zeitraum.
 
-> **Beispiel:** Anna, 12 Wochen ab 35/2026, Ist: Reißen WKÜ mit 14 WH in
+> **Beispiel:** Mira, 12 Wochen ab 35/2026, Ist: Reißen WKÜ mit 14 WH in
 > den Wochen 39–42 und 20 WH in den Wochen 43–45, zusammen 116 WH.
 > Woche 38 ist grau: Es ist die Woche eines Wettkampfs (15.09.), die nur
 > mit *WK-Woche einschließen* mitzählt. Deshalb steht oben „11/12 Wochen“.
@@ -406,7 +406,7 @@ stehen ohne Ergebnis in der Liste, bis sie eingetragen sind.
 Die Entwicklung von Zweikampf, Reißen und Stoßen über die Jahre. Die Arten
 von Wettkämpfen (NT, DM, …) lassen sich ein- und ausblenden.
 
-> **Beispiel:** Anna von 149 (Mai) auf 156 (September).
+> **Beispiel:** Mira von 149 (Mai) auf 156 (September).
 
 ---
 
