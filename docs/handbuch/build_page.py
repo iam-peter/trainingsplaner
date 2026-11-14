@@ -164,6 +164,7 @@ PAGE = '''<!doctype html>
     <div class="links">
       <a href="./#download">Download</a>
       <a href="handbuch.html" aria-current="page">Handbuch</a>
+      <a href="./#installation">Installation</a>
       <a href="./#fragen">Fragen</a>
       <a href="https://github.com/iam-peter/trainingsplaner">GitHub</a>
     </div>
@@ -174,7 +175,7 @@ PAGE = '''<!doctype html>
   </div>
 </nav>
 
-<main class="wrap handbook">
+<main class="handbook">
   <aside class="contents" aria-label="Kapitel">
     <p class="contents-label">Kapitel</p>
     <ol>

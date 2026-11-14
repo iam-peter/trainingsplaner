@@ -159,14 +159,15 @@ article h1 { font-size: 2rem; }
 article h2 { font-size: 1.2rem; margin-top: 32px; }
 article p { color: var(--muted); }
 
-/* The handbook (handbuch.html, made from docs/HANDBUCH.md): chapters
-   beside the text, on phones above it */
-.handbook { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 48px; max-width: 1120px; }
-.handbook article { max-width: none; min-width: 0; }
+/* The handbook (handbuch.html, made from docs/HANDBUCH.md): the article
+   where the home page has its content, the chapters in the margin to its
+   left, or above the article when the margin is too narrow */
+.handbook { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 960px) minmax(0, 1fr); }
+.handbook article { grid-column: 2; grid-row: 1; min-width: 0; padding: 64px 20px 0; }
 .handbook article > :not(section), .handbook section > :not(figure):not(.table) { max-width: 680px; }
 .handbook article p, .handbook article li { color: var(--fg); }
-.handbook .contents { position: sticky; top: 24px; align-self: start; padding-top: 52px; }
-.handbook .contents-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 8px; }
+.handbook .contents { grid-column: 1; grid-row: 1; justify-self: end; width: 100%; max-width: 240px; box-sizing: border-box; padding: 76px 12px 24px 16px; position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; }
+.handbook .contents-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 8px 8px; }
 .handbook .contents ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .handbook .contents a { display: block; padding: 4px 8px; border-radius: 6px; color: var(--fg); text-decoration: none; font-size: 0.9rem; line-height: 1.35; }
 .handbook .contents a:hover { background: var(--soft); }
@@ -197,12 +198,17 @@ article p { color: var(--muted); }
 .load.m { background: #9aa8b8; color: #ffffff; }
 .load.g { background: #d5dde6; color: #2a2a2a; }
 .handbook .loads { color: var(--muted); font-size: 0.9rem; }
-@media (max-width: 860px) {
-  .handbook { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .handbook .contents { position: static; padding-top: 32px; }
+/* No room in the margin: the chapters above the article */
+@media (max-width: 1299px) {
+  .handbook { grid-template-columns: minmax(0, 960px); justify-content: center; }
+  .handbook article, .handbook .contents { grid-column: 1; grid-row: auto; }
+  .handbook .contents { justify-self: stretch; max-width: none; position: static; max-height: none; overflow: visible; padding: 32px 20px 0; }
+  .handbook .contents-label { margin-left: 0; }
   .handbook .contents ol { display: flex; flex-wrap: wrap; gap: 6px; }
   .handbook .contents a { border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; font-size: 0.85rem; }
   .handbook article { padding-top: 24px; }
+}
+@media (max-width: 860px) {
   .handbook .anatomy small { display: none; }
   .handbook .anatomy b { font-size: 1.05rem; }
 }
