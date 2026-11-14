@@ -328,9 +328,10 @@ Item {
                             radius: 4
                         }
                         HoverHandler { id: terminHover; cursorShape: Qt.PointingHandCursor }
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: view.competitionRequested(termin.modelData, "")
+                        // A handler, not a MouseArea: the frame's children go into
+                        // its layout, where anchors are not allowed
+                        TapHandler {
+                            onTapped: view.competitionRequested(termin.modelData, "")
                         }
                         contentItem: ColumnLayout {
                             spacing: 1
