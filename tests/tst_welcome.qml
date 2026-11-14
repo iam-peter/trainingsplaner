@@ -38,8 +38,11 @@ Item {
             verify(Store.week(id, monday, "P").sessions.length >= 4)
             verify(Store.week(id, Store.addWeeks(monday, -1), "I").sessions.length >= 4)
             compare(Store.week(id, monday, "I").sessions.length, 0)   // the current week is not done yet
-            compare(Store.competitions(id).length, 2)
-            verify(Store.competitions(id)[0].total > 0)
+            // Two done, with results, and two to come
+            const comps = Store.competitions(id)
+            compare(comps.length, 4)
+            compare(comps.filter(c => c.total > 0).length, 2)
+            compare(comps.filter(c => c.date > Store.today()).length, 2)
 
             Store.removeDemoData()
             verify(!Store.hasDemoData)

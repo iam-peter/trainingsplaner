@@ -320,6 +320,9 @@ signals:
     void undoChanged();
     void dataChanged();
     void projectChanged();
+    // Much changed at once (another project, an import, example data):
+    // what keeps its own copy reads again
+    void dataReplaced();
 
 private:
     void bump();

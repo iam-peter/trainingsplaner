@@ -930,6 +930,7 @@ QString Store::switchProject(const QString &path, bool existingOnly)
     emit projectChanged();
     emit settingsChanged();
     emit athletesChanged();
+    emit dataReplaced();
     bump();
     return {};
 }
@@ -1244,6 +1245,7 @@ QString Store::createDemoData()
     s.setValue(QStringLiteral("demo/athletes"),
                s.value(QStringLiteral("demo/athletes")).toStringList() + ids);
     emit athletesChanged();
+    emit dataReplaced();
     bump();
     return ids.value(0);
 }
@@ -1254,7 +1256,13 @@ void Store::removeDemoData()
     for (const QString &id : s.value(QStringLiteral("demo/athletes")).toStringList())
         removeAthlete(id);
     s.remove(QStringLiteral("demo/athletes"));
+    // Their MAZ, once no athlete is left in it
+    for (const Maz &z : Planning::mazList()) {
+        if (Demo::isDemoMaz(z) && Planning::mazAthletes(z.id).isEmpty())
+            Planning::removeMaz(z.id);
+    }
     emit athletesChanged();
+    emit dataReplaced();
 }
 
 QString Store::undoLabel() const
@@ -2210,6 +2218,7 @@ QString Store::importBak(const QUrl &file, bool ignoreTimestamps)
     const BakImport::Result r = BakImport::importFile(file.toLocalFile(), ignoreTimestamps);
     clearUndo();
     emit athletesChanged();
+    emit dataReplaced();
     bump();
     QString text = r.summary();
     if (!r.ok && r.errors.isEmpty())

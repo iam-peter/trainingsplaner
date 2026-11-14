@@ -18,6 +18,9 @@ class Plan : public QObject
 
 public:
     explicit Plan(QObject *parent = nullptr);
+    // Everything changed outside (Store.dataReplaced): the MAZ list and
+    // the grids read again
+    Q_INVOKABLE void refresh() { emit changed(); }
 
     QVariantList mazList() const;
     QVariantList exerciseSets() const;

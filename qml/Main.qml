@@ -38,6 +38,9 @@ ApplicationWindow {
     Connections {
         target: Store
         function onAthletesChanged() { window.chooseDefaultAthlete() }
+        // Another project, an import or example data: the planning reads
+        // its MAZ again
+        function onDataReplaced() { Plan.refresh() }
     }
 
     width: 1366
