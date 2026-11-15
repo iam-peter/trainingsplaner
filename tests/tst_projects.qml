@@ -74,7 +74,9 @@ Item {
 
         function test_saveAs() {
             const before = Store.athletes.length
-            compare(Store.saveProjectAs("file://" + folder + "/kopie"), "")
+            // As the file dialog gives it: file:///C:/… on Windows
+            const url = "file://" + (folder.startsWith("/") ? "" : "/") + folder + "/kopie"
+            compare(Store.saveProjectAs(url), "")
             compare(Store.projectName, "kopie")
             compare(Store.athletes.length, before)
             // Changes go into the copy only
