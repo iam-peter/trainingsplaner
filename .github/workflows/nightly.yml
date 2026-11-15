@@ -72,7 +72,7 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: test-log-linux
@@ -131,7 +131,7 @@ jobs:
           stamp=$(TZ=UTC git log -1 --format=%cd --date=format-local:%Y%m%d%H%M%S)
           packaging/deb/build-deb.sh AppDir "$base+git$stamp.${GITHUB_SHA::7}" trainingsplaner-linux-x64.deb
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: trainingsplaner-linux
           path: |
@@ -167,7 +167,7 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: test-log-windows
@@ -260,7 +260,7 @@ jobs:
           $p = Start-Process Trainingsplaner/trainingsplaner.exe -ArgumentList "--db", "$env:RUNNER_TEMP\ci.sqlite", "--grab", $png -Wait -PassThru -NoNewWindow
           if ($p.ExitCode -ne 0 -or -not (Test-Path $png)) { throw "The window did not show" }
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: trainingsplaner-windows
           path: |
@@ -295,7 +295,7 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: test-log-macos
@@ -325,7 +325,7 @@ jobs:
             --db "$RUNNER_TEMP/ci.sqlite" --grab "$RUNNER_TEMP/window.png"
           test -s "$RUNNER_TEMP/window.png"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: trainingsplaner-macos
           path: trainingsplaner-macos.dmg
@@ -337,7 +337,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: trainingsplaner-*
           path: artifacts
