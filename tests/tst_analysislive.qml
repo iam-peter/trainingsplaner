@@ -48,9 +48,10 @@ Item {
             const report = findChild(page, "individualReport")
             tryVerify(() => shown(report).indexOf("1 Reißen WKÜ") >= 0)
             // Drawn as a table: the title, the heading, then the table's
-            // header row and its first row
+            // header row and its first row. The table redraws after the
+            // report changed: until then its cells are the report before
             const table = findChild(report, "reportTable")
-            tryVerify(() => table.itemAtCell(Qt.point(0, 3)) !== null)
+            tryVerify(() => table.itemAtCell(Qt.point(0, 3))?.display === "1 Reißen WKÜ")
             compare(table.itemAtCell(Qt.point(0, 0)).kind, ReportModel.Title)
             compare(table.itemAtCell(Qt.point(0, 1)).kind, ReportModel.Heading)
             compare(table.itemAtCell(Qt.point(0, 2)).kind, ReportModel.Header)
