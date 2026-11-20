@@ -105,7 +105,30 @@ Page {
                 color: Styles.TokenInterface.semantics.text_muted
             }
             Item { Layout.fillWidth: true }
+            // The athletes shown as a list: birth date, AK, Kader, Verein,
+            // class and bests
+            IconButton {
+                objectName: "copyAthleteList"
+                iconName: "copy"
+                text: "Kopieren"
+                enabled: page.shown.length > 0
+                toolTip: "Die Sportlerliste für eine Tabellenkalkulation kopieren"
+                onClicked: Analysis.copyReport(page.listReport())
+            }
+            IconButton {
+                objectName: "printAthleteList"
+                iconName: "printer"
+                text: "Drucken"
+                enabled: page.shown.length > 0
+                toolTip: "Die angezeigten Sportler als Liste drucken"
+                onClicked: Analysis.printReport(page.listReport())
+            }
         }
+    }
+
+    // The list of the athletes shown, as a report
+    function listReport() {
+        return Store.athleteListReport(shown.map(a => a.id))
     }
 
     RowLayout {

@@ -108,6 +108,16 @@ Trainingsmittelkatalogs 2018 für Kinder.
 Der gewählte Sportler gilt für alle Seiten: Wer hier Mira wählt, sieht auch
 im Wochenplan, in der Planung und in den Wettkämpfen Mira.
 
+**Drucken** oben rechts gibt die Sportler der Liste als **Sportlerliste**
+aus: Name, Geburtsdatum, AK, Kader, Verein, Gewichtsklasse (nach dem
+letzten Körpergewicht im Wettkampf) und die Bestleistungen in Reißen,
+Stoßen und Zweikampf, beim Zweikampf mit dem Jahr. Was im Suchfeld steht,
+schränkt die Liste ein. **Kopieren** legt sie für eine
+Tabellenkalkulation in die Zwischenablage.
+
+> **Beispiel:** Beispiel, Mira: 21.06.2007, AK 19, Beispielverein, −69,
+> Reißen 69, Stoßen 87, Zweikampf 156 (2026).
+
 ---
 
 ## 3. Wochenplan

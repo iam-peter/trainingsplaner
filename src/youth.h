@@ -25,6 +25,9 @@ QList<int> weightClassLimits(int sex);
 QList<int> weightClassLimits(int sex, int ageClass);
 // "-85", "+95": the class of a body weight, "" without one
 QString weightClassFor(int sex, double bodyWeight);
+// The same for the classes of an age class (youth up to AK 17, then the
+// junior and senior ones)
+QString weightClassFor(int sex, int ageClass, double bodyWeight);
 // "-85" from 85, "+95" from a limit above the last class
 QString weightClassFromLimit(int sex, int limit);
 

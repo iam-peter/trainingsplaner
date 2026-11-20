@@ -157,7 +157,7 @@ M days, L a week or more.
 | 27 | IAT points and the athletic tests (Sternlauf, Kugelschocken, Schlussdreisprung) | JSP p.8–11 | M |
 | 28 | Sitting and standing height in the Zusatzinfo (maturity) | JSP p.4 | M |
 | 29 | Affiliations Landesverband, BSP, Verein (Mannschaft); an active/inactive status | IDA p.6 | S |
-| 30 | Athlete list for printing (birth date, AK, Kader, Verein, class, bests) | IDA p.5 | S |
+| 30 | Athlete list for printing (birth date, AK, Kader, Verein, class, bests) (done, November 2026: Drucken and Kopieren on the athletes page, for the athletes the list shows; the class of the last competition body weight, youth or senior classes by AK; the bests of all competitions, the total with its year) | IDA p.5 | S |
 | 31 | Inline required-field messages in the MAZ and athlete forms | IDA p.8 | S |
 
 ## 4. Not worth taking from IDA

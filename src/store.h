@@ -225,6 +225,11 @@ public:
     //   loadText: the load as h / m / g (Planning::loadText)
     //   next: the next competition from the week's Monday on: {has, name, date, days}
     Q_INVOKABLE QVariantMap weekContext(const QString &athleteId, const QString &monday) const;
+    // The athletes given as a list to print or copy (IDA's Sportlerliste):
+    // name, born, this year's AK, Kader, Verein, the weight class of the
+    // last body weight, the best snatch, clean & jerk and total with the
+    // year of the total. A report as Analysis builds them.
+    Q_INVOKABLE QVariantMap athleteListReport(const QVariantList &ids) const;
     // "Letzter Eintrag": the Monday ("yyyy-MM-dd") of the latest week with
     // a session of the variant ("P" or "I"), "" without any
     Q_INVOKABLE QString lastEntryWeek(const QString &athleteId, const QString &variant) const;

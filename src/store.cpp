@@ -1614,6 +1614,62 @@ QVariantMap Store::competitionTrend(const QString &athleteId, int fromYear, int 
     return result;
 }
 
+QVariantMap Store::athleteListReport(const QVariantList &ids) const
+{
+    const QDate today = QDate::currentDate();
+    Report::Document doc;
+    doc.title = QStringLiteral("Sportlerliste");
+    doc.note(QStringLiteral("Stand: %1. AK und Gewichtsklasse für %2; die Klasse nach dem letzten Körpergewicht im "
+                            "Wettkampf, die Bestleistungen aus allen Wettkämpfen.")
+                 .arg(Dates::text(today))
+                 .arg(today.year()));
+    QList<Report::Cells> rows;
+    rows.append(Report::cells({QStringLiteral("Name"), QStringLiteral("geb."), QStringLiteral("AK"),
+                               QStringLiteral("Kader"), QStringLiteral("Verein"), QStringLiteral("Klasse"),
+                               QStringLiteral("Reißen"), QStringLiteral("Stoßen"), QStringLiteral("Zweikampf")}));
+    QMap<QString, QVariantMap> byId;
+    for (const QVariant &v : athletes()) {
+        const QVariantMap a = v.toMap();
+        byId.insert(a.value(QStringLiteral("id")).toString(), a);
+    }
+    for (const QVariant &idValue : ids) {
+        const QString id = idValue.toString();
+        if (!byId.contains(id))
+            continue;
+        const QVariantMap a = byId.value(id);
+        const QVariantMap attributes = a.value(QStringLiteral("attributes")).toMap();
+        const Athlete athlete = Database::athlete(id);
+        const int ak = Youth::ageClass(athlete.born, today);
+        int snatch = 0, cleanJerk = 0, total = 0, totalYear = 0;
+        double bodyWeight = 0;
+        for (const Competition &c : Competitions::forAthlete(id)) { // newest first
+            if (bodyWeight <= 0 && c.bodyWeight > 0 && c.date <= today)
+                bodyWeight = c.bodyWeight;
+            snatch = qMax(snatch, c.bestSnatch());
+            cleanJerk = qMax(cleanJerk, c.bestCleanJerk());
+            if (c.total() > total) {
+                total = c.total();
+                totalYear = c.date.year();
+            }
+        }
+        auto kg = [](int v) { return v > 0 ? QString::number(v) : QString(); };
+        Report::Cells row = Report::cells({a.value(QStringLiteral("displayName")).toString(), Dates::text(athlete.born),
+                                           ak > 0 ? QString::number(ak) : QString(),
+                                           attributes.value(QStringLiteral("Kader")).toString(),
+                                           attributes.value(QStringLiteral("Verein")).toString(),
+                                           Youth::weightClassFor(int(athlete.sex), ak, bodyWeight), kg(snatch),
+                                           kg(cleanJerk),
+                                           total > 0 ? QStringLiteral("%1 (%2)").arg(total).arg(totalYear) : QString()});
+        row[0].bold = true;
+        rows.append(row);
+    }
+    if (rows.size() == 1)
+        doc.note(QStringLiteral("Keine Sportler."));
+    else
+        doc.table(rows);
+    return Report::toVariant(doc);
+}
+
 QString Store::lastEntryWeek(const QString &athleteId, const QString &variant) const
 {
     if (athleteId.isEmpty())

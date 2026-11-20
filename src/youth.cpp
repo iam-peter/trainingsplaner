@@ -54,6 +54,18 @@ QString weightClassFor(int sex, double bodyWeight)
     return QStringLiteral("+%1").arg(limits.last());
 }
 
+QString weightClassFor(int sex, int ageClass, double bodyWeight)
+{
+    if (bodyWeight <= 0)
+        return QString();
+    const QList<int> limits = weightClassLimits(sex, ageClass);
+    for (int l : limits) {
+        if (bodyWeight <= l)
+            return QStringLiteral("-%1").arg(l);
+    }
+    return QStringLiteral("+%1").arg(limits.last());
+}
+
 namespace {
 
 // AK 14 and AK 15: one total per kg of body weight, from the first row on;
