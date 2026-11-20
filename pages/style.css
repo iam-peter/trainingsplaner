@@ -163,13 +163,14 @@ article p { color: var(--muted); }
    where the home page has its content, the chapters in the margin to its
    left, or above the article when the margin is too narrow */
 .handbook { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 960px) minmax(0, 1fr); }
-.handbook article { grid-column: 2; grid-row: 1; min-width: 0; padding: 64px 20px 0; }
-.handbook article > :not(section), .handbook section > :not(figure):not(.table) { max-width: 680px; }
+/* The article as wide as the header's content: text, pictures and
+   examples to its right edge */
+.handbook article { grid-column: 2; grid-row: 1; min-width: 0; max-width: none; padding: 64px 20px 0; }
 .handbook article p, .handbook article li { color: var(--fg); }
-.handbook .contents { grid-column: 1; grid-row: 1; justify-self: end; width: 100%; max-width: 240px; box-sizing: border-box; padding: 76px 12px 24px 16px; position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; }
+.handbook .contents { grid-column: 1; grid-row: 1; justify-self: end; width: 100%; max-width: 240px; box-sizing: border-box; padding: 76px 12px 24px 16px; position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-x: hidden; overflow-y: auto; }
 .handbook .contents-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 8px 8px; }
 .handbook .contents ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
-.handbook .contents a { display: block; padding: 4px 8px; border-radius: 6px; color: var(--fg); text-decoration: none; font-size: 0.9rem; line-height: 1.35; }
+.handbook .contents a { display: block; padding: 4px 8px; border-radius: 6px; color: var(--fg); text-decoration: none; font-size: 0.9rem; line-height: 1.35; hyphens: auto; overflow-wrap: break-word; }
 .handbook .contents a:hover { background: var(--soft); }
 .handbook .num { color: var(--muted); font-variant-numeric: tabular-nums; }
 .handbook section { padding: 36px 0 0; margin-top: 28px; border-top: 1px solid var(--line); }
@@ -178,7 +179,7 @@ article p { color: var(--muted); }
 .handbook figure { margin: 18px 0 22px; }
 .handbook figure img { display: block; width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #f8f8f8; }
 .handbook figcaption { color: var(--muted); font-size: 0.85rem; margin-top: 6px; }
-.handbook .example { background: var(--soft); border-radius: 8px; padding: 12px 16px; margin: 16px 0 20px; max-width: 680px; }
+.handbook .example { background: var(--soft); border-radius: 8px; padding: 12px 16px; margin: 16px 0 20px; }
 .handbook .example .label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 2px; }
 .handbook .example p { margin: 0; }
 .handbook del { color: #c0392b; text-decoration-thickness: 2px; }
