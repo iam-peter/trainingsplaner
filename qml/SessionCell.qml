@@ -208,7 +208,8 @@ Rectangle {
                     const m = modelData
                     if (m.kind === 2)
                         return ""
-                    let t = m.exercise + "  " + m.name
+                    let t = (m.group >= 1 && m.group <= 7 ? "K" + m.group + " · " : m.group >= 8 ? "AMKT · " : "")
+                            + m.exercise + "  " + m.name
                     if (m.kind === 0 && m.stats && !m.stats.empty)
                         t += "\nWH " + m.stats.wh + " · MHG " + m.stats.mhg + " · BW " + m.stats.bw
                              + (m.stats.repsSets ? " (" + m.stats.repsSets + ")" : "")
@@ -224,6 +225,16 @@ Rectangle {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 8
+                // The complex's colour (K1..K7, grey for 8 and 9)
+                Rectangle {
+                    objectName: "groupStripe"
+                    visible: line.modelData.group > 0
+                    implicitWidth: 3
+                    implicitHeight: 14
+                    radius: 1.5
+                    color: Theme.groupColor(line.modelData.group || 0)
+                    Layout.rightMargin: -5
+                }
                 Label {
                     visible: line.modelData.kind !== 2
                     Layout.preferredWidth: 20

@@ -25,4 +25,14 @@ QtObject {
     readonly property int rowInsetX: 4
     readonly property int rowInsetY: 2
     readonly property int listMargin: rowInsetX - rowInsetY
+
+    // A colour per complex for the lines of week and month, as IDA marks
+    // them: K1 the competition lifts red, K2 orange, K3 the pulls amber,
+    // K4 green, K5 the squats teal, K6 blue, K7 violet, the general
+    // strength exercises (8, 9) grey. Mid tones, to read in light and dark.
+    readonly property var groupColors: ["#dc2626", "#ea580c", "#ca8a04", "#65a30d", "#0d9488", "#2563eb",
+                                        "#7c3aed", "#94a3b8", "#94a3b8"]
+    function groupColor(group: int): color {
+        return group >= 1 && group <= 9 ? groupColors[group - 1] : "transparent"
+    }
 }

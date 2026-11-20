@@ -162,6 +162,14 @@ In jeder Trainingseinheit (TE) steht je Übung eine Zeile:
 Text-Übungen wie `33 3x8 (24)` (Klimmzüge, 3×8, zusammen 24 WH) und freie
 Notizen wie „Dehnen 15 min“ stehen ebenso in der Einheit.
 
+Der farbige Strich vor der Übung zeigt ihren **Komplex**: K1 rot, K2
+orange, K3 gelb, K4 grün, K5 türkis, K6 blau, K7 violett, die
+allgemeinen Kraftübungen (Gruppen 8 und 9) grau. Die Kästen K1 bis K7
+unter der Woche tragen oben dieselben Farben.
+
+> **Beispiel:** Montag, 2. TE: Reißen (rot), Zug breit (gelb),
+> Kniebeuge vorn (türkis) und Klimmzüge (grau).
+
 ### Eine Trainingseinheit bearbeiten
 
 ![Trainingseinheit](handbuch/bilder/05-trainingseinheit.png)
@@ -260,7 +268,8 @@ K1-7 und K1-5 auch die Wiederholungen der allgemeinen Kraftübungen
   der WK-Lage aus dem ITP (LG, WK, HWK), **Tr.-Wo.** (die Wochen bis zum
   Hauptwettkampf) und den Wiederholungen **Plan / Ist** (`129 / 126`);
 - in den Tagen die Einheiten: ● Ist nach Plan, ◆ Ist ohne Plan, ○ geplant,
-  ◌ offen (geplant, aber ohne Ist, in Rot);
+  ◌ offen (geplant, aber ohne Ist, in Rot); darunter ein schmaler Balken
+  mit den Wiederholungen der Einheit nach Komplexen, in deren Farben;
 - rechts die **Termine**, also die kommenden Wettkämpfe.
 
 Ein Klick auf eine Kalenderwoche öffnet diese Woche. **Alle Sportler**

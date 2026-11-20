@@ -1217,6 +1217,17 @@ Page {
                                         height: 1
                                         color: Styles.TokenInterface.semantics.stroke_subtle
                                     }
+                                    // The complex's colour, as on the lines above:
+                                    // the legend of the stripes
+                                    Rectangle {
+                                        objectName: "groupColor" + (index + 1)
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        y: 2
+                                        width: 28
+                                        height: 3
+                                        radius: 1.5
+                                        color: Theme.groupColor(index + 1)
+                                    }
 
                                     ColumnLayout {
                                         id: groupColumn

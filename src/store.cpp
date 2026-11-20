@@ -110,6 +110,8 @@ QVariantMap entryToMap(const Entry &e)
         {QStringLiteral("kind"), int(e.kind)},
         {QStringLiteral("exercise"), e.exercise},
         {QStringLiteral("name"), Catalog::name(e.exercise)},
+        // The complex (1..7), 8 and 9 the general strength exercises, 0 none
+        {QStringLiteral("group"), Catalog::find(e.exercise) ? Catalog::find(e.exercise)->group : 0},
         {QStringLiteral("steps"), stepsToList(e.steps)},
         {QStringLiteral("text"), e.text},
         {QStringLiteral("totalReps"), e.totalReps},
@@ -1897,8 +1899,20 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
                 else
                     state = date < today ? QStringLiteral("open") : QStringLiteral("planned");
                 const int wh = whOf(a ? a : p);
+                // Its reps per complex K1..K7, for the coloured bar
+                QVariantList groups;
+                {
+                    QList<int> perGroup(Catalog::summaryGroups, 0);
+                    for (const Entry &e : (a ? a : p)->entries) {
+                        const Exercise *ex = e.kind == Entry::Weights ? Catalog::find(e.exercise) : nullptr;
+                        if (ex && ex->group >= 1 && ex->group <= Catalog::summaryGroups)
+                            perGroup[ex->group - 1] += e.stats().wh;
+                    }
+                    for (int g : std::as_const(perGroup))
+                        groups.append(g);
+                }
                 sessions.append(QVariantMap{{QStringLiteral("number"), n}, {QStringLiteral("state"), state},
-                                            {QStringLiteral("wh"), wh}});
+                                            {QStringLiteral("wh"), wh}, {QStringLiteral("groups"), groups}});
                 const QString mark = state == QLatin1String("done") ? QStringLiteral("●")
                                      : state == QLatin1String("free") ? QStringLiteral("◆")
                                      : state == QLatin1String("open") ? QStringLiteral("offen") : QStringLiteral("○");

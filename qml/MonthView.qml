@@ -249,9 +249,15 @@ Item {
                                 }
                                 Repeater {
                                     model: dayCell.modelData.sessions
-                                    Label {
+                                    ColumnLayout {
+                                        id: sessionItem
                                         required property var modelData
                                         objectName: "session" + modelData.number
+                                        spacing: 1
+                                        readonly property string text: sessionLabel.text
+                                    Label {
+                                        id: sessionLabel
+                                        readonly property var modelData: sessionItem.modelData
                                         font.pixelSize: 11
                                         // ● with Ist after a Plan, ◆ Ist without one, ○ planned,
                                         // "offen" planned and past without Ist
@@ -260,6 +266,26 @@ Item {
                                               + (modelData.wh > 0 ? modelData.wh + " Wh" : modelData.number + ". TE")
                                         color: modelData.state === "open" ? view.s.danger_default
                                                : modelData.state === "planned" ? view.s.text_muted : view.s.text_default
+                                    }
+                                    // Its reps by complex, in the complexes' colours
+                                    Row {
+                                        objectName: "groupBar"
+                                        readonly property int total: (sessionItem.modelData.groups || []).reduce((a, b) => a + b, 0)
+                                        visible: total > 0
+                                        Layout.preferredWidth: 60
+                                        height: 3
+                                        opacity: sessionItem.modelData.state === "planned" || sessionItem.modelData.state === "open" ? 0.45 : 1
+                                        Repeater {
+                                            model: sessionItem.modelData.groups || []
+                                            Rectangle {
+                                                required property int modelData
+                                                required property int index
+                                                width: parent.total > 0 ? 60 * modelData / parent.total : 0
+                                                height: 3
+                                                color: Theme.groupColor(index + 1)
+                                            }
+                                        }
+                                    }
                                     }
                                 }
                                 Repeater {
