@@ -2,7 +2,9 @@
 
 #include "bakexport.h"
 #include "catalog.h"
+#include "competition.h"
 #include "database.h"
+#include "development.h"
 #include "planning.h"
 #include "report.h"
 #include "rtk.h"
@@ -407,6 +409,71 @@ QVariantMap Plan::loadCourse(const QString &athleteId, const QString &mazId, con
               {QStringLiteral("actual"), QVariantMap{{QStringLiteral("mhg"), iMhg}, {QStringLiteral("bw"), iBw}, {QStringLiteral("wh"), iWh}}},
               {QStringLiteral("planned"), QVariantMap{{QStringLiteral("mhg"), pMhg}, {QStringLiteral("bw"), pBw}, {QStringLiteral("wh"), pWh}}},
               {QStringLiteral("report"), Report::toVariant(doc)}};
+    return result;
+}
+
+QVariantMap Plan::targetCheck(const QString &mazId, const QString &athleteId, int targetSnatch,
+                              int targetCleanJerk) const
+{
+    QVariantMap result{{QStringLiteral("has"), false}};
+    const Maz m = Planning::maz(mazId);
+    if (!m.from.isValid() || athleteId.isEmpty())
+        return result;
+    // The yearly bests before the MAZ: what the planning could know
+    QList<Competition> before;
+    for (const Competition &c : Competitions::forAthlete(athleteId)) {
+        if (c.date < m.from)
+            before.append(c);
+    }
+    const QList<Competitions::Point> points = Competitions::bestResults(before, 2);
+    QList<double> t, y;
+    const Competitions::Point *latest = nullptr;
+    for (const Competitions::Point &p : points) {
+        if (p.total > 0) {
+            t.append(p.date.year());
+            y.append(p.total);
+            if (p.snatch > 0 && p.cleanJerk > 0)
+                latest = &p;
+        }
+    }
+    const Development::Fit f = Development::gompertz(t, y);
+    if (!f.ok)
+        return result;
+    const int year = Planning::mainCompetitionWeek(m, athleteId).addDays(5).year();
+    const double expected = Development::value(f, year);
+    const double tolerance = qMax(qMax(2 * f.se, 0.03 * expected), 3.0);
+    const int total = qRound(expected);
+    // Split as the athlete's latest yearly best was
+    const double share = latest ? double(latest->snatch) / latest->total : 0.44;
+    const int snatch = qRound(total * share);
+    result = {{QStringLiteral("has"), true},
+              {QStringLiteral("expected"), qRound(expected * 10) / 10.0},
+              {QStringLiteral("tolerance"), qRound(tolerance * 10) / 10.0},
+              {QStringLiteral("year"), year},
+              {QStringLiteral("proposedSnatch"), snatch},
+              {QStringLiteral("proposedCleanJerk"), total - snatch}};
+    const QString curve = QStringLiteral("Entwicklungskurve (%1 kg für %2)").arg(total).arg(year);
+    if (targetSnatch <= 0 || targetCleanJerk <= 0) {
+        result.insert(QStringLiteral("verdict"), QString());
+        result.insert(QStringLiteral("text"), QStringLiteral("Nach der %1: Vorschlag %2 / %3 kg.")
+                                                  .arg(curve).arg(snatch).arg(total - snatch));
+        return result;
+    }
+    const int target = targetSnatch + targetCleanJerk;
+    const double diff = target - expected;
+    QString verdict, text;
+    if (diff > tolerance) {
+        verdict = QStringLiteral("high");
+        text = QStringLiteral("Zweikampf-Ziel %1 kg liegt %2 kg über der %3.").arg(target).arg(qRound(diff)).arg(curve);
+    } else if (diff < -tolerance) {
+        verdict = QStringLiteral("low");
+        text = QStringLiteral("Zweikampf-Ziel %1 kg liegt %2 kg unter der %3.").arg(target).arg(qRound(-diff)).arg(curve);
+    } else {
+        verdict = QStringLiteral("ok");
+        text = QStringLiteral("Zweikampf-Ziel %1 kg passt zur %2.").arg(target).arg(curve);
+    }
+    result.insert(QStringLiteral("verdict"), verdict);
+    result.insert(QStringLiteral("text"), text);
     return result;
 }
 

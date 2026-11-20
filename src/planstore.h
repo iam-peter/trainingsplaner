@@ -33,6 +33,14 @@ public:
     // The RTK's templates for a new MAZ: [{key, text, weeks, buildUp, peak}],
     // buildUp and peak the week of the MAZ they begin in (1 the first), 0 none
     Q_INVOKABLE QVariantList rtkTemplates() const;
+    // A MAZ target against the athlete's development curve (Sandau 2018,
+    // from the competitions before the MAZ) for the year of its main
+    // competition. A hint, never a block:
+    //   {has, expected, tolerance, year, verdict ("ok", "high", "low", ""
+    //    without both targets), text, proposedSnatch, proposedCleanJerk}
+    // has is false without a curve (fewer than four years of results).
+    Q_INVOKABLE QVariantMap targetCheck(const QString &mazId, const QString &athleteId, int targetSnatch,
+                                        int targetCleanJerk) const;
     Q_INVOKABLE bool removeMaz(const QString &id);
     Q_INVOKABLE QVariantList mazAthletes(const QString &mazId) const;
     Q_INVOKABLE bool saveMazAthlete(const QVariantMap &a);

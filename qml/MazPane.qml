@@ -232,6 +232,10 @@ RowLayout {
                     // (set once: as a binding it would follow every keystroke)
                     property string saved
                     Component.onCompleted: saved = JSON.stringify(values())
+                    // The targets against the development curve, as typed
+                    readonly property var check: (Store.dataVersion,
+                                                  Plan.targetCheck(pane.mazId, modelData.athleteId,
+                                                                   parseInt(ts.text) || 0, parseInt(tc.text) || 0))
                     function values() {
                         return {
                             weightClass: parseInt(wc.text) || 0,
@@ -257,15 +261,19 @@ RowLayout {
                     }
                     TextField {
                         id: ts
+                        objectName: "targetSnatch"
                         Layout.preferredWidth: 70
                         text: modelData.targetSnatch || ""
+                        placeholderText: athleteRow.check.has ? String(athleteRow.check.proposedSnatch) : ""
                         validator: IntValidator { bottom: 0; top: 999 }
                         onEditingFinished: athleteRow.saveRow()
                     }
                     TextField {
                         id: tc
+                        objectName: "targetCleanJerk"
                         Layout.preferredWidth: 70
                         text: modelData.targetCleanJerk || ""
+                        placeholderText: athleteRow.check.has ? String(athleteRow.check.proposedCleanJerk) : ""
                         validator: IntValidator { bottom: 0; top: 999 }
                         onEditingFinished: athleteRow.saveRow()
                     }
@@ -287,6 +295,35 @@ RowLayout {
                         iconName: "trash-2"
                         toolTip: "Aus dem MAZ entfernen"
                         onClicked: { Plan.removeMazAthlete(pane.mazId, modelData.athleteId); pane.reloadAthletes() }
+                    }
+                    // A hint, never a block: the targets against the curve
+                    // of the athlete's yearly bests, and its proposal
+                    IconToolButton {
+                        objectName: "takeTarget"
+                        visible: athleteRow.check.has === true
+                        iconName: "target"
+                        toolTip: athleteRow.check.has
+                                 ? "Vorschlag der Entwicklungskurve übernehmen: " + athleteRow.check.proposedSnatch
+                                   + " / " + athleteRow.check.proposedCleanJerk + " kg" : ""
+                        onClicked: {
+                            ts.text = athleteRow.check.proposedSnatch
+                            tc.text = athleteRow.check.proposedCleanJerk
+                            athleteRow.saveRow()
+                        }
+                    }
+                    Label {
+                        objectName: "targetHint"
+                        visible: athleteRow.check.has === true
+                        Layout.maximumWidth: 380
+                        elide: Text.ElideRight
+                        font.pixelSize: 11
+                        text: athleteRow.check.text || ""
+                        color: athleteRow.check.verdict === "high" || athleteRow.check.verdict === "low"
+                               ? Styles.TokenInterface.semantics.danger_default
+                               : Styles.TokenInterface.semantics.text_muted
+                        HoverHandler { id: hintHover }
+                        ToolTip.visible: hintHover.hovered && truncated
+                        ToolTip.text: text
                     }
                 }
             }

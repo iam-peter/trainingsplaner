@@ -330,6 +330,22 @@ und **Zielleistung** im Reißen und Stoßen.
 > Aufbau- und drei Wochen Leistungsausprägungsphase. Mira:
 > Gewichtsklasse 69, Ziel Reißen 76 kg, Stoßen 94 kg.
 
+Neben jedem Sportler steht, wie seine Ziele zur **Entwicklungskurve**
+passen: der Gompertz-Kurve nach Sandau (2018) durch die Jahresbesten im
+Zweikampf aus den Wettkämpfen vor Beginn des MAZ, für das Jahr seines
+Hauptwettkampfs. Liegt das Zweikampf-Ziel mehr als eine Toleranz darüber
+oder darunter (das Doppelte des Standardfehlers der Kurve, mindestens
+3 % und 3 kg), ist der Hinweis rot. Er ist nur ein Hinweis: das Ziel
+bleibt, wie es eingetragen ist. In leeren Zielfeldern steht grau der
+**Vorschlag** der Kurve, aufgeteilt wie das letzte Jahresbeste in Reißen
+und Stoßen; das Zielscheiben-Symbol übernimmt ihn. Ohne Ergebnisse aus
+mindestens vier Jahren gibt es keine Kurve und keinen Hinweis.
+
+> **Beispiel:** Miras Ziele 76 + 94 = 170 kg liegen 17 kg über ihrer
+> Entwicklungskurve, die für 2026 153 kg erwarten lässt. Ein ehrgeiziges
+> Ziel: in den Beispieldaten steht es auf ihrem Bestwert plus 4 kg je
+> Disziplin.
+
 **Vorlage:** Ein neuer MAZ kann aus einer Vorlage der
 Rahmentrainingskonzeption 2019 entstehen: RTK U13 (6 Wochen), U15 und U17
 (13 Wochen) oder U20 (17 Wochen). Die Vorlage füllt Bezeichnung, die
