@@ -63,6 +63,7 @@ private slots:
     void competitions();
     void planningBasics();
     void itpFromRo();
+    void scalePlan();
     void sectionAnalysis();
     void exerciseWeekApply();
     void compareVersions();
@@ -1230,6 +1231,53 @@ void TestCore::itpFromRo()
 
     QVERIFY(Planning::removeMaz(id));
     QVERIFY(Planning::targets(ro, QDate(2027, 1, 1), QDate(2027, 12, 31)).isEmpty());
+}
+
+// A plan scaled by a factor: the chosen weeks, values and exercises;
+// WH whole (one at least), weights to the step, a complex's WH only
+void TestCore::scalePlan()
+{
+    const QString owner = QStringLiteral("scale_owner");
+    const QDate w1(2028, 1, 3), w2(2028, 1, 10), w3(2028, 1, 17);
+    QVERIFY(Planning::setTarget(owner, {w1, 1, 20, 70, 80, 2, 3}));
+    QVERIFY(Planning::setTarget(owner, {w1, 19, 1, 90, 100, 0, 0}));
+    QVERIFY(Planning::setTarget(owner, {w1, -1, 70, 0, 0, 0, 0}));
+    QVERIFY(Planning::setTarget(owner, {w2, 1, 16, 72, 84, 0, 0}));
+    QVERIFY(Planning::setTarget(owner, {w3, 1, 10, 75, 90, 0, 0}));
+
+    // Weeks 1 and 2, snatch and K1, all values by 90 % on 2.5 kg
+    QCOMPARE(Planning::scaleTargets(owner, w1, w2, {1, -1},
+                                    Planning::ScaleWh | Planning::ScaleMhg | Planning::ScaleBw, 0.9, 2.5),
+             3);
+    auto get = [&](const QDate &m, int e) {
+        for (const WeekTarget &t : Planning::targets(owner, m, m))
+            if (t.exercise == e)
+                return t;
+        return WeekTarget();
+    };
+    WeekTarget t = get(w1, 1);
+    QCOMPARE(t.wh, 18);
+    QCOMPARE(t.mhg, 62);  // 63 -> 62.5 -> 62
+    QCOMPARE(t.bw, 72);   // 72
+    QCOMPARE(t.bwReps, 2);
+    QCOMPARE(t.bwSets, 3);
+    QCOMPARE(get(w1, -1).wh, 63);
+    QCOMPARE(get(w2, 1).bw, 75);  // 75.6 -> 75
+    // Not chosen: Kniebeuge vorn, week 3
+    QCOMPARE(get(w1, 19).bw, 100);
+    QCOMPARE(get(w3, 1).bw, 90);
+
+    // BW only, in whole percent; one WH stays one
+    QCOMPARE(Planning::scaleTargets(owner, w1, w1, {19}, Planning::ScaleWh | Planning::ScaleBw, 0.55, 1), 1);
+    t = get(w1, 19);
+    QCOMPARE(t.wh, 1);
+    QCOMPARE(t.mhg, 90);
+    QCOMPARE(t.bw, 55);
+    // Nothing to change, and what makes no sense
+    QCOMPARE(Planning::scaleTargets(owner, w1, w3, {19}, Planning::ScaleMhg, 1.0, 1), 0);
+    QCOMPARE(Planning::scaleTargets(owner, w2, w1, {1}, Planning::ScaleBw, 0.9, 1), -1);
+    QCOMPARE(Planning::scaleTargets(owner, w1, w2, {1}, 0, 0.9, 1), -1);
+    QCOMPARE(Planning::scaleTargets(QString(), w1, w2, {1}, Planning::ScaleBw, 0.9, 1), -1);
 }
 
 void TestCore::sectionAnalysis()

@@ -362,6 +362,18 @@ Die Liste oben links wählt, welche Übungen das Raster zeigt (z. B. die
 Hauptübungen). *Durchschnitt über alle Wochen* ändert die Ø-Zeile.
 **Grafik** öffnet den Belastungsverlauf.
 
+**Skalieren** ändert Werte um einen Faktor, z. B. nach einer Krankheit
+auf 90 %. Im Dialog stehen die Wochen (vorgewählt alle des Plans), die
+Werte WH, MHG und BW und der Faktor in Prozent. Es ändern sich die
+Übungen, die das Raster gerade zeigt. MHG und BW werden auf den
+Gewichtsschritt gerundet, WH auf ganze Wiederholungen. K1-7 und K1-5
+folgen den Komplexen, die Laststufen bleiben, wie sie sind. In der
+Rahmenorientierung geht es ebenso, dort auf ganze Prozent gerundet.
+
+> **Beispiel:** Mira war krank und soll leichter wieder einsteigen.
+> Wochen 46/2026 bis 47/2026, nur MHG und BW, Faktor 90 %: Reißen BW
+> 67 kg wird 60 kg (60,3 auf 2,5 kg gerundet), MHG 62 kg wird 55 kg.
+
 ### Grenzen des Trainingsmittelkatalogs
 
 In Rahmenorientierung und ITP zeigt das Programm eine Zahl **rot**, wenn

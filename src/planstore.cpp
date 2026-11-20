@@ -210,6 +210,27 @@ bool Plan::itpFromRo(const QString &mazId, const QString &athleteId)
     return ok;
 }
 
+int Plan::scaleTargets(const QVariantMap &p)
+{
+    const QString owner = p.value(QStringLiteral("owner")).toString();
+    QList<int> exercises;
+    for (const QVariant &e : p.value(QStringLiteral("exercises")).toList())
+        exercises.append(e.toInt());
+    const int values = (p.value(QStringLiteral("wh")).toBool() ? Planning::ScaleWh : 0)
+                       | (p.value(QStringLiteral("mhg")).toBool() ? Planning::ScaleMhg : 0)
+                       | (p.value(QStringLiteral("bw")).toBool() ? Planning::ScaleBw : 0);
+    const int percent = p.value(QStringLiteral("percent")).toInt();
+    if (percent <= 0 || percent > 500)
+        return -1;
+    const double step = Planning::isRoOwner(owner) ? 1.0 : Planning::weightStep();
+    const int n = Planning::scaleTargets(owner, isoDate(p.value(QStringLiteral("from")).toString()),
+                                         isoDate(p.value(QStringLiteral("to")).toString()), exercises, values,
+                                         percent / 100.0, step);
+    if (n > 0)
+        emit changed();
+    return n;
+}
+
 bool Plan::copyPlan(const QString &fromOwner, const QString &fromMonday, const QString &toOwner,
                     const QString &toMonday, int weeks)
 {

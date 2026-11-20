@@ -105,6 +105,15 @@ QString loadText(int load);
 // "h", "m", "g" (either case) or a number; -1 when it is neither
 int loadFromText(const QString &text);
 
+// Scales a plan, e.g. by 0.9 after an illness: in the weeks from..to the
+// chosen values (ScaleValue flags) of the exercises and complexes given.
+// WH become whole reps (one at least), MHG and BW are rounded to `step`
+// (the weight step for an ITP in kg, 1 for the percent of a RO). Planned
+// weight steps stay. Returns how many week targets changed, -1 on error.
+enum ScaleValue { ScaleWh = 1, ScaleMhg = 2, ScaleBw = 4 };
+int scaleTargets(const QString &owner, const QDate &fromMonday, const QDate &toMonday, const QList<int> &exercises,
+                 int values, double factor, double step);
+
 // Rounds kg to the weight step as whole kg (2.5: 100, 102, 105, 107 ...)
 int roundToStep(double kg, double step);
 // The weight step of the settings: 2.5 kg, or 1 kg

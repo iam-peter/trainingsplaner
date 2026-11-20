@@ -244,6 +244,14 @@ Page {
                         onClicked: templateDialog.open()
                     }
                     IconButton {
+                        objectName: "scaleButton"
+                        iconName: "percent"
+                        text: "Skalieren"
+                        toolTip: "Gewählte Wochen und Werte um einen Faktor ändern, z. B. 90 % nach einer Krankheit"
+                        enabled: page.owner !== "" && page.weeks > 0
+                        onClicked: scaleDialog.open()
+                    }
+                    IconButton {
                         visible: !page.roMode
                         iconName: "chart-line"
                         text: "Grafik"
@@ -402,6 +410,16 @@ Page {
             const fromOwner = page.roMode ? Plan.roOwner(src.id) : otherAthlete.currentValue
             Plan.copyPlan(fromOwner, src.fromMonday, page.owner, page.fromMonday, Math.min(src.weeks, page.weeks))
         }
+    }
+
+    ScaleDialog {
+        id: scaleDialog
+        owner: page.owner
+        fromMonday: page.fromMonday
+        weeks: page.weeks
+        exercises: page.exercises
+        setName: Plan.exerciseSets[page.setIndex].name
+        percent: page.roMode
     }
 
     // The ITP against the weeks done: the load chart

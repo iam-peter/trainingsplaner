@@ -42,6 +42,10 @@ public:
     Q_INVOKABLE QString roOwner(const QString &mazId) const;
     // ITP of an athlete from the MAZ's RO
     Q_INVOKABLE bool itpFromRo(const QString &mazId, const QString &athleteId);
+    // Scales the plan of an owner: {owner, from, to (Mondays), exercises,
+    // wh, mhg, bw (bools), percent (90 = -10 %)}. Returns the number of
+    // week targets changed, -1 on error.
+    Q_INVOKABLE int scaleTargets(const QVariantMap &p);
     Q_INVOKABLE bool copyPlan(const QString &fromOwner, const QString &fromMonday, const QString &toOwner,
                               const QString &toMonday, int weeks);
 

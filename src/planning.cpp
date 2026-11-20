@@ -390,6 +390,42 @@ bool copyPlan(const QString &fromOwner, const QDate &fromMonday, const QString &
     return d.commit();
 }
 
+int scaleTargets(const QString &owner, const QDate &fromMonday, const QDate &toMonday, const QList<int> &exercises,
+                 int values, double factor, double step)
+{
+    if (owner.isEmpty() || !fromMonday.isValid() || toMonday < fromMonday || factor <= 0 || values == 0)
+        return -1;
+    auto reps = [factor](int v) { return v > 0 ? qMax(1, qRound(v * factor)) : 0; };
+    auto weight = [factor, step](int v) { return v > 0 ? qMax(1, roundToStep(v * factor, step)) : 0; };
+    QSqlDatabase d = QSqlDatabase::database();
+    d.transaction();
+    bool ok = true;
+    int changed = 0;
+    for (WeekTarget t : targets(owner, fromMonday, toMonday)) {
+        if (!exercises.contains(t.exercise))
+            continue;
+        const WeekTarget before = t;
+        if (values & ScaleWh)
+            t.wh = reps(t.wh);
+        // A complex has its WH only
+        if (t.exercise > 0) {
+            if (values & ScaleMhg)
+                t.mhg = weight(t.mhg);
+            if (values & ScaleBw)
+                t.bw = weight(t.bw);
+        }
+        if (t.wh == before.wh && t.mhg == before.mhg && t.bw == before.bw)
+            continue;
+        ok = ok && setTarget(owner, t);
+        ++changed;
+    }
+    if (!ok) {
+        d.rollback();
+        return -1;
+    }
+    return d.commit() ? changed : -1;
+}
+
 int roundToStep(double kg, double step)
 {
     if (step <= 0)

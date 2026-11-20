@@ -115,6 +115,7 @@ qt_add_qml_module(tpqml
         qml/CompetitionsPage.qml
         qml/MazPane.qml
         qml/ItpGrid.qml
+        qml/ScaleDialog.qml
         qml/PlanningPage.qml
         qml/ReportView.qml
         qml/AnalysisPage.qml
