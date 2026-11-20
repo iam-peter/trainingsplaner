@@ -290,7 +290,7 @@ QStringList create(const QDate &today)
         Database::saveWeekNote(id, monday, Variant::Plan, kMazNote, false);
         createMaz(id, p, monday);
 
-        // Two competitions: one about half a year ago, one two months ago
+        // This year: one about half a year ago, one two months ago
         for (int k = 0; k < 2; ++k) {
             Competition c;
             c.athleteId = id;
@@ -305,6 +305,28 @@ QStringList create(const QDate &today)
             c.snatch[2] = -(s + 3);
             c.cleanJerk[0] = j - 5;
             c.cleanJerk[1] = -j;
+            c.cleanJerk[2] = j;
+            Competitions::save(c);
+        }
+        // A Landesmeisterschaft in each of the five years before, the
+        // total rising towards today's as a career does, the body weight
+        // growing into the class: enough years for the development curve
+        static const double share[] = {0.95, 0.89, 0.81, 0.71, 0.60};
+        static const double lighter[] = {1.2, 3.0, 5.5, 8.5, 12.0};
+        for (int k = 1; k <= 5; ++k) {
+            Competition c;
+            c.athleteId = id;
+            c.date = today.addYears(-k).addDays(-120);
+            c.type = 0;
+            c.name = QStringLiteral("Landesmeisterschaft");
+            c.place = QStringLiteral("Musterstadt");
+            c.bodyWeight = p.bodyWeight - lighter[k - 1];
+            const int s = qRound(p.snatchMax * share[k - 1]), j = qRound(p.cleanJerkMax * share[k - 1]);
+            c.snatch[0] = s - 4;
+            c.snatch[1] = s - 2;
+            c.snatch[2] = s;
+            c.cleanJerk[0] = j - 5;
+            c.cleanJerk[1] = j - 2;
             c.cleanJerk[2] = j;
             Competitions::save(c);
         }

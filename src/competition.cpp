@@ -175,12 +175,14 @@ QList<Point> bestResults(const QList<Competition> &list, int period)
             key = c.date.toString(Qt::ISODate) + Times::stored(c.time);
             label = c.date.toString(QStringLiteral("dd.MM.yy"));
         }
-        Point p{label, c.date, c.total(), c.bestSnatch(), c.bestCleanJerk()};
+        Point p{label, c.date, c.total(), c.bestSnatch(), c.bestCleanJerk(), c.bodyWeight};
         if (!index.contains(key)) {
             index.insert(key, int(points.size()));
             points.append(p);
         } else {
             Point &b = points[index.value(key)];
+            if (p.total >= b.total && p.bodyWeight > 0)
+                b.bodyWeight = p.bodyWeight;
             b.total = qMax(b.total, p.total);
             b.snatch = qMax(b.snatch, p.snatch);
             b.cleanJerk = qMax(b.cleanJerk, p.cleanJerk);

@@ -175,6 +175,10 @@ Item {
             shot("competitions.png")
             page("20-wettkaempfe.png")
             competitions.showChart()
+            // The yearly bests with the development curve
+            findChild(competitions, "periodBox").currentIndex = 2
+            findChild(competitions, "showCurve").checked = true
+            competitions.reloadTrend()
             wait(500)
             page("21-wettkaempfe-grafik.png")
 

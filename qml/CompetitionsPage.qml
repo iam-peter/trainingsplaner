@@ -39,7 +39,8 @@ Page {
             if (typeChecks.itemAt(i).checked)
                 types.push(i)
         trend = athleteId !== "" ? Store.competitionTrend(athleteId, fromYear.value, toYear.value,
-                                                          periodBox.currentIndex, types) : ({})
+                                                          periodBox.currentIndex, types,
+                                                          showCurve.checked && periodBox.currentIndex === 2) : ({})
     }
 
     function showChart() {
@@ -336,7 +337,27 @@ Page {
                 Label { text: "Bestes Resultat:" }
                 ComboBox {
                     id: periodBox
+                    objectName: "periodBox"
                     model: ["jeder Wettkampf", "halbjährlich", "jährlich"]
+                    onActivated: page.reloadTrend()
+                }
+                // Sandau's Gompertz curve over the yearly bests, two years
+                // ahead with its standard error as a band
+                CheckBox {
+                    id: showCurve
+                    objectName: "showCurve"
+                    text: "Entwicklungskurve"
+                    enabled: periodBox.currentIndex === 2
+                    onToggled: page.reloadTrend()
+                    ToolTip.visible: hovered
+                    ToolTip.text: periodBox.currentIndex === 2
+                                  ? "Gompertz-Kurve nach Sandau (2018) über die Jahresbesten, zwei Jahre voraus"
+                                  : "Nur mit „jährlich“"
+                }
+                ComboBox {
+                    id: whatBox
+                    objectName: "whatBox"
+                    model: ["Leistung", "Körpergewicht"]
                     onActivated: page.reloadTrend()
                 }
             }
@@ -377,13 +398,48 @@ Page {
                 labels: page.trend.labels || []
                 showValues: showValues.checked
                 leftTitle: "kg"
-                lines: [
-                    { name: "Zweikampf", color: Styles.TokenInterface.semantics.primary_default, values: page.trend.total || [], trend: showTrend.checked },
-                    { name: "Reißen", color: Styles.TokenInterface.semantics.chart_series[1], values: page.trend.snatch || [], trend: showTrend.checked },
-                    { name: "Stoßen", color: Styles.TokenInterface.semantics.chart_series[2], values: page.trend.cleanJerk || [], trend: showTrend.checked }
-                ]
-                references: showNorm.checked && page.trend.norm > 0
-                            ? [{ name: "Norm " + page.trend.norm + " kg", color: Styles.TokenInterface.semantics.chart_series[3], value: page.trend.norm }] : []
+                readonly property bool body: whatBox.currentIndex === 1
+                readonly property bool curve: showCurve.checked && showCurve.enabled && page.trend.curve !== undefined
+                lines: {
+                    const s = Styles.TokenInterface.semantics
+                    if (body) {
+                        const l = [{ name: "Körpergewicht", color: s.primary_default, values: page.trend.bodyWeight || [], trend: showTrend.checked }]
+                        if (curve && (page.trend.bodyCurve || []).length > 0)
+                            l.push({ name: "Entwicklungskurve", color: s.primary_default, values: page.trend.bodyCurve, trend: false, dashed: true,
+                                     valuesFrom: page.trend.labels.length - 2 })
+                        return l
+                    }
+                    const l = [
+                        { name: "Zweikampf", color: s.primary_default, values: page.trend.total || [], trend: showTrend.checked },
+                        { name: "Reißen", color: s.chart_series[1], values: page.trend.snatch || [], trend: showTrend.checked },
+                        { name: "Stoßen", color: s.chart_series[2], values: page.trend.cleanJerk || [], trend: showTrend.checked }
+                    ]
+                    if (curve && (page.trend.curve || []).length > 0)
+                        l.push({ name: "Entwicklungskurve Zweikampf", color: s.primary_default, values: page.trend.curve, trend: false, dashed: true,
+                                 valuesFrom: page.trend.labels.length - 2 })
+                    return l
+                }
+                bands: {
+                    if (!curve)
+                        return []
+                    const lower = body ? page.trend.bodyLower : page.trend.curveLower
+                    const upper = body ? page.trend.bodyUpper : page.trend.curveUpper
+                    return (lower || []).length > 0
+                           ? [{ name: "± Standardfehler", color: Styles.TokenInterface.semantics.primary_default, lower: lower, upper: upper }] : []
+                }
+                references: body
+                            ? (page.trend.classLimits || []).map(v => ({ name: "Klasse " + v + " kg", color: Styles.TokenInterface.semantics.chart_series[3], value: v }))
+                            : showNorm.checked && page.trend.norm > 0
+                              ? [{ name: "Norm " + page.trend.norm + " kg", color: Styles.TokenInterface.semantics.chart_series[3], value: page.trend.norm }] : []
+            }
+            Label {
+                objectName: "curveText"
+                visible: competitionChart.curve && text !== ""
+                Layout.fillWidth: true
+                wrapMode: Text.Wrap
+                font.pixelSize: 11
+                color: Styles.TokenInterface.semantics.text_muted
+                text: (whatBox.currentIndex === 1 ? page.trend.bodyText : page.trend.curveText) || ""
             }
         }
     }

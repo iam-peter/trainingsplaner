@@ -4,6 +4,7 @@
 #include "planning.h"
 #include "analysis.h"
 #include "database.h"
+#include "development.h"
 #include "exerciseweek.h"
 #include "model.h"
 #include "steps.h"
@@ -66,6 +67,7 @@ private slots:
     void itpFromRo();
     void scalePlan();
     void countdown();
+    void developmentCurve();
     void sectionAnalysis();
     void exerciseWeekApply();
     void compareVersions();
@@ -1335,6 +1337,44 @@ void TestCore::countdown()
     QCOMPARE(Planning::mainCompetitionWeek(Maz(), athlete), QDate());
     QCOMPARE(Planning::trainingWeek(Maz(), QDate(), z.from), 0);
     QVERIFY(Planning::removeMaz(z.id));
+}
+
+// Sandau's Gompertz model: a known curve back from its points, a noisy
+// one close, and what cannot be fitted refused
+void TestCore::developmentCurve()
+{
+    const double a = std::log(250.0), b = 1.2, c = 0.35;
+    QList<double> t, y;
+    for (int year = 2015; year <= 2023; ++year) {
+        t.append(year);
+        y.append(std::exp(a - b * std::exp(-c * (year - 2015))));
+    }
+    Development::Fit f = Development::gompertz(t, y);
+    QVERIFY(f.ok);
+    QCOMPARE(f.points, 9);
+    QVERIFY(std::abs(f.a - a) < 1e-4);
+    QVERIFY(std::abs(f.b - b) < 1e-4);
+    QVERIFY(std::abs(f.c - c) < 1e-4);
+    QVERIFY(f.se < 1e-3);
+    // Ahead: towards 250, never past it
+    QVERIFY(std::abs(Development::value(f, 2025) - std::exp(a - b * std::exp(-c * 10))) < 1e-2);
+    QVERIFY(Development::value(f, 2060) < 250.0);
+
+    // Yearly best totals of a youth athlete, with a dent
+    const QList<double> years{2016, 2017, 2018, 2019, 2020, 2021};
+    const QList<double> totals{95, 128, 150, 158, 178, 184};
+    f = Development::gompertz(years, totals);
+    QVERIFY(f.ok);
+    QVERIFY(f.se > 1 && f.se < 8);
+    QVERIFY(Development::value(f, 2022) > 184 && Development::value(f, 2022) < 205);
+    QVERIFY(Development::value(f, 2023) > Development::value(f, 2022));
+
+    // Too few years, a non-positive value, years out of order
+    QVERIFY(!Development::gompertz({2016, 2017, 2018}, {100, 120, 130}).ok);
+    QVERIFY(!Development::gompertz({2016, 2017, 2018, 2019}, {100, 0, 130, 140}).ok);
+    QVERIFY(!Development::gompertz({2016, 2018, 2017, 2019}, {100, 120, 130, 140}).ok);
+    // Growing faster and faster: no level, no curve
+    QVERIFY(!Development::gompertz({2016, 2017, 2018, 2019, 2020}, {100, 102, 108, 125, 170}).ok);
 }
 
 void TestCore::sectionAnalysis()

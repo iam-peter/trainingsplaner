@@ -6,6 +6,7 @@
 #include "colorscheme.h"
 #include "database.h"
 #include "demo.h"
+#include "development.h"
 #include "exerciseweek.h"
 #include "planning.h"
 #include "printpreview.h"
@@ -1470,7 +1471,7 @@ bool Store::removeCompetition(const QString &athleteId, const QString &date, con
 }
 
 QVariantMap Store::competitionTrend(const QString &athleteId, int fromYear, int toYear, int period,
-                                    const QVariantList &types) const
+                                    const QVariantList &types, bool curve) const
 {
     QList<Competition> list;
     for (const Competition &c : Competitions::between(athleteId, QDate(fromYear, 1, 1), QDate(toYear, 12, 31))) {
@@ -1481,12 +1482,110 @@ QVariantMap Store::competitionTrend(const QString &athleteId, int fromYear, int 
             }
         }
     }
-    QVariantList labels, total, snatch, cleanJerk;
-    for (const Competitions::Point &p : Competitions::bestResults(list, period)) {
+    QVariantList labels, total, snatch, cleanJerk, bodyWeight;
+    const QList<Competitions::Point> points = Competitions::bestResults(list, period);
+    for (const Competitions::Point &p : points) {
         labels.append(p.label);
         total.append(p.total > 0 ? QVariant(p.total) : QVariant());
         snatch.append(p.snatch > 0 ? QVariant(p.snatch) : QVariant());
         cleanJerk.append(p.cleanJerk > 0 ? QVariant(p.cleanJerk) : QVariant());
+        bodyWeight.append(p.bodyWeight > 0 ? QVariant(qRound(p.bodyWeight * 10) / 10.0) : QVariant());
+    }
+    QVariantMap result;
+    if (curve && period == 2 && !points.isEmpty()) {
+        // Years as the time, two more ahead
+        const int last = points.last().date.year();
+        QList<int> years;
+        for (const Competitions::Point &p : points)
+            years.append(p.date.year());
+        years << last + 1 << last + 2;
+        auto fitOf = [&](auto value, const QString &what, QVariantList *line, QVariantList *lower,
+                         QVariantList *upper, QString *text) {
+            QList<double> t, y;
+            for (const Competitions::Point &p : points) {
+                const double v = value(p);
+                if (v > 0) {
+                    t.append(p.date.year());
+                    y.append(v);
+                }
+            }
+            const Development::Fit f = Development::gompertz(t, y);
+            if (!f.ok) {
+                *text = t.size() < 4 ? QStringLiteral("Für die Entwicklungskurve braucht es Werte aus mindestens vier "
+                                                      "Jahren, hier sind es %1.").arg(t.size())
+                                     : QStringLiteral("%1 lässt noch keine Entwicklungskurve erkennen.").arg(what);
+                return false;
+            }
+            const int first = int(t.first());
+            for (int year : std::as_const(years)) {
+                if (year < first) {
+                    line->append(QVariant());
+                    lower->append(QVariant());
+                    upper->append(QVariant());
+                    continue;
+                }
+                const double v = Development::value(f, year);
+                line->append(qRound(v * 10) / 10.0);
+                lower->append(qRound((v - f.se) * 10) / 10.0);
+                upper->append(qRound((v + f.se) * 10) / 10.0);
+            }
+            const QLocale de(QLocale::German);
+            *text = QStringLiteral("Entwicklungskurve nach Sandau (2018) aus %1 Jahren, Standardfehler ±%2 kg; "
+                                   "Prognose %3: %4 kg, %5: %6 kg")
+                        .arg(t.size())
+                        .arg(de.toString(f.se, 'f', 1))
+                        .arg(last + 1)
+                        .arg(de.toString(qRound(Development::value(f, last + 1) * 10) / 10.0, 'f', 1))
+                        .arg(last + 2)
+                        .arg(de.toString(qRound(Development::value(f, last + 2) * 10) / 10.0, 'f', 1));
+            return true;
+        };
+        QVariantList line, lower, upper, bLine, bLower, bUpper;
+        QString text, bText;
+        const bool totalOk = fitOf([](const Competitions::Point &p) { return double(p.total); },
+                                   QStringLiteral("Der Zweikampf"), &line, &lower, &upper, &text);
+        const bool bodyOk = fitOf([](const Competitions::Point &p) { return p.bodyWeight; },
+                                  QStringLiteral("Das Körpergewicht"), &bLine, &bLower, &bUpper, &bText);
+        // The years ahead only with a curve to show in them
+        if (totalOk || bodyOk) {
+            for (int y = last + 1; y <= last + 2; ++y) {
+                labels.append(QString::number(y));
+                total.append(QVariant());
+                snatch.append(QVariant());
+                cleanJerk.append(QVariant());
+                bodyWeight.append(QVariant());
+            }
+        }
+        // The weight classes around the body weight and its curve, of the
+        // age in the last forecast year
+        const Athlete a = Database::athlete(athleteId);
+        double lo = 1e9, hi = 0;
+        for (const QVariant &v : bodyWeight + bLine) {
+            if (v.isValid() && v.toDouble() > 0) {
+                lo = qMin(lo, v.toDouble());
+                hi = qMax(hi, v.toDouble());
+            }
+        }
+        QVariantList limits;
+        if (hi > 0) {
+            const QList<int> all = Youth::weightClassLimits(int(a.sex), Youth::ageClass(a.born, QDate(last + 2, 12, 31)));
+            for (int i = 0; i < all.size(); ++i) {
+                // Those between, the one below and the one above
+                const bool above = all[i] >= hi && (i == 0 || all[i - 1] < hi);
+                const bool below = all[i] <= lo && (i + 1 == all.size() || all[i + 1] > lo);
+                if ((all[i] > lo && all[i] < hi) || above || below)
+                    limits.append(all[i]);
+            }
+        }
+        result.insert(QStringLiteral("curve"), line);
+        result.insert(QStringLiteral("curveLower"), lower);
+        result.insert(QStringLiteral("curveUpper"), upper);
+        result.insert(QStringLiteral("curveText"), text);
+        result.insert(QStringLiteral("bodyCurve"), bLine);
+        result.insert(QStringLiteral("bodyLower"), bLower);
+        result.insert(QStringLiteral("bodyUpper"), bUpper);
+        result.insert(QStringLiteral("bodyText"), bText);
+        result.insert(QStringLiteral("classLimits"), limits);
     }
     // The reference total for the latest competition's class
     int normValue = 0;
@@ -1496,9 +1595,13 @@ QVariantMap Store::competitionTrend(const QString &athleteId, int fromYear, int 
         normValue = Competitions::norm(a.sex, a.born.isValid() ? last.date.year() - a.born.year() : 0,
                                        last.bodyWeight);
     }
-    return {{QStringLiteral("labels"), labels}, {QStringLiteral("total"), total},
-            {QStringLiteral("snatch"), snatch}, {QStringLiteral("cleanJerk"), cleanJerk},
-            {QStringLiteral("norm"), normValue}};
+    result.insert(QStringLiteral("labels"), labels);
+    result.insert(QStringLiteral("total"), total);
+    result.insert(QStringLiteral("snatch"), snatch);
+    result.insert(QStringLiteral("cleanJerk"), cleanJerk);
+    result.insert(QStringLiteral("bodyWeight"), bodyWeight);
+    result.insert(QStringLiteral("norm"), normValue);
+    return result;
 }
 
 QVariantMap Store::weekContext(const QString &athleteId, const QString &monday) const

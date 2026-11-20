@@ -29,6 +29,7 @@ add_library(tpcore STATIC
     src/youth.cpp       src/youth.h
     src/rtk.cpp         src/rtk.h
     src/tmk.cpp         src/tmk.h
+    src/development.cpp src/development.h
     src/demo.cpp        src/demo.h
     src/update.cpp      src/update.h
 )

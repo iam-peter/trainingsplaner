@@ -19,6 +19,10 @@ bool limitedToOnePerWeek(int ageClass);
 // The youth weight classes (U17) of a sex (0 boys, 1 girls), as their
 // upper limits; the class above the last has a "+"
 QList<int> weightClassLimits(int sex);
+// The classes for an age class: the youth's up to AK 17, from AK 18 the
+// IWF's classes of juniors and seniors from 1 August 2026 (men 60 to 110,
+// women 49 to 86)
+QList<int> weightClassLimits(int sex, int ageClass);
 // "-85", "+95": the class of a body weight, "" without one
 QString weightClassFor(int sex, double bodyWeight);
 // "-85" from 85, "+95" from a limit above the last class

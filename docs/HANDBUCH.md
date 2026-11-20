@@ -565,6 +565,9 @@ Stoßen. Einen **Fehlversuch** markieren Sie mit der Leertaste oder einem
 Rechtsklick ins Feld: Er wird rot und durchgestrichen. Den Zweikampf
 rechnet das Programm aus den besten gültigen Versuchen.
 
+Die Beispieldaten haben je Sportler eine Landesmeisterschaft in jedem
+der fünf Jahre davor, so hat die Entwicklungskurve genug Jahre.
+
 > **Beispiel:** Landesoffene Meisterschaft am 15.09.2026, 63,4 kg:
 > Reißen 65 / 69 / ~~72~~, Stoßen 82 / ~~87~~ / 87 (im dritten Versuch
 > geschafft), Zweikampf 69 + 87 = **156**.
@@ -577,9 +580,25 @@ stehen ohne Ergebnis in der Liste, bis sie eingetragen sind.
 ![Wettkampf-Grafik](handbuch/bilder/21-wettkaempfe-grafik.png)
 
 Die Entwicklung von Zweikampf, Reißen und Stoßen über die Jahre. Die Arten
-von Wettkämpfen (NT, DM, …) lassen sich ein- und ausblenden.
+von Wettkämpfen (NT, DM, …) lassen sich ein- und ausblenden. **Bestes
+Resultat** zeigt jeden Wettkampf, das beste je Halbjahr oder je Jahr.
 
-> **Beispiel:** Mira von 149 (Mai) auf 156 (September).
+Mit **jährlich** lässt sich die **Entwicklungskurve** einblenden: eine
+Gompertz-Kurve nach Sandau (2018) durch die Jahresbesten des Zweikampfs,
+gestrichelt und zwei Jahre über das letzte Ergebnis hinaus, mit dem
+Standardfehler als grauem Band. Unter der Grafik stehen die Zahl der
+Jahre, der Standardfehler und die Prognose. Die Kurve braucht Ergebnisse
+aus mindestens vier Jahren; einen Verlauf, der noch keine Sättigung
+erkennen lässt, zeichnet sie nicht.
+
+Statt **Leistung** zeigt **Körpergewicht** das Körpergewicht beim
+jeweils besten Zweikampf, mit seiner eigenen Kurve und den
+Gewichtsklassen ringsum als Linien: bis AK 17 die der Jugend, danach
+die der Junioren und Aktiven.
+
+> **Beispiel:** Mira, 2022 bis 2026, jährlich: Zweikampf 115, 131, 144,
+> 154 und 156 kg. Die Kurve aus 5 Jahren hat einen Standardfehler von
+> ±1,1 kg und sagt für 2027 160,4 kg und für 2028 162,5 kg voraus.
 
 ---
 

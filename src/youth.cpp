@@ -14,6 +14,15 @@ bool limitedToOnePerWeek(int ageClass)
     return ageClass > 0 && ageClass <= 17;
 }
 
+QList<int> weightClassLimits(int sex, int ageClass)
+{
+    if (ageClass > 0 && ageClass <= 17)
+        return weightClassLimits(sex);
+    if (sex == 1)
+        return {49, 53, 57, 61, 69, 77, 86};
+    return {60, 65, 70, 75, 85, 95, 110};
+}
+
 QList<int> weightClassLimits(int sex)
 {
     if (sex == 1)

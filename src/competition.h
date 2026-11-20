@@ -49,6 +49,7 @@ struct Point
     int total = 0;
     int snatch = 0;
     int cleanJerk = 0;
+    double bodyWeight = 0; // at the period's best total
 };
 QList<Point> bestResults(const QList<Competition> &list, int period);
 

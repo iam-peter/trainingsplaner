@@ -192,8 +192,15 @@ public:
     Q_INVOKABLE bool removeCompetition(const QString &athleteId, const QString &date, const QString &time);
     // Totals over years: period 0 each, 1 half year, 2 year; types: indexes to include.
     // {labels, total, snatch, cleanJerk, norm}
+    // The best results per competition, half year or year. With curve and
+    // yearly results also the development curve after Sandau (2018), a
+    // Gompertz fit, for the total and the body weight: two years ahead
+    // (labels go on), with a band of ± its standard error, and the weight
+    // classes around the body weight:
+    //   curve, curveLower, curveUpper, curveText; bodyWeight, bodyCurve,
+    //   bodyLower, bodyUpper, bodyText, classLimits [kg]
     Q_INVOKABLE QVariantMap competitionTrend(const QString &athleteId, int fromYear, int toYear,
-                                             int period, const QVariantList &types) const;
+                                             int period, const QVariantList &types, bool curve = false) const;
 
     // Earlier uses of an exercise up to the given week (newest first):
     // [{week, day, monday, bw, mhg, wh, repsSets, steps ("13/4/3  15/3/2")}]

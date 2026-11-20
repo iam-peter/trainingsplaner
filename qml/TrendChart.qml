@@ -8,9 +8,12 @@ import Trainingsplaner
 // A simple chart over categories (weeks, dates): bars on the right axis
 // (volume), lines on the left axis (intensity), optional linear trends and
 // horizontal reference lines.
-//   lines:      [{ name, color, values: [number|null], trend: bool, dashed: bool }]
+//   lines:      [{ name, color, values: [number|null], trend: bool, dashed: bool,
+//                  valuesFrom: the first index whose value is printed }]
 //   bars:       [{ name, color, values: [number] }]
 //   references: [{ name, color, value }]
+//   bands:      [{ name, color, lower: [number|null], upper: [number|null] }]
+//               shaded between lower and upper, under the lines
 // Hovering shows the values of a week; a right click prints the chart or
 // saves it as an image.
 Item {
@@ -20,6 +23,7 @@ Item {
     property var lines: []
     property var bars: []
     property var references: []
+    property var bands: []
     property string leftTitle
     property string rightTitle
     property string title
@@ -39,6 +43,7 @@ Item {
     onLinesChanged: canvas.requestPaint()
     onBarsChanged: canvas.requestPaint()
     onReferencesChanged: canvas.requestPaint()
+    onBandsChanged: canvas.requestPaint()
     onShowValuesChanged: canvas.requestPaint()
     onWidthChanged: canvas.requestPaint()
     onHeightChanged: canvas.requestPaint()
@@ -120,6 +125,9 @@ Item {
                 for (const v of l.values)
                     if (v !== null && v !== undefined && !isNaN(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v) }
             for (const r of chart.references) { lo = Math.min(lo, r.value); hi = Math.max(hi, r.value) }
+            for (const b of chart.bands)
+                for (const v of b.lower.concat(b.upper))
+                    if (v !== null && v !== undefined && !isNaN(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v) }
             const hasLines = lo !== Infinity
             const L = hasLines ? niceRange(Math.max(0, lo - (hi - lo) * 0.1), hi + (hi - lo) * 0.1) : null
             let bhi = 0
@@ -186,6 +194,28 @@ Item {
                 ctx.globalAlpha = 1
             })
 
+            // Bands: shaded between their lower and upper values, in runs
+            // of weeks with both
+            for (const b of chart.bands) {
+                ctx.fillStyle = b.color
+                ctx.globalAlpha = 0.18
+                let i = 0
+                while (i < n) {
+                    const ok = k => b.lower[k] !== null && b.lower[k] !== undefined && b.upper[k] !== null && b.upper[k] !== undefined
+                    if (!ok(i)) { ++i; continue }
+                    let j = i
+                    while (j + 1 < n && ok(j + 1)) ++j
+                    ctx.beginPath()
+                    ctx.moveTo(xAt(i), yL(b.upper[i]))
+                    for (let k = i + 1; k <= j; ++k) ctx.lineTo(xAt(k), yL(b.upper[k]))
+                    for (let k = j; k >= i; --k) ctx.lineTo(xAt(k), yL(b.lower[k]))
+                    ctx.closePath()
+                    ctx.fill()
+                    i = j + 1
+                }
+                ctx.globalAlpha = 1
+            }
+
             // Reference lines
             for (const r of chart.references) {
                 ctx.strokeStyle = r.color
@@ -216,9 +246,9 @@ Item {
                     const v = l.values[i]
                     if (v === null || v === undefined || isNaN(v)) continue
                     ctx.beginPath(); ctx.arc(xAt(i), yL(v), 3, 0, 2 * Math.PI); ctx.fill()
-                    if (chart.showValues) {
+                    if (chart.showValues && i >= (l.valuesFrom || 0)) {
                         ctx.fillStyle = Styles.TokenInterface.semantics.text_default
-                        ctx.fillText(v, xAt(i), yL(v) - 7)
+                        ctx.fillText(chart.valueText(v), xAt(i), yL(v) - 7)
                         ctx.fillStyle = l.color
                     }
                 }
@@ -248,6 +278,7 @@ Item {
             const items = chart.lines.map(l => ({ name: l.name + (l.trend ? " (mit Trend)" : ""), color: l.color, bar: false, dashed: !!l.dashed }))
                 .concat(chart.bars.map(b => ({ name: b.name, color: b.color, bar: true })))
                 .concat(chart.references.map(r => ({ name: r.name, color: r.color, bar: false })))
+                .concat(chart.bands.map(b => ({ name: b.name, color: b.color, bar: true })))
             for (const it of items) {
                 ctx.fillStyle = it.color
                 ctx.globalAlpha = it.bar ? 0.55 : 1
