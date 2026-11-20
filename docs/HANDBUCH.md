@@ -483,6 +483,16 @@ einem anderen Zeitraum.
 > Woche 38 ist grau: Es ist die Woche eines Wettkampfs (15.09.), die nur
 > mit *WK-Woche einschließen* mitzählt. Deshalb steht oben „11/12 Wochen“.
 
+**BW je Satzgröße (1–10 Wdh.)** hängt eine Tabelle an: je Übung das
+höchste Gewicht, das im Zeitraum in Sätzen zu 1, 2 … 10 Wiederholungen
+bewältigt wurde, aus dem Ist oder dem Plan (das ITP hat keine Sätze).
+Laststufen, deren Versuche alle ungültig waren, zählen nicht; die Woche
+eines Wettkampfs nur mit *WK-Woche einschließen*.
+
+> **Beispiel:** Mira, Beispiel-MAZ Frauen, Ist: Reißen WKÜ 63 kg im
+> Einzelversuch, 58 kg im Zweiersatz, 52 kg im Dreiersatz; Kniebeuge vorn
+> 102 kg zu 2, 93 kg zu 3 und 75 kg zu 5 Wiederholungen.
+
 ### Gruppenanalyse
 
 ![Gruppenanalyse](handbuch/bilder/17-analyse-gruppe.png)

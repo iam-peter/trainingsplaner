@@ -140,7 +140,7 @@ M days, L a week or more.
 
 | # | Idea | Source | Size |
 |---|---|---|---|
-| 18 | **Best weight per set size** (BW at 1…10 reps) per exercise over a period | IDA p.18 | S–M |
+| 18 | **Best weight per set size** (BW at 1…10 reps) per exercise over a period (done, November 2026: "BW je Satzgröße" in the Abschnittsanalyse, Ist or Plan, competition weeks as the main table, steps with only failed attempts left out) | IDA p.18 | S–M |
 | 19 | "Min zum WoBW": count only reps at or above X % of the week's best | IDA p.18 | M |
 | 20 | "Anw": in how many sessions a week an exercise appears | IDA p.18 | S |
 | 21 | Quick ranges (1/2/4 weeks, 1/3/6 months); Plan and Ist in one chart | IDA p.19 | S |

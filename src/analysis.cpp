@@ -245,6 +245,30 @@ LoadTable loadTable(const QString &athleteId, Variant variant, int exercise, con
     return t;
 }
 
+QList<SetSizeBests> bestBySetSize(const QString &athleteId, Variant variant, const QDate &from, int weeks,
+                                  const QList<QDate> &skip)
+{
+    QMap<int, QList<int>> best;
+    if (weeks <= 0)
+        return {};
+    for (const Database::WeightLine &l : Database::weightLines(athleteId, variant, from, from.addDays(7 * (weeks - 1)))) {
+        if (skip.contains(l.monday) || !Catalog::isWeightExercise(l.exercise))
+            continue;
+        for (const Step &st : l.steps) {
+            if (st.reps < 1 || st.reps > 10 || st.kg <= 0 || st.sets <= st.failed)
+                continue;
+            QList<int> &kg = best[l.exercise];
+            if (kg.isEmpty())
+                kg = QList<int>(10, 0);
+            kg[st.reps - 1] = qMax(kg[st.reps - 1], st.kg);
+        }
+    }
+    QList<SetSizeBests> list;
+    for (auto it = best.cbegin(); it != best.cend(); ++it)
+        list.append({it.key(), it.value()});
+    return list;
+}
+
 QList<int> sessionCounts(const QString &athleteId, const QDate &from, int weeks, Variant variant)
 {
     QList<int> counts(qMax(0, weeks), 0);

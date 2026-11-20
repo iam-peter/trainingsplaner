@@ -75,6 +75,17 @@ struct LoadTable
 };
 LoadTable loadTable(const QString &athleteId, Variant variant, int exercise, const QDate &from, int weeks);
 
+// The heaviest weight per set size (1 to 10 reps a set) of each weight
+// exercise in a period, as IDA's "BW/SG": steps whose every attempt
+// failed do not count. Weeks in `skip` (competition weeks) are left out.
+struct SetSizeBests
+{
+    int exercise = 0;
+    QList<int> kg; // [reps - 1], 0 = no set of that size
+};
+QList<SetSizeBests> bestBySetSize(const QString &athleteId, Variant variant, const QDate &from, int weeks,
+                                  const QList<QDate> &skip = {});
+
 // Sessions with entries per athlete and week: [athlete][week]
 QList<int> sessionCounts(const QString &athleteId, const QDate &from, int weeks, Variant variant);
 

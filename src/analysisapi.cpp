@@ -319,6 +319,36 @@ QVariantMap AnalysisApi::individual(const QVariantMap &p) const
             doc.table(rows);
     }
 
+    // The heaviest weight per set size, as IDA's BW/SG; the ITP has no sets
+    if (p.value(QStringLiteral("setSizes")).toBool() && !itp) {
+        QList<QDate> skip;
+        for (int i = 0; i < s.weeks.size() && i < s.excluded.size(); ++i) {
+            if (s.excluded[i])
+                skip.append(s.weeks[i]);
+        }
+        const QList<SetSizeBests> bests =
+            bestBySetSize(athleteId, params.basis == Basis::Plan ? Variant::Plan : Variant::Actual, from, weeks, skip);
+        doc.heading(QStringLiteral("BW je Satzgröße (kg, %1)").arg(basisName(basis)));
+        if (bests.isEmpty()) {
+            doc.note(QStringLiteral("Keine Sätze im Zeitraum."));
+        } else {
+            QList<Cells> rows;
+            Cells head{Cell{QStringLiteral("TÜ")}};
+            for (int r = 1; r <= 10; ++r)
+                head.append(Cell{QString::number(r)});
+            rows.append(head);
+            for (const SetSizeBests &b : bests) {
+                Cells row{Cell{QStringLiteral("%1 %2").arg(b.exercise).arg(Catalog::name(b.exercise)), true}};
+                for (int kg : b.kg)
+                    row.append(Cell{kg > 0 ? QString::number(kg) : QString()});
+                rows.append(row);
+            }
+            doc.table(rows);
+            doc.note(QStringLiteral("Je Übung das höchste Gewicht in Sätzen zu 1 bis 10 Wiederholungen; "
+                                    "Laststufen nur mit Fehlversuchen zählen nicht."));
+        }
+    }
+
     const int loadEx = p.value(QStringLiteral("loadExercise")).toInt();
     if (loadEx > 0 && !itp) {
         addLoadTable(doc, loadTable(athleteId, params.basis == Basis::Plan ? Variant::Plan : Variant::Actual,

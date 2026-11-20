@@ -46,6 +46,7 @@ Page {
             compareMazId: iCompare.currentValue || "",
             compareBasis: ["I", "P", "T", "R"][iCompareBasis.currentIndex],
             allMaz: iAllMaz.checked,
+            setSizes: iSetSizes.checked,
             loadExercise: iLoad.checked ? (parseInt(iLoadEx.text) || 0) : 0
         }
     }
@@ -182,6 +183,13 @@ Page {
                         model: ["Ist", "Plan", "ITP", "Rahmenorientierung (RO)"]
                     }
                     CheckBox { id: iAllMaz; text: "Gesamtübersicht (alle MAZ)" }
+                    // The heaviest weight in sets of 1 to 10 reps (Ist or Plan)
+                    CheckBox {
+                        id: iSetSizes
+                        objectName: "setSizesBox"
+                        text: "BW je Satzgröße (1–10 Wdh.)"
+                        enabled: !iItp.checked
+                    }
                     RowLayout {
                         spacing: 8
                         CheckBox { id: iLoad; text: "Laststufenanalyse TÜ" }
