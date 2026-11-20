@@ -114,9 +114,10 @@ QList<Session> actualWeek(QList<Session> sessions, int week)
     return sessions;
 }
 
-// The 13 weeks of the U17 sample plan of the BVDG's Rahmentrainingskonzeption
-// 2019 (Anhang IV): the week's load, the snatch's MHG and BW in kg of the
-// plan's reference athlete, and WH of K1-7. Scaled to the athlete for the ITP.
+// The 13 weeks of the U17 MAZ of the BVDG's Rahmentrainingskonzeption 2019:
+// the week's load and the snatch's MHG and BW in percent of the target from
+// its Rahmenorientierung (RTK-Online, MAZ_U17_13W), and WH of K1-7 from its
+// sample plan for clubs (Anhang IV). Scaled to the athlete for the ITP.
 struct PlanWeek
 {
     char load;
@@ -125,16 +126,17 @@ struct PlanWeek
     int wh17;
 };
 const PlanWeek kU17[13] = {
-    {'m', 65, 70, 336}, {'h', 67, 72, 417}, {'h', 71, 74, 424}, {'g', 73, 77, 307},
+    {'m', 65, 70, 336}, {'h', 67, 72, 417}, {'h', 70, 74, 424}, {'g', 72, 77, 307},
     {'h', 74, 80, 411}, {'h', 76, 83, 366}, {'g', 71, 78, 250}, {'h', 79, 88, 318},
     {'h', 81, 90, 289}, {'g', 73, 85, 230}, {'h', 81, 95, 225}, {'m', 83, 97, 183},
-    {'g', 84, 100, 156},
+    {'g', 83, 100, 156},
 };
 
 const QString kMazNote = QStringLiteral("Beispieldaten: frei erfunden, zum Ausprobieren.");
 
 // A MAZ of 13 weeks with today in its ninth week: eight weeks done, the
-// main competition in its last. The ITP holds the snatch (1) and K1-7,
+// main competition in its last. Its phases as the RTK's for U17: six weeks
+// Grundlagen-, four Aufbau-, three Leistungsausprägungsphase. The ITP holds the snatch (1) and K1-7,
 // and the weeks before the demo's own sessions get two done sessions
 // each, so the Belastungsverlauf has a course to show.
 void createMaz(const QString &id, const Person &p, const QDate &monday)
@@ -146,8 +148,8 @@ void createMaz(const QString &id, const Person &p, const QDate &monday)
     z.shortName = p.sex == Sex::Female ? QStringLiteral("BF") : QStringLiteral("BM");
     z.from = from;
     z.to = from.addDays(7 * 12);
-    z.buildUp = from.addDays(7 * 4);
-    z.peakPhase = from.addDays(7 * 9);
+    z.buildUp = from.addDays(7 * 6);
+    z.peakPhase = from.addDays(7 * 10);
     z.note = kMazNote;
     z.id = Planning::saveMaz(z);
     if (z.id.isEmpty())
@@ -156,7 +158,8 @@ void createMaz(const QString &id, const Person &p, const QDate &monday)
     MazAthlete a;
     a.mazId = z.id;
     a.athleteId = id;
-    a.weightClass = p.sex == Sex::Female ? 64 : 81;
+    // The IWF's classes from August 2026: 63.4 kg is -69, 80.6 kg -85
+    a.weightClass = p.sex == Sex::Female ? 69 : 85;
     a.targetSnatch = p.snatchMax + 4;
     a.targetCleanJerk = p.cleanJerkMax + 4;
     Planning::saveMazAthlete(a);

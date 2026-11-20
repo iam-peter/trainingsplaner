@@ -3,7 +3,7 @@
 Dieses Handbuch zeigt jede Ansicht des Programms an einem Beispiel. Alle
 Bilder und Zahlen stammen aus den **Beispieldaten**, die das Programm selbst
 mitbringt. Die Sportler „Beispiel, Mira“ und „Beispiel, Jonas“ sind frei
-erfunden. Ihr Makrozyklus folgt dem Musterplan U17 der
+erfunden. Ihr Makrozyklus folgt der Rahmenorientierung U17 der
 Rahmentrainingskonzeption 2019 des BVDG, umgerechnet auf die Zielleistung
 der Sportler.
 
@@ -229,9 +229,11 @@ zeigt die Wettkämpfe aller Sportler.
 
 Ein Doppelklick auf einen Tag (oder **+ Wettkampf** oben) trägt einen
 Wettkampftermin ein: Sportler, Datum, Art, Name und Ort. Beim Tippen des
-Namens schlägt das Programm die Wettkämpfe der DGJ vor (DM Jugend,
-Schülerpokal …). Für Sportler bis AK 17 warnt es, wenn in derselben Woche
-schon ein Wettkampf steht. Für AK 16–17 nennt es die Norm der DM Jugend.
+Namens schlägt das Programm die Wettkämpfe der DGJ vor (DM Nachwuchs,
+DGJ-Supercup, IDJM …). Für Sportler bis AK 17 warnt es, wenn in derselben
+Woche schon ein Wettkampf steht. Für AK 14–17 nennt es die Norm der DM
+Nachwuchs: für AK 16–17 die der Gewichtsklasse, für AK 14 und 15 die des
+Körpergewichts.
 
 > **Beispiel:** Am 28.11.2026 „Vereinspokal“ als Nationales Turnier.
 > Die Ergebnisse kommen nach dem Wettkampf unter „Wettkämpfe“ dazu.
@@ -291,8 +293,10 @@ Männer oder Frauen, die Wochen von–bis, Beginn der **Aufbauphase** und der
 und **Zielleistung** im Reißen und Stoßen.
 
 > **Beispiel:** „Beispiel-MAZ Frauen“ (BF), Wochen 38/2026 bis 50/2026,
-> Aufbauphase ab 42, Leistungsausprägung ab 47. Mira: Gewichtsklasse 64,
-> Ziel Reißen 76 kg, Stoßen 94 kg.
+> Aufbauphase ab 44, Leistungsausprägung ab 48, wie in der
+> Rahmentrainingskonzeption für U17: sechs Wochen Grundlagen-, vier Wochen
+> Aufbau- und drei Wochen Leistungsausprägungsphase. Mira:
+> Gewichtsklasse 69, Ziel Reißen 76 kg, Stoßen 94 kg.
 
 ### Rahmenorientierung
 
@@ -302,8 +306,10 @@ und **Zielleistung** im Reißen und Stoßen.
 WH, MHG % und BW %. Die Prozente beziehen sich auf die Zielleistung. Am
 Ende steht der Durchschnitt (Ø). Zurück geht es mit **‹ MAZ**.
 
-> **Beispiel:** Woche 38/2026: Reißen 16 WH, MHG 65 %, BW 70 %. Das sind
-> die Werte des Musterplans U17, dessen Bezugssportler 100 kg reißt.
+> **Beispiel:** Woche 38/2026: Reißen 16 WH, MHG 65 %, BW 70 %. MHG und
+> BW sind die der Rahmenorientierung U17 der Rahmentrainingskonzeption.
+> Sie gibt die Wiederholungen nur je Komplex (K1 bis K7) vor; die 16 WH
+> des Reißens sind für das Beispiel gewählt.
 
 ### ITP
 
@@ -423,7 +429,8 @@ von Wettkämpfen (NT, DM, …) lassen sich ein- und ausblenden.
 - **Zusatzinfo**: welche Werte es je Tag gibt.
 - **Allgemein**: Gewichtsschritt (1 oder 2,5 kg), Farbschema (hell,
   dunkel, klassisch wie das alte Programm), die Projektdatei.
-- **Normen**: die Normen der DM Jugend.
+- **Normen**: die Normen der DM Nachwuchs, für AK 14, AK 15 und
+  AK 16–17.
 
 ---
 
