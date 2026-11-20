@@ -153,7 +153,7 @@ M days, L a week or more.
 
 | # | Idea | Source | Size |
 |---|---|---|---|
-| 26 | Stage (Etappe) per athlete with recommended sessions per week; Datenprüfung flags weeks outside | TMK 2018, factsheet | S |
+| 26 | Stage (Etappe) per athlete with recommended sessions per week; Datenprüfung flags weeks outside (done, November 2026: the factsheet's stages AGA ≤13, GLT 14–15 3–5, ABT 16–17 5–7, AST 18–23 and HLT ≥24 7–9 a week, AGA 2–3 from the TMK; beside the age on the athlete page, a column and red weeks in the Datenprüfung, counting the Ist, else the Plan. From AK 18 the TMK 2018 said 6–8) | TMK 2018, factsheet | S |
 | 27 | IAT points and the athletic tests (Sternlauf, Kugelschocken, Schlussdreisprung) | JSP p.8–11 | M |
 | 28 | Sitting and standing height in the Zusatzinfo (maturity) | JSP p.4 | M |
 | 29 | Affiliations Landesverband, BSP, Verein (Mannschaft); an active/inactive status | IDA p.6 | S |

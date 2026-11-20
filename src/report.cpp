@@ -56,6 +56,8 @@ QVariantMap toVariant(const Document &d)
                         cell.insert(QStringLiteral("b"), true);
                     if (c.muted)
                         cell.insert(QStringLiteral("m"), true);
+                    if (c.warn)
+                        cell.insert(QStringLiteral("w"), true);
                     row.append(cell);
                 }
                 rows.append(QVariant(row));
@@ -83,7 +85,7 @@ Document fromVariant(const QVariantMap &v)
                 for (const QVariant &cv : rv.toList()) {
                     const QVariantMap c = cv.toMap();
                     row.append(Cell{c.value(QStringLiteral("t")).toString(), c.value(QStringLiteral("b")).toBool(),
-                                    c.value(QStringLiteral("m")).toBool()});
+                                    c.value(QStringLiteral("m")).toBool(), c.value(QStringLiteral("w")).toBool()});
                 }
                 rows.append(row);
             }
@@ -172,6 +174,7 @@ QFont font(double pt, bool bold = false)
 const QColor kText(0x2a, 0x2a, 0x2a);
 const QColor kNoteText(0x6b, 0x65, 0x60);
 const QColor kMuted(0xa3, 0x9d, 0x98);
+const QColor kWarn(0xc0, 0x39, 0x2b);
 const QColor kLine(0x80, 0x80, 0x80);
 const QColor kHeader(0xf1, 0xef, 0xed);
 
@@ -261,8 +264,8 @@ public:
                     m_p.fillRect(box, kHeader);
                 if (c < row.size() && !row[c].text.isEmpty()) {
                     const Cell &cell = row[c];
-                    m_p.setFont(header || cell.bold ? bold : body);
-                    m_p.setPen(cell.muted ? kMuted : kText);
+                    m_p.setFont(header || cell.bold || cell.warn ? bold : body);
+                    m_p.setPen(cell.warn ? kWarn : cell.muted ? kMuted : kText);
                     m_p.drawText(box.adjusted(padX, 0, -padX, 0),
                                  Qt::AlignVCenter | (c == 0 ? Qt::AlignLeft : Qt::AlignRight), cell.text);
                 }

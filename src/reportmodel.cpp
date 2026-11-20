@@ -172,6 +172,8 @@ QVariant ReportModel::data(const QModelIndex &index, int role) const
                || (inTable && c < l.cells.size() && l.cells[c].bold);
     case MutedRole:
         return l.kind == Note || (inTable && c < l.cells.size() && l.cells[c].muted);
+    case WarnRole:
+        return inTable && c < l.cells.size() && l.cells[c].warn;
     case LeftRole:
         return c == 0;
     }
@@ -184,5 +186,6 @@ QHash<int, QByteArray> ReportModel::roleNames() const
             {KindRole, "kind"},
             {BoldRole, "bold"},
             {MutedRole, "muted"},
+            {WarnRole, "warn"},
             {LeftRole, "alignLeft"}};
 }

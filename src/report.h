@@ -19,6 +19,7 @@ struct Cell
     QString text;
     bool bold = false;
     bool muted = false; // a week that does not count
+    bool warn = false;  // outside what is recommended: red and bold
 };
 
 using Cells = QList<Cell>;

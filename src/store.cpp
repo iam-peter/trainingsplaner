@@ -10,6 +10,7 @@
 #include "planning.h"
 #include "printpreview.h"
 #include "report.h"
+#include "tmk.h"
 #include "youth.h"
 #include "weekreport.h"
 
@@ -264,6 +265,9 @@ QVariantList Store::athletes() const
             {QStringLiteral("sex"), int(a.sex)},
             {QStringLiteral("born"), Dates::text(a.born)},
             {QStringLiteral("age"), age},
+            // The training stage of this year's age class
+            {QStringLiteral("etappe"), Tmk::etappe(Youth::ageClass(a.born, today)).code},
+            {QStringLiteral("etappeText"), Tmk::etappeText(Youth::ageClass(a.born, today))},
             {QStringLiteral("address"), a.address},
             {QStringLiteral("phone"), a.phone},
             {QStringLiteral("attributes"), attributes},

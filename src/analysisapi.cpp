@@ -6,6 +6,8 @@
 #include "database.h"
 #include "planning.h"
 #include "report.h"
+#include "tmk.h"
+#include "youth.h"
 
 #include <QClipboard>
 #include <QDesktopServices>
@@ -437,7 +439,7 @@ QVariantMap AnalysisApi::dataCheck(const QVariantMap &p) const
     const QString range = QStringLiteral("Woche %1 bis %2.").arg(Weeks::label(from), Weeks::label(from.addDays(7 * (weeks - 1))));
     QList<Cells> rows;
     if (!competitions) {
-        QStringList head{QStringLiteral("Sportler")};
+        QStringList head{QStringLiteral("Sportler"), QStringLiteral("Etappe")};
         for (int i = 0; i < weeks; ++i)
             head.append(QStringLiteral("%1.").arg(from.addDays(7 * i).weekNumber()));
         rows.append(Report::cells(head));
@@ -446,12 +448,25 @@ QVariantMap AnalysisApi::dataCheck(const QVariantMap &p) const
             const QString id = a.value(QStringLiteral("id")).toString();
             const QList<int> plan = sessionCounts(id, from, weeks, Variant::Plan);
             const QList<int> actual = sessionCounts(id, from, weeks, Variant::Actual);
-            QStringList r{a.value(QStringLiteral("displayName")).toString()};
-            for (int i = 0; i < weeks; ++i)
-                r.append(plan[i] || actual[i] ? QStringLiteral("%1/%2").arg(plan[i]).arg(actual[i]) : QString());
-            rows.append(Report::cells(r));
+            // The training stage by the age class of each week: its
+            // sessions a week, against the Ist, or the Plan without one
+            const QDate born = Database::athlete(id).born;
+            const Tmk::Etappe first = Tmk::etappe(Youth::ageClass(born, from));
+            Cells r{Cell{a.value(QStringLiteral("displayName")).toString()},
+                    Cell{first.code.isEmpty() ? QString()
+                                              : QStringLiteral("%1 %2–%3").arg(first.code).arg(first.minSessions).arg(first.maxSessions)}};
+            for (int i = 0; i < weeks; ++i) {
+                Cell c{plan[i] || actual[i] ? QStringLiteral("%1/%2").arg(plan[i]).arg(actual[i]) : QString()};
+                const Tmk::Etappe e = Tmk::etappe(Youth::ageClass(born, from.addDays(7 * i)));
+                const int n = actual[i] > 0 ? actual[i] : plan[i];
+                c.warn = n > 0 && !e.code.isEmpty() && (n < e.minSessions || n > e.maxSessions);
+                r.append(c);
+            }
+            rows.append(r);
         }
         doc.note(QStringLiteral("Trainingseinheiten je Woche: Plan/Ist, ") + range);
+        doc.note(QStringLiteral("Rot: mehr oder weniger Einheiten, als die Trainingsetappe vorsieht (AGA 2–3, GLT 3–5, "
+                                "ABT 5–7, AST und HLT 7–9 je Woche), gezählt das Ist, ohne Ist der Plan."));
         doc.table(rows);
         return Report::toVariant(doc);
     }

@@ -124,6 +124,8 @@ ColumnLayout {
                 required property int kind
                 required property bool bold
                 required property bool muted
+                // Outside what is recommended (a week's sessions for the age)
+                required property bool warn
                 required property bool alignLeft
                 readonly property bool inTable: kind === ReportModel.Header || kind === ReportModel.Cell
 
@@ -152,15 +154,16 @@ ColumnLayout {
                     textFormat: Text.PlainText
                     font: cell.kind === ReportModel.Title ? view.titleFont
                           : cell.kind === ReportModel.Heading ? view.headingFont
-                          : cell.bold ? view.boldFont : sample.font
+                          : cell.bold || cell.warn ? view.boldFont : sample.font
                     horizontalAlignment: cell.inTable && !cell.alignLeft ? Text.AlignRight : Text.AlignLeft
                     verticalAlignment: cell.kind === ReportModel.Title || cell.kind === ReportModel.Heading
                                        ? Text.AlignBottom
                                        : cell.kind === ReportModel.Note ? Text.AlignTop : Text.AlignVCenter
                     topPadding: cell.kind === ReportModel.Note ? 2 : 0
                     bottomPadding: cell.kind === ReportModel.Title || cell.kind === ReportModel.Heading ? 4 : 0
-                    color: cell.muted ? Styles.TokenInterface.semantics.text_muted
-                                      : Styles.TokenInterface.semantics.text_default
+                    color: cell.warn ? Styles.TokenInterface.semantics.danger_default
+                           : cell.muted ? Styles.TokenInterface.semantics.text_muted
+                                        : Styles.TokenInterface.semantics.text_default
                 }
             }
         }

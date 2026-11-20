@@ -166,4 +166,30 @@ bool exemptInCompetition(int exercise, const QString &position)
     return (exercise == 1 || exercise == 3) && (p == QLatin1String("WK") || p == QLatin1String("HWK"));
 }
 
+Etappe etappe(int ageClass)
+{
+    if (ageClass <= 0)
+        return {};
+    if (ageClass <= 13)
+        return {QStringLiteral("AGA"), QStringLiteral("Allgemeine Grundausbildung"), 2, 3};
+    if (ageClass <= 15)
+        return {QStringLiteral("GLT"), QStringLiteral("Grundlagentraining"), 3, 5};
+    if (ageClass <= 17)
+        return {QStringLiteral("ABT"), QStringLiteral("Aufbautraining"), 5, 7};
+    if (ageClass <= 23)
+        return {QStringLiteral("AST"), QStringLiteral("Anschlusstraining"), 7, 9};
+    return {QStringLiteral("HLT"), QStringLiteral("Hochleistungstraining"), 7, 9};
+}
+
+QString etappeText(int ageClass)
+{
+    const Etappe e = etappe(ageClass);
+    if (e.code.isEmpty())
+        return {};
+    return QStringLiteral("%1 (%2), %3–%4 Trainingseinheiten je Woche")
+        .arg(e.code, e.name)
+        .arg(e.minSessions)
+        .arg(e.maxSessions);
+}
+
 } // namespace Tmk

@@ -28,7 +28,7 @@ class ReportModel : public QAbstractTableModel
 public:
     enum Kind { Title, Heading, Note, Header, Cell, Blank };
     Q_ENUM(Kind)
-    enum Roles { KindRole = Qt::UserRole + 1, BoldRole, MutedRole, LeftRole };
+    enum Roles { KindRole = Qt::UserRole + 1, BoldRole, MutedRole, LeftRole, WarnRole };
 
     explicit ReportModel(QObject *parent = nullptr);
 

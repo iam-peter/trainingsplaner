@@ -40,4 +40,22 @@ int weeklyWh(int complex, Stage s);
 // the competition goes to 100 % and more, so no cap
 bool exemptInCompetition(int exercise, const QString &position);
 
+// The training stages (Trainingsetappen) of the BVDG's long-term build-up
+// by age class, with the training sessions a week, after the IAT's
+// factsheet (2024): AGA up to AK 13 (2-3 a week, from the TMK 2018, the
+// factsheet gives none), GLT 14-15 (3-5), ABT 16-17 (5-7), AST 18-23 and
+// HLT from 24 (7-9). Up to AK 17 the TMK 2018 says the same; from 18 on
+// it said 6-8.
+struct Etappe
+{
+    QString code;    // "ABT"
+    QString name;    // "Aufbautraining"
+    int minSessions = 0;
+    int maxSessions = 0;
+};
+// None (empty code) without an age class
+Etappe etappe(int ageClass);
+// "ABT (Aufbautraining), 5–7 Trainingseinheiten je Woche"; "" without one
+QString etappeText(int ageClass);
+
 } // namespace Tmk

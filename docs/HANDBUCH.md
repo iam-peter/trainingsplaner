@@ -87,8 +87,23 @@ Diese Angaben gelten jeweils ab einem Datum: Das Stift-Symbol daneben zeigt
 den Verlauf, z. B. seit wann jemand im Landeskader ist. Eine Änderung gilt
 ab heute, der Verlauf davor bleibt erhalten.
 
-> **Beispiel:** Mira Beispiel, geboren am 21.06.2007 (19 Jahre), Verein
-> „Beispielverein“.
+Neben dem Alter steht die **Trainingsetappe** des langfristigen
+Leistungsaufbaus nach der Altersklasse des Jahres (BVDG/IAT, Factsheet
+2024); die Maus darüber nennt die Trainingseinheiten je Woche:
+
+| Etappe | AK | Einheiten je Woche |
+|---|---|---|
+| AGA – Allgemeine Grundausbildung | bis 13 | 2–3 |
+| GLT – Grundlagentraining | 14–15 | 3–5 |
+| ABT – Aufbautraining | 16–17 | 5–7 |
+| AST – Anschlusstraining | 18–23 | 7–9 |
+| HLT – Hochleistungstraining | ab 24 | 7–9 |
+
+Für die AGA nennt das Factsheet keine Zahl; 2–3 sind die des
+Trainingsmittelkatalogs 2018 für Kinder.
+
+> **Beispiel:** Mira Beispiel, geboren am 21.06.2007 (19 Jahre, Etappe
+> AST), Verein „Beispielverein“.
 
 Der gewählte Sportler gilt für alle Seiten: Wer hier Mira wählt, sieht auch
 im Wochenplan, in der Planung und in den Wettkämpfen Mira.
@@ -481,6 +496,16 @@ Intensitätskennziffern oder eine einzelne Übung.
 
 Welche Sportler wie viele Einheiten je Woche eingetragen haben (Plan/Ist),
 oder welche Wettkämpfe. So fällt auf, wo das Ist fehlt.
+
+Die Spalte **Etappe** nennt die Trainingsetappe mit ihren Einheiten je
+Woche. **Rot** ist eine Woche mit mehr oder weniger Einheiten, als die
+Etappe in dieser Woche vorsieht. Gezählt wird das Ist, in einer Woche
+ohne Ist der Plan; leere Wochen bleiben ohne Markierung.
+
+> **Beispiel:** Mira (AK 19, AST 7–9) trainiert in den Beispieldaten zwei
+> bis vier Mal je Woche; alle ihre Wochen sind rot. Die Etappen
+> beschreiben den Weg in den Leistungssport, im Verein darf es weniger
+> sein.
 
 ### Grafik
 

@@ -29,7 +29,8 @@ Page {
             const item = attributeRepeater.itemAt(i)
             item.value = attrs[item.art] || ""
         }
-        ageLabel.text = a && a.age >= 0 ? a.age + " Jahre" : ""
+        ageLabel.text = a && a.age >= 0 ? a.age + " Jahre" + (a.etappe ? " · Etappe " + a.etappe : "") : ""
+        ageLabel.etappeText = a ? a.etappeText : ""
         dirty = false
         lastNameField.forceActiveFocus()
     }
@@ -173,10 +174,17 @@ Page {
                     text: "Datum ungültig"
                     color: Styles.TokenInterface.semantics.danger_default
                 }
+                // The age and the training stage of this year (AGA, GLT,
+                // ABT, AST, HLT), which the tip spells out
                 Label {
                     id: ageLabel
+                    objectName: "ageLabel"
+                    property string etappeText
                     visible: page.bornValid
                     color: Styles.TokenInterface.semantics.text_muted
+                    HoverHandler { id: ageHover }
+                    ToolTip.visible: ageHover.hovered && etappeText !== ""
+                    ToolTip.text: "Trainingsetappe " + etappeText
                 }
             }
 

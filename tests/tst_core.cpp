@@ -42,6 +42,7 @@ private slots:
     void youthRules();
     void tmkCaps();
     void tmkVolumes();
+    void etappen();
     void statsMatchOldProgram();
     void entryEncoding();
     void weekLabels();
@@ -180,6 +181,24 @@ void TestCore::tmkCaps()
         }
     }
     QVERIFY(checked > 500);
+}
+
+// The training stages and their sessions a week (IAT factsheet 2024)
+void TestCore::etappen()
+{
+    QCOMPARE(Tmk::etappe(0).code, QString());
+    QCOMPARE(Tmk::etappe(11).code, QStringLiteral("AGA"));
+    QCOMPARE(Tmk::etappe(13).maxSessions, 3);
+    QCOMPARE(Tmk::etappe(14).code, QStringLiteral("GLT"));
+    QCOMPARE(Tmk::etappe(15).minSessions, 3);
+    QCOMPARE(Tmk::etappe(16).code, QStringLiteral("ABT"));
+    QCOMPARE(Tmk::etappe(17).maxSessions, 7);
+    QCOMPARE(Tmk::etappe(18).code, QStringLiteral("AST"));
+    QCOMPARE(Tmk::etappe(23).code, QStringLiteral("AST"));
+    QCOMPARE(Tmk::etappe(24).code, QStringLiteral("HLT"));
+    QCOMPARE(Tmk::etappe(30).minSessions, 7);
+    QCOMPARE(Tmk::etappeText(16), QStringLiteral("ABT (Aufbautraining), 5–7 Trainingseinheiten je Woche"));
+    QCOMPARE(Tmk::etappeText(0), QString());
 }
 
 // The TMK's WH a week per stage, and the RTK's framework plans around it
