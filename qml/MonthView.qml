@@ -52,6 +52,78 @@ Item {
 
     readonly property var s: Styles.TokenInterface.semantics
     readonly property var loadColor: ({ h: "#5b6b7f", m: "#9aa8b8", g: "#d5dde6" })
+    readonly property var phaseColor: ({ GLP: "#c3cfdb", ABP: "#8aa1b8", LAP: "#4d6680" })
+
+    // The plan's bands, as IDA lays them over its calendar: the MAZ, and
+    // under it its phases, each over the weeks it spans
+    function bandKey(week, kind) {
+        const maz = week && week.maz && week.maz.id ? week.maz.id : ""
+        if (kind === "maz" || maz === "")
+            return maz
+        return week.phaseShort ? maz + "|" + week.phaseShort : ""
+    }
+    function joins(i, j, kind) {
+        const weeks = monthData.weeks || []
+        if (j < 0 || j >= weeks.length)
+            return false
+        const key = bandKey(weeks[i], kind)
+        return key !== "" && key === bandKey(weeks[j], kind)
+    }
+    // The weeks of the band from week i on (its label is drawn over them)
+    function runLength(i, kind) {
+        let n = 1
+        while (joins(i, i + n, kind))
+            ++n
+        return n
+    }
+
+    // One week's piece of a band: joined to the next above and below, its
+    // label from the band's first week of the month over all its weeks
+    component BandPiece: Item {
+        id: piece
+        property int index
+        property string kind
+        property color color
+        property color textColor
+        property string label
+        property string tip
+        property real rowSpacing: 3
+        readonly property bool above: view.joins(index, index - 1, kind)
+        readonly property bool below: view.joins(index, index + 1, kind)
+        readonly property bool on: view.bandKey((view.monthData.weeks || [])[index], kind) !== ""
+        Layout.fillHeight: true
+        Rectangle {
+            visible: piece.on
+            anchors.fill: parent
+            anchors.topMargin: piece.above ? -piece.rowSpacing : 0
+            anchors.bottomMargin: piece.below ? -piece.rowSpacing : 0
+            radius: 3
+            color: piece.color
+            // Square where it goes on
+            Rectangle { visible: piece.above; width: parent.width; height: 4; color: piece.color }
+            Rectangle { visible: piece.below; width: parent.width; height: 4; anchors.bottom: parent.bottom; color: piece.color }
+        }
+        Item {
+            visible: piece.on && !piece.above
+            width: piece.width
+            height: view.runLength(piece.index, piece.kind) * (piece.height + piece.rowSpacing) - piece.rowSpacing
+            Label {
+                objectName: piece.kind + "Label"
+                anchors.centerIn: parent
+                width: parent.height - 6
+                rotation: -90
+                horizontalAlignment: Text.AlignHCenter
+                elide: Text.ElideRight
+                font.pixelSize: 11
+                font.bold: piece.kind === "phase"
+                color: piece.textColor
+                text: piece.label
+            }
+            HoverHandler { id: bandHover }
+            ToolTip.visible: bandHover.hovered && piece.tip !== ""
+            ToolTip.text: piece.tip
+        }
+    }
 
     RowLayout {
         anchors.fill: parent
@@ -66,7 +138,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 3
-                Label { Layout.preferredWidth: 10 }
+                Item { Layout.preferredWidth: 40; visible: !view.allAthletes }
                 Label { Layout.preferredWidth: 58; text: "KW · Bel."; font.bold: true; horizontalAlignment: Text.AlignHCenter }
                 Label { Layout.preferredWidth: 92; text: "WH Plan / Ist"; font.bold: true; visible: !view.allAthletes }
                 Repeater {
@@ -94,17 +166,36 @@ Item {
                     Layout.preferredHeight: 1
                     spacing: 3
 
-                    // The MAZ's phase down the left edge
-                    Rectangle {
-                        Layout.preferredWidth: 10
+                    // The MAZ and its phase down the left edge, as bands
+                    // over their weeks; each row above the next
+                    // (a label goes down over the rows after its first)
+                    z: (view.monthData.weeks || []).length - index
+                    RowLayout {
+                        Layout.preferredWidth: 40
                         Layout.fillHeight: true
-                        radius: 3
-                        color: weekRow.modelData.phase === "Leistungsausprägung" ? "#4d6680"
-                               : weekRow.modelData.phase === "Aufbauphase" ? "#8aa1b8"
-                               : weekRow.modelData.phase !== "" ? "#c3cfdb" : "transparent"
-                        HoverHandler { id: phaseHover }
-                        ToolTip.visible: phaseHover.hovered && weekRow.modelData.phase !== ""
-                        ToolTip.text: weekRow.modelData.phase
+                        visible: !view.allAthletes
+                        spacing: 2
+                        BandPiece {
+                            objectName: "mazBand"
+                            Layout.preferredWidth: 16
+                            index: weekRow.index
+                            kind: "maz"
+                            color: view.s.stroke_subtle
+                            textColor: view.s.text_default
+                            label: weekRow.modelData.maz ? weekRow.modelData.maz.short || "" : ""
+                            tip: weekRow.modelData.maz && weekRow.modelData.maz.id
+                                 ? "MAZ " + weekRow.modelData.maz.name + " (" + weekRow.modelData.maz.weeks + ")" : ""
+                        }
+                        BandPiece {
+                            objectName: "phaseBand"
+                            Layout.preferredWidth: 22
+                            index: weekRow.index
+                            kind: "phase"
+                            color: view.phaseColor[weekRow.modelData.phaseShort] || "transparent"
+                            textColor: weekRow.modelData.phaseShort === "GLP" ? view.s.text_default : "white"
+                            label: weekRow.modelData.phaseShort || ""
+                            tip: weekRow.modelData.phase || ""
+                        }
                     }
 
                     // Week number and load; a click opens the week

@@ -282,7 +282,12 @@ K1-7 und K1-5 auch die Wiederholungen der allgemeinen Kraftübungen
 
 **Monat** zeigt vier bis sechs Wochen auf einmal:
 
-- links je Woche die Kalenderwoche mit ihrer **Belastung** (h/m/g farbig),
+- ganz links wie in IDA zwei Bänder über die Wochen: der **MAZ** mit
+  seiner Kurzbezeichnung (`BF`) und darunter seine **Phasen**: GLP
+  (Grundlagen-), ABP (Aufbau-) und LAP (Leistungsausprägungsphase), je
+  dunkler, desto näher am Wettkampf. Die Maus darüber nennt MAZ und
+  Wochen bzw. die Phase. Der Ausdruck führt die Phase als eigene Spalte;
+- daneben je Woche die Kalenderwoche mit ihrer **Belastung** (h/m/g farbig),
   der WK-Lage aus dem ITP (LG, WK, HWK), **Tr.-Wo.** (die Wochen bis zum
   Hauptwettkampf) und den Wiederholungen **Plan / Ist** (`129 / 126`);
 - in den Tagen die Einheiten: ● Ist nach Plan, ◆ Ist ohne Plan, ○ geplant,

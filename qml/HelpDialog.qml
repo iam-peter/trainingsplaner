@@ -148,6 +148,7 @@ AppDialog {
                           + "oben, „Vorwoche“ zeigt die Woche davor darüber; wie viele Einheiten pro Tag die Woche zeigt, "
                           + "steht unter Einstellungen › Trainingszeiten. Unter der Woche setzen h, m und g ihre Belastung "
                           + "(hoch, mittel, gesenkt), dieselbe wie im ITP unter „Bel.“. „Monat“ zeigt den Monat mit Belastung, "
+                          + "links als Bänder den MAZ und seine Phasen (GLP, ABP, LAP), "
                           + "Einheiten und Wettkämpfen; ein Doppelklick auf einen Tag trägt einen Wettkampf ein, "
                           + "„Alle Sportler“ zeigt die Termine aller; „+ Termin“ trägt einen Lehrgang oder eine Diagnostik ein, oben in der Terminliste lassen sich die Arten ein- und ausblenden. „Verlauf“ zeigt den Belastungsverlauf: Gewicht einer "
                           + "Übung und Wiederholungen über die Wochen des MAZ, gegen das ITP, mit Ideallinie.<br><br>"

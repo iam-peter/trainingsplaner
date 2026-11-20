@@ -83,6 +83,13 @@ Item {
             compare(dayOf(f, "2031-03-03").sessions[0].state, "planned")
             compare(f.weeks[1].phase, "Grundlagenphase")
             compare(f.weeks[3].phase, "Aufbauphase")
+            // The bands over the calendar: the MAZ and its phases as IDA
+            // writes them, the week before the MAZ without
+            compare(f.weeks.map(w => w.phaseShort), ["", "GLP", "GLP", "ABP", "ABP", "LAP"])
+            compare([f.weeks[0].maz.id, f.weeks[1].maz.short, f.weeks[5].maz.weeks], [undefined, "MM", "10/2031 – 14/2031"])
+            // and in the printout a column after the KW
+            compare(f.report.blocks[0].rows[0][1].t, "Phase")
+            compare(f.report.blocks[0].rows[6][1].t, "LAP")
             compare(f.upcoming[0].name, "DM Jugend")
         }
 
@@ -108,6 +115,31 @@ Item {
             compare(Store.competitions(athlete).find(x => x.date === "2020-03-07").bestSnatch, 52)
             verify(Store.competitions(athlete).some(x => x.date === "2020-03-14"))
             Store.removeCompetition(athlete, "2020-03-14", "")
+        }
+
+        // A band's label once, at its first week of the month; the next
+        // weeks carry on its colour
+        function test_bands() {
+            page.athleteId = athlete
+            page.monday = future
+            page.showMonth(true)
+            const view = findChild(page, "monthView")
+            tryCompare(view, "visible", true)
+            tryVerify(() => findChild(view, "monthWeek5") !== null)
+            waitForRendering(page)
+            const label = (row, band) => {
+                const piece = findChild(findChild(view, "monthWeek" + row), band)
+                const l = findChild(piece, band === "mazBand" ? "mazLabel" : "phaseLabel")
+                return l.parent.visible ? l.text : null
+            }
+            compare([0, 1, 2, 3, 4, 5].map(r => label(r, "phaseBand")), [null, "GLP", null, "ABP", null, "LAP"])
+            compare([0, 1, 2, 5].map(r => label(r, "mazBand")), [null, "MM", null, null])
+            // Over its two weeks
+            const glp = findChild(findChild(findChild(view, "monthWeek1"), "phaseBand"), "phaseLabel").parent
+            const rows = findChild(view, "monthWeek2")
+            fuzzyCompare(glp.height, findChild(view, "monthWeek1").height + 3 + rows.height, 1)
+            // Back to the week
+            page.showMonth(false)
         }
 
         function test_monthView() {

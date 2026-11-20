@@ -220,6 +220,18 @@ QString phaseOf(const Maz &z, const QDate &monday)
     return QString();
 }
 
+// The phase as IDA writes it over its calendar: GLP, ABP, LAP
+QString phaseShort(const QString &phase)
+{
+    if (phase == QStringLiteral("Leistungsausprägung"))
+        return QStringLiteral("LAP");
+    if (phase == QLatin1String("Aufbauphase"))
+        return QStringLiteral("ABP");
+    if (phase == QLatin1String("Grundlagenphase"))
+        return QStringLiteral("GLP");
+    return QString();
+}
+
 } // namespace
 
 Store::Store(QObject *parent) : QObject(parent) {}
@@ -1924,7 +1936,9 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
     doc.title = title + (allAthletes ? QStringLiteral(" – alle Sportler")
                                      : (who.isEmpty() ? QString() : QStringLiteral(" – ") + who.first().second));
     QList<Report::Cells> rows;
-    rows.append(Report::cells({QStringLiteral("KW"), QStringLiteral("Bel."), QStringLiteral("WH Plan/Ist"),
+    // The phase only for one athlete: everyone's MAZ differ
+    rows.append(Report::cells({QStringLiteral("KW"), allAthletes ? QString() : QStringLiteral("Phase"),
+                               QStringLiteral("Bel."), QStringLiteral("WH Plan/Ist"),
                                QStringLiteral("Mo"), QStringLiteral("Di"), QStringLiteral("Mi"), QStringLiteral("Do"),
                                QStringLiteral("Fr"), QStringLiteral("Sa"), QStringLiteral("So")}));
 
@@ -1949,8 +1963,13 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
         }
         QString phase;
         int countdown = 0;
+        // The MAZ the week lies in, as the band over the phases
+        QVariantMap maz;
         for (const Maz &z : std::as_const(mazs)) {
             if (z.from.isValid() && z.to.isValid() && monday >= z.from && monday <= z.to) {
+                maz = {{QStringLiteral("id"), z.id}, {QStringLiteral("name"), z.name},
+                       {QStringLiteral("short"), z.shortName.isEmpty() ? z.name : z.shortName},
+                       {QStringLiteral("weeks"), Weeks::label(z.from) + QStringLiteral(" – ") + Weeks::label(z.to)}};
                 phase = phaseOf(z, monday);
                 countdown = Planning::trainingWeek(z, Planning::mainCompetitionWeek(z, athleteId), monday);
                 break;
@@ -1962,8 +1981,10 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
         w.insert(QStringLiteral("whPlan"), whPlan);
         w.insert(QStringLiteral("whActual"), whActual);
         w.insert(QStringLiteral("phase"), phase);
+        w.insert(QStringLiteral("phaseShort"), phaseShort(phase));
+        w.insert(QStringLiteral("maz"), maz);
 
-        Report::Cells row = Report::cells({QString::number(monday.weekNumber()), Planning::loadText(load),
+        Report::Cells row = Report::cells({QString::number(monday.weekNumber()), phaseShort(phase), Planning::loadText(load),
                                            (whPlan > 0 ? QString::number(whPlan) : QStringLiteral("–"))
                                                + QStringLiteral(" / ")
                                                + (whActual > 0 ? QString::number(whActual) : QStringLiteral("–"))});
