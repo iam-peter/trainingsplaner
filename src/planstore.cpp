@@ -92,23 +92,44 @@ QVariantMap Plan::saveMaz(const QVariantMap &v)
     m.buildUp = fromLabel(v.value(QStringLiteral("buildUp")).toString());
     m.peakPhase = fromLabel(v.value(QStringLiteral("peakPhase")).toString());
     m.note = v.value(QStringLiteral("note")).toString();
-    QString error;
-    if (m.name.isEmpty())
+    // What is wrong, and in which field ("name", "from", "to", "buildUp",
+    // "peak"), so the form can say it there
+    QString error, field;
+    const bool buildUpTyped = !v.value(QStringLiteral("buildUp")).toString().trimmed().isEmpty();
+    const bool peakTyped = !v.value(QStringLiteral("peakPhase")).toString().trimmed().isEmpty();
+    if (m.name.isEmpty()) {
         error = QStringLiteral("Bitte eine Bezeichnung eingeben.");
-    else if (!m.from.isValid() || !m.to.isValid())
-        error = QStringLiteral("Bitte Wochen „von“ und „bis“ angeben, z.B. 10/2027.");
-    else if (m.to < m.from)
+        field = QStringLiteral("name");
+    } else if (!m.from.isValid()) {
+        error = QStringLiteral("Bitte die erste Woche angeben, z.B. 10/2027.");
+        field = QStringLiteral("from");
+    } else if (!m.to.isValid()) {
+        error = QStringLiteral("Bitte die letzte Woche angeben, z.B. 22/2027.");
+        field = QStringLiteral("to");
+    } else if (m.to < m.from) {
         error = QStringLiteral("„bis“ liegt vor „von“.");
-    else if (m.weeks() > 104)
+        field = QStringLiteral("to");
+    } else if (m.weeks() > 104) {
         error = QStringLiteral("Ein MAZ kann höchstens 104 Wochen lang sein.");
-    else if (m.buildUp.isValid() && (m.buildUp < m.from || m.buildUp > m.to))
+        field = QStringLiteral("to");
+    } else if (buildUpTyped && !m.buildUp.isValid()) {
+        error = QStringLiteral("Die Woche der Aufbauphase ist keine Woche, z.B. 16/2027.");
+        field = QStringLiteral("buildUp");
+    } else if (peakTyped && !m.peakPhase.isValid()) {
+        error = QStringLiteral("Die Woche der Leistungsausprägung ist keine Woche, z.B. 20/2027.");
+        field = QStringLiteral("peak");
+    } else if (m.buildUp.isValid() && (m.buildUp < m.from || m.buildUp > m.to)) {
         error = QStringLiteral("Die Aufbauphase muss zwischen „von“ und „bis“ beginnen.");
-    else if (m.peakPhase.isValid() && (m.peakPhase < m.from || m.peakPhase > m.to))
+        field = QStringLiteral("buildUp");
+    } else if (m.peakPhase.isValid() && (m.peakPhase < m.from || m.peakPhase > m.to)) {
         error = QStringLiteral("Die Leistungsausprägung muss zwischen „von“ und „bis“ beginnen.");
-    else if (m.buildUp.isValid() && m.peakPhase.isValid() && m.peakPhase < m.buildUp)
+        field = QStringLiteral("peak");
+    } else if (m.buildUp.isValid() && m.peakPhase.isValid() && m.peakPhase < m.buildUp) {
         error = QStringLiteral("Die Leistungsausprägung beginnt vor der Aufbauphase.");
+        field = QStringLiteral("peak");
+    }
     if (!error.isEmpty())
-        return {{QStringLiteral("id"), m.id}, {QStringLiteral("error"), error}};
+        return {{QStringLiteral("id"), m.id}, {QStringLiteral("error"), error}, {QStringLiteral("field"), field}};
     const bool isNew = m.id.isEmpty();
     const QString id = Planning::saveMaz(m);
     // A new MAZ from a template: its RO as the RTK's

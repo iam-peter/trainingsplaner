@@ -80,7 +80,9 @@ gespeichert, einen Knopf „Speichern“ braucht es deshalb nicht. Das Programm
 Links steht die Liste der Sportler mit einem Suchfeld darüber, rechts die
 Angaben des gewählten Sportlers. **Neuer Sportler** legt einen an,
 **Speichern** übernimmt Änderungen, **Wochenplan öffnen** springt zu seiner
-Woche.
+Woche. Pflichtfelder tragen ein Sternchen (*): Ohne Namen wird das Feld rot
+umrandet, darunter steht „Bitte einen Namen eingeben.“, bis einer
+eingetragen ist.
 
 Unter *Zugehörigkeit* stehen Kader, Verein, Bundeswehr, Heimtrainer usw.
 Diese Angaben gelten jeweils ab einem Datum: Das Stift-Symbol daneben zeigt
@@ -391,6 +393,12 @@ Links die Makrozyklen, rechts der gewählte: Name, Kurzbezeichnung, für
 Männer oder Frauen, die Wochen von–bis, Beginn der **Aufbauphase** und der
 **Leistungsausprägung**. Darunter die Sportler des MAZ mit Gewichtsklasse
 und **Zielleistung** im Reißen und Stoßen.
+
+Pflicht sind Bezeichnung und die Wochen von–bis (mit * markiert). Fehlt
+eines oder passt eine Woche nicht, etwa „bis“ vor „von“ oder eine Phase
+außerhalb des MAZ, wird beim Speichern das Feld rot umrandet und die
+Meldung steht direkt darunter; sie verschwindet, sobald das Feld geändert
+wird.
 
 > **Beispiel:** „Beispiel-MAZ Frauen“ (BF), Wochen 38/2026 bis 50/2026,
 > Aufbauphase ab 44, Leistungsausprägung ab 48, wie in der

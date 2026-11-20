@@ -9,6 +9,8 @@ Page {
 
     property string selectedId
     property bool dirty: false
+    // Saving without a name: the field says so until one is typed
+    property bool nameMissing: false
     // Shown first when the page is built, if there; else the first athlete
     property string startId
 
@@ -16,11 +18,14 @@ Page {
 
     function select(id) {
         selectedId = id
+        nameMissing = false
         const a = Store.athletes.find(x => x.id === id)
         lastNameField.text = a ? a.lastName : ""
         firstNameField.text = a ? a.firstName : ""
         maleButton.checked = !a || a.sex === 0
-        femaleButton.checked = a && a.sex === 1
+        // A bool, also without an athlete: "undefined" stopped this function
+        // here, and a new athlete kept the last one's other fields
+        femaleButton.checked = !!a && a.sex === 1
         bornField.text = a ? a.born : ""
         phoneField.text = a ? a.phone : ""
         addressField.text = a ? a.address : ""
@@ -37,7 +42,13 @@ Page {
 
     function save() {
         if (lastNameField.text.trim() === "") {
+            nameMissing = true
             lastNameField.forceActiveFocus()
+            return
+        }
+        // A date that is no date is not saved as none
+        if (!bornValid) {
+            bornField.forceActiveFocus()
             return
         }
         const id = Store.saveAthlete({
@@ -168,12 +179,26 @@ Page {
                 RadioButton { id: femaleButton; text: "Frau"; onToggled: page.dirty = true }
             }
 
-            Label { text: "Name:" }
+            Label { text: "Name*:" }
             TextField {
                 id: lastNameField
+                objectName: "lastNameField"
                 Layout.fillWidth: true
                 Layout.maximumWidth: Theme.fieldWidth
-                onTextEdited: page.dirty = true
+                error: page.nameMissing
+                onTextEdited: {
+                    page.dirty = true
+                    if (text.trim() !== "")
+                        page.nameMissing = false
+                }
+            }
+            Item { visible: page.nameMissing; implicitWidth: 1 }
+            Label {
+                objectName: "nameMissing"
+                visible: page.nameMissing
+                text: "Bitte einen Namen eingeben."
+                color: Styles.TokenInterface.semantics.danger_default
+                font.pixelSize: 12
             }
 
             Label { text: "Vorname:" }
@@ -293,8 +318,10 @@ Page {
                     iconName: page.selectedId === "" ? "user-plus" : "save"
                     text: page.selectedId === "" ? "Hinzufügen" : "Speichern"
                     highlighted: true
-                    enabled: lastNameField.text.trim() !== "" && page.bornValid
-                             && (page.dirty || page.selectedId === "")
+                    // Enabled while something is to save: a click on it says
+                    // what is missing instead of doing nothing
+                    objectName: "saveAthlete"
+                    enabled: page.dirty || page.selectedId === ""
                     onClicked: page.save()
                 },
                 IconButton {
@@ -302,6 +329,11 @@ Page {
                     text: "Wochenplan öffnen"
                     enabled: page.selectedId !== ""
                     onClicked: page.openWeekPlan(page.selectedId)
+                },
+                Label {
+                    text: "* Pflichtfeld"
+                    font.pixelSize: 11
+                    color: Styles.TokenInterface.semantics.text_muted
                 }
             ]
         }

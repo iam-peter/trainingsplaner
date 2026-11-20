@@ -12,6 +12,17 @@ RowLayout {
     property string mazId
     property bool dirty: false
     property string error
+    // The field the error is about ("name", "from", "to", "buildUp",
+    // "peak"); the message then stands under its row
+    property string errorField
+    // Typing in that field puts it right
+    function edited(field) {
+        dirty = true
+        if (errorField === field) {
+            error = ""
+            errorField = ""
+        }
+    }
     property var athletes: []
 
     signal openFramework(string mazId)
@@ -56,6 +67,7 @@ RowLayout {
         template = null
         templateBox.currentIndex = 0
         error = ""
+        errorField = ""
         dirty = false
         reloadAthletes()
     }
@@ -71,6 +83,7 @@ RowLayout {
             note: noteField.text, template: pane.mazId === "" && pane.template ? pane.template.key : ""
         })
         error = r.error
+        errorField = r.field || ""
         if (error === "")
             select(r.id)
     }
@@ -126,10 +139,26 @@ RowLayout {
                     font.bold: true
                     font.pixelSize: 16
                 }
-                Label { text: "Bezeichnung:" }
-                TextField { id: nameField; objectName: "mazName"; Layout.preferredWidth: 260; onTextEdited: pane.dirty = true }
+                Label { text: "Bezeichnung*:" }
+                TextField {
+                    id: nameField
+                    objectName: "mazName"
+                    Layout.preferredWidth: 260
+                    error: pane.errorField === "name"
+                    onTextEdited: pane.edited("name")
+                }
                 Label { text: "Kurzbezeichnung:" }
                 TextField { id: shortField; Layout.preferredWidth: 100; onTextEdited: pane.dirty = true }
+                // What is missing or wrong, under the row of its field
+                Item { visible: pane.errorField === "name"; implicitWidth: 1 }
+                Label {
+                    objectName: "nameError"
+                    visible: pane.errorField === "name"
+                    Layout.columnSpan: 3
+                    text: pane.error
+                    color: Styles.TokenInterface.semantics.danger_default
+                    font.pixelSize: 12
+                }
                 Label { text: "Für:" }
                 RowLayout {
                     spacing: 8
@@ -152,23 +181,57 @@ RowLayout {
                         pane.applyTemplate()
                     }
                 }
-                Label { text: "Woche von:" }
+                Label { text: "Woche von*:" }
                 WeekField {
                     id: fromField
                     objectName: "mazFrom"
+                    error: pane.errorField === "from"
                     onTextEdited: {
-                        pane.dirty = true
+                        pane.edited("from")
                         if (pane.template && monday !== "")
                             pane.applyTemplate()
                     }
                 }
-                Label { text: "bis:" }
-                WeekField { id: toField; objectName: "mazTo"; onTextEdited: pane.dirty = true }
+                Label { text: "bis*:" }
+                WeekField {
+                    id: toField
+                    objectName: "mazTo"
+                    error: pane.errorField === "to"
+                    onTextEdited: pane.edited("to")
+                }
                 RangeLink { from: fromField; to: toField; kind: "week" }
+                Item { visible: pane.errorField === "from" || pane.errorField === "to"; implicitWidth: 1 }
+                Label {
+                    objectName: "weeksError"
+                    visible: pane.errorField === "from" || pane.errorField === "to"
+                    Layout.columnSpan: 3
+                    text: pane.error
+                    color: Styles.TokenInterface.semantics.danger_default
+                    font.pixelSize: 12
+                }
                 Label { text: "Aufbauphase ab:" }
-                WeekField { id: buildUpField; objectName: "mazBuildUp"; onTextEdited: pane.dirty = true }
+                WeekField {
+                    id: buildUpField
+                    objectName: "mazBuildUp"
+                    error: pane.errorField === "buildUp"
+                    onTextEdited: pane.edited("buildUp")
+                }
                 Label { text: "Leistungsausprägung ab:" }
-                WeekField { id: peakField; objectName: "mazPeak"; onTextEdited: pane.dirty = true }
+                WeekField {
+                    id: peakField
+                    objectName: "mazPeak"
+                    error: pane.errorField === "peak"
+                    onTextEdited: pane.edited("peak")
+                }
+                Item { visible: pane.errorField === "buildUp" || pane.errorField === "peak"; implicitWidth: 1 }
+                Label {
+                    objectName: "phaseError"
+                    visible: pane.errorField === "buildUp" || pane.errorField === "peak"
+                    Layout.columnSpan: 3
+                    text: pane.error
+                    color: Styles.TokenInterface.semantics.danger_default
+                    font.pixelSize: 12
+                }
                 Label { text: "Bemerkung:" }
                 TextField { id: noteField; Layout.columnSpan: 3; Layout.fillWidth: true; onTextEdited: pane.dirty = true }
             }
@@ -197,7 +260,10 @@ RowLayout {
                         exportDialog.open()
                     }
                 }
-                Label { text: pane.error; color: Styles.TokenInterface.semantics.danger_default; visible: pane.error !== "" }
+                // Errors without a field (saving, the export)
+                Label { text: pane.error; color: Styles.TokenInterface.semantics.danger_default; visible: pane.error !== "" && pane.errorField === "" }
+                Item { Layout.fillWidth: true }
+                Label { text: "* Pflichtfeld"; font.pixelSize: 11; color: Styles.TokenInterface.semantics.text_muted }
             }
 
             Rectangle { Layout.fillWidth: true; height: 1; color: Styles.TokenInterface.semantics.stroke_subtle }

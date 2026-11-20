@@ -136,6 +136,7 @@ AppDialog {
                           + "wechseln zu einer anderen, „Speichern unter…“ legt eine Kopie an und arbeitet darin weiter. "
                           + "Beim Start öffnet das Programm das zuletzt benutzte Projekt.<br><br>"
                           + "<b>Sportler:</b> unter „Sportler“ anlegen und bearbeiten; Kader, Verein usw. mit Zeiträumen (Stift-Symbol daneben). "
+                          + "Pflichtfelder tragen ein *; was fehlt, steht beim Speichern rot unter dem Feld. "
                           + "„Drucken“ gibt die angezeigten Sportler als Liste mit AK, Kader, Verein, Klasse und Bestleistungen aus.<br><br>"
                           + "<b>Wochenplan:</b> Sportler und Woche wählen. Der farbige Strich vor einer Übung zeigt ihren "
                           + "Komplex (K1 rot bis K7 violett, allgemeine Kraft grau); das Stift-Symbol einer Übung gibt ihr eine "
