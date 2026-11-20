@@ -152,6 +152,13 @@ Page {
                         SpinBox { id: iWeeks; from: 1; to: 104; value: 12; editable: true }
                         Label { text: "Wochen" }
                     }
+                    QuickRanges {
+                        objectName: "individualRanges"
+                        visible: iMaz.currentIndex <= 0
+                        fromLabel: iFrom.text
+                        weeks: iWeeks.value
+                        onPicked: (from, weeks) => { iFrom.text = from; iWeeks.value = weeks }
+                    }
                     CheckBox { id: iCompWeeks; text: "WK-Woche einschließen" }
                     Label { text: "Bezug"; font.bold: true }
                     RowLayout {
@@ -281,6 +288,12 @@ Page {
                     SpinBox { id: cWeeks; from: 1; to: 104; value: 12; editable: true }
                     Label { text: "Wochen" }
                 }
+                QuickRanges {
+                    objectName: "checkRanges"
+                    fromLabel: cFrom.text
+                    weeks: cWeeks.value
+                    onPicked: (from, weeks) => { cFrom.text = from; cWeeks.value = weeks }
+                }
                 RadioButton { id: cTraining; text: "Trainingsdaten"; checked: true }
                 RadioButton { text: "Wettkämpfe" }
                 Label {
@@ -312,6 +325,8 @@ Page {
             spacing: 8
             property var first: ({})
             property var second: ({})
+            // "Ist + Plan": the plan of the same athlete beside the Ist
+            property var planned: ({})
             // Built when it shows, and again when the data or the athlete
             // change while it does; it was empty until a setting changed
             onVisibleChanged: if (visible) reload()
@@ -332,6 +347,10 @@ Page {
                     from: chFrom.text, weeks: chWeeks.value
                 }
                 first = Analysis.series(Object.assign({ athleteId: page.athleteId, mazId: chMaz.currentValue || "" }, common))
+                planned = chBoth.checked
+                          ? Analysis.series(Object.assign({ athleteId: page.athleteId, mazId: chMaz.currentValue || "" },
+                                                          common, { basis: "P" }))
+                          : ({})
                 second = chCompare.checked && chAthlete2.currentIndex >= 0
                          ? Analysis.series(Object.assign({ athleteId: chAthlete2.currentValue, mazId: chMaz2.currentValue || "" }, common))
                          : ({})
@@ -355,6 +374,14 @@ Page {
                 }
                 WeekField { id: chFrom; visible: chMaz.currentIndex <= 0; text: page.defaultFrom; onEditingFinished: chartTab.reload(); onWeekPicked: chartTab.reload() }
                 SpinBox { id: chWeeks; visible: chMaz.currentIndex <= 0; from: 2; to: 104; value: 12; editable: true; onValueModified: chartTab.reload() }
+                QuickRanges {
+                    objectName: "chartRanges"
+                    visible: chMaz.currentIndex <= 0
+                    minimumWeeks: 2
+                    fromLabel: chFrom.text
+                    weeks: chWeeks.value
+                    onPicked: (from, weeks) => { chFrom.text = from; chWeeks.value = weeks; chartTab.reload() }
+                }
                 Label { text: "TÜ" }
                 TextField {
                     id: chEx
@@ -382,6 +409,8 @@ Page {
                 }
                 RadioButton { text: "Ist"; checked: true; onToggled: chartTab.reload() }
                 RadioButton { id: chPlan; text: "Plan"; onToggled: chartTab.reload() }
+                // Both in one chart: the plan dashed
+                RadioButton { id: chBoth; objectName: "chartBoth"; text: "Ist + Plan"; onToggled: chartTab.reload() }
                 RadioButton { id: chItp; text: "ITP"; onToggled: chartTab.reload() }
                 Item { Layout.preferredWidth: 8 }
                 RadioButton { text: "kg"; checked: true; onToggled: chartTab.reload() }
@@ -412,6 +441,7 @@ Page {
             }
             TrendChart {
                 id: analysisChart
+                objectName: "analysisChart"
                 documentTitle: "Grafik TÜ " + chEx.text
                 Layout.fillWidth: true
                 Layout.fillHeight: true
@@ -423,8 +453,11 @@ Page {
                     const l = []
                     const two = chCompare.checked && chartTab.second.labels
                     const n1 = two ? " 1" : "", n2 = " 2"
-                    if (chMhg.checked) l.push({ name: "MHG" + n1, color: Styles.TokenInterface.semantics.chart_series[1], values: chartTab.first.mhg || [], trend: chTrend.checked })
-                    if (chBw.checked) l.push({ name: "BW" + n1, color: Styles.TokenInterface.semantics.primary_default, values: chartTab.first.bw || [], trend: chTrend.checked })
+                    const ist = chBoth.checked ? " Ist" : ""
+                    if (chMhg.checked) l.push({ name: "MHG" + ist + n1, color: Styles.TokenInterface.semantics.chart_series[1], values: chartTab.first.mhg || [], trend: chTrend.checked })
+                    if (chBw.checked) l.push({ name: "BW" + ist + n1, color: Styles.TokenInterface.semantics.primary_default, values: chartTab.first.bw || [], trend: chTrend.checked })
+                    if (chBoth.checked && chMhg.checked) l.push({ name: "MHG Plan", color: Styles.TokenInterface.semantics.chart_series[1], values: chartTab.planned.mhg || [], trend: false, dashed: true })
+                    if (chBoth.checked && chBw.checked) l.push({ name: "BW Plan", color: Styles.TokenInterface.semantics.primary_default, values: chartTab.planned.bw || [], trend: false, dashed: true })
                     if (two && chMhg.checked) l.push({ name: "MHG" + n2, color: Styles.TokenInterface.semantics.chart_series[2], values: chartTab.second.mhg || [], trend: chTrend.checked })
                     if (two && chBw.checked) l.push({ name: "BW" + n2, color: Styles.TokenInterface.semantics.chart_series[3], values: chartTab.second.bw || [], trend: chTrend.checked })
                     return l
@@ -432,7 +465,9 @@ Page {
                 bars: {
                     const b = []
                     if (chVolume.currentIndex > 0) {
-                        b.push({ name: chVolume.currentText, color: Styles.TokenInterface.semantics.chart_muted, values: chartTab.first.wh || [] })
+                        b.push({ name: chVolume.currentText + (chBoth.checked ? " Ist" : ""), color: Styles.TokenInterface.semantics.chart_muted, values: chartTab.first.wh || [] })
+                        if (chBoth.checked && chartTab.planned.wh)
+                            b.push({ name: chVolume.currentText + " Plan", color: "#c4b5fd", values: chartTab.planned.wh })
                         if (chCompare.checked && chartTab.second.wh)
                             b.push({ name: chVolume.currentText + " 2", color: "#93c5fd", values: chartTab.second.wh })
                     }

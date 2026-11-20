@@ -116,6 +116,7 @@ qt_add_qml_module(tpqml
         qml/MazPane.qml
         qml/ItpGrid.qml
         qml/ScaleDialog.qml
+        qml/QuickRanges.qml
         qml/PlanningPage.qml
         qml/ReportView.qml
         qml/AnalysisPage.qml

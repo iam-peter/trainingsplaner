@@ -478,7 +478,10 @@ Woche für Woche, rechts Summe, Durchschnitt und Entwicklung. Die Zeile
 Woche, zusammen, pro Woche und als Anteil an allen Einheiten (in %). Bei
 den Komplexen K1–K7 zählt eine Einheit einmal, auch wenn mehrere Übungen
 des Komplexes darin stehen. Als
-Zeitraum lassen sich Wochen oder eine MAZ wählen. Als Bezug Ist, Plan
+Zeitraum lassen sich Wochen oder eine MAZ wählen; die Knöpfe **Wochen
+1 2 4** und **Monate 1 3 6** stellen die letzten Wochen oder Monate bis
+zur aktuellen Woche ein (auch in Datenprüfung und Grafik). Der gerade
+eingestellte Zeitraum ist hervorgehoben. Als Bezug Ist, Plan
 oder ITP, in kg oder in % des Ziels. Dazu wahlweise ein Vergleich mit
 einem anderen Zeitraum.
 
@@ -528,7 +531,13 @@ ohne Ist der Plan; leere Wochen bleiben ohne Markierung.
 
 Eine Übung über die Wochen: MHG und BW als Linien (mit Trend), der
 Umfang als Balken. Ein zweiter Sportler oder Zeitraum lässt sich zum
-Vergleich dazunehmen.
+Vergleich dazunehmen. **Ist + Plan** zeigt beides in einer Grafik: das
+Ist durchgezogen, den Plan gestrichelt in derselben Farbe, die
+Wiederholungen des Plans als helle violette Balken.
+
+> **Beispiel:** Mira, Reißen WKÜ, Wochen 35 bis 46/2026, Ist + Plan: In
+> den Wochen 43 bis 45 liegen Ist und Plan aufeinander, in Woche 46 gibt
+> es nur den Plan (BW 58 kg gestrichelt).
 
 ---
 

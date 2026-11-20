@@ -8,7 +8,7 @@ import Trainingsplaner
 // A simple chart over categories (weeks, dates): bars on the right axis
 // (volume), lines on the left axis (intensity), optional linear trends and
 // horizontal reference lines.
-//   lines:      [{ name, color, values: [number|null], trend: bool }]
+//   lines:      [{ name, color, values: [number|null], trend: bool, dashed: bool }]
 //   bars:       [{ name, color, values: [number] }]
 //   references: [{ name, color, value }]
 // Hovering shows the values of a week; a right click prints the chart or
@@ -200,6 +200,8 @@ Item {
                 ctx.strokeStyle = l.color
                 ctx.fillStyle = l.color
                 ctx.lineWidth = 2
+                // A plan beside the Ist: dashed
+                ctx.setLineDash(l.dashed ? [7, 4] : [])
                 ctx.beginPath()
                 let open = false
                 for (let i = 0; i < n; ++i) {
@@ -209,6 +211,7 @@ Item {
                     open = true
                 }
                 ctx.stroke()
+                ctx.setLineDash([])
                 for (let i = 0; i < n; ++i) {
                     const v = l.values[i]
                     if (v === null || v === undefined || isNaN(v)) continue
@@ -242,13 +245,18 @@ Item {
             let lx = left
             const ly = height - 10
             ctx.textAlign = "left"
-            const items = chart.lines.map(l => ({ name: l.name + (l.trend ? " (mit Trend)" : ""), color: l.color, bar: false }))
+            const items = chart.lines.map(l => ({ name: l.name + (l.trend ? " (mit Trend)" : ""), color: l.color, bar: false, dashed: !!l.dashed }))
                 .concat(chart.bars.map(b => ({ name: b.name, color: b.color, bar: true })))
                 .concat(chart.references.map(r => ({ name: r.name, color: r.color, bar: false })))
             for (const it of items) {
                 ctx.fillStyle = it.color
                 ctx.globalAlpha = it.bar ? 0.55 : 1
-                ctx.fillRect(lx, ly - 9, 14, it.bar ? 10 : 3)
+                if (it.dashed) {
+                    ctx.fillRect(lx, ly - 9, 5, 3)
+                    ctx.fillRect(lx + 9, ly - 9, 5, 3)
+                } else {
+                    ctx.fillRect(lx, ly - 9, 14, it.bar ? 10 : 3)
+                }
                 ctx.globalAlpha = 1
                 ctx.fillStyle = Styles.TokenInterface.semantics.text_default
                 ctx.fillText(it.name, lx + 20, ly)
