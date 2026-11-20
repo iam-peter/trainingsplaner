@@ -130,6 +130,8 @@ Item {
             required property int column
             required property string display
             required property bool average
+            // Against the Trainingsmittelkatalog for the athlete's age
+            required property string warning
             readonly property bool first: itp.columnInfo(column).first
             // K1-7 and K1-5: sums of the complexes, not typed
             readonly property bool readOnly: itp.columnInfo(column).readOnly
@@ -173,11 +175,19 @@ Item {
                 anchors.fill: area
                 visible: !cell.editing
                 text: cell.display
-                font.bold: cell.average
+                font.bold: cell.average || cell.warning !== ""
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
-                color: Styles.TokenInterface.semantics.text_default
+                color: cell.warning !== "" ? Styles.TokenInterface.semantics.danger_default
+                                           : Styles.TokenInterface.semantics.text_default
             }
+            HoverHandler {
+                id: hover
+                enabled: cell.warning !== ""
+            }
+            ToolTip.visible: hover.hovered && cell.warning !== ""
+            ToolTip.text: cell.warning
+            ToolTip.delay: 300
             TapHandler {
                 enabled: !cell.average && !cell.editing && !cell.readOnly
                 onTapped: table.focusCell(cell.row, cell.column)

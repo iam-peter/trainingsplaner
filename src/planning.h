@@ -107,6 +107,8 @@ int loadFromText(const QString &text);
 
 // Rounds kg to the weight step as whole kg (2.5: 100, 102, 105, 107 ...)
 int roundToStep(double kg, double step);
+// The weight step of the settings: 2.5 kg, or 1 kg
+double weightStep();
 // The target performance an exercise's percentages refer to
 int targetFor(const MazAthlete &a, int exercise);
 // ITP of an athlete from the RO of a MAZ: percentages to kg with the

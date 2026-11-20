@@ -7,7 +7,9 @@
 
 // The week × exercise grid of an ITP or RO: per exercise the columns WH,
 // MHG and BW, then load level and competition position per week. The last
-// row holds the averages. Edits are saved right away.
+// row holds the averages. Edits are saved right away. A value against the
+// Trainingsmittelkatalog for the athlete's age (for a RO: the youngest
+// of the MAZ) carries a warning.
 class ItpModel : public QAbstractTableModel
 {
     Q_OBJECT
@@ -23,7 +25,7 @@ class ItpModel : public QAbstractTableModel
     Q_PROPERTY(bool percent READ percent NOTIFY configChanged)
 
 public:
-    enum Roles { EditRole = Qt::UserRole + 1, AverageRole, KindRole, ExerciseRole };
+    enum Roles { EditRole = Qt::UserRole + 1, AverageRole, KindRole, ExerciseRole, WarningRole };
 
     explicit ItpModel(QObject *parent = nullptr);
 
@@ -74,6 +76,8 @@ private:
     int exerciseOf(int column) const;
     int value(int row, int column) const;
     int complexSum(const QDate &monday, int last) const;
+    // What the TMK 2018 says against a cell, "" when nothing
+    QString warning(int row, int column) const;
 
     QString m_owner;
     QDate m_from;
@@ -85,4 +89,8 @@ private:
     bool m_averageAll = false;
     QMap<QPair<QDate, int>, WeekTarget> m_targets;
     QMap<QDate, WeekMeta> m_meta;
+    // For the TMK: the birth date of the athlete, or of the youngest of
+    // the MAZ for a RO, and the athlete's targets in the MAZ
+    QDate m_born;
+    MazAthlete m_athlete;
 };

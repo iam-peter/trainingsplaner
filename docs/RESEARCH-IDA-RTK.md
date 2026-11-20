@@ -120,7 +120,7 @@ M days, L a week or more.
 | 5 | **RO per K group** (done, November 2026: WH per complex was there already; added K1-7 and K1-5 as sums, a single WH column per complex): a WH row per K1..K7 and week, compared in the ITP and the week summary | RO PDFs p.5 | M |
 | 6 | **Scale values**: chosen weeks and columns of the RO or ITP by a factor (e.g. −10 % after illness) | IDA p.11 | S–M |
 | 7 | **RO proposal per ITP cell**: the RO value shown grey, taken one cell or one row at a time, instead of Vorlage over everything | IDA p.13 | M |
-| 8 | **TMK targets as caps**: warn when a planned BW % is above the TMK value for the athlete's stage, or K4/K6 is used below its age | TMK 2018 | S–M |
+| 8 | **TMK targets as caps** (done, November 2026: RO and ITP show such a value red with the reason, the RO for the youngest of its MAZ; Reißen and Stoßen are free in a WK/HWK week, and the RTK's four ROs stay within the TMK in every training week): warn when a planned BW % is above the TMK value for the athlete's stage, or K4/K6 is used below its age | TMK 2018 | S–M |
 | 9 | **Volume norms per stage** as a reference line (K1-7: 200/280/350/300/320/300 WH a week; 350 the upper limit in U17) | TMK 2018, RTK-Online | S |
 | 10 | Countdown "Tr.-Wo." to the main competition, LG/WK/HWK per week in ITP, month and Belastungsverlauf | RO PDFs | S |
 | 11 | Plan phases and h/m/g as bands in the month view | IDA p.9 | S–M |

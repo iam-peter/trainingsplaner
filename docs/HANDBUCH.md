@@ -354,6 +354,33 @@ Die Liste oben links wählt, welche Übungen das Raster zeigt (z. B. die
 Hauptübungen). *Durchschnitt über alle Wochen* ändert die Ø-Zeile.
 **Grafik** öffnet den Belastungsverlauf.
 
+### Grenzen des Trainingsmittelkatalogs
+
+In Rahmenorientierung und ITP zeigt das Programm eine Zahl **rot**, wenn
+sie nicht zum Trainingsmittelkatalog von BVDG und IAT (TMK 2018) passt.
+Mit der Maus über der Zahl steht der Grund:
+
+- Die **BW** liegt über dem Wert des TMK für die Altersstufe, z. B. im
+  Reißen bei Schülern (AK 14–15) über 95 % der Zielleistung.
+- Die Übung oder der Komplex ist für die Altersstufe noch nicht
+  vorgesehen: K3 erst ab den Schülern, K6 ab der Jugend (AK 16–17), K4
+  ab den Junioren (AK 18–20). Die Halbkniebeuge sieht der TMK für keine
+  Altersstufe vor.
+
+Die Altersstufe ergibt sich aus der Altersklasse in der jeweiligen
+Woche. In der Rahmenorientierung zählen die Jüngsten des MAZ; ohne
+Sportler im MAZ prüft das Programm nichts. Im ITP rechnet es den Wert
+des TMK mit der Zielleistung in kg um und rundet wie **Vorlage**. In
+einer Woche mit Wettkampf (WK-Lage **WK** oder **HWK**) dürfen Reißen
+und Stoßen darüber liegen, denn der Wettkampf selbst geht bis 100 % und
+mehr. Die rote Zahl ist ein Hinweis: sie bleibt, wie sie eingetragen ist.
+
+> **Beispiel:** Die Vorlagen der RTK bleiben in allen Trainingswochen
+> innerhalb des TMK. Setzt man in „RTK U17“ für eine Sportlerin der
+> AK 16 die BW im Reißen der ersten Woche auf 98 %, wird die 98 rot:
+> „Über dem TMK 2018 für Jugend (AK 16–17): BW bis 97 % des
+> Wettkampfziels.“
+
 ### Laststufen
 
 ![Laststufen](handbuch/bilder/15-planung-laststufen.png)

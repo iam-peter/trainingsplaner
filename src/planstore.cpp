@@ -8,7 +8,6 @@
 #include "rtk.h"
 
 #include <QSet>
-#include <QSettings>
 
 namespace {
 
@@ -25,11 +24,6 @@ QString label(const QDate &d)
 QDate isoDate(const QString &s)
 {
     return QDate::fromString(s, Qt::ISODate);
-}
-
-double weightStep()
-{
-    return QSettings().value(QStringLiteral("general/weightStep"), 2.5).toDouble() == 1.0 ? 1.0 : 2.5;
 }
 
 QVariantMap mazMap(const Maz &m)
@@ -209,7 +203,7 @@ QString Plan::roOwner(const QString &mazId) const
 
 bool Plan::itpFromRo(const QString &mazId, const QString &athleteId)
 {
-    const bool ok = Planning::itpFromRo(mazId, athleteId, weightStep());
+    const bool ok = Planning::itpFromRo(mazId, athleteId, Planning::weightStep());
     emit changed();
     return ok;
 }

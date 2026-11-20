@@ -733,7 +733,7 @@ void Store::setSessionTimes(const QVariantList &v)
 
 double Store::weightStep() const
 {
-    return QSettings().value(QStringLiteral("general/weightStep"), 2.5).toDouble() == 1.0 ? 1.0 : 2.5;
+    return Planning::weightStep();
 }
 
 void Store::setWeightStep(double v)

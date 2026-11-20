@@ -5,6 +5,7 @@
 
 #include <QDateTime>
 #include <QRegularExpression>
+#include <QSettings>
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -394,6 +395,11 @@ int roundToStep(double kg, double step)
     if (step <= 0)
         step = 1;
     return int(std::floor(std::round(kg / step) * step + 1e-9));
+}
+
+double weightStep()
+{
+    return QSettings().value(QStringLiteral("general/weightStep"), 2.5).toDouble() == 1.0 ? 1.0 : 2.5;
 }
 
 // The target a percentage of the framework plan refers to. As the BVDG

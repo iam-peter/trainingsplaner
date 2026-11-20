@@ -1,6 +1,9 @@
 #include "itpmodel.h"
 
 #include "catalog.h"
+#include "database.h"
+#include "tmk.h"
+#include "youth.h"
 
 ItpModel::ItpModel(QObject *parent) : QAbstractTableModel(parent)
 {
@@ -114,6 +117,24 @@ void ItpModel::load()
         for (const WeekMeta &m : Planning::meta(m_owner, m_from, to))
             m_meta.insert(m.monday, m);
     }
+    m_born = QDate();
+    m_athlete = MazAthlete();
+    if (percent()) {
+        // A RO is for all athletes of its MAZ: the youngest set the caps
+        for (const MazAthlete &a : Planning::mazAthletes(m_owner.mid(1))) {
+            const QDate born = Database::athlete(a.athleteId).born;
+            if (born.isValid() && (!m_born.isValid() || born.year() > m_born.year()))
+                m_born = born;
+        }
+    } else if (!m_owner.isEmpty()) {
+        m_born = Database::athlete(m_owner).born;
+        if (!m_mazId.isEmpty()) {
+            for (const MazAthlete &a : Planning::mazAthletes(m_mazId)) {
+                if (a.athleteId == m_owner)
+                    m_athlete = a;
+            }
+        }
+    }
 }
 
 int ItpModel::rowCount(const QModelIndex &parent) const
@@ -145,6 +166,40 @@ int ItpModel::complexSum(const QDate &monday, int last) const
     return sum;
 }
 
+QString ItpModel::warning(int row, int column) const
+{
+    const Kind k = kindOf(column);
+    const int e = exerciseOf(column);
+    if (row >= m_weeks || !m_born.isValid() || e == 0 || (k != Wh && k != Mhg && k != Bw)
+        || value(row, column) <= 0)
+        return {};
+    const QDate monday = m_from.addDays(7 * row);
+    const Tmk::Stage stage = Tmk::stage(Youth::ageClass(m_born, monday));
+    const QString who = percent() ? QStringLiteral(" Die Jüngsten der MAZ sind %1.").arg(Tmk::stageName(stage))
+                                  : QString();
+    const QString notForStage = Tmk::notForStage(e, stage);
+    if (!notForStage.isEmpty())
+        return notForStage + who;
+    const Tmk::Entry tmk = Tmk::entry(e, stage);
+    if (k != Bw || tmk.bw == 0 || Tmk::exemptInCompetition(e, m_meta.value(monday).position))
+        return {};
+    QString text = QStringLiteral("Über dem TMK 2018 für %1: BW bis %2 % des Wettkampfziels")
+                       .arg(Tmk::stageName(stage))
+                       .arg(tmk.bw);
+    if (tmk.text.contains(QLatin1Char('/')))
+        text += QStringLiteral(" (%1: BW/SG)").arg(tmk.text);
+    if (percent())
+        return value(row, column) > tmk.bw ? text + QLatin1Char('.') + who : QString();
+    // An ITP in kg: the cap as the ITP of a RO would round it
+    const int target = Planning::targetFor(m_athlete, e);
+    if (target <= 0)
+        return {};
+    const int cap = Planning::roundToStep(tmk.bw * target / 100.0, Planning::weightStep());
+    if (value(row, column) <= cap)
+        return {};
+    return text + QStringLiteral(", %1 kg bei %2 kg Ziel.").arg(cap).arg(target);
+}
+
 int ItpModel::value(int row, int column) const
 {
     const QDate monday = m_from.addDays(7 * row);
@@ -171,6 +226,8 @@ QVariant ItpModel::data(const QModelIndex &index, int role) const
         return int(k);
     case ExerciseRole:
         return exerciseOf(col);
+    case WarningRole:
+        return average ? QString() : warning(row, col);
     case Qt::DisplayRole:
     case EditRole: {
         if (average) {
@@ -236,6 +293,9 @@ bool ItpModel::setData(const QModelIndex &index, const QVariant &value, int role
     }
     if (ok) {
         emit dataChanged(index, index);
+        // A competition in the week lifts the cap of Reißen and Stoßen
+        if (k == Position)
+            emit dataChanged(this->index(index.row(), 0), this->index(index.row(), columnCount() - 1));
         const QModelIndex avg = this->index(m_weeks, index.column());
         emit dataChanged(avg, avg);
         // A complex's WH: the week's sums and their averages too
@@ -315,5 +375,6 @@ QHash<int, QByteArray> ItpModel::roleNames() const
             {EditRole, "edit"},
             {AverageRole, "average"},
             {KindRole, "kind"},
-            {ExerciseRole, "exercise"}};
+            {ExerciseRole, "exercise"},
+            {WarningRole, "warning"}};
 }

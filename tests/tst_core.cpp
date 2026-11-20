@@ -7,6 +7,7 @@
 #include "exerciseweek.h"
 #include "model.h"
 #include "steps.h"
+#include "tmk.h"
 #include "update.h"
 #include "weekreport.h"
 #include "report.h"
@@ -39,6 +40,7 @@ private slots:
     void loadLetters();
     void jumpOnHalfGrid();
     void youthRules();
+    void tmkCaps();
     void statsMatchOldProgram();
     void entryEncoding();
     void weekLabels();
@@ -89,6 +91,94 @@ void TestCore::cleanupTestCase()
 // The DGJ's rules: age class by year, the IWF's youth weight classes from
 // August 2026, the DM Nachwuchs norms by weight class (AK 16-17) and by
 // body weight (AK 14-15)
+// The Trainingsmittelkatalog 2018 as caps: its cells read, the complexes
+// of an age, and the RTK's framework plans within it but for the
+// competition
+void TestCore::tmkCaps()
+{
+    QCOMPARE(Tmk::stage(9), Tmk::Kinder);
+    QCOMPARE(Tmk::stage(13), Tmk::Kinder);
+    QCOMPARE(Tmk::stage(14), Tmk::Schueler);
+    QCOMPARE(Tmk::stage(17), Tmk::Jugend);
+    QCOMPARE(Tmk::stage(18), Tmk::Junioren);
+    QCOMPARE(Tmk::stage(23), Tmk::U23);
+    QCOMPARE(Tmk::stage(24), Tmk::Senioren);
+    QCOMPARE(Tmk::stageName(Tmk::Schueler), QStringLiteral("Schüler (AK 14–15)"));
+
+    // "95/2": BW and set size; a range up to its end; ">100" no cap
+    Tmk::Entry e = Tmk::entry(1, Tmk::Schueler);
+    QVERIFY(e.allowed);
+    QCOMPARE(e.bw, 95);
+    QCOMPARE(e.text, QStringLiteral("95/2"));
+    QCOMPARE(Tmk::entry(1, Tmk::Junioren).bw, 101);
+    QCOMPARE(Tmk::entry(3, Tmk::Senioren).bw, 100);
+    QCOMPARE(Tmk::entry(29, Tmk::U23).bw, 0);
+    QVERIFY(Tmk::entry(29, Tmk::U23).allowed);
+    QCOMPARE(Tmk::entry(17, Tmk::Senioren).bw, 140);
+    // Hatched: Lastheben before the Junioren, Halbkniebeuge never; the
+    // AMKT has no percent
+    QVERIFY(!Tmk::entry(15, Tmk::Jugend).allowed);
+    QVERIFY(Tmk::entry(15, Tmk::Junioren).allowed);
+    for (int s = Tmk::Kinder; s <= Tmk::Senioren; ++s)
+        QVERIFY(!Tmk::entry(21, Tmk::Stage(s)).allowed);
+    QVERIFY(!Tmk::entry(30, Tmk::Kinder).allowed);
+    QCOMPARE(Tmk::entry(30, Tmk::Schueler).bw, 0);
+    QVERIFY(Tmk::entry(30, Tmk::Schueler).allowed);
+    QVERIFY(Tmk::entry(99, Tmk::Kinder).allowed);
+
+    // Complexes: K3 from the Schüler, K6 from the Jugend, K4 from the
+    // Junioren; K5 and K7 for children too
+    QVERIFY(!Tmk::entry(-3, Tmk::Kinder).allowed);
+    QVERIFY(Tmk::entry(-3, Tmk::Schueler).allowed);
+    QVERIFY(!Tmk::entry(-6, Tmk::Schueler).allowed);
+    QVERIFY(Tmk::entry(-6, Tmk::Jugend).allowed);
+    QVERIFY(!Tmk::entry(-4, Tmk::Jugend).allowed);
+    QVERIFY(Tmk::entry(-4, Tmk::Junioren).allowed);
+    QVERIFY(Tmk::entry(-5, Tmk::Kinder).allowed);
+    QVERIFY(Tmk::entry(-7, Tmk::Kinder).allowed);
+    QCOMPARE(Tmk::notForStage(-4, Tmk::Jugend),
+             QStringLiteral("K4 ist im TMK 2018 nicht für Jugend (AK 16–17) vorgesehen."));
+    QCOMPARE(Tmk::notForStage(-4, Tmk::Junioren), QString());
+
+    QVERIFY(Tmk::exemptInCompetition(1, QStringLiteral("HWK")));
+    QVERIFY(Tmk::exemptInCompetition(3, QStringLiteral(" wk")));
+    QVERIFY(!Tmk::exemptInCompetition(4, QStringLiteral("HWK")));
+    QVERIFY(!Tmk::exemptInCompetition(1, QStringLiteral("LG")));
+
+    // The RTK's plans: U13 for Kinder, U15 Schüler, U17 Jugend, U20
+    // Junioren. Nothing of another age, no BW above the cap but in the
+    // competition.
+    QFile f(QStringLiteral(":/rtk-ro.json"));
+    QVERIFY(f.open(QIODevice::ReadOnly));
+    const QJsonArray templates = QJsonDocument::fromJson(f.readAll()).object().value(QStringLiteral("templates")).toArray();
+    QCOMPARE(templates.size(), 4);
+    const Tmk::Stage stages[] = {Tmk::Kinder, Tmk::Schueler, Tmk::Jugend, Tmk::Junioren};
+    int checked = 0;
+    for (int i = 0; i < 4; ++i) {
+        for (const QJsonValue &r : templates[i].toObject().value(QStringLiteral("rows")).toArray()) {
+            const QJsonObject row = r.toObject();
+            const QString position = row.value(QStringLiteral("position")).toString();
+            const QJsonObject complexes = row.value(QStringLiteral("complexes")).toObject();
+            for (auto it = complexes.begin(); it != complexes.end(); ++it)
+                QVERIFY(Tmk::entry(-it.key().toInt(), stages[i]).allowed);
+            const QJsonObject exercises = row.value(QStringLiteral("exercises")).toObject();
+            for (auto it = exercises.begin(); it != exercises.end(); ++it) {
+                const int exercise = it.key().toInt();
+                const Tmk::Entry tmk = Tmk::entry(exercise, stages[i]);
+                QVERIFY2(tmk.allowed, qPrintable(it.key()));
+                const int bw = it.value().toArray().at(1).toInt();
+                if (tmk.bw > 0 && !Tmk::exemptInCompetition(exercise, position)) {
+                    QVERIFY2(bw <= tmk.bw, qPrintable(QStringLiteral("%1 Woche %2: %3 > %4")
+                                                          .arg(it.key()).arg(row.value(QStringLiteral("week")).toInt())
+                                                          .arg(bw).arg(tmk.bw)));
+                    ++checked;
+                }
+            }
+        }
+    }
+    QVERIFY(checked > 500);
+}
+
 void TestCore::youthRules()
 {
     QCOMPARE(Youth::ageClass(QDate(2010, 12, 31), QDate(2026, 1, 2)), 16);
