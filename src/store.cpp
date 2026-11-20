@@ -26,6 +26,7 @@
 #include <QPainter>
 #include <QPrintDialog>
 #include <QPrinter>
+#include <QRegularExpression>
 #include <QSet>
 #include <QSettings>
 #include <QStandardPaths>
@@ -207,29 +208,43 @@ QSettings settings()
     return QSettings();
 }
 
+// A MAZ's phase: its name, and as IDA writes it over its calendar (GLP,
+// ABP, LAP)
+struct Phase {
+    QString name;
+    QString abbreviation;
+};
+
 // The MAZ's phase in the week of monday; none when the MAZ has no phase
 // dates
-QString phaseOf(const Maz &z, const QDate &monday)
+Phase phaseOf(const Maz &z, const QDate &monday)
 {
     if (z.peakPhase.isValid() && monday >= z.peakPhase)
-        return QStringLiteral("Leistungsausprägung");
+        return {QStringLiteral("Leistungsausprägung"), QStringLiteral("LAP")};
     if (z.buildUp.isValid() && monday >= z.buildUp)
-        return QStringLiteral("Aufbauphase");
+        return {QStringLiteral("Aufbauphase"), QStringLiteral("ABP")};
     if (z.buildUp.isValid() || z.peakPhase.isValid())
-        return QStringLiteral("Grundlagenphase");
-    return QString();
+        return {QStringLiteral("Grundlagenphase"), QStringLiteral("GLP")};
+    return {};
 }
 
-// The phase as IDA writes it over its calendar: GLP, ABP, LAP
-QString phaseShort(const QString &phase)
+// The MAZ on its narrow band in the month: its Kurzbezeichnung; without
+// one its name, a long one as the initials of its words (a number whole),
+// which still reads over a single week
+QString bandLabel(const Maz &z)
 {
-    if (phase == QStringLiteral("Leistungsausprägung"))
-        return QStringLiteral("LAP");
-    if (phase == QLatin1String("Aufbauphase"))
-        return QStringLiteral("ABP");
-    if (phase == QLatin1String("Grundlagenphase"))
-        return QStringLiteral("GLP");
-    return QString();
+    if (!z.shortName.isEmpty() || z.name.size() <= 8)
+        return z.shortName.isEmpty() ? z.name : z.shortName;
+    QString label;
+    const QStringList words = z.name.split(QRegularExpression(QStringLiteral("[\\s\\-–/]+")), Qt::SkipEmptyParts);
+    for (const QString &word : words) {
+        if (word.at(0).isDigit())
+            label += QLatin1Char(' ') + word;
+        else if (word.at(0).isLetter())
+            label += word.at(0).toUpper();
+    }
+    label = label.trimmed();
+    return label.isEmpty() ? z.name : label;
 }
 
 } // namespace
@@ -1778,7 +1793,7 @@ QVariantMap Store::weekContext(const QString &athleteId, const QString &monday) 
     QVariantMap maz{{QStringLiteral("has"), false}};
     for (const Maz &z : Planning::mazForAthlete(athleteId)) {
         if (z.from.isValid() && z.to.isValid() && m >= z.from && m <= z.to) {
-            const QString phase = phaseOf(z, m);
+            const QString phase = phaseOf(z, m).name;
             maz = {{QStringLiteral("has"), true}, {QStringLiteral("name"), z.name},
                    {QStringLiteral("shortName"), z.shortName},
                    {QStringLiteral("week"), int(z.from.daysTo(m) / 7) + 1},
@@ -1937,10 +1952,13 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
                                      : (who.isEmpty() ? QString() : QStringLiteral(" – ") + who.first().second));
     QList<Report::Cells> rows;
     // The phase only for one athlete: everyone's MAZ differ
-    rows.append(Report::cells({QStringLiteral("KW"), allAthletes ? QString() : QStringLiteral("Phase"),
-                               QStringLiteral("Bel."), QStringLiteral("WH Plan/Ist"),
-                               QStringLiteral("Mo"), QStringLiteral("Di"), QStringLiteral("Mi"), QStringLiteral("Do"),
-                               QStringLiteral("Fr"), QStringLiteral("Sa"), QStringLiteral("So")}));
+    QStringList head{QStringLiteral("KW")};
+    if (!allAthletes)
+        head.append(QStringLiteral("Phase"));
+    head.append({QStringLiteral("Bel."), QStringLiteral("WH Plan/Ist"),
+                 QStringLiteral("Mo"), QStringLiteral("Di"), QStringLiteral("Mi"), QStringLiteral("Do"),
+                 QStringLiteral("Fr"), QStringLiteral("Sa"), QStringLiteral("So")});
+    rows.append(Report::cells(head));
 
     QVariantList weeks;
     for (QDate monday = Weeks::mondayOf(first); monday <= last; monday = monday.addDays(7)) {
@@ -1961,14 +1979,14 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
                 position = m.position;
             }
         }
-        QString phase;
+        Phase phase;
         int countdown = 0;
         // The MAZ the week lies in, as the band over the phases
         QVariantMap maz;
         for (const Maz &z : std::as_const(mazs)) {
             if (z.from.isValid() && z.to.isValid() && monday >= z.from && monday <= z.to) {
                 maz = {{QStringLiteral("id"), z.id}, {QStringLiteral("name"), z.name},
-                       {QStringLiteral("short"), z.shortName.isEmpty() ? z.name : z.shortName},
+                       {QStringLiteral("short"), bandLabel(z)},
                        {QStringLiteral("weeks"), Weeks::label(z.from) + QStringLiteral(" – ") + Weeks::label(z.to)}};
                 phase = phaseOf(z, monday);
                 countdown = Planning::trainingWeek(z, Planning::mainCompetitionWeek(z, athleteId), monday);
@@ -1980,14 +1998,18 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
         w.insert(QStringLiteral("countdown"), countdown);
         w.insert(QStringLiteral("whPlan"), whPlan);
         w.insert(QStringLiteral("whActual"), whActual);
-        w.insert(QStringLiteral("phase"), phase);
-        w.insert(QStringLiteral("phaseShort"), phaseShort(phase));
+        w.insert(QStringLiteral("phase"), phase.name);
+        w.insert(QStringLiteral("phaseShort"), phase.abbreviation);
         w.insert(QStringLiteral("maz"), maz);
 
-        Report::Cells row = Report::cells({QString::number(monday.weekNumber()), phaseShort(phase), Planning::loadText(load),
-                                           (whPlan > 0 ? QString::number(whPlan) : QStringLiteral("–"))
-                                               + QStringLiteral(" / ")
-                                               + (whActual > 0 ? QString::number(whActual) : QStringLiteral("–"))});
+        QStringList lead{QString::number(monday.weekNumber())};
+        if (!allAthletes)
+            lead.append(phase.abbreviation);
+        lead.append({Planning::loadText(load),
+                     (whPlan > 0 ? QString::number(whPlan) : QStringLiteral("–"))
+                         + QStringLiteral(" / ")
+                         + (whActual > 0 ? QString::number(whActual) : QStringLiteral("–"))});
+        Report::Cells row = Report::cells(lead);
         QVariantList days;
         for (int d = 1; d <= 7; ++d) {
             const QDate date = monday.addDays(d - 1);

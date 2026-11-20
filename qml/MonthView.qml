@@ -52,7 +52,12 @@ Item {
 
     readonly property var s: Styles.TokenInterface.semantics
     readonly property var loadColor: ({ h: "#5b6b7f", m: "#9aa8b8", g: "#d5dde6" })
+    // The phases' fills are the same in every scheme, so their labels' are
+    // too: dark on the light GLP, white on the others
     readonly property var phaseColor: ({ GLP: "#c3cfdb", ABP: "#8aa1b8", LAP: "#4d6680" })
+    readonly property var phaseTextColor: ({ GLP: "#1f2a36", ABP: "white", LAP: "white" })
+    // Between the week rows; the bands close this gap where they go on
+    readonly property real weekSpacing: 3
 
     // The plan's bands, as IDA lays them over its calendar: the MAZ, and
     // under it its phases, each over the weeks it spans
@@ -87,7 +92,7 @@ Item {
         property color textColor
         property string label
         property string tip
-        property real rowSpacing: 3
+        readonly property real rowSpacing: view.weekSpacing
         readonly property bool above: view.joins(index, index - 1, kind)
         readonly property bool below: view.joins(index, index + 1, kind)
         readonly property bool on: view.bandKey((view.monthData.weeks || [])[index], kind) !== ""
@@ -132,7 +137,7 @@ Item {
         ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            spacing: 3
+            spacing: view.weekSpacing
 
             // Column heads
             RowLayout {
@@ -192,7 +197,7 @@ Item {
                             index: weekRow.index
                             kind: "phase"
                             color: view.phaseColor[weekRow.modelData.phaseShort] || "transparent"
-                            textColor: weekRow.modelData.phaseShort === "GLP" ? view.s.text_default : "white"
+                            textColor: view.phaseTextColor[weekRow.modelData.phaseShort] || view.s.text_default
                             label: weekRow.modelData.phaseShort || ""
                             tip: weekRow.modelData.phase || ""
                         }

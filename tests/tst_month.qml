@@ -91,6 +91,27 @@ Item {
             compare(f.report.blocks[0].rows[0][1].t, "Phase")
             compare(f.report.blocks[0].rows[6][1].t, "LAP")
             compare(f.upcoming[0].name, "DM Jugend")
+
+            // A MAZ without a Kurzbezeichnung: its name on the band, a
+            // long one as its initials
+            const other = Plan.saveMaz({ name: "Vorbereitung Deutsche Meisterschaft 2031", shortName: "", sex: 1,
+                                         from: "10/2031", to: "14/2031" })
+            verify(other.id)
+            Plan.removeMazAthlete(mazId, athlete)
+            Plan.saveMazAthlete({ mazId: other.id, athleteId: athlete })
+            compare(Store.month(athlete, "2031-03-01", false).weeks[1].maz.short, "VDM 2031")
+            Plan.removeMaz(other.id)
+            Plan.saveMazAthlete({ mazId: mazId, athleteId: athlete })
+            compare(Store.month(athlete, "2031-03-01", false).weeks[1].maz.short, "MM")
+        }
+
+        // Everyone's MAZ differ: no phase in the printout of all athletes,
+        // and no column left empty for it
+        function test_allAthletesData() {
+            const all = Store.month("", "2031-03-01", true)
+            compare(all.report.blocks[0].rows[0].map(c => c.t).slice(0, 4), ["KW", "Bel.", "WH Plan/Ist", "Mo"])
+            compare(all.report.blocks[0].rows[1].length, all.report.blocks[0].rows[0].length)
+            compare(all.weeks.map(w => w.phaseShort), ["", "", "", "", "", ""])
         }
 
         // Changing a competition's date from the month keeps its results
@@ -138,6 +159,18 @@ Item {
             const glp = findChild(findChild(findChild(view, "monthWeek1"), "phaseBand"), "phaseLabel").parent
             const rows = findChild(view, "monthWeek2")
             fuzzyCompare(glp.height, findChild(view, "monthWeek1").height + 3 + rows.height, 1)
+            // The label's colour goes with the band's fill, not the scheme
+            const glpLabel = findChild(findChild(findChild(view, "monthWeek1"), "phaseBand"), "phaseLabel")
+            verify(Qt.colorEqual(glpLabel.color, "#1f2a36"))
+
+            // All athletes: no bands, and no room kept for them
+            const box = findChild(page, "allAthletesBox")
+            box.checked = true
+            tryCompare(view, "allAthletes", true)
+            tryVerify(() => !findChild(findChild(view, "monthWeek1"), "mazBand").visible)
+            verify(!findChild(findChild(view, "monthWeek1"), "phaseBand").visible)
+            box.checked = false
+            tryVerify(() => findChild(findChild(view, "monthWeek1"), "mazBand").visible)
             // Back to the week
             page.showMonth(false)
         }
