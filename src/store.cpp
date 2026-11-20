@@ -1606,6 +1606,14 @@ QVariantMap Store::competitionTrend(const QString &athleteId, int fromYear, int 
     return result;
 }
 
+QString Store::lastEntryWeek(const QString &athleteId, const QString &variant) const
+{
+    if (athleteId.isEmpty())
+        return {};
+    const QDate m = Database::lastSessionWeek(athleteId, variant == QLatin1String("I") ? Variant::Actual : Variant::Plan);
+    return m.isValid() ? m.toString(Qt::ISODate) : QString();
+}
+
 QVariantMap Store::weekContext(const QString &athleteId, const QString &monday) const
 {
     QVariantMap result;

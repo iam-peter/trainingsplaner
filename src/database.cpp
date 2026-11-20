@@ -669,6 +669,17 @@ QStringList recentContents(const QString &athleteId, int kind, int exercise, int
     return list;
 }
 
+QDate lastSessionWeek(const QString &athleteId, Variant variant)
+{
+    QSqlQuery q(db());
+    q.prepare(QStringLiteral("SELECT MAX(monday) FROM session_entries WHERE athlete_id = ? AND variant = ?"));
+    q.addBindValue(athleteId);
+    q.addBindValue(variantString(variant));
+    if (!exec(q) || !q.next())
+        return {};
+    return QDate::fromString(q.value(0).toString(), Qt::ISODate);
+}
+
 QList<WeightLine> weightLines(const QString &athleteId, Variant variant, const QDate &fromMonday,
                               const QDate &toMonday)
 {

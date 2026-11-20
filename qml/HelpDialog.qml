@@ -14,6 +14,7 @@ AppDialog {
 
     readonly property var keys: [
         ["Strg+← / Strg+→", "Vorige / nächste Woche"],
+        ["Strg+Ende", "Letzter Eintrag: die letzte Woche mit Einheiten"],
         ["Pfeiltasten", "Zwischen den Trainingseinheiten wechseln"],
         ["Enter", "Trainingseinheit neben der Woche bearbeiten"],
         ["Entf", "Trainingseinheit löschen (mit Rückfrage)"],

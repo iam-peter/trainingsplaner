@@ -124,12 +124,20 @@ Bemerkung und die Auswertung der Woche.
 - **Woche / Monat** umschalten (Monat: [Abschnitt 4](#4-monat-und-wettkampftermine)).
 - **‹ 46/2026 ›** blättert eine Woche zurück oder vor (auch Strg+← / Strg+→),
   das Kalender-Symbol wählt eine Woche, **Heute** springt zur aktuellen.
+  Das Uhr-Symbol daneben, **Letzter Eintrag** (Strg+Ende), springt zur
+  letzten Woche, in der es Einheiten gibt: im Plan zur letzten geplanten,
+  im Ist zur letzten trainierten, im Monat zu deren Monat.
 - **Plan / Ist**: die geplante oder die tatsächlich trainierte Woche.
 - **Vorwoche** zeigt die Woche davor über der aktuellen.
 - **Rückgängig / Wiederholen** (Strg+Z / Strg+Y).
 - **Woche kopieren / Einfügen** überträgt eine ganze Woche, auch zu einem
   anderen Sportler.
 - **Verlauf** öffnet den Belastungsverlauf ([Abschnitt 5](#5-belastungsverlauf)).
+- **Drucken** und **PDF** geben den Wochenplan aus (siehe *Drucken* unten).
+
+Ist das Fenster schmaler als etwa 1600 Pixel, zeigen die Knöpfe rechts
+nur ihr Symbol; ihr Name steht beim Darüberfahren. Wird es noch enger,
+kürzt die Leiste zuerst die Tage der Woche neben dem Uhr-Symbol.
 
 Darunter fasst eine Zeile die Woche zusammen:
 
@@ -656,6 +664,7 @@ die der Junioren und Aktiven.
 |---|---|
 | Strg+1 … Strg+5 | Sportler, Wochenplan, Planung, Analyse, Wettkämpfe |
 | Strg+← / Strg+→ | Woche zurück / vor |
+| Strg+Ende | Letzter Eintrag: die letzte Woche mit Einheiten |
 | Strg+Z / Strg+Y | rückgängig / wiederholen |
 | Strg+S | Einheit oder Formular speichern |
 | Strg+P | Drucken (mit Vorschau) |

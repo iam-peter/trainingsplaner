@@ -222,6 +222,9 @@ public:
     //   loadText: the load as h / m / g (Planning::loadText)
     //   next: the next competition from the week's Monday on: {has, name, date, days}
     Q_INVOKABLE QVariantMap weekContext(const QString &athleteId, const QString &monday) const;
+    // "Letzter Eintrag": the Monday ("yyyy-MM-dd") of the latest week with
+    // a session of the variant ("P" or "I"), "" without any
+    Q_INVOKABLE QString lastEntryWeek(const QString &athleteId, const QString &variant) const;
     // A month as weeks for the month view, for one athlete or (allAthletes)
     // the competitions of all athletes chosen in the settings' filter:
     //   {title, weeks: [{monday, label, load, position, countdown, whPlan, whActual, phase,

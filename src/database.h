@@ -46,6 +46,9 @@ int sessionCount(const QString &athleteId);
 
 // Weeks and sessions
 Week loadWeek(const QString &athleteId, const QDate &monday, Variant variant);
+// The Monday of the latest week with a session of the variant; invalid
+// without any
+QDate lastSessionWeek(const QString &athleteId, Variant variant);
 bool saveSession(const QString &athleteId, const QDate &monday, Variant variant,
                  const Session &session);
 bool removeSession(const QString &athleteId, const QDate &monday, Variant variant, int day,

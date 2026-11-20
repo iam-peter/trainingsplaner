@@ -208,6 +208,21 @@ Page {
     property var noteOwner: null
 
     readonly property bool hasAthlete: athleteId !== ""
+    // The full toolbar needs about 1570 px; narrower, the buttons on its
+    // right show their icons only, their names as tips
+    readonly property bool compactBar: width < 1600
+
+    // The latest week with sessions of the variant shown; in the month
+    // view its month. Without any, nothing happens.
+    function showLastEntry() {
+        const m = Store.lastEntryWeek(athleteId, variant)
+        if (m === "")
+            return
+        if (monthMode)
+            monthDay = m
+        else
+            monday = m
+    }
 
     // Picks the first athlete while none is chosen; off in the window,
     // which chooses for all pages
@@ -412,6 +427,11 @@ Page {
         onActivated: page.monthMode ? page.shiftMonth(1) : page.monday = Store.addWeeks(page.monday, 1)
     }
     Shortcut {
+        sequence: "Ctrl+End"
+        enabled: page.shortcutsActive && page.hasAthlete
+        onActivated: page.showLastEntry()
+    }
+    Shortcut {
         sequences: [StandardKey.Print]
         enabled: page.shortcutsActive && page.hasAthlete
         onActivated: page.printWeek()
@@ -509,6 +529,7 @@ Page {
 
     header: AppToolBar {
         RowLayout {
+            objectName: "weekBar"
             anchors.fill: parent
             anchors.leftMargin: 8
             anchors.rightMargin: 8
@@ -615,10 +636,29 @@ Page {
                 text: "Heute"
                 onClicked: page.monthMode ? page.monthDay = Store.today() : page.monday = Store.mondayOf(Store.today())
             }
+            // "Letzter Eintrag", as in IDA: the latest week with sessions
+            IconButton {
+                objectName: "lastEntryButton"
+                iconName: "history"
+                enabled: page.hasAthlete
+                toolTip: "Letzter Eintrag: die letzte Woche mit Einheiten (" + (page.variant === "I" ? "Ist" : "Plan")
+                         + "), Strg+Ende"
+                onClicked: page.showLastEntry()
+            }
+            // The week's dates: the first to give way (…) when the bar
+            // runs out of room, so its buttons always fit
             Label {
+                objectName: "weekRangeLabel"
                 visible: !page.monthMode
                 text: Store.weekRange(page.monday)
                 color: Styles.TokenInterface.semantics.text_muted
+                elide: Text.ElideRight
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
+                Layout.maximumWidth: implicitWidth
+                HoverHandler { id: rangeHover }
+                ToolTip.visible: rangeHover.hovered && truncated
+                ToolTip.text: text
             }
 
             ToolSeparator {}
@@ -687,16 +727,18 @@ Page {
             }
 
             IconButton {
+                objectName: "copyWeekButton"
                 visible: !page.monthMode
                 iconName: "copy"
-                text: "Woche kopieren"
+                text: page.compactBar ? "" : "Woche kopieren"
+                toolTip: page.compactBar ? "Woche kopieren" : ""
                 enabled: page.hasAthlete && page.weekData.empty === false
                 onClicked: if (page.savePanel()) Store.copyWeek(page.athleteId, page.monday, page.variant)
             }
             IconButton {
                 visible: !page.monthMode
                 iconName: "clipboard-paste"
-                text: "Einfügen"
+                text: page.compactBar ? "" : "Einfügen"
                 enabled: page.hasAthlete && Store.clipboardLabel !== ""
                 onClicked: {
                     if (!page.savePanel())
@@ -706,21 +748,23 @@ Page {
                     else
                         pasteConfirm.open()
                 }
-                ToolTip.visible: hovered && enabled
-                ToolTip.text: "Kopierte Woche einfügen: " + Store.clipboardLabel
+                ToolTip.visible: hovered && (enabled || page.compactBar)
+                ToolTip.text: enabled ? "Kopierte Woche einfügen: " + Store.clipboardLabel : "Einfügen"
             }
             IconButton {
                 objectName: "loadChartButton"
                 visible: !page.monthMode
                 iconName: "chart-line"
-                text: "Verlauf"
+                text: page.compactBar ? "" : "Verlauf"
                 enabled: page.hasAthlete
-                toolTip: "Belastungsverlauf: diese Woche im MAZ, gegen das ITP"
+                toolTip: (page.compactBar ? "Verlauf. " : "") + "Belastungsverlauf: diese Woche im MAZ, gegen das ITP"
                 onClicked: loadChart.show(page.athleteId, page.monday, "", 1)
             }
             IconButton {
+                objectName: "printButton"
                 iconName: "printer"
-                text: "Drucken"
+                // The month's bar has room for it
+                text: page.compactBar && !page.monthMode ? "" : "Drucken"
                 enabled: page.hasAthlete
                 toolTip: page.monthMode ? "Den Monat drucken" : "Wochenplan drucken (Strg+P)"
                 onClicked: page.monthMode ? Analysis.printReport(monthView.monthData.report) : page.printWeek()
@@ -728,7 +772,8 @@ Page {
             IconButton {
                 visible: !page.monthMode
                 iconName: "file-down"
-                text: "PDF"
+                text: page.compactBar ? "" : "PDF"
+                toolTip: "Wochenplan als PDF speichern"
                 enabled: page.hasAthlete
                 onClicked: {
                     page.saveNote()
