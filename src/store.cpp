@@ -116,6 +116,7 @@ QVariantMap entryToMap(const Entry &e)
         {QStringLiteral("text"), e.text},
         {QStringLiteral("totalReps"), e.totalReps},
         {QStringLiteral("combination"), e.combination},
+        {QStringLiteral("note"), e.note},
         {QStringLiteral("stats"), statsMap(st)},
         {QStringLiteral("line"), line},
     };
@@ -131,8 +132,12 @@ Entry entryFromMap(const QVariantMap &m)
     e.text.remove(QLatin1Char('\n'));
     e.totalReps = m.value(QStringLiteral("totalReps")).toInt();
     e.combination = m.value(QStringLiteral("combination")).toInt();
-    if (e.kind == Entry::FreeText)
+    // A line's note; a free text line is a note itself
+    e.note = m.value(QStringLiteral("note")).toString().simplified();
+    if (e.kind == Entry::FreeText) {
         e.exercise = 0;
+        e.note.clear();
+    }
     if (e.kind == Entry::ExerciseText)
         e.text.remove(QLatin1Char(';'));
     return e;

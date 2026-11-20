@@ -81,6 +81,9 @@ QList<Session> plannedWeek(const Person &p, double load)
             const int max = l.snatchBased ? p.snatchMax : p.cleanJerkMax;
             for (const auto &st : l.steps)
                 e.steps.append({qRound(max * st[0] / 100.0 * load), st[1], st[2], 0});
+            // A note on a line: Monday's snatch
+            if (d.day == 1 && l.exercise == 1)
+                e.note = QStringLiteral("Technik: Zugphase");
             s.entries.append(e);
         }
         if (!d.text.isEmpty()) {

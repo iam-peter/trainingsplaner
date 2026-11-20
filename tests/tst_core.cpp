@@ -59,6 +59,7 @@ private slots:
     void nextWeight();
     void printWithAllOptions();
     void exportRoundTrip();
+    void lineNotes();
     void reportRoundTripAndPdf();
     void bvdgSampleWeeks();
     void attributesWithHistory();
@@ -1069,6 +1070,90 @@ void TestCore::exportRoundTrip()
 
     Database::close();
     QVERIFY(Database::open(first));
+}
+
+// A note per line of a session (table entry_notes): kept with its line
+// through saving, removing a line before it, copying, moving with
+// Erfassung TÜ, the export and its deletions
+void TestCore::lineNotes()
+{
+    Athlete a;
+    a.lastName = QStringLiteral("Notiz");
+    a.firstName = QStringLiteral("Nora");
+    const QString id = Database::saveAthlete(a);
+    const QDate monday(2026, 4, 6);
+    Session s;
+    s.day = 2;
+    s.number = 1;
+    Entry snatch;
+    snatch.exercise = 1;
+    snatch.steps = {{50, 3, 2, 0}};
+    snatch.note = QStringLiteral("Technik: Zugphase");
+    Entry squat;
+    squat.exercise = 19;
+    squat.steps = {{80, 3, 3, 0}};
+    Entry pullUps;
+    pullUps.kind = Entry::ExerciseText;
+    pullUps.exercise = 33;
+    pullUps.text = QStringLiteral("3x8");
+    pullUps.note = QStringLiteral("mit Band");
+    s.entries = {snatch, squat, pullUps};
+    QVERIFY(Database::saveSession(id, monday, Variant::Plan, s));
+    Week w = Database::loadWeek(id, monday, Variant::Plan);
+    QCOMPARE(w.sessions[0].entries[0].note, QStringLiteral("Technik: Zugphase"));
+    QCOMPARE(w.sessions[0].entries[1].note, QString());
+    QCOMPARE(w.sessions[0].entries[2].note, QStringLiteral("mit Band"));
+
+    // The first line goes: the notes move up with their lines
+    s.entries.removeFirst();
+    QVERIFY(Database::saveSession(id, monday, Variant::Plan, s));
+    w = Database::loadWeek(id, monday, Variant::Plan);
+    QCOMPARE(w.sessions[0].entries.size(), 2);
+    QCOMPARE(w.sessions[0].entries[0].note, QString());
+    QCOMPARE(w.sessions[0].entries[1].note, QStringLiteral("mit Band"));
+
+    // A week copied takes them along
+    QCOMPARE(Database::copyWeek(id, monday, Variant::Plan, id, monday, Variant::Actual), 1);
+    QCOMPARE(Database::loadWeek(id, monday, Variant::Actual).sessions[0].entries[1].note, QStringLiteral("mit Band"));
+
+    // Erfassung TÜ moves the squat to Thursday: its note goes with it
+    w.sessions[0].entries[0].note = QStringLiteral("tief");
+    QVERIFY(Database::saveSession(id, monday, Variant::Plan, w.sessions[0]));
+    w = Database::loadWeek(id, monday, Variant::Plan);
+    QList<ExerciseRow> rows = ExerciseWeek::rows(w, 19);
+    QCOMPARE(rows.size(), 1);
+    rows[0].day = 4;
+    ExerciseWeek::apply(w, 19, rows);
+    QVERIFY(Database::replaceSessions(id, monday, Variant::Plan, w.sessions));
+    w = Database::loadWeek(id, monday, Variant::Plan);
+    const Session *thursday = nullptr;
+    for (const Session &x : std::as_const(w.sessions))
+        if (x.day == 4)
+            thursday = &x;
+    QVERIFY(thursday);
+    QCOMPARE(thursday->entries[0].note, QStringLiteral("tief"));
+
+    // A note cleared is a deletion an export of changes passes on
+    QTest::qWait(1100);
+    const QDateTime since = QDateTime::currentDateTime();
+    Session tue = w.sessions[0];
+    QCOMPARE(tue.day, 2);
+    tue.entries[0].note.clear();
+    QVERIFY(Database::saveSession(id, monday, Variant::Plan, tue));
+    BakExport::Result changed;
+    BakExport::exportText({BakExport::Filter::ChangedSince, since, {}, {}, {}}, &changed);
+    QCOMPARE(changed.deleted.value(QStringLiteral("entry_notes")), 1);
+    // A full export has the others, as table te_ueb_bem
+    BakExport::Result all;
+    const QString full = BakExport::exportText({BakExport::Filter::All, {}, {}, {}, {}}, &all);
+    QVERIFY(all.rows.value(QStringLiteral("entry_notes")) >= 2);
+    QVERIFY(full.contains(QStringLiteral("te_ueb_bem")));
+
+    // The athlete removed: the notes too
+    QVERIFY(Database::removeAthlete(id));
+    QSqlQuery q;
+    QVERIFY(q.exec(QStringLiteral("SELECT COUNT(*) FROM entry_notes WHERE athlete_id = '%1'").arg(id)) && q.next());
+    QCOMPARE(q.value(0).toInt(), 0);
 }
 
 void TestCore::attributesWithHistory()

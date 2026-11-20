@@ -53,7 +53,8 @@ bool whereFor(const TableSpec &t, const BakExport::Filter &f, QString *where, QV
         if (t.name == QLatin1String("athletes")) {
             *where = QStringLiteral("id = ?");
             *binds = {f.athleteId};
-        } else if (t.name == QLatin1String("sessions") || t.name == QLatin1String("session_entries")) {
+        } else if (t.name == QLatin1String("sessions") || t.name == QLatin1String("session_entries")
+                   || t.name == QLatin1String("entry_notes")) {
             *where = QStringLiteral("athlete_id = ? AND monday BETWEEN ? AND ?");
             *binds = {f.athleteId, from, to};
         } else if (t.name == QLatin1String("weeks") || t.name == QLatin1String("week_targets")

@@ -216,6 +216,8 @@ Rectangle {
                              + "\nKlicken: Übung für die ganze Woche bearbeiten"
                     else if (m.text)
                         t += ": " + m.text
+                    if (m.note)
+                        t += "\nBemerkung: " + m.note
                     return t
                 }
 
@@ -245,12 +247,23 @@ Rectangle {
                     color: _cellStyle.text.color
                 }
                 Label {
-                    Layout.fillWidth: true
+                    Layout.fillWidth: !line.modelData.note
                     text: line.modelData.line
                     elide: Text.ElideRight
                     font.pixelSize: 12
                     font.italic: line.modelData.kind === 2
                     color: _cellStyle.text.color
+                }
+                // The line's note, after its figures
+                Label {
+                    objectName: "lineNote"
+                    visible: !!line.modelData.note
+                    Layout.fillWidth: true
+                    text: line.modelData.note || ""
+                    elide: Text.ElideRight
+                    font.pixelSize: 11
+                    font.italic: true
+                    color: Styles.TokenInterface.semantics.text_muted
                 }
                 }
             }

@@ -63,6 +63,7 @@ QList<QPair<int, int>> apply(Week &week, int exercise, const QList<ExerciseRow> 
         remove[Key{r.origDay, r.origNumber}].insert(r.origIndex);
 
     QList<ExerciseRow> append;
+    QList<QString> appendNotes; // a moved line keeps its note
     for (const ExerciseRow &r : edited) {
         Session *orig = r.origIndex >= 0 ? findSession(week, r.origDay, r.origNumber) : nullptr;
         const bool known = orig && r.origIndex < orig->entries.size()
@@ -76,6 +77,7 @@ QList<QPair<int, int>> apply(Week &week, int exercise, const QList<ExerciseRow> 
             remove[Key{r.origDay, r.origNumber}].remove(r.origIndex);
         } else {
             append.append(r); // new, or moved: the old line stays marked for removal
+            appendNotes.append(known ? orig->entries[r.origIndex].note : QString());
         }
     }
 
@@ -90,7 +92,8 @@ QList<QPair<int, int>> apply(Week &week, int exercise, const QList<ExerciseRow> 
         touch(it.key().first, it.key().second);
     }
 
-    for (const ExerciseRow &r : append) {
+    for (int k = 0; k < append.size(); ++k) {
+        const ExerciseRow &r = append[k];
         Session *s = findSession(week, r.day, r.number);
         if (!s) {
             Session created;
@@ -111,6 +114,7 @@ QList<QPair<int, int>> apply(Week &week, int exercise, const QList<ExerciseRow> 
         e.kind = Entry::Weights;
         e.exercise = exercise;
         e.steps = r.steps;
+        e.note = appendNotes[k];
         s->entries.append(e);
         touch(r.day, r.number);
     }

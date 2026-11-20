@@ -55,6 +55,7 @@ struct Entry
     QString text;      // ExerciseText / FreeText
     int totalReps = 0; // ExerciseText only ("WH ges."), 0 = not given
     int combination = 0; // carried over from old data, not used yet
+    QString note;        // a note on this line (table entry_notes), not in the old program
 
     Stats stats() const { return kind == Weights ? Steps::compute(steps) : Stats{}; }
 

@@ -207,6 +207,21 @@ CREATE TABLE IF NOT EXISTS planned_steps (
     PRIMARY KEY (owner, monday, exercise)
 );
 
+-- A note on one line of a session, keyed as the line (new in this
+-- program; the old program has notes per session only)
+CREATE TABLE IF NOT EXISTS entry_notes (
+    athlete_id TEXT NOT NULL,
+    monday TEXT NOT NULL,
+    day INTEGER NOT NULL,
+    number INTEGER NOT NULL,
+    position INTEGER NOT NULL,
+    variant TEXT NOT NULL,
+    note TEXT,
+    changed_by TEXT,
+    changed_at TEXT,
+    PRIMARY KEY (athlete_id, monday, day, number, position, variant)
+);
+
 -- Deleted rows, so an export of changes can pass deletions on; row_key
 -- is the row's key, its parts joined by U+001F
 CREATE TABLE IF NOT EXISTS deletions (

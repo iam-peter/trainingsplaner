@@ -203,6 +203,13 @@ void drawSession(Page &pg, const Options &o, const Session &s)
             double x = content.left();
             for (const Step &st : e.steps)
                 x += drawStep(p, pg, o, x, content, st) + pg.mm(5);
+            // The line's note after its steps, as far as there is room
+            if (!e.note.isEmpty() && x < content.right() - pg.mm(8)) {
+                p->setFont(font(o.fontSmall, false, true));
+                const QRectF room(x, content.top(), content.right() - x, content.height());
+                p->drawText(room, Qt::AlignLeft | Qt::AlignVCenter,
+                            QFontMetricsF(p->font(), p->device()).elidedText(e.note, Qt::ElideRight, room.width()));
+            }
             const Stats stats = e.stats();
             p->setFont(font(o.fontNormal));
             p->drawText(QRectF(xWh, top, cWh, h), Qt::AlignCenter, num(stats.wh));
@@ -216,6 +223,8 @@ void drawSession(Page &pg, const Options &o, const Session &s)
             if (e.kind == Entry::ExerciseText) {
                 const QString name = Catalog::name(e.exercise);
                 text = text.isEmpty() ? name : name + QStringLiteral(": ") + text;
+                if (!e.note.isEmpty())
+                    text += QStringLiteral(" – ") + e.note;
                 p->drawText(QRectF(xWh, top, cWh, h), Qt::AlignCenter, num(e.totalReps));
             }
             p->drawText(content, Qt::AlignLeft | Qt::AlignVCenter,

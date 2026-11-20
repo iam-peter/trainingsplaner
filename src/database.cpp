@@ -221,8 +221,38 @@ bool insertSession(const QString &athleteId, const QDate &monday, Variant varian
     if (!exec(del))
         return false;
 
+    // The lines' notes: those of lines without one now are gone, logged,
+    // the others written anew
+    QStringList noted;
+    for (int i = 0; i < s.entries.size(); ++i) {
+        if (!s.entries[i].note.trimmed().isEmpty())
+            noted.append(QString::number(i + 1));
+    }
+    if (!deleteLogged(QStringLiteral("entry_notes"),
+                      QStringLiteral("athlete_id = ? AND monday = ? AND day = ? AND number = ? AND variant = ?"
+                                     " AND position NOT IN (%1)").arg(noted.isEmpty() ? QStringLiteral("0") : noted.join(QLatin1Char(','))),
+                      {athleteId, dateString(monday), s.day, s.number, variantString(variant)}, stamp))
+        return false;
+
     int pos = 0;
     for (const Entry &e : s.entries) {
+        if (!e.note.trimmed().isEmpty()) {
+            QSqlQuery note(db());
+            note.prepare(QStringLiteral(
+                "INSERT OR REPLACE INTO entry_notes (athlete_id, monday, day, number, position, variant, note,"
+                " changed_by, changed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"));
+            note.addBindValue(athleteId);
+            note.addBindValue(dateString(monday));
+            note.addBindValue(s.day);
+            note.addBindValue(s.number);
+            note.addBindValue(pos + 1);
+            note.addBindValue(variantString(variant));
+            note.addBindValue(e.note.trimmed());
+            note.addBindValue(kUser);
+            note.addBindValue(Database::stampText(stamp));
+            if (!exec(note))
+                return false;
+        }
         QSqlQuery ins(db());
         ins.prepare(QStringLiteral(
             "INSERT INTO session_entries (athlete_id, monday, day, number, position, variant, exercise,"
@@ -406,7 +436,7 @@ bool removeAthlete(const QString &id)
     const QDateTime stamp = now();
     // Everything of the athlete, then the athlete
     const std::pair<const char *, const char *> owned[] = {
-        {"session_entries", "athlete_id"}, {"sessions", "athlete_id"}, {"weeks", "owner"},
+        {"entry_notes", "athlete_id"}, {"session_entries", "athlete_id"}, {"sessions", "athlete_id"}, {"weeks", "owner"},
         {"athlete_info", "athlete_id"}, {"competitions", "athlete_id"}, {"macrocycle_athletes", "athlete_id"},
         {"week_targets", "owner"}, {"planned_steps", "owner"}, {"athletes", "id"}};
     for (const auto &[table, column] : owned) {
@@ -841,7 +871,21 @@ Week loadWeek(const QString &athleteId, const QDate &monday, Variant variant)
     }
 
     QSqlQuery e(db());
-    e.prepare(QStringLiteral("SELECT day, number, exercise, content, kind, combination FROM session_entries"
+    // The lines' notes, by session and position
+    QMap<std::tuple<int, int, int>, QString> notes;
+    {
+        QSqlQuery nq(db());
+        nq.prepare(QStringLiteral("SELECT day, number, position, note FROM entry_notes"
+                                  " WHERE athlete_id = ? AND monday = ? AND variant = ?"));
+        nq.addBindValue(athleteId);
+        nq.addBindValue(dateString(monday));
+        nq.addBindValue(variantString(variant));
+        if (exec(nq)) {
+            while (nq.next())
+                notes.insert({nq.value(0).toInt(), nq.value(1).toInt(), nq.value(2).toInt()}, nq.value(3).toString());
+        }
+    }
+    e.prepare(QStringLiteral("SELECT day, number, exercise, content, kind, combination, position FROM session_entries"
                              " WHERE athlete_id = ? AND monday = ? AND variant = ? ORDER BY day, number, position"));
     e.addBindValue(athleteId);
     e.addBindValue(dateString(monday));
@@ -852,8 +896,10 @@ Week loadWeek(const QString &athleteId, const QDate &monday, Variant variant)
             Session &s = sessions[key];
             s.day = key.first;
             s.number = key.second;
-            s.entries.append(Entry::decode(e.value(4).toInt(), e.value(2).toInt(),
-                                           e.value(3).toString(), e.value(5).toInt()));
+            Entry entry = Entry::decode(e.value(4).toInt(), e.value(2).toInt(), e.value(3).toString(),
+                                        e.value(5).toInt());
+            entry.note = notes.value({key.first, key.second, e.value(6).toInt()});
+            s.entries.append(entry);
         }
     }
     w.sessions = sessions.values();
@@ -888,7 +934,7 @@ bool removeSession(const QString &athleteId, const QDate &monday, Variant varian
     QSqlDatabase d = db();
     d.transaction();
     const QDateTime stamp = now();
-    for (const char *table : {"session_entries", "sessions"}) {
+    for (const char *table : {"entry_notes", "session_entries", "sessions"}) {
         if (!deleteRows(QLatin1String(table),
                         QStringLiteral("athlete_id = ? AND monday = ? AND day = ? AND number = ? AND variant = ?"),
                         {athleteId, dateString(monday), day, number, variantString(variant)}, stamp)) {
@@ -942,7 +988,7 @@ bool replaceSessions(const QString &toAthlete, const QDate &toMonday, Variant to
     d.transaction();
     const QDateTime stamp = now();
     for (const Session &s : target.sessions) {
-        for (const char *table : {"session_entries", "sessions"}) {
+        for (const char *table : {"entry_notes", "session_entries", "sessions"}) {
             if (!deleteRows(QLatin1String(table),
                             QStringLiteral("athlete_id = ? AND monday = ? AND day = ? AND number = ? AND variant = ?"),
                             {toAthlete, dateString(toMonday), s.day, s.number, variantString(toVariant)},

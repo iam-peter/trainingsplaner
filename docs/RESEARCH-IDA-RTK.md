@@ -132,7 +132,7 @@ M days, L a week or more.
 |---|---|---|---|
 | 13 | Print: tonnage per exercise line, AMKT WH in the header, creation date (done, November 2026: a "t" column as an option of Ausdruck, AMKT WH beside K1-7 and K1-5 in the week's figures, "erstellt am" at the top) | IDA p.17 | S |
 | 14 | "Letzter Eintrag": jump to the last week with data (done, November 2026: a button beside "Heute" and Ctrl+End, to the latest week with sessions of the variant shown; the coach's wish came with it: the week's load, "Belastung: hoch/mittel/gesenkt", under the title of the printout) | IDA p.14 | S |
-| 15 | A note per exercise line, not only per session | IDA p.15 | S–M |
+| 15 | A note per exercise line, not only per session (done, November 2026: a new table entry_notes, keyed as the lines and written with them, exported as te_ueb_bem; the pen in the session editor, shown in the week and printed; Erfassung TÜ keeps it when a line moves) | IDA p.15 | S–M |
 | 16 | Colour per K group on the lines of week and month (done, November 2026: a stripe before each line of the week, the K boxes below as the legend, and in the month a bar per session split by complex) | IDA p.15–16 | S |
 | 17 | Further calendar entries: Lehrgang, Diagnostik/Test, with a type filter | IDA p.14 | M |
 

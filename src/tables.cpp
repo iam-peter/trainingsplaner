@@ -160,6 +160,12 @@ const QList<TableSpec> &all()
               {"wh", "reps"}, {"mhg", "mean_weight"}, {"bw", "top_weight"}, {"bwsg", "top_weight_reps"},
               {"bwsganz", "top_weight_sets"}},
              {"spid", "wodate", "ueb", "spi"}),
+        // A note per line of a session (new in this program)
+        spec("te_ueb_bem", "entry_notes",
+             {{"spid", "athlete_id"}, {"wodate", "monday"}, {"tag", "day"}, {"te", "number"},
+              {"pos", "position"}, {"spi", "variant"}, {"del", ""}, {"korrektur", "changed_at"},
+              {"korrektur2", ""}, {"user", "changed_by"}, {"bem", "note"}},
+             {"spid", "wodate", "tag", "te", "pos", "spi"}),
         // Planned weight steps (new in this program)
         spec("itp_ls", "planned_steps",
              {{"spid", "owner"}, {"wodate", "monday"}, {"ueb", "exercise"}, {"del", ""},
@@ -183,6 +189,7 @@ QString label(const QString &name)
         {QStringLiteral("macrocycle_athletes"), QStringLiteral("MAZ-Sportler")},
         {QStringLiteral("week_targets"), QStringLiteral("ITP/RO-Werte")},
         {QStringLiteral("planned_steps"), QStringLiteral("ITP-Laststufen")},
+        {QStringLiteral("entry_notes"), QStringLiteral("Bemerkungen zu Übungen")},
     };
     return names.value(name, name);
 }

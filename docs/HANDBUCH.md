@@ -167,8 +167,9 @@ orange, K3 gelb, K4 grün, K5 türkis, K6 blau, K7 violett, die
 allgemeinen Kraftübungen (Gruppen 8 und 9) grau. Die Kästen K1 bis K7
 unter der Woche tragen oben dieselben Farben.
 
-> **Beispiel:** Montag, 2. TE: Reißen (rot), Zug breit (gelb),
-> Kniebeuge vorn (türkis) und Klimmzüge (grau).
+> **Beispiel:** Montag, 2. TE: Reißen (rot) mit der Bemerkung
+> „Technik: Zugphase“, Zug breit (gelb), Kniebeuge vorn (türkis) und
+> Klimmzüge (grau).
 
 ### Eine Trainingseinheit bearbeiten
 
@@ -184,7 +185,12 @@ Wiederholungen/Sätze (SG/ANZ).
 > hoch und runter, Enter geht weiter.
 
 Unter jeder Übung steht, was sie in der Woche ergibt und was die Vorwoche
-und das ITP dazu sagen. *Zeit* und *bis* legen die Uhrzeit fest. Die
+und das ITP dazu sagen. Das Stift-Symbol einer Übung öffnet eine
+**Bemerkung** zu dieser Zeile, etwa „Technik: Zugphase“. Sie steht in der
+Woche schräg hinter den Zahlen der Zeile und auf dem Ausdruck hinter den
+Laststufen; die Bemerkung zur ganzen Einheit bleibt davon getrennt. Das
+alte Programm kannte nur diese; die Datensicherung gibt die Bemerkungen
+der Zeilen als eigene Tabelle mit. *Zeit* und *bis* legen die Uhrzeit fest. Die
 Einheit wird beim Wechsel zu einer anderen Einheit oder beim Schließen
 gespeichert (sofort mit Strg+S). Jede Änderung lässt sich rückgängig
 machen. Das Pfeil-Symbol oben rechts holt die Einheit in ein eigenes

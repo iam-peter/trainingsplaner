@@ -41,6 +41,9 @@ Frame {
     property string entryText: ""
     property int totalReps: 0
     property int combination: 0
+    // A note on this line (not on a free text line, which is a note itself)
+    property string note: ""
+    property bool showNote: false
     // "WH (ges.)" typed by hand; until then it follows the text (4x12 → 48)
     property bool repsTyped: false
     readonly property var entryStats: stepsEditor.stats
@@ -61,7 +64,8 @@ Frame {
             steps: stepsEditor.value(),
             text: entryText,
             totalReps: totalReps,
-            combination: combination
+            combination: combination,
+            note: kind === 2 ? "" : note
         }
     }
 
@@ -104,6 +108,7 @@ Frame {
         entryText = source.text || ""
         totalReps = source.totalReps || 0
         combination = source.combination || 0
+        note = source.note || ""
         // A stored total that the text does not give was typed by hand
         repsTyped = totalReps > 0 && totalReps !== repsFromText(entryText)
     }
@@ -202,6 +207,19 @@ Frame {
                     iconName: "chart-line"
                     toolTip: "Grafik der letzten Wochen"
                     onClicked: editor.infoRequested(editor.exercise, true)
+                }
+                IconToolButton {
+                    objectName: "noteButton"
+                    activeFocusOnTab: false
+                    visible: editor.kind !== 2
+                    iconName: "square-pen"
+                    highlighted: editor.showNote || editor.note !== ""
+                    toolTip: "Bemerkung zu dieser Übung"
+                    onClicked: {
+                        editor.showNote = !editor.showNote || editor.note !== ""
+                        if (editor.showNote)
+                            Qt.callLater(() => noteField.forceActiveFocus())
+                    }
                 }
                 IconToolButton {
                     activeFocusOnTab: false
@@ -314,6 +332,22 @@ Frame {
                 }
                 ToolTip.visible: activeFocus
                 ToolTip.text: "Aus dem Text, z.B. 4x12 = 48; von Hand überschreibbar"
+            }
+        }
+
+        // A note on the line, shown with it in the week and on the printout
+        RowLayout {
+            visible: editor.kind !== 2 && (editor.showNote || editor.note !== "")
+            Layout.fillWidth: true
+            spacing: 8
+            Label { text: "Bemerkung:" }
+            TextField {
+                id: noteField
+                objectName: "lineNote"
+                Layout.fillWidth: true
+                text: editor.note
+                placeholderText: "z.B. Technik: Zugphase"
+                onTextEdited: { editor.note = text; editor.changed() }
             }
         }
 
