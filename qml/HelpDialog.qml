@@ -147,7 +147,7 @@ AppDialog {
                           + "steht unter Einstellungen › Trainingszeiten. Unter der Woche setzen h, m und g ihre Belastung "
                           + "(hoch, mittel, gesenkt), dieselbe wie im ITP unter „Bel.“. „Monat“ zeigt den Monat mit Belastung, "
                           + "Einheiten und Wettkämpfen; ein Doppelklick auf einen Tag trägt einen Wettkampf ein, "
-                          + "„Alle Sportler“ zeigt die Wettkämpfe aller. „Verlauf“ zeigt den Belastungsverlauf: Gewicht einer "
+                          + "„Alle Sportler“ zeigt die Termine aller; „+ Termin“ trägt einen Lehrgang oder eine Diagnostik ein, oben in der Terminliste lassen sich die Arten ein- und ausblenden. „Verlauf“ zeigt den Belastungsverlauf: Gewicht einer "
                           + "Übung und Wiederholungen über die Wochen des MAZ, gegen das ITP, mit Ideallinie.<br><br>"
                           + "<b>Jugend:</b> beim Eintragen eines Wettkampfs schlägt das Programm die Wettkämpfe der DGJ vor; "
                           + "für Sportler bis AK 17 warnt es bei einem zweiten Wettkampf in derselben Woche. Für AK 14–17 "

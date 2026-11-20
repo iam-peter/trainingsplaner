@@ -64,6 +64,9 @@ bool whereFor(const TableSpec &t, const BakExport::Filter &f, QString *where, QV
         } else if (t.name == QLatin1String("competitions")) {
             *where = QStringLiteral("athlete_id = ? AND date BETWEEN ? AND ?");
             *binds = {f.athleteId, from, to};
+        } else if (t.name == QLatin1String("calendar_events")) {
+            *where = QStringLiteral("athlete_id = ? AND first_date <= ? AND COALESCE(last_date, first_date) >= ?");
+            *binds = {f.athleteId, to, from};
         } else if (t.name == QLatin1String("athlete_info")) {
             *where = QStringLiteral("athlete_id = ?"); // attributes span weeks; all of them
             *binds = {f.athleteId};

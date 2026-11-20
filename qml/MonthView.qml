@@ -21,6 +21,16 @@ Item {
     signal weekOpened(string monday)
     // A competition date to enter (date "" = none chosen) or to change
     signal competitionRequested(var competition, string date)
+    // A Lehrgang or Diagnostik to change (its id)
+    signal eventRequested(string id)
+
+    // What the calendar and the list show
+    property bool showCompetitions: true
+    property bool showLehrgang: true
+    property bool showDiagnostik: true
+    function shown(item) {
+        return item.isEvent ? (item.kind === 2 ? showDiagnostik : showLehrgang) : showCompetitions
+    }
 
     function reload() {
         monthData = month !== "" && (allAthletes || athleteId !== "") ? Store.month(athleteId, month, allAthletes) : {}
@@ -205,6 +215,7 @@ Item {
                         Rectangle {
                             id: dayCell
                             required property var modelData
+                            required property int index
                             objectName: "monthDay" + modelData.date
                             readonly property bool lowered: weekRow.modelData.load === "g"
                             Layout.fillWidth: true
@@ -288,8 +299,52 @@ Item {
                                     }
                                     }
                                 }
+                                // Lehrgänge (blue, as a band over their days) and
+                                // Diagnostik (violet)
                                 Repeater {
-                                    model: dayCell.modelData.competitions
+                                    model: (dayCell.modelData.events || []).filter(e => view.shown(e))
+                                    Rectangle {
+                                        id: eventChip
+                                        required property var modelData
+                                        readonly property bool diagnostik: modelData.kind === 2
+                                        objectName: "event"
+                                        Layout.fillWidth: true
+                                        implicitHeight: eventLabel.implicitHeight + 4
+                                        radius: 4
+                                        color: diagnostik ? "#ede9fe" : "#dbeafe"
+                                        HoverHandler { id: eventHover; cursorShape: Qt.PointingHandCursor }
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            onClicked: view.eventRequested(eventChip.modelData.id)
+                                            onDoubleClicked: {}
+                                        }
+                                        ToolTip.visible: eventHover.hovered
+                                        ToolTip.text: eventChip.modelData.kindName + ": " + eventChip.modelData.name
+                                                      + "\n" + eventChip.modelData.dateText
+                                                      + (eventChip.modelData.place ? ", " + eventChip.modelData.place : "")
+                                                      + (view.allAthletes ? "\n" + eventChip.modelData.athlete : "")
+                                                      + "\nKlick: ändern"
+                                        Label {
+                                            id: eventLabel
+                                            anchors.left: parent.left
+                                            anchors.right: parent.right
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            anchors.leftMargin: 4
+                                            anchors.rightMargin: 4
+                                            elide: Text.ElideRight
+                                            font.pixelSize: 11
+                                            font.bold: true
+                                            color: eventChip.diagnostik ? "#6d28d9" : "#1d4ed8"
+                                            // The name on the first day and at the start of a week
+                                            text: eventChip.modelData.firstDay || dayCell.index % 7 === 0
+                                                  ? (eventChip.diagnostik ? "◇ " : "▭ ") + eventChip.modelData.name
+                                                    + (view.allAthletes ? " · " + eventChip.modelData.athlete : "")
+                                                  : " "
+                                        }
+                                    }
+                                }
+                                Repeater {
+                                    model: view.showCompetitions ? dayCell.modelData.competitions : []
                                     Rectangle {
                                         id: chip
                                         required property var modelData
@@ -365,8 +420,16 @@ Item {
                 anchors.fill: parent
                 spacing: 8
                 Label { text: "Termine"; font.bold: true; font.pixelSize: 14 }
+                // Which kinds of dates the calendar and this list show
+                Flow {
+                    Layout.fillWidth: true
+                    spacing: 4
+                    CheckBox { objectName: "showCompetitions"; text: "Wettkämpfe"; checked: view.showCompetitions; onToggled: view.showCompetitions = checked }
+                    CheckBox { objectName: "showLehrgang"; text: "Lehrgänge"; checked: view.showLehrgang; onToggled: view.showLehrgang = checked }
+                    CheckBox { objectName: "showDiagnostik"; text: "Diagnostik"; checked: view.showDiagnostik; onToggled: view.showDiagnostik = checked }
+                }
                 Repeater {
-                    model: view.monthData.upcoming || []
+                    model: (view.monthData.upcoming || []).filter(t => view.shown(t))
                     Frame {
                         id: termin
                         required property var modelData
@@ -382,7 +445,8 @@ Item {
                         // A handler, not a MouseArea: the frame's children go into
                         // its layout, where anchors are not allowed
                         TapHandler {
-                            onTapped: view.competitionRequested(termin.modelData, "")
+                            onTapped: termin.modelData.isEvent ? view.eventRequested(termin.modelData.id)
+                                                               : view.competitionRequested(termin.modelData, "")
                         }
                         contentItem: ColumnLayout {
                             spacing: 1
@@ -391,6 +455,8 @@ Item {
                                 elide: Text.ElideRight
                                 font.bold: true
                                 text: termin.modelData.dateText + " · " + termin.modelData.name
+                                color: termin.modelData.isEvent ? (termin.modelData.kind === 2 ? "#6d28d9" : "#1d4ed8")
+                                                                : view.s.text_default
                             }
                             Label {
                                 objectName: "terminNorm"
@@ -414,8 +480,10 @@ Item {
                                 elide: Text.ElideRight
                                 font.pixelSize: 11
                                 color: view.s.text_muted
-                                text: [termin.modelData.place, view.allAthletes ? termin.modelData.athlete : "",
-                                       termin.modelData.days === 0 ? "heute" : termin.modelData.days === 1 ? "morgen"
+                                text: [termin.modelData.isEvent ? termin.modelData.kindName : "",
+                                       termin.modelData.place, view.allAthletes ? termin.modelData.athlete : "",
+                                       termin.modelData.days < 0 ? "läuft" : termin.modelData.days === 0 ? "heute"
+                                       : termin.modelData.days === 1 ? "morgen"
                                        : "in " + termin.modelData.days + " Tagen"].filter(t => t).join(" · ")
                             }
                         }
@@ -434,8 +502,8 @@ Item {
                     wrapMode: Text.Wrap
                     font.pixelSize: 11
                     color: view.s.text_muted
-                    text: view.allAthletes ? "Die Wettkämpfe aller Sportler, wie ein Wandkalender."
-                                           : "„Alle Sportler“ zeigt die Wettkämpfe aller Sportler."
+                    text: view.allAthletes ? "Die Termine aller Sportler, wie ein Wandkalender."
+                                           : "„Alle Sportler“ zeigt die Termine aller Sportler."
                 }
             }
         }

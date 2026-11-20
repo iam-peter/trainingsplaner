@@ -276,10 +276,25 @@ K1-7 und K1-5 auch die Wiederholungen der allgemeinen Kraftübungen
 - in den Tagen die Einheiten: ● Ist nach Plan, ◆ Ist ohne Plan, ○ geplant,
   ◌ offen (geplant, aber ohne Ist, in Rot); darunter ein schmaler Balken
   mit den Wiederholungen der Einheit nach Komplexen, in deren Farben;
-- rechts die **Termine**, also die kommenden Wettkämpfe.
+- rechts die **Termine**: die kommenden Wettkämpfe, Lehrgänge und
+  Diagnostiken. Oben darüber lassen sich **Wettkämpfe**, **Lehrgänge**
+  und **Diagnostik** ein- und ausblenden, im Kalender wie in der Liste.
 
 Ein Klick auf eine Kalenderwoche öffnet diese Woche. **Alle Sportler**
-zeigt die Wettkämpfe aller Sportler.
+zeigt die Termine aller Sportler.
+
+### Lehrgang und Diagnostik eintragen
+
+**+ Termin** trägt neben den Wettkämpfen einen **Lehrgang** (von–bis)
+oder eine **Diagnostik/Test** (ein Tag) für einen Sportler ein, mit
+Bezeichnung, Ort und Bemerkung. Im Kalender steht ein Lehrgang als blaues
+Band über seinen Tagen, eine Diagnostik violett. Ein Klick darauf ändert
+den Termin oder löscht ihn. Die Zeile über der Woche nennt die Termine
+der Woche.
+
+> **Beispiel:** Mira: „Kaderlehrgang“ in Kienbaum vom 23.11. bis
+> 27.11.2026, „Leistungsdiagnostik“ in Leipzig am 02.12.2026. In der
+> Terminliste steht der Lehrgang „in 9 Tagen“, solange er läuft „läuft“.
 
 ### Einen Wettkampf eintragen
 

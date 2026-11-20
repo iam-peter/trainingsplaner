@@ -2,6 +2,7 @@
 
 #include "bakexport.h"
 #include "bakimport.h"
+#include "calendarevents.h"
 #include "competition.h"
 #include "colorscheme.h"
 #include "database.h"
@@ -1720,6 +1721,14 @@ QVariantMap Store::weekContext(const QString &athleteId, const QString &monday) 
         }
     }
     result.insert(QStringLiteral("maz"), maz);
+    // Lehrgänge and Diagnostik in the week
+    QVariantList events;
+    for (const CalendarEvents::Event &e : CalendarEvents::between(athleteId, m, m.addDays(6)))
+        events.append(QVariantMap{{QStringLiteral("id"), e.id}, {QStringLiteral("kind"), e.kind},
+                                  {QStringLiteral("text"), e.title + QStringLiteral(" (") + CalendarEvents::daysText(e)
+                                                           + (e.place.isEmpty() ? QString() : QStringLiteral(", ") + e.place)
+                                                           + QLatin1Char(')')}});
+    result.insert(QStringLiteral("events"), events);
     int load = 0;
     QString position;
     for (const WeekMeta &w : Planning::meta(athleteId, m, m)) {
@@ -1815,6 +1824,31 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
                 upcoming.append(m);
             }
             compsByDate[c.date].append(m);
+        }
+    }
+    // Lehrgänge and Diagnostik: on each of their days in the month, and
+    // with the dates to come while not over
+    QMap<QDate, QVariantList> eventsByDate;
+    {
+        const QDate gridFrom = Weeks::mondayOf(first), gridTo = Weeks::mondayOf(last).addDays(6);
+        for (const auto &[id, name] : std::as_const(who)) {
+            for (const CalendarEvents::Event &e : CalendarEvents::between(id, qMin(gridFrom, today), gridTo.addYears(1))) {
+                const QString kindName = CalendarEvents::kindNames().value(e.kind - 1);
+                QVariantMap m{{QStringLiteral("isEvent"), true}, {QStringLiteral("id"), e.id},
+                              {QStringLiteral("athleteId"), id}, {QStringLiteral("athlete"), name},
+                              {QStringLiteral("kind"), e.kind}, {QStringLiteral("kindName"), kindName},
+                              {QStringLiteral("name"), e.title}, {QStringLiteral("place"), e.place},
+                              {QStringLiteral("dateText"), CalendarEvents::daysText(e)},
+                              {QStringLiteral("date"), e.first.toString(Qt::ISODate)},
+                              {QStringLiteral("days"), int(today.daysTo(e.first))}};
+                if (e.last >= today)
+                    upcoming.append(m);
+                for (QDate d = qMax(e.first, gridFrom); d <= e.last && d <= gridTo; d = d.addDays(1)) {
+                    QVariantMap day = m;
+                    day.insert(QStringLiteral("firstDay"), d == e.first);
+                    eventsByDate[d].append(day);
+                }
+            }
         }
     }
     std::sort(upcoming.begin(), upcoming.end(), [](const QVariantMap &a, const QVariantMap &b) {
@@ -1923,6 +1957,13 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
                                      : state == QLatin1String("open") ? QStringLiteral("offen") : QStringLiteral("○");
                 printed.append(mark + QLatin1Char(' ') + QString::number(wh));
             }
+            const QVariantList events = eventsByDate.value(date);
+            for (const QVariant &v : events) {
+                const QVariantMap m = v.toMap();
+                if (m.value(QStringLiteral("firstDay")).toBool())
+                    printed.append(QStringLiteral("▭ ") + m.value(QStringLiteral("name")).toString()
+                                   + (allAthletes ? QStringLiteral(" (") + m.value(QStringLiteral("athlete")).toString() + QLatin1Char(')') : QString()));
+            }
             const QVariantList comps = compsByDate.value(date);
             for (const QVariant &c : comps) {
                 const QVariantMap m = c.toMap();
@@ -1934,7 +1975,8 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
                                     {QStringLiteral("inMonth"), date.month() == first.month()},
                                     {QStringLiteral("today"), date == today},
                                     {QStringLiteral("sessions"), sessions},
-                                    {QStringLiteral("competitions"), comps}});
+                                    {QStringLiteral("competitions"), comps},
+                                    {QStringLiteral("events"), events}});
             Report::Cell cell;
             cell.text = QString::number(date.day()) + (printed.isEmpty() ? QString() : QStringLiteral(": ") + printed.join(QStringLiteral(" · ")));
             cell.muted = date.month() != first.month();
@@ -2061,6 +2103,61 @@ QString Store::weekConflict(const QString &athleteId, const QString &date, const
                 .arg(c.name.isEmpty() ? Competitions::typeShortNames().value(c.type) : c.name, Dates::text(c.date));
     }
     return QString();
+}
+
+QStringList Store::eventKinds() const
+{
+    return CalendarEvents::kindNames();
+}
+
+QString Store::saveEvent(const QVariantMap &m)
+{
+    CalendarEvents::Event e;
+    e.id = m.value(QStringLiteral("id")).toString();
+    e.athleteId = m.value(QStringLiteral("athleteId")).toString();
+    if (e.athleteId.isEmpty())
+        return QStringLiteral("Bitte einen Sportler wählen.");
+    e.kind = m.value(QStringLiteral("kind")).toInt() == CalendarEvents::Diagnostik ? CalendarEvents::Diagnostik
+                                                                                  : CalendarEvents::Lehrgang;
+    e.first = Dates::parse(m.value(QStringLiteral("from")).toString());
+    if (!e.first.isValid())
+        return QStringLiteral("Datum „von“ ungültig.");
+    const QString to = m.value(QStringLiteral("to")).toString().trimmed();
+    e.last = to.isEmpty() || e.kind == CalendarEvents::Diagnostik ? e.first : Dates::parse(to);
+    if (!e.last.isValid())
+        return QStringLiteral("Datum „bis“ ungültig.");
+    if (e.last < e.first)
+        return QStringLiteral("„bis“ liegt vor „von“.");
+    if (e.first.daysTo(e.last) > 90)
+        return QStringLiteral("Ein Lehrgang dauert höchstens 90 Tage.");
+    e.title = m.value(QStringLiteral("title")).toString().simplified();
+    if (e.title.isEmpty())
+        e.title = CalendarEvents::kindNames().value(e.kind - 1);
+    e.place = m.value(QStringLiteral("place")).toString();
+    e.note = m.value(QStringLiteral("note")).toString().trimmed();
+    if (CalendarEvents::save(e).isEmpty())
+        return QStringLiteral("Speichern fehlgeschlagen.");
+    bump();
+    return QString();
+}
+
+bool Store::removeEvent(const QString &id)
+{
+    const bool ok = CalendarEvents::remove(id);
+    if (ok)
+        bump();
+    return ok;
+}
+
+QVariantMap Store::event(const QString &id) const
+{
+    const CalendarEvents::Event e = CalendarEvents::find(id);
+    if (e.id.isEmpty())
+        return {};
+    return {{QStringLiteral("id"), e.id}, {QStringLiteral("athleteId"), e.athleteId},
+            {QStringLiteral("kind"), e.kind}, {QStringLiteral("from"), Dates::text(e.first)},
+            {QStringLiteral("to"), e.last != e.first ? Dates::text(e.last) : QString()},
+            {QStringLiteral("title"), e.title}, {QStringLiteral("place"), e.place}, {QStringLiteral("note"), e.note}};
 }
 
 QString Store::saveCompetitionDate(const QString &athleteId, const QString &date, int type, const QString &name,

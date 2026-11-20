@@ -107,6 +107,9 @@ Page {
             parts.push("Belastung " + context.loadText)
         if (context.position)
             parts.push("WK-Lage " + context.position)
+        // Lehrgänge and Diagnostik in the week
+        for (const e of (context.events || []))
+            parts.push(e.text)
         return parts.join("   ·   ")
     }
     readonly property string nextCompetitionText: {
@@ -669,7 +672,7 @@ Page {
                 visible: page.monthMode
                 text: "Alle Sportler"
                 ToolTip.visible: hovered
-                ToolTip.text: "Die Wettkämpfe aller Sportler zeigen, wie ein Wandkalender"
+                ToolTip.text: "Die Termine aller Sportler zeigen, wie ein Wandkalender"
             }
             IconButton {
                 objectName: "addCompetition"
@@ -677,6 +680,15 @@ Page {
                 iconName: "plus"
                 text: "Wettkampf"
                 onClicked: competitionDialog.show(null, "", page.athleteId)
+            }
+            // A Lehrgang or a Diagnostik/Test
+            IconButton {
+                objectName: "addEvent"
+                visible: page.monthMode
+                iconName: "plus"
+                text: "Termin"
+                toolTip: "Lehrgang oder Diagnostik/Test eintragen"
+                onClicked: eventDialog.show("", "", page.athleteId)
             }
 
             RadioButton {
@@ -813,6 +825,7 @@ Page {
                     page.showMonth(false)
                 }
                 onCompetitionRequested: (c, date) => competitionDialog.show(c, date, page.athleteId)
+                onEventRequested: (id) => eventDialog.show(id, "", page.athleteId)
             }
 
             ColumnLayout {
@@ -1293,6 +1306,10 @@ Page {
     LoadChartDialog {
         id: loadChart
         objectName: "loadChartDialog"
+    }
+
+    EventDialog {
+        id: eventDialog
     }
 
     CompetitionDateDialog {

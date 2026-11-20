@@ -222,6 +222,21 @@ CREATE TABLE IF NOT EXISTS entry_notes (
     PRIMARY KEY (athlete_id, monday, day, number, position, variant)
 );
 
+-- Calendar entries beside the competitions: a Lehrgang over several days
+-- (kind 1), a Diagnostik/Test on one day (kind 2); new in this program
+CREATE TABLE IF NOT EXISTS calendar_events (
+    id TEXT NOT NULL PRIMARY KEY,
+    athlete_id TEXT NOT NULL,
+    kind INTEGER DEFAULT 1,
+    first_date TEXT NOT NULL,
+    last_date TEXT,
+    title TEXT,
+    place TEXT,
+    note TEXT,
+    changed_by TEXT,
+    changed_at TEXT
+);
+
 -- Deleted rows, so an export of changes can pass deletions on; row_key
 -- is the row's key, its parts joined by U+001F
 CREATE TABLE IF NOT EXISTS deletions (

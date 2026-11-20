@@ -160,6 +160,12 @@ const QList<TableSpec> &all()
               {"wh", "reps"}, {"mhg", "mean_weight"}, {"bw", "top_weight"}, {"bwsg", "top_weight_reps"},
               {"bwsganz", "top_weight_sets"}},
              {"spid", "wodate", "ueb", "spi"}),
+        // Calendar entries: Lehrgang, Diagnostik/Test (new in this program)
+        spec("termin", "calendar_events",
+             {{"id", "id"}, {"spid", "athlete_id"}, {"del", ""}, {"korrektur", "changed_at"},
+              {"korrektur2", ""}, {"user", "changed_by"}, {"art", "kind"}, {"von", "first_date"},
+              {"bis", "last_date"}, {"bez", "title"}, {"ort", "place"}, {"bem", "note"}},
+             {"id"}),
         // A note per line of a session (new in this program)
         spec("te_ueb_bem", "entry_notes",
              {{"spid", "athlete_id"}, {"wodate", "monday"}, {"tag", "day"}, {"te", "number"},
@@ -190,6 +196,7 @@ QString label(const QString &name)
         {QStringLiteral("week_targets"), QStringLiteral("ITP/RO-Werte")},
         {QStringLiteral("planned_steps"), QStringLiteral("ITP-Laststufen")},
         {QStringLiteral("entry_notes"), QStringLiteral("Bemerkungen zu Übungen")},
+        {QStringLiteral("calendar_events"), QStringLiteral("Termine")},
     };
     return names.value(name, name);
 }

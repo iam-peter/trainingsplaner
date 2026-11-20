@@ -27,6 +27,8 @@ class Store : public QObject
     // Kader, Verein, ...: attributes with a history
     Q_PROPERTY(QStringList attributeNames READ attributeNames CONSTANT)
     Q_PROPERTY(QStringList competitionTypes READ competitionTypes CONSTANT)
+    // Kinds of calendar entries beside competitions: Lehrgang, Diagnostik/Test
+    Q_PROPERTY(QStringList eventKinds READ eventKinds CONSTANT)
     Q_PROPERTY(QString filterKader READ filterKader WRITE setFilterKader NOTIFY athletesChanged)
     Q_PROPERTY(int filterSex READ filterSex WRITE setFilterSex NOTIFY athletesChanged)
     // Categories of extra info: [{name, code, unit, decimals, aggregate (MAX/MIN/SUM)}]
@@ -77,6 +79,7 @@ public:
     QVariantList selectableAthletes() const;
     QStringList attributeNames() const;
     QStringList competitionTypes() const;
+    QStringList eventKinds() const;
     QString filterKader() const;
     void setFilterKader(const QString &v);
     int filterSex() const; // -1 all, 0 men, 1 women
@@ -246,6 +249,13 @@ public:
                                      const QString &oldTime = QString()) const;
     // A competition's date, type, name and place, keeping its results;
     // old date and time "" for a new one
+    // A calendar entry: {id ("" new), athleteId, kind (1 Lehrgang, 2
+    // Diagnostik/Test), from, to ("dd.MM.yyyy", to "" one day), title,
+    // place, note}. Returns "" or what is wrong.
+    Q_INVOKABLE QString saveEvent(const QVariantMap &e);
+    Q_INVOKABLE bool removeEvent(const QString &id);
+    // One entry as for saveEvent, with from/to as "dd.MM.yyyy"
+    Q_INVOKABLE QVariantMap event(const QString &id) const;
     Q_INVOKABLE QString saveCompetitionDate(const QString &athleteId, const QString &date, int type,
                                             const QString &name, const QString &place,
                                             const QString &oldDate, const QString &oldTime);

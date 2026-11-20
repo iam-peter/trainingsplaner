@@ -30,6 +30,7 @@ add_library(tpcore STATIC
     src/rtk.cpp         src/rtk.h
     src/tmk.cpp         src/tmk.h
     src/development.cpp src/development.h
+    src/calendarevents.cpp src/calendarevents.h
     src/demo.cpp        src/demo.h
     src/update.cpp      src/update.h
 )
@@ -118,6 +119,7 @@ qt_add_qml_module(tpqml
         qml/ItpGrid.qml
         qml/ScaleDialog.qml
         qml/QuickRanges.qml
+        qml/EventDialog.qml
         qml/PlanningPage.qml
         qml/ReportView.qml
         qml/AnalysisPage.qml

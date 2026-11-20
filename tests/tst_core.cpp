@@ -1,5 +1,6 @@
 #include "bakexport.h"
 #include "bakimport.h"
+#include "calendarevents.h"
 #include "competition.h"
 #include "planning.h"
 #include "analysis.h"
@@ -60,6 +61,7 @@ private slots:
     void printWithAllOptions();
     void exportRoundTrip();
     void lineNotes();
+    void calendarEvents();
     void reportRoundTripAndPdf();
     void bvdgSampleWeeks();
     void attributesWithHistory();
@@ -1154,6 +1156,47 @@ void TestCore::lineNotes()
     QSqlQuery q;
     QVERIFY(q.exec(QStringLiteral("SELECT COUNT(*) FROM entry_notes WHERE athlete_id = '%1'").arg(id)) && q.next());
     QCOMPARE(q.value(0).toInt(), 0);
+}
+
+// Lehrgang and Diagnostik entries: found by the days they touch, written
+// as their days, exported (table termin) and gone with their athlete
+void TestCore::calendarEvents()
+{
+    Athlete a;
+    a.lastName = QStringLiteral("Kalender");
+    a.firstName = QStringLiteral("Karl");
+    const QString id = Database::saveAthlete(a);
+    CalendarEvents::Event camp;
+    camp.athleteId = id;
+    camp.kind = CalendarEvents::Lehrgang;
+    camp.first = QDate(2027, 12, 28);
+    camp.last = QDate(2028, 1, 3);
+    camp.title = QStringLiteral("Wintercamp");
+    camp.id = CalendarEvents::save(camp);
+    QVERIFY(!camp.id.isEmpty());
+    CalendarEvents::Event test;
+    test.athleteId = id;
+    test.kind = CalendarEvents::Diagnostik;
+    test.first = QDate(2028, 1, 10);
+    test.last = QDate(2028, 1, 1); // before the first: one day
+    QVERIFY(!CalendarEvents::save(test).isEmpty());
+
+    // Touching the days asked for, over the turn of the year
+    QCOMPARE(CalendarEvents::between(id, QDate(2028, 1, 1), QDate(2028, 1, 7)).size(), 1);
+    QCOMPARE(CalendarEvents::between(id, QDate(2028, 1, 1), QDate(2028, 1, 31)).size(), 2);
+    QCOMPARE(CalendarEvents::between(id, QDate(2028, 1, 4), QDate(2028, 1, 9)).size(), 0);
+    QCOMPARE(CalendarEvents::daysText(CalendarEvents::find(camp.id)), QStringLiteral("28.12.2027–03.01.2028"));
+    const CalendarEvents::Event one = CalendarEvents::between(id, QDate(2028, 1, 10), QDate(2028, 1, 10)).first();
+    QCOMPARE(one.last, one.first);
+    QCOMPARE(CalendarEvents::daysText(one), QStringLiteral("10.01.2028"));
+
+    BakExport::Result all;
+    const QString full = BakExport::exportText({BakExport::Filter::All, {}, {}, {}, {}}, &all);
+    QVERIFY(all.rows.value(QStringLiteral("calendar_events")) >= 2);
+    QVERIFY(full.contains(QStringLiteral("termin")));
+
+    QVERIFY(Database::removeAthlete(id));
+    QCOMPARE(CalendarEvents::between(id, QDate(2027, 1, 1), QDate(2029, 1, 1)).size(), 0);
 }
 
 void TestCore::attributesWithHistory()

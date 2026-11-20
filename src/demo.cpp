@@ -1,5 +1,6 @@
 #include "demo.h"
 
+#include "calendarevents.h"
 #include "competition.h"
 #include "database.h"
 #include "model.h"
@@ -310,6 +311,24 @@ QStringList create(const QDate &today)
             c.cleanJerk[1] = -j;
             c.cleanJerk[2] = j;
             Competitions::save(c);
+        }
+        // A Lehrgang in two weeks and a Diagnostik in three, for the first
+        if (ids.size() == 1) {
+            CalendarEvents::Event camp;
+            camp.athleteId = id;
+            camp.kind = CalendarEvents::Lehrgang;
+            camp.first = monday.addDays(14);
+            camp.last = monday.addDays(18);
+            camp.title = QStringLiteral("Kaderlehrgang");
+            camp.place = QStringLiteral("Kienbaum");
+            CalendarEvents::save(camp);
+            CalendarEvents::Event test;
+            test.athleteId = id;
+            test.kind = CalendarEvents::Diagnostik;
+            test.first = test.last = monday.addDays(23);
+            test.title = QStringLiteral("Leistungsdiagnostik");
+            test.place = QStringLiteral("Leipzig");
+            CalendarEvents::save(test);
         }
         // A Landesmeisterschaft in each of the five years before, the
         // total rising towards today's as a career does, the body weight

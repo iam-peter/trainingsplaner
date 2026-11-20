@@ -436,7 +436,7 @@ bool removeAthlete(const QString &id)
     const QDateTime stamp = now();
     // Everything of the athlete, then the athlete
     const std::pair<const char *, const char *> owned[] = {
-        {"entry_notes", "athlete_id"}, {"session_entries", "athlete_id"}, {"sessions", "athlete_id"}, {"weeks", "owner"},
+        {"calendar_events", "athlete_id"}, {"entry_notes", "athlete_id"}, {"session_entries", "athlete_id"}, {"sessions", "athlete_id"}, {"weeks", "owner"},
         {"athlete_info", "athlete_id"}, {"competitions", "athlete_id"}, {"macrocycle_athletes", "athlete_id"},
         {"week_targets", "owner"}, {"planned_steps", "owner"}, {"athletes", "id"}};
     for (const auto &[table, column] : owned) {
