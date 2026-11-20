@@ -327,6 +327,22 @@ Page {
             property var second: ({})
             // "Ist + Plan": the plan of the same athlete beside the Ist
             property var planned: ({})
+            // The average of a group beside the athlete, as IDA's "Kader (Ø)"
+            property var groupAverage: ({})
+            // Groups to compare with: the athletes of a Kader or a Verein
+            // (as they are today), or of a MAZ
+            readonly property var groups: {
+                const list = []
+                const athletes = Store.athletes
+                for (const art of ["Kader", "Verein"]) {
+                    const values = [...new Set(athletes.map(a => a.attributes[art]).filter(v => v))].sort()
+                    for (const v of values)
+                        list.push({ name: art + " " + v, ids: athletes.filter(a => a.attributes[art] === v).map(a => a.id) })
+                }
+                for (const m of Plan.mazList)
+                    list.push({ name: "MAZ " + m.displayName, ids: Plan.mazAthletes(m.id).map(a => a.athleteId) })
+                return list
+            }
             // Built when it shows, and again when the data or the athlete
             // change while it does; it was empty until a setting changed
             onVisibleChanged: if (visible) reload()
@@ -347,6 +363,11 @@ Page {
                     from: chFrom.text, weeks: chWeeks.value
                 }
                 first = Analysis.series(Object.assign({ athleteId: page.athleteId, mazId: chMaz.currentValue || "" }, common))
+                const group = groups[chGroupBox.currentIndex]
+                groupAverage = chGroup.checked && group
+                               ? Analysis.groupSeries(Object.assign({ athleteIds: group.ids, exclude: page.athleteId,
+                                                                      mazId: chMaz.currentValue || "" }, common))
+                               : ({})
                 planned = chBoth.checked
                           ? Analysis.series(Object.assign({ athleteId: page.athleteId, mazId: chMaz.currentValue || "" },
                                                           common, { basis: "P" }))
@@ -372,8 +393,8 @@ Page {
                     valueRole: "id"
                     onActivated: chartTab.reload()
                 }
-                WeekField { id: chFrom; visible: chMaz.currentIndex <= 0; text: page.defaultFrom; onEditingFinished: chartTab.reload(); onWeekPicked: chartTab.reload() }
-                SpinBox { id: chWeeks; visible: chMaz.currentIndex <= 0; from: 2; to: 104; value: 12; editable: true; onValueModified: chartTab.reload() }
+                WeekField { id: chFrom; objectName: "chartFrom"; visible: chMaz.currentIndex <= 0; text: page.defaultFrom; onEditingFinished: chartTab.reload(); onWeekPicked: chartTab.reload() }
+                SpinBox { id: chWeeks; objectName: "chartWeeks"; visible: chMaz.currentIndex <= 0; from: 2; to: 104; value: 12; editable: true; onValueModified: chartTab.reload() }
                 QuickRanges {
                     objectName: "chartRanges"
                     visible: chMaz.currentIndex <= 0
@@ -438,6 +459,23 @@ Page {
                     valueRole: "id"
                     onActivated: chartTab.reload()
                 }
+                Item { implicitWidth: 12 }
+                // The average of a group, without the athlete compared
+                CheckBox { id: chGroup; objectName: "chartGroup"; text: "Ø Gruppe"; onToggled: chartTab.reload() }
+                ComboBox {
+                    id: chGroupBox
+                    objectName: "chartGroupBox"
+                    enabled: chGroup.checked
+                    implicitWidth: 240
+                    model: chartTab.groups.map(g => g.name)
+                    onActivated: chartTab.reload()
+                }
+                Label {
+                    visible: chGroup.checked && chartTab.groupAverage.members !== undefined
+                    text: chartTab.groupAverage.members === 1 ? "1 Sportler"
+                          : (chartTab.groupAverage.members || 0) + " Sportler"
+                    color: Styles.TokenInterface.semantics.text_muted
+                }
             }
             TrendChart {
                 id: analysisChart
@@ -460,12 +498,17 @@ Page {
                     if (chBoth.checked && chBw.checked) l.push({ name: "BW Plan", color: Styles.TokenInterface.semantics.primary_default, values: chartTab.planned.bw || [], trend: false, dashed: true })
                     if (two && chMhg.checked) l.push({ name: "MHG" + n2, color: Styles.TokenInterface.semantics.chart_series[2], values: chartTab.second.mhg || [], trend: chTrend.checked })
                     if (two && chBw.checked) l.push({ name: "BW" + n2, color: Styles.TokenInterface.semantics.chart_series[3], values: chartTab.second.bw || [], trend: chTrend.checked })
+                    const avg = chGroup.checked && chartTab.groupAverage.labels
+                    if (avg && chMhg.checked) l.push({ name: "MHG Ø", color: Styles.TokenInterface.semantics.chart_series[4], values: chartTab.groupAverage.mhg || [], trend: false })
+                    if (avg && chBw.checked) l.push({ name: "BW Ø", color: Styles.TokenInterface.semantics.chart_series[0], values: chartTab.groupAverage.bw || [], trend: false })
                     return l
                 }
                 bars: {
                     const b = []
                     if (chVolume.currentIndex > 0) {
                         b.push({ name: chVolume.currentText + (chBoth.checked ? " Ist" : ""), color: Styles.TokenInterface.semantics.chart_muted, values: chartTab.first.wh || [] })
+                        if (chGroup.checked && chartTab.groupAverage.wh && chartTab.groupAverage.wh.length > 0)
+                            b.push({ name: chVolume.currentText + " Ø", color: "#fcd34d", values: chartTab.groupAverage.wh })
                         if (chBoth.checked && chartTab.planned.wh)
                             b.push({ name: chVolume.currentText + " Plan", color: "#c4b5fd", values: chartTab.planned.wh })
                         if (chCompare.checked && chartTab.second.wh)

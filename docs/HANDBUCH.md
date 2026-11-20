@@ -539,6 +539,18 @@ Wiederholungen des Plans als helle violette Balken.
 > den Wochen 43 bis 45 liegen Ist und Plan aufeinander, in Woche 46 gibt
 > es nur den Plan (BW 58 kg gestrichelt).
 
+**Ø Gruppe** zeigt daneben den Durchschnitt einer Gruppe: eines Kaders
+oder Vereins (nach der heutigen Zugehörigkeit der Sportler) oder der
+Sportler eines MAZ. Der gewählte Sportler selbst zählt nicht mit; je
+Woche mitteln nur die, die in der Woche Werte haben. Rechts steht, wie
+viele Sportler eingehen. Bei **% Ziel** und **% WK** zählen nur Sportler
+mit einer Zielleistung im gewählten MAZ, so lassen sich Sportler
+verschiedener Gewichtsklassen vergleichen.
+
+> **Beispiel:** Mira, Reißen WKÜ, Ø Gruppe „Verein Beispielverein“: Der
+> Durchschnitt ist hier Jonas allein (1 Sportler), sein BW liegt 22 bis
+> 29 kg über Miras.
+
 ---
 
 ## 8. Wettkämpfe

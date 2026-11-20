@@ -524,15 +524,56 @@ QVariantMap AnalysisApi::dataCheck(const QVariantMap &p) const
     return Report::toVariant(doc);
 }
 
-QVariantMap AnalysisApi::series(const QVariantMap &p) const
+namespace {
+
+// One athlete's weekly MHG and BW of an exercise and the WH the chart's
+// "Umfang" asks for (1 the exercise's, 2..8 a complex's, 9 K1-5, 10
+// K1-7); percent: MHG and BW are percent of a target in the MAZ
+struct Weekly
 {
-    QDate from;
-    int weeks = 0;
-    const QString athleteId = p.value(QStringLiteral("athleteId")).toString();
-    if (athleteId.isEmpty() || !period(p, QStringLiteral("mazId"), &from, &weeks))
-        return {};
-    const int exercise = p.value(QStringLiteral("exercise")).toInt();
-    const int volume = p.value(QStringLiteral("volume")).toInt();
+    QList<double> mhg, bw, wh;
+    bool percent = false;
+};
+
+Weekly weeklyOf(const Params &params, int exercise, int volume)
+{
+    Weekly w;
+    for (const Row &r : section(params).rows) {
+        if (r.key == exercise) {
+            w.mhg = r.mhg;
+            w.bw = r.bw;
+            w.percent = r.percent;
+            if (volume == 1)
+                w.wh = r.wh;
+        }
+    }
+    if (volume >= 2) {
+        Params g = params;
+        g.groups = true;
+        QList<double> sum(params.weeks, 0.0);
+        for (const Row &r : section(g).rows) {
+            const int k = -r.key;
+            const bool take = volume <= 8 ? k == volume - 1 : (volume == 9 ? k <= 5 : k <= 7);
+            if (!take)
+                continue;
+            for (int i = 0; i < params.weeks; ++i)
+                sum[i] += has(r.wh[i]) ? r.wh[i] : 0;
+        }
+        w.wh = sum;
+    }
+    return w;
+}
+
+QVariantList toList(const QList<double> &v)
+{
+    QVariantList l;
+    for (double x : v)
+        l.append(has(x) ? QVariant(qRound(x * 10) / 10.0) : QVariant());
+    return l;
+}
+
+Params seriesParams(const QVariantMap &p, const QString &athleteId, const QDate &from, int weeks)
+{
     Params params;
     params.athleteId = athleteId;
     params.from = from;
@@ -541,42 +582,81 @@ QVariantMap AnalysisApi::series(const QVariantMap &p) const
     params.includeCompetitionWeeks = true;
     params.reference = referenceFrom(p.value(QStringLiteral("reference")).toString());
     params.mazId = p.value(QStringLiteral("mazId")).toString();
+    return params;
+}
 
-    auto toList = [](const QList<double> &v) {
-        QVariantList l;
-        for (double x : v)
-            l.append(has(x) ? QVariant(qRound(x * 10) / 10.0) : QVariant());
-        return l;
-    };
-    QVariantList labels, mhg, bw, wh;
+} // namespace
+
+QVariantMap AnalysisApi::series(const QVariantMap &p) const
+{
+    QDate from;
+    int weeks = 0;
+    const QString athleteId = p.value(QStringLiteral("athleteId")).toString();
+    if (athleteId.isEmpty() || !period(p, QStringLiteral("mazId"), &from, &weeks))
+        return {};
+    QVariantList labels;
     for (int i = 0; i < weeks; ++i)
         labels.append(Weeks::label(from.addDays(7 * i)));
+    const Weekly w = weeklyOf(seriesParams(p, athleteId, from, weeks), p.value(QStringLiteral("exercise")).toInt(),
+                              p.value(QStringLiteral("volume")).toInt());
+    return {{QStringLiteral("labels"), labels}, {QStringLiteral("mhg"), toList(w.mhg)},
+            {QStringLiteral("bw"), toList(w.bw)}, {QStringLiteral("wh"), toList(w.wh)}};
+}
 
-    const Section s = section(params);
-    for (const Row &r : s.rows) {
-        if (r.key == exercise) {
-            mhg = toList(r.mhg);
-            bw = toList(r.bw);
-            if (volume == 1)
-                wh = toList(r.wh);
-        }
+QVariantMap AnalysisApi::groupSeries(const QVariantMap &p) const
+{
+    QDate from;
+    int weeks = 0;
+    if (!period(p, QStringLiteral("mazId"), &from, &weeks))
+        return {};
+    const QString exclude = p.value(QStringLiteral("exclude")).toString();
+    const int exercise = p.value(QStringLiteral("exercise")).toInt();
+    const int volume = p.value(QStringLiteral("volume")).toInt();
+    const bool percent = referenceFrom(p.value(QStringLiteral("reference")).toString()) != Reference::Absolute;
+
+    QList<double> mhgSum(weeks, 0), bwSum(weeks, 0), whSum(weeks, 0);
+    QList<int> mhgN(weeks, 0), bwN(weeks, 0), whN(weeks, 0);
+    int members = 0;
+    QStringList seen;
+    for (const QVariant &v : p.value(QStringLiteral("athleteIds")).toList()) {
+        const QString id = v.toString();
+        if (id.isEmpty() || id == exclude || seen.contains(id))
+            continue;
+        seen.append(id);
+        const Weekly w = weeklyOf(seriesParams(p, id, from, weeks), exercise, volume);
+        // In percent only who has a target in the MAZ: kg would mix in
+        if (percent && !w.percent)
+            continue;
+        bool any = false;
+        auto add = [&](const QList<double> &values, QList<double> &sum, QList<int> &n, bool positive) {
+            for (int i = 0; i < weeks && i < values.size(); ++i) {
+                if (has(values[i]) && (!positive || values[i] > 0)) {
+                    sum[i] += values[i];
+                    ++n[i];
+                    any = true;
+                }
+            }
+        };
+        add(w.mhg, mhgSum, mhgN, false);
+        add(w.bw, bwSum, bwN, false);
+        // A week without training is no value, not a zero
+        add(w.wh, whSum, whN, true);
+        if (any)
+            ++members;
     }
-    if (volume >= 2) {
-        Params g = params;
-        g.groups = true;
-        QList<double> sum(weeks, 0.0);
-        for (const Row &r : section(g).rows) {
-            const int k = -r.key;
-            const bool take = volume <= 8 ? k == volume - 1 : (volume == 9 ? k <= 5 : k <= 7);
-            if (!take)
-                continue;
-            for (int i = 0; i < weeks; ++i)
-                sum[i] += has(r.wh[i]) ? r.wh[i] : 0;
-        }
-        wh = toList(sum);
-    }
-    return {{QStringLiteral("labels"), labels}, {QStringLiteral("mhg"), mhg}, {QStringLiteral("bw"), bw},
-            {QStringLiteral("wh"), wh}};
+    auto mean = [weeks](const QList<double> &sum, const QList<int> &n) {
+        QList<double> m(weeks, none);
+        for (int i = 0; i < weeks; ++i)
+            m[i] = n[i] > 0 ? sum[i] / n[i] : none;
+        return m;
+    };
+    QVariantList labels;
+    for (int i = 0; i < weeks; ++i)
+        labels.append(Weeks::label(from.addDays(7 * i)));
+    return {{QStringLiteral("labels"), labels}, {QStringLiteral("mhg"), toList(mean(mhgSum, mhgN))},
+            {QStringLiteral("bw"), toList(mean(bwSum, bwN))},
+            {QStringLiteral("wh"), volume > 0 ? toList(mean(whSum, whN)) : QVariantList()},
+            {QStringLiteral("members"), members}};
 }
 
 namespace {

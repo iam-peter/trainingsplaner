@@ -31,6 +31,11 @@ public:
     //     9 K1-5, 10 K1-7), basis, reference}
     // -> {labels, mhg, bw, wh}
     Q_INVOKABLE QVariantMap series(const QVariantMap &p) const;
+    // The average of a group's series, week by week of those with a value:
+    // p as series, with athleteIds (the group) and exclude (the athlete
+    // compared, left out); its members: how many have values. In percent
+    // only athletes with a target in the MAZ count.
+    Q_INVOKABLE QVariantMap groupSeries(const QVariantMap &p) const;
 
     // A report from the functions above, on A4 landscape
     Q_INVOKABLE bool printReport(const QVariantMap &report) const;

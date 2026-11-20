@@ -144,7 +144,7 @@ M days, L a week or more.
 | 19 | "Min zum WoBW": count only reps at or above X % of the week's best | IDA p.18 | M |
 | 20 | "Anw": in how many sessions a week an exercise appears (done, November 2026: an Anw line per exercise or complex in the Abschnittsanalyse, per week, in all, per week and as a share of all sessions; Ist and Plan) | IDA p.18 | S |
 | 21 | Quick ranges (1/2/4 weeks, 1/3/6 months); Plan and Ist in one chart (done, November 2026: the buttons in Individualanalyse, Datenprüfung and Grafik, up to this week, the range shown marked; "Ist + Plan" in the Grafik, the plan dashed) | IDA p.19 | S |
-| 22 | Compare one athlete with the **average of a group** | IDA p.19 | M |
+| 22 | Compare one athlete with the **average of a group** (done, November 2026: "Ø Gruppe" in the Grafik, a Kader, a Verein or the athletes of a MAZ, without the athlete compared, per week of those with values; in percent only athletes with a target in the MAZ) | IDA p.19 | M |
 | 23 | **Development curve**: a Gompertz fit of the total over age in the competition chart, one to two years ahead with a band; the same for body weight against the class limits | Sandau 2018 | S–M |
 | 24 | Plausibility of a MAZ target against that curve (a hint, never a block); proposed target instead of a flat "max + 4" | Sandau 2018 | S |
 | 25 | Intensity bands: Schnellkraft 55–100 %, Maximalkraft 65–110 % of the competition target | RTK-Online ABT | S |
