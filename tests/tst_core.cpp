@@ -86,26 +86,52 @@ void TestCore::cleanupTestCase()
 
 // The load of a week as h / m / g; the numbers are an assumption until
 // checked against WinWoTA, so the mapping is tested in both directions
-// The DGJ's rules: age class by year, youth weight classes, the norms
+// The DGJ's rules: age class by year, the IWF's youth weight classes from
+// August 2026, the DM Nachwuchs norms by weight class (AK 16-17) and by
+// body weight (AK 14-15)
 void TestCore::youthRules()
 {
     QCOMPARE(Youth::ageClass(QDate(2010, 12, 31), QDate(2026, 1, 2)), 16);
     QVERIFY(Youth::limitedToOnePerWeek(17));
     QVERIFY(!Youth::limitedToOnePerWeek(18));
-    QVERIFY(Youth::dmJugendAge(16) && !Youth::dmJugendAge(15));
-    QCOMPARE(Youth::weightClassFor(0, 88.4), QStringLiteral("-89"));
-    QCOMPARE(Youth::weightClassFor(0, 89.0), QStringLiteral("-89"));
-    QCOMPARE(Youth::weightClassFor(0, 110), QStringLiteral("+102"));
-    QCOMPARE(Youth::weightClassFor(1, 63.5), QStringLiteral("-64"));
-    QCOMPARE(Youth::weightClassFromLimit(1, 87), QStringLiteral("+81"));
+    QVERIFY(Youth::dmAge(14) && Youth::dmAge(17));
+    QVERIFY(!Youth::dmAge(13) && !Youth::dmAge(18));
+    QCOMPARE(Youth::weightClassFor(0, 84.4), QStringLiteral("-85"));
+    QCOMPARE(Youth::weightClassFor(0, 85.0), QStringLiteral("-85"));
+    QCOMPARE(Youth::weightClassFor(0, 110), QStringLiteral("+95"));
+    QCOMPARE(Youth::weightClassFor(1, 63.4), QStringLiteral("-69"));
+    QCOMPARE(Youth::weightClassFromLimit(1, 87), QStringLiteral("+77"));
+
+    // AK 14-15: up to the next whole kg, within the table
+    QCOMPARE(Youth::normRow(0, 15, 45.3), QStringLiteral("46"));
+    QCOMPARE(Youth::normRow(0, 15, 46.0), QStringLiteral("46"));
+    QCOMPARE(Youth::normRow(0, 14, 30.0), QStringLiteral("35"));
+    QCOMPARE(Youth::normRow(0, 14, 102.0), QStringLiteral("102"));
+    QCOMPARE(Youth::normRow(0, 14, 102.1), QStringLiteral("+102"));
+    QCOMPARE(Youth::normRow(1, 15, 90.0), QStringLiteral("+81"));
+    // AK 16-17: the weight class
+    QCOMPARE(Youth::normRow(1, 17, 58.0), QStringLiteral("-61"));
+    QCOMPARE(Youth::normRow(0, 16, 0), QString());
+
+    // The DGJ's table of August 2026: 69 rows of body weight for boys,
+    // 53 for girls, in AK 14 and 15, and 8 classes each
     const QList<Youth::Norm> norms = Youth::defaultDmNorms();
-    QCOMPARE(norms.size(), 20);
-    for (const Youth::Norm &n : norms) {
-        if (n.sex == 0 && n.weightClass == QLatin1String("-89"))
-            QCOMPARE(n.total, 188);
-        if (n.sex == 1 && n.weightClass == QLatin1String("+81"))
-            QCOMPARE(n.total, 104);
-    }
+    QCOMPARE(norms.size(), 2 * 69 + 2 * 53 + 2 * 8);
+    auto total = [&](int sex, int ak, const QString &row) {
+        for (const Youth::Norm &n : norms)
+            if (n.sex == sex && n.ageClass == ak && n.weightClass == row)
+                return n.total;
+        return 0;
+    };
+    QCOMPARE(total(0, 14, QStringLiteral("35")), 70);
+    QCOMPARE(total(0, 15, QStringLiteral("46")), 99);
+    QCOMPARE(total(0, 15, QStringLiteral("+102")), 177);
+    QCOMPARE(total(1, 14, QStringLiteral("30")), 55);
+    QCOMPARE(total(1, 15, QStringLiteral("+81")), 125);
+    QCOMPARE(total(0, 16, QStringLiteral("-65")), 151);
+    QCOMPARE(total(0, 16, QStringLiteral("+95")), 206);
+    QCOMPARE(total(1, 16, QStringLiteral("-45")), 93);
+    QCOMPARE(total(1, 16, QStringLiteral("+77")), 139);
 }
 
 // With 2.5 kg steps the weights are stored as 70, 72, 75, 77: rises of 2

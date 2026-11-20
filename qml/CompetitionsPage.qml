@@ -145,7 +145,7 @@ Page {
                 AppTabButton { text: "Grafik" }
             }
             // A youth athlete: the age class, the weight class and how far
-            // the DM Jugend norm is (DGJ rules, norms in the settings)
+            // the DM Nachwuchs norm is (DGJ rules, norms in the settings)
             Label {
                 objectName: "youthStatus"
                 Layout.fillWidth: true

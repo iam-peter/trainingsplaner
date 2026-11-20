@@ -70,11 +70,13 @@ AppDialog {
         norms = Store.dmNorms
     }
 
-    // The DM norms being edited, saved with OK
+    // The DM norms being edited, saved with OK; shown for one age group:
+    // 14, 15, or 16 for AK 16 and 17
     property var norms: []
+    property int normAge: 16
     readonly property var normRows: {
-        const boys = norms.filter(n => n.sex === 0)
-        const girls = norms.filter(n => n.sex === 1)
+        const boys = norms.filter(n => n.sex === 0 && n.ageClass === normAge)
+        const girls = norms.filter(n => n.sex === 1 && n.ageClass === normAge)
         const rows = []
         for (let i = 0; i < Math.max(boys.length, girls.length); ++i)
             rows.push({ boy: boys[i], girl: girls[i] })
@@ -82,8 +84,8 @@ AppDialog {
     }
     // Changed in place: a new list would make every row again, and the
     // field being typed in (or with the focus next) with them
-    function setNorm(sex, weightClass, total) {
-        const n = norms.find(n => n.sex === sex && n.weightClass === weightClass)
+    function setNorm(sex, ageClass, weightClass, total) {
+        const n = norms.find(n => n.sex === sex && n.ageClass === ageClass && n.weightClass === weightClass)
         if (n)
             n.total = total
     }
@@ -139,6 +141,7 @@ AppDialog {
 
             AppTabBar {
                 id: tabs
+                objectName: "settingsTabs"
                 Layout.fillWidth: true
                 AppTabButton { text: "Ausdruck" }
                 AppTabButton { text: "Trainingszeiten" }
@@ -488,7 +491,8 @@ AppDialog {
                     }
                 }
 
-                // DM Jugend norms, per weight class
+                // DM Nachwuchs norms: per weight class (AK 16-17), per kg
+                // of body weight (AK 14 and 15)
                 ColumnLayout {
                     width: pages.width
                     spacing: 8
@@ -496,44 +500,73 @@ AppDialog {
                         Layout.fillWidth: true
                         wrapMode: Text.Wrap
                         color: Styles.TokenInterface.semantics.text_muted
-                        text: "Normen der Deutschen Meisterschaft der Jugend (AK 16–17): der Zweikampf, der vom 1. Januar "
-                              + "bis zum Meldeschluss erreicht sein muss. Voreingestellt die der DGJ (Stand Januar 2020); "
-                              + "neue Werte hier eintragen."
+                        text: "Normen der Deutschen Meisterschaft Nachwuchs (AK 14–17): der Zweikampf, der vom 1. Januar "
+                              + "bis zum Meldeschluss erreicht sein muss. AK 16–17 je Gewichtsklasse, AK 14 und 15 je "
+                              + "Kilogramm Körpergewicht (bis zum nächsten vollen Kilogramm). Voreingestellt die der DGJ "
+                              + "(Stand August 2026); neue Werte hier eintragen."
                     }
-                    GridLayout {
-                        columns: 4
-                        columnSpacing: 12
-                        rowSpacing: 4
-                        Label { text: "Jungen"; font.bold: true; Layout.columnSpan: 2 }
-                        Label { text: "Mädchen"; font.bold: true; Layout.columnSpan: 2; Layout.leftMargin: 24 }
+                    RowLayout {
+                        spacing: 0
                         Repeater {
-                            model: dialog.normRows
-                            Item {
+                            model: [{ text: "AK 14", age: 14 }, { text: "AK 15", age: 15 }, { text: "AK 16–17", age: 16 }]
+                            IconButton {
                                 required property var modelData
                                 required property int index
-                                Layout.columnSpan: 4
-                                Layout.fillWidth: true
-                                implicitHeight: normRow.implicitHeight
+                                objectName: "normAge" + modelData.age
+                                text: modelData.text
+                                groupPosition: index === 0 ? Styles.GroupStyle.Position.First
+                                               : index === 2 ? Styles.GroupStyle.Position.Last
+                                                             : Styles.GroupStyle.Position.Middle
+                                highlighted: dialog.normAge === modelData.age
+                                onClicked: dialog.normAge = modelData.age
+                            }
+                        }
+                    }
+                    // A column per sex. As high as the eight weight classes of
+                    // AK 16-17: the 50 and more rows of AK 14 and 15 scroll in
+                    // it, so the dialog keeps its height
+                    RowLayout {
+                        spacing: 12
+                        Label { text: "Jungen"; font.bold: true; Layout.preferredWidth: 64 + 12 + dialog.fieldWidth }
+                        Label { text: "Mädchen"; font.bold: true; Layout.leftMargin: 24 }
+                        Label {
+                            visible: dialog.normAge !== 16
+                            text: "(Zeilen: bis kg Körpergewicht)"
+                            color: Styles.TokenInterface.semantics.text_muted
+                            Layout.leftMargin: 24
+                        }
+                    }
+                    SpinBox { id: normProbe; visible: false }
+                    ListView {
+                        objectName: "normList"
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 8 * normProbe.implicitHeight + 7 * spacing
+                        clip: true
+                        spacing: 4
+                        boundsBehavior: Flickable.StopAtBounds
+                        model: dialog.normRows
+                        ScrollBar.vertical: ScrollBar {}
+                        delegate: RowLayout {
+                            id: normRow
+                            required property var modelData
+                            spacing: 12
+                            Repeater {
+                                model: [normRow.modelData.boy, normRow.modelData.girl]
                                 RowLayout {
-                                    id: normRow
+                                    required property var modelData
+                                    required property int index
                                     spacing: 12
-                                    Repeater {
-                                        model: [modelData.boy, modelData.girl]
-                                        RowLayout {
-                                            required property var modelData
-                                            spacing: 12
-                                            Layout.leftMargin: modelData && modelData.sex === 1 ? 24 : 0
-                                            Label { text: modelData ? modelData.weightClass + " kg" : ""; Layout.preferredWidth: 64 }
-                                            SpinBox {
-                                                objectName: modelData ? "norm" + modelData.sex + modelData.weightClass : ""
-                                                visible: modelData !== undefined
-                                                from: 0; to: 500; editable: true
-                                                unit: "kg"
-                                                Layout.preferredWidth: dialog.fieldWidth
-                                                value: modelData ? modelData.total : 0
-                                                onValueModified: dialog.setNorm(modelData.sex, modelData.weightClass, value)
-                                            }
-                                        }
+                                    Layout.leftMargin: index === 1 ? 24 : 0
+                                    Label { text: modelData ? modelData.weightClass + " kg" : ""; Layout.preferredWidth: 64 }
+                                    SpinBox {
+                                        objectName: modelData ? "norm" + modelData.ageClass + "_" + modelData.sex + modelData.weightClass : ""
+                                        opacity: modelData !== undefined ? 1 : 0
+                                        enabled: modelData !== undefined
+                                        from: 0; to: 500; editable: true
+                                        unit: "kg"
+                                        Layout.preferredWidth: dialog.fieldWidth
+                                        value: modelData ? modelData.total : 0
+                                        onValueModified: dialog.setNorm(modelData.sex, modelData.ageClass, modelData.weightClass, value)
                                     }
                                 }
                             }
@@ -541,7 +574,7 @@ AppDialog {
                     }
                     Button {
                         objectName: "resetNorms"
-                        text: "Normen der DGJ (2020) wiederherstellen"
+                        text: "Normen der DGJ (2026) wiederherstellen"
                         onClicked: dialog.norms = Store.defaultDmNorms()
                     }
                 }

@@ -330,12 +330,15 @@ is still to ask him (section 9, question 1).
   while typing a competition (with the month they usually are in), each
   mapped onto one of WinWoTA's types (NT, DM, IT …), so the old export
   format keeps its meaning.
-- **The DM Jugend norm** of the athlete's weight class (done): in the
-  page's toolbar for a youth athlete ("AK 16 · -89 kg · Norm DM Jugend
-  -89 kg: 188 kg – noch 14 kg"), at a DM in the month's dates and in the
-  competition dialog. The weight class comes from the MAZ, else from the
-  last body weight at a competition. The norms are an editable table
-  under Einstellungen › Normen, the DGJ's of 2020 until changed. A norm
+- **The DM Nachwuchs norm** (done; until November 2026 the DM Jugend's of
+  2020): in the page's toolbar for a youth athlete ("AK 16 · -95 kg ·
+  Norm DM Nachwuchs -95 kg: 198 kg – noch 48 kg"), at a DM in the
+  month's dates and in the competition dialog. AK 16–17 by weight class
+  (the IWF's youth classes from 1 August 2026), from the MAZ, else from
+  the last body weight at a competition; AK 14 and 15 by that body
+  weight up to the next whole kg. The norms are an editable table under
+  Einstellungen › Normen, the DGJ's of August 2026 until changed
+  (docs/RESEARCH-IDA-RTK.md). A norm
   line in the competition chart is left for later.
 - **One competition per week** for youth athletes up to AK 17 (done): a
   warning in the competition dialog and at the dates in the month view;
@@ -466,6 +469,10 @@ plan. What the program uses from it:
   K1–K7 and tonnage are checked (`tests/fixtures/`, `tst_core`).
 
 ### 6.2 DGJ Jugendsportprogramm (status 15 January 2020)
+
+*Superseded in parts by the programme of June 2025, the IWF's weight
+classes of 1 August 2026 and the DGJ's norms of August 2026; see
+docs/RESEARCH-IDA-RTK.md. The table below is the 2020 state.*
 
 The programme sets the youth competitions of the German Weightlifting
 Youth (DGJ). What a coach of young athletes can use in the program:

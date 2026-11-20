@@ -84,8 +84,9 @@ updates and uninstalling.
   chart over the years with best results per half year or year, trends
   and the reference total of the athlete's class. For youth athletes the
   rules of the DGJ: its competitions to pick, a warning for a second
-  competition in a week up to AK 17, and the DM Jugend norm of the weight
-  class against the year's best total (norms editable in the settings).
+  competition in a week up to AK 17, and the DM Nachwuchs norm (AK 14–17:
+  by weight class from AK 16, by body weight below) against the year's
+  best total (norms editable in the settings).
 - **Planung**: macrocycles (MAZ) with phases and athletes' targets; the
   framework plan (RO) in percent, opened from its MAZ; the athlete's
   individual training plan (ITP) per week and exercise or group with the

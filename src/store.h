@@ -49,8 +49,9 @@ class Store : public QObject
     Q_PROPERTY(int sessionsPerDay READ sessionsPerDay WRITE setSessionsPerDay NOTIFY settingsChanged)
     // The week plan shows the week before above the week ("Vorwoche")
     Q_PROPERTY(bool showPreviousWeek READ showPreviousWeek WRITE setShowPreviousWeek NOTIFY settingsChanged)
-    // The DM Jugend norms, editable: [{sex, weightClass "-89", total}],
-    // the DGJ's of January 2020 until changed
+    // The DM Nachwuchs norms, editable: [{sex, ageClass 14/15/16,
+    // weightClass "-65" or body weight "46", total}], the DGJ's of August
+    // 2026 until changed
     Q_PROPERTY(QVariantList dmNorms READ dmNorms WRITE setDmNorms NOTIFY settingsChanged)
     // The DGJ's national youth competitions to pick: [{text, type, note}]
     Q_PROPERTY(QVariantList youthCompetitions READ youthCompetitions CONSTANT)

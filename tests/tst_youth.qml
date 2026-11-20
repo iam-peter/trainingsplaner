@@ -2,8 +2,8 @@ import QtQuick
 import QtTest
 import Trainingsplaner
 
-// The DGJ's youth rules where competitions are: the DM Jugend norm of the
-// athlete's class, one competition per week up to AK 17, the youth
+// The DGJ's youth rules where competitions are: the DM Nachwuchs norm of
+// the athlete's class (AK 16-17) or body weight (AK 14-15), one competition per week up to AK 17, the youth
 // competitions to pick, the norms editable
 Item {
     id: window
@@ -41,25 +41,49 @@ Item {
             const s = Store.youthStatus(athlete, year + "-04-01")
             compare(s.ageClass, 16)
             verify(s.youth)
-            compare(s.weightClass, "-89")
+            compare(s.weightClass, "-95")
             verify(s.dm.applies)
-            compare(s.dm.norm, 188)
+            compare(s.dm.norm, 198)
             compare(s.dm.best, 150)
             verify(!s.dm.reached)
-            verify(s.dm.text.indexOf("noch 38 kg") > 0)
+            verify(s.dm.text.indexOf("Norm DM Nachwuchs -95 kg: 198 kg") === 0)
+            verify(s.dm.text.indexOf("noch 48 kg") > 0)
             // Before this year's first competition there is none yet
             verify(Store.youthStatus(athlete, year + "-02-01").dm.text.indexOf("noch kein Zweikampf") > 0)
         }
 
         function test_editedNorm() {
-            const norms = Store.dmNorms.map(n => n.sex === 0 && n.weightClass === "-89"
-                                            ? { sex: 0, weightClass: "-89", total: 150 } : n)
+            const norms = Store.dmNorms.map(n => n.sex === 0 && n.ageClass === 16 && n.weightClass === "-95"
+                                            ? { sex: 0, ageClass: 16, weightClass: "-95", total: 150 } : n)
             Store.dmNorms = norms
             const s = Store.youthStatus(athlete, year + "-04-01")
             verify(s.dm.reached)
             verify(s.dm.text.indexOf("erfüllt") > 0)
             Store.dmNorms = []
-            compare(Store.youthStatus(athlete, year + "-04-01").dm.norm, 188)
+            compare(Store.youthStatus(athlete, year + "-04-01").dm.norm, 198)
+        }
+
+        // AK 14 and 15 lift in weight groups: their norm goes by the body
+        // weight, up to the next whole kg
+        function test_normByBodyWeight() {
+            const girl = Store.saveAthlete({ lastName: "Jugend", firstName: "Jana", sex: 1,
+                                             born: "01.05." + (year - 15) })
+            Store.saveCompetition({ athleteId: girl, date: year + "-03-07", name: "LM", bodyWeight: "45,3",
+                                    snatch: [38, 0, 0], cleanJerk: [48, 0, 0] }, "", "")
+            const s = Store.youthStatus(girl, year + "-04-01")
+            compare(s.ageClass, 15)
+            verify(s.dm.applies)
+            compare(s.dm.norm, 83)
+            verify(s.dm.text.indexOf("Norm DM Nachwuchs AK 15 bis 46 kg: 83 kg") === 0)
+            // 38 + 48 kg
+            compare(s.dm.best, 86)
+            verify(s.dm.reached)
+            // AK 13 has none
+            const younger = Store.youthStatus(girl, (year - 2) + "-04-01")
+            verify(!younger.dm.applies)
+            compare(younger.dm.text, "")
+            Store.removeCompetition(girl, year + "-03-07", "")
+            Store.removeAthlete(girl)
         }
 
         function test_onePerWeek() {
@@ -76,11 +100,11 @@ Item {
         function test_monthShowsNormAndWarning() {
             const d1 = (year + 1) + "-12-11"
             const d2 = (year + 1) + "-12-12"
-            Store.saveCompetitionDate(athlete, d1, 1, "DM Jugend (AK 16–17)", "Berlin", "", "")
+            Store.saveCompetitionDate(athlete, d1, 1, "DM Nachwuchs (AK 14–17)", "Berlin", "", "")
             Store.saveCompetitionDate(athlete, d2, 0, "Pokal", "", "", "")
             const m = Store.month(athlete, (year + 1) + "-12-01", false)
             const dm = m.upcoming.find(c => c.date === d1)
-            verify(dm.norm.indexOf("Norm DM Jugend -89 kg: 188 kg") === 0)
+            verify(dm.norm.indexOf("Norm DM Nachwuchs -95 kg: 198 kg") === 0)
             // Two in one week, at AK 17
             verify(dm.warning.indexOf("Zwei Wettkämpfe") === 0)
             Store.removeCompetition(athlete, d2, "")
@@ -108,19 +132,19 @@ Item {
             tryCompare(dialog, "opened", true)
             const name = findChild(dialog.contentItem, "nameField")
             tryCompare(name, "activeFocus", true)
-            keyClick("j"); keyClick("u"); keyClick("g"); keyClick("e"); keyClick("n"); keyClick("d")
+            keyClick("n"); keyClick("a"); keyClick("c"); keyClick("h"); keyClick("w")
             const list = findChild(name, "suggestions")
-            tryVerify(() => list && list.visible && list.count >= 3)
-            // The DM Jugend is a DM
-            const i = list.model.findIndex(t => t.text.indexOf("DM Jugend") === 0)
+            tryVerify(() => list && list.visible && list.count >= 2)
+            // The DM Nachwuchs is a DM
+            const i = list.model.findIndex(t => t.text.indexOf("DM Nachwuchs") === 0)
             verify(i >= 0)
             for (let k = 0; k <= i; ++k)
                 keyClick(Qt.Key_Down)
             keyClick(Qt.Key_Return)
-            verify(name.text.indexOf("DM Jugend") === 0)
+            verify(name.text.indexOf("DM Nachwuchs") === 0)
             compare(dialog.opened, true)
             const norm = findChild(dialog.contentItem, "normNote")
-            tryVerify(() => norm.text.indexOf("Norm DM Jugend -89 kg") === 0)
+            tryVerify(() => norm.text.indexOf("Norm DM Nachwuchs -95 kg") === 0)
             dialog.close()
         }
     }

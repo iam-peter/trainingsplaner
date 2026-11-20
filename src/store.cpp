@@ -756,9 +756,11 @@ void Store::setSessionsPerDay(int n)
     emit settingsChanged();
 }
 
+// The norms of the DM Nachwuchs as edited. "youth/dmNorms" held those of
+// the DM Jugend, for weight classes there are no more: they are not read.
 QVariantList Store::dmNorms() const
 {
-    const QVariant stored = QSettings().value(QStringLiteral("youth/dmNorms"));
+    const QVariant stored = QSettings().value(QStringLiteral("youth/dmNorms2026"));
     if (stored.isValid() && !stored.toList().isEmpty())
         return stored.toList();
     return defaultDmNorms();
@@ -768,18 +770,20 @@ QVariantList Store::defaultDmNorms() const
 {
     QVariantList list;
     for (const Youth::Norm &n : Youth::defaultDmNorms())
-        list.append(QVariantMap{{QStringLiteral("sex"), n.sex}, {QStringLiteral("weightClass"), n.weightClass},
-                                {QStringLiteral("total"), n.total}});
+        list.append(QVariantMap{{QStringLiteral("sex"), n.sex}, {QStringLiteral("ageClass"), n.ageClass},
+                                {QStringLiteral("weightClass"), n.weightClass}, {QStringLiteral("total"), n.total}});
     return list;
 }
 
 void Store::setDmNorms(const QVariantList &norms)
 {
     // An empty list goes back to the DGJ's
+    QSettings settings;
+    settings.remove(QStringLiteral("youth/dmNorms"));
     if (norms.isEmpty())
-        QSettings().remove(QStringLiteral("youth/dmNorms"));
+        settings.remove(QStringLiteral("youth/dmNorms2026"));
     else
-        QSettings().setValue(QStringLiteral("youth/dmNorms"), norms);
+        settings.setValue(QStringLiteral("youth/dmNorms2026"), norms);
     emit settingsChanged();
 }
 
@@ -1815,32 +1819,45 @@ QVariantMap Store::youthStatus(const QString &athleteId, const QString &date) co
 
     // The weight class: the MAZ's around the date, else the last body weight
     QString weightClass;
+    int mazLimit = 0;
     for (const Maz &z : Planning::mazForAthlete(athleteId)) {
         if (z.from.isValid() && z.to.isValid() && at >= z.from && at <= z.to.addDays(6)) {
             for (const MazAthlete &m : Planning::mazAthletes(z.id))
                 if (m.athleteId == athleteId && m.weightClass > 0)
-                    weightClass = Youth::weightClassFromLimit(sex, m.weightClass);
+                    mazLimit = m.weightClass;
         }
     }
+    weightClass = Youth::weightClassFromLimit(sex, mazLimit);
     const QList<Competition> comps = Competitions::forAthlete(athleteId); // newest first
     // (the last one up to the date, else the first one after it)
-    for (int pass = 0; pass < 2 && weightClass.isEmpty(); ++pass) {
+    double bodyWeight = 0;
+    for (int pass = 0; pass < 2 && bodyWeight <= 0; ++pass) {
         for (const Competition &c : comps) {
             if ((pass == 1 || c.date <= at) && c.bodyWeight > 0) {
-                weightClass = Youth::weightClassFor(sex, c.bodyWeight);
+                bodyWeight = c.bodyWeight;
                 if (pass == 0)
                     break;
             }
         }
     }
+    if (weightClass.isEmpty())
+        weightClass = Youth::weightClassFor(sex, bodyWeight);
 
-    // DM Jugend: the norm of the class, against the best total since 1 January
-    QVariantMap dm{{QStringLiteral("applies"), Youth::dmJugendAge(ak)}};
+    // DM Nachwuchs: the norm of the class (AK 16-17) or of the body weight
+    // (AK 14-15, else the MAZ's class limit), against the best total since
+    // 1 January
+    const bool applies = Youth::dmAge(ak);
+    QVariantMap dm{{QStringLiteral("applies"), applies}};
+    const int group = Youth::normGroup(ak);
+    const QString row = group == 16 ? weightClass : Youth::normRow(sex, ak, bodyWeight > 0 ? bodyWeight : mazLimit);
     int norm = 0;
-    for (const QVariant &v : dmNorms()) {
-        const QVariantMap n = v.toMap();
-        if (n.value(QStringLiteral("sex")).toInt() == sex && n.value(QStringLiteral("weightClass")).toString() == weightClass)
-            norm = n.value(QStringLiteral("total")).toInt();
+    if (applies && !row.isEmpty()) {
+        for (const QVariant &v : dmNorms()) {
+            const QVariantMap n = v.toMap();
+            if (n.value(QStringLiteral("sex")).toInt() == sex && n.value(QStringLiteral("ageClass")).toInt() == group
+                && n.value(QStringLiteral("weightClass")).toString() == row)
+                norm = n.value(QStringLiteral("total")).toInt();
+        }
     }
     int best = 0;
     QDate bestDate;
@@ -1852,8 +1869,13 @@ QVariantMap Store::youthStatus(const QString &athleteId, const QString &date) co
     }
     const bool reached = norm > 0 && best >= norm;
     QString text;
-    if (Youth::dmJugendAge(ak) && norm > 0) {
-        text = QStringLiteral("Norm DM Jugend %1 kg: %2 kg").arg(weightClass).arg(norm);
+    if (norm > 0) {
+        // "-65 kg"; for AK 14-15 "AK 15 bis 46 kg", "AK 15 über 102 kg"
+        const QString where = group == 16 ? row + QStringLiteral(" kg")
+                              : row.startsWith(QLatin1Char('+'))
+                                  ? QStringLiteral("AK %1 über %2 kg").arg(ak).arg(row.mid(1))
+                                  : QStringLiteral("AK %1 bis %2 kg").arg(ak).arg(row);
+        text = QStringLiteral("Norm DM Nachwuchs %1: %2 kg").arg(where).arg(norm);
         if (reached)
             text += QStringLiteral(" – erfüllt (%1 kg, %2)").arg(best).arg(Dates::text(bestDate));
         else if (best > 0)
