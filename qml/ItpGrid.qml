@@ -131,10 +131,14 @@ Item {
             required property string display
             required property bool average
             readonly property bool first: itp.columnInfo(column).first
+            // K1-7 and K1-5: sums of the complexes, not typed
+            readonly property bool readOnly: itp.columnInfo(column).readOnly
             readonly property bool editing: row === table.current.y && column === table.current.x
             readonly property Item editor: editorLoader.item
             implicitHeight: grid.rowHeight
-            color: average ? Styles.TokenInterface.semantics.background_muted : Styles.TokenInterface.semantics.background_elevated
+            color: average ? Styles.TokenInterface.semantics.background_muted
+                           : readOnly ? Styles.TokenInterface.semantics.background_default
+                                      : Styles.TokenInterface.semantics.background_elevated
             // The grid: a line below and to the right of every cell, a
             // stronger one before each exercise
             Rectangle {
@@ -175,7 +179,7 @@ Item {
                 color: Styles.TokenInterface.semantics.text_default
             }
             TapHandler {
-                enabled: !cell.average && !cell.editing
+                enabled: !cell.average && !cell.editing && !cell.readOnly
                 onTapped: table.focusCell(cell.row, cell.column)
             }
             Loader {
@@ -249,6 +253,11 @@ Item {
         }
 
         function focusCell(r, c) {
+            // Past the sums, in the direction of the move (a move within
+            // the row; to another row from its first or last cell)
+            const step = r === current.y && c < current.x ? -1 : 1
+            while (c >= 0 && c < columns && itp.columnInfo(c).readOnly)
+                c += step
             if (r < 0 || r >= itp.weeks || c < 0 || c >= columns)
                 return
             const before = itemAtCell(current)

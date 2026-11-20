@@ -117,7 +117,7 @@ M days, L a week or more.
 | # | Idea | Source | Size |
 |---|---|---|---|
 | 4 | **RTK templates** (done, November 2026; U20's phase lengths are not in the RTK): "Neuer MAZ aus RTK-Vorlage" U13 (6 weeks), U15, U17 (13), U20 (17), with h/m/g, LG/WK/HWK, WH per K group and MHG/BW % per exercise | MAZ_*.pdf | M |
-| 5 | **RO per K group**: a WH row per K1..K7 and week, compared in the ITP and the week summary | RO PDFs p.5 | M |
+| 5 | **RO per K group** (done, November 2026: WH per complex was there already; added K1-7 and K1-5 as sums, a single WH column per complex): a WH row per K1..K7 and week, compared in the ITP and the week summary | RO PDFs p.5 | M |
 | 6 | **Scale values**: chosen weeks and columns of the RO or ITP by a factor (e.g. −10 % after illness) | IDA p.11 | S–M |
 | 7 | **RO proposal per ITP cell**: the RO value shown grey, taken one cell or one row at a time, instead of Vorlage over everything | IDA p.13 | M |
 | 8 | **TMK targets as caps**: warn when a planned BW % is above the TMK value for the athlete's stage, or K4/K6 is used below its age | TMK 2018 | S–M |

@@ -323,6 +323,15 @@ nennt die RTK keine Längen: dort setzt man sie selbst.
 WH, MHG % und BW %. Die Prozente beziehen sich auf die Zielleistung. Am
 Ende steht der Durchschnitt (Ø). Zurück geht es mit **‹ MAZ**.
 
+Die Auswahl **Komplexe K1–K7** zeigt die Wiederholungen je Komplex, wie
+die Rahmentrainingskonzeption sie vorgibt. Daneben stehen in jeder
+Ansicht **K1-7** und **K1-5**, die Summen der Komplexe; sie rechnet das
+Programm, eintragen lassen sie sich nicht.
+
+> **Beispiel:** Ein MAZ aus der Vorlage „RTK U17“ hat in der ersten
+> Woche K1 70, K2 70, K3 90, K5 100, K6 50 und K7 10 WH, zusammen K1-7
+> 390 und K1-5 330. Im Durchschnitt sind es 358 und 298, wie in der RTK.
+
 > **Beispiel:** Woche 38/2026: Reißen 16 WH, MHG 65 %, BW 70 %. MHG und
 > BW sind die der Rahmenorientierung U17 der Rahmentrainingskonzeption.
 > Sie gibt die Wiederholungen nur je Komplex (K1 bis K7) vor; die 16 WH

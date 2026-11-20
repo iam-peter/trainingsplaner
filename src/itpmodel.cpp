@@ -2,7 +2,26 @@
 
 #include "catalog.h"
 
-ItpModel::ItpModel(QObject *parent) : QAbstractTableModel(parent) {}
+ItpModel::ItpModel(QObject *parent) : QAbstractTableModel(parent)
+{
+    layColumns();
+}
+
+void ItpModel::layColumns()
+{
+    m_columns.clear();
+    for (int e : std::as_const(m_exercises)) {
+        m_columns.append({Wh, e});
+        if (e > 0) {
+            m_columns.append({Mhg, e});
+            m_columns.append({Bw, e});
+        }
+    }
+    m_columns.append({Sum17, 0});
+    m_columns.append({Sum15, 0});
+    m_columns.append({Load, 0});
+    m_columns.append({Position, 0});
+}
 
 void ItpModel::setOwner(const QString &v)
 {
@@ -50,6 +69,7 @@ void ItpModel::setExercises(const QVariantList &v)
         return;
     beginResetModel();
     m_exercises = list;
+    layColumns();
     load();
     endResetModel();
     emit configChanged();
@@ -103,20 +123,26 @@ int ItpModel::rowCount(const QModelIndex &parent) const
 
 int ItpModel::columnCount(const QModelIndex &parent) const
 {
-    return parent.isValid() ? 0 : int(m_exercises.size()) * 3 + 2;
+    return parent.isValid() ? 0 : int(m_columns.size());
 }
 
 ItpModel::Kind ItpModel::kindOf(int column) const
 {
-    const int n = int(m_exercises.size()) * 3;
-    if (column >= n)
-        return column == n ? Load : Position;
-    return Kind(column % 3);
+    return column >= 0 && column < m_columns.size() ? m_columns.at(column).kind : Position;
 }
 
 int ItpModel::exerciseOf(int column) const
 {
-    return column < m_exercises.size() * 3 ? m_exercises.at(column / 3) : 0;
+    return column >= 0 && column < m_columns.size() ? m_columns.at(column).exercise : 0;
+}
+
+// WH of the complexes K1 up to K<last> in a week
+int ItpModel::complexSum(const QDate &monday, int last) const
+{
+    int sum = 0;
+    for (int k = 1; k <= last; ++k)
+        sum += m_targets.value({monday, -k}).wh;
+    return sum;
 }
 
 int ItpModel::value(int row, int column) const
@@ -125,6 +151,8 @@ int ItpModel::value(int row, int column) const
     const Kind k = kindOf(column);
     if (k == Load)
         return m_meta.value(monday).load;
+    if (k == Sum17 || k == Sum15)
+        return complexSum(monday, k == Sum17 ? 7 : 5);
     const WeekTarget t = m_targets.value({monday, exerciseOf(column)});
     return k == Wh ? t.wh : k == Mhg ? t.mhg : t.bw;
 }
@@ -178,6 +206,9 @@ bool ItpModel::setData(const QModelIndex &index, const QVariant &value, int role
         return false;
     const QDate monday = m_from.addDays(7 * index.row());
     const Kind k = kindOf(index.column());
+    // The sums follow their complexes
+    if (k == Sum17 || k == Sum15)
+        return false;
     const QString text = value.toString().trimmed();
     bool ok = true;
     if (k == Load || k == Position) {
@@ -207,6 +238,15 @@ bool ItpModel::setData(const QModelIndex &index, const QVariant &value, int role
         emit dataChanged(index, index);
         const QModelIndex avg = this->index(m_weeks, index.column());
         emit dataChanged(avg, avg);
+        // A complex's WH: the week's sums and their averages too
+        if (exerciseOf(index.column()) < 0) {
+            for (int c = 0; c < m_columns.size(); ++c) {
+                if (m_columns[c].kind == Sum17 || m_columns[c].kind == Sum15) {
+                    emit dataChanged(this->index(index.row(), c), this->index(index.row(), c));
+                    emit dataChanged(this->index(m_weeks, c), this->index(m_weeks, c));
+                }
+            }
+        }
     }
     return ok;
 }
@@ -214,13 +254,19 @@ bool ItpModel::setData(const QModelIndex &index, const QVariant &value, int role
 QVariantMap ItpModel::columnInfo(int column) const
 {
     const Kind k = kindOf(column);
+    if (k == Sum17 || k == Sum15)
+        return {{QStringLiteral("title"), k == Sum17 ? QStringLiteral("K1-7") : QStringLiteral("K1-5")},
+                {QStringLiteral("sub"), QStringLiteral("WH")}, {QStringLiteral("first"), true},
+                {QStringLiteral("exercise"), 0}, {QStringLiteral("readOnly"), true},
+                {QStringLiteral("tip"), k == Sum17 ? QStringLiteral("Summe der Komplexe K1 bis K7, aus deren WH")
+                                                   : QStringLiteral("Summe der Komplexe K1 bis K5, aus deren WH")}};
     if (k == Load)
         return {{QStringLiteral("title"), QStringLiteral("Bel.")}, {QStringLiteral("sub"), QString()},
-                {QStringLiteral("first"), true}, {QStringLiteral("exercise"), 0},
+                {QStringLiteral("first"), true}, {QStringLiteral("exercise"), 0}, {QStringLiteral("readOnly"), false},
                 {QStringLiteral("tip"), QStringLiteral("Belastung der Woche: h (hoch), m (mittel), g (gesenkt)")}};
     if (k == Position)
         return {{QStringLiteral("title"), QStringLiteral("WK")}, {QStringLiteral("sub"), QString()},
-                {QStringLiteral("first"), true}, {QStringLiteral("exercise"), 0},
+                {QStringLiteral("first"), true}, {QStringLiteral("exercise"), 0}, {QStringLiteral("readOnly"), false},
                 {QStringLiteral("tip"), QStringLiteral("Wettkampflage")}};
     const int e = exerciseOf(column);
     const QString title = e < 0 ? QStringLiteral("K%1").arg(-e) : QString::number(e);
@@ -230,6 +276,7 @@ QVariantMap ItpModel::columnInfo(int column) const
             {QStringLiteral("sub"), QString::fromLatin1(subs[k]) + unit},
             {QStringLiteral("first"), k == Wh},
             {QStringLiteral("exercise"), e},
+            {QStringLiteral("readOnly"), false},
             {QStringLiteral("tip"), e < 0 ? QStringLiteral("Komplex K%1").arg(-e) : Catalog::name(e)}};
 }
 

@@ -39,24 +39,24 @@ Item {
 
         // The ITP's own values of the week stay, and its grid shows the
         // load; a later save there keeps it (columns: exercise 1's WH, MHG,
-        // BW, then Bel. and WK)
+        // BW, the sums K1-7 and K1-5, then Bel. and WK)
         function test_itpFollows() {
             itp.owner = "test_tina"
             itp.fromMonday = page.monday
-            verify(itp.setData(itp.index(0, 4), "WK-1", editRole))
+            verify(itp.setData(itp.index(0, 6), "WK-1", editRole))
             mouseClick(findChild(page, "weekLoad_g"))
             tryCompare(page.context, "loadText", "g")
             compare(page.context.position, "WK-1")
-            compare(itp.data(itp.index(0, 3)), "g")
-            verify(itp.setData(itp.index(0, 4), "WK-2", editRole))
+            compare(itp.data(itp.index(0, 5)), "g")
+            verify(itp.setData(itp.index(0, 6), "WK-2", editRole))
             compare(Store.weekContext("test_tina", page.monday).loadText, "g")
             // And the other way: the ITP's change shows in the week plan
             // when it is shown again
-            verify(itp.setData(itp.index(0, 3), "m", editRole))
+            verify(itp.setData(itp.index(0, 5), "m", editRole))
             page.visible = false
             page.visible = true
             compare(page.context.loadText, "m")
-            verify(itp.setData(itp.index(0, 4), "", editRole))
+            verify(itp.setData(itp.index(0, 6), "", editRole))
         }
 
         function test_setFromWeekPlan() {

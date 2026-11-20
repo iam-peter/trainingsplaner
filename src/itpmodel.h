@@ -48,7 +48,7 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
     QHash<int, QByteArray> roleNames() const override;
 
-    // {exercise, title, sub, first} for a column header
+    // {exercise, title, sub, first, tip, readOnly} for a column header
     Q_INVOKABLE QVariantMap columnInfo(int column) const;
     Q_INVOKABLE QString rowLabel(int row) const;
     Q_INVOKABLE QString rowMonday(int row) const;
@@ -60,15 +60,26 @@ signals:
 private:
     // Reads the plan for the current owner, weeks and MAZ (no signals)
     void load();
-    enum Kind { Wh, Mhg, Bw, Load, Position };
+    // The columns: per exercise WH, MHG and BW; per complex (K1..K7) its
+    // WH only, as the RTK and WinWoTA plan them; then the week's K1-7 and
+    // K1-5, the sums of the complexes; then load and WK-Lage
+    enum Kind { Wh, Mhg, Bw, Load, Position, Sum17, Sum15 };
+    struct Column
+    {
+        Kind kind;
+        int exercise;
+    };
+    void layColumns();
     Kind kindOf(int column) const;
     int exerciseOf(int column) const;
     int value(int row, int column) const;
+    int complexSum(const QDate &monday, int last) const;
 
     QString m_owner;
     QDate m_from;
     int m_weeks = 0;
     QList<int> m_exercises;
+    QList<Column> m_columns;
     QString m_mazId;
     Maz m_maz;
     bool m_averageAll = false;

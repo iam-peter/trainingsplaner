@@ -38,10 +38,11 @@ Item {
             compare(r.error, "")
             mazId = r.id
             verify(Plan.saveMazAthlete({ mazId: mazId, athleteId: athlete, targetSnatch: 80, targetCleanJerk: 100 }))
-            // The ITP's targets of the week: snatch and front squat, load, position
+            // The ITP's targets of the week: snatch and front squat, load,
+            // position (past the sums K1-7 and K1-5)
             itp.owner = athlete
             itp.fromMonday = monday
-            for (const [col, v] of [[0, "20"], [1, "60"], [2, "70"], [3, "30"], [4, "90"], [5, "100"], [6, "h"], [7, "WK-2"]])
+            for (const [col, v] of [[0, "20"], [1, "60"], [2, "70"], [3, "30"], [4, "90"], [5, "100"], [8, "h"], [9, "WK-2"]])
                 verify(itp.setData(itp.index(0, col), v, editRole))
             // Last week: planned, and done a little differently
             Store.saveSession(athlete, previous, "P", { day: 1, number: 1, entries: [

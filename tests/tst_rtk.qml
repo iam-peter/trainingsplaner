@@ -16,6 +16,8 @@ Item {
         choosesAthlete: false
     }
 
+    ItpModel { id: grid }
+
     TestCase {
         name: "Rtk"
         when: windowShown
@@ -89,6 +91,43 @@ Item {
             compare(c.load.join(""), "mhhghhghhghmg")
             compare(Plan.itpForWeek(athlete, monday, 1).bw, 70)
             compare(Plan.itpForWeek(athlete, last, 1).bw, 100)
+        }
+
+        // The complexes as the RTK plans them: WH only, and the week's
+        // K1-7 and K1-5 as their sums, with the RTK's averages
+        function test_complexesAndSums() {
+            const r = Plan.saveMaz({ name: "RTK U17", sex: 0, from: "30/2031", to: "42/2031", template: "U17" })
+            compare(r.error, "")
+            const editRole = Qt.UserRole + 1
+            grid.owner = Plan.roOwner(r.id)
+            grid.mazId = r.id
+            grid.fromMonday = Plan.maz(r.id).fromMonday
+            grid.weeks = 13
+            grid.exercises = [-1, -2, -3, -4, -5, -6, -7]
+            // One column per complex, then K1-7, K1-5, Bel., WK
+            compare(grid.columnCount(), 7 + 2 + 2)
+            compare(grid.columnInfo(0).title, "K1")
+            compare(grid.columnInfo(1).title, "K2")
+            compare(grid.columnInfo(7).title, "K1-7")
+            compare(grid.columnInfo(8).title, "K1-5")
+            verify(grid.columnInfo(7).readOnly && !grid.columnInfo(0).readOnly)
+            const at = (r, c) => grid.data(grid.index(r, c), Qt.DisplayRole)
+            compare([at(0, 7), at(0, 8)], ["390", "330"])
+            // "insgesamt" of the RTK's U17: 358 and 298
+            compare([at(13, 7), at(13, 8)], ["358", "298"])
+            // A complex changed: the sums follow; the sums are not typed
+            verify(grid.setData(grid.index(0, 0), "80", editRole))
+            compare([at(0, 7), at(0, 8)], ["400", "340"])
+            verify(!grid.setData(grid.index(0, 7), "500", editRole))
+            compare(at(0, 7), "400")
+            verify(grid.setData(grid.index(0, 0), "70", editRole))
+            // An exercise keeps WH, MHG and BW
+            grid.exercises = [1, -1]
+            compare(grid.columnCount(), 3 + 1 + 2 + 2)
+            compare(grid.columnInfo(2).sub, "BW %")
+            compare(grid.columnInfo(3).title, "K1")
+            grid.owner = ""
+            Plan.removeMaz(r.id)
         }
 
         // Without a template nothing changes in the form
