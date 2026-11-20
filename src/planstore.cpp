@@ -5,6 +5,7 @@
 #include "database.h"
 #include "planning.h"
 #include "report.h"
+#include "rtk.h"
 
 #include <QSet>
 #include <QSettings>
@@ -110,10 +111,26 @@ QVariantMap Plan::saveMaz(const QVariantMap &v)
         error = QStringLiteral("Die Leistungsausprägung beginnt vor der Aufbauphase.");
     if (!error.isEmpty())
         return {{QStringLiteral("id"), m.id}, {QStringLiteral("error"), error}};
+    const bool isNew = m.id.isEmpty();
     const QString id = Planning::saveMaz(m);
+    // A new MAZ from a template: its RO as the RTK's
+    const QString templateKey = v.value(QStringLiteral("template")).toString();
+    if (isNew && !id.isEmpty() && !templateKey.isEmpty() && !Rtk::fillRo(id, templateKey))
+        error = QStringLiteral("Die Rahmenorientierung der Vorlage ließ sich nicht eintragen.");
     emit changed();
-    return {{QStringLiteral("id"), id},
-            {QStringLiteral("error"), id.isEmpty() ? QStringLiteral("Speichern fehlgeschlagen.") : QString()}};
+    if (id.isEmpty())
+        error = QStringLiteral("Speichern fehlgeschlagen.");
+    return {{QStringLiteral("id"), id}, {QStringLiteral("error"), error}};
+}
+
+QVariantList Plan::rtkTemplates() const
+{
+    QVariantList list;
+    for (const Rtk::Template &t : Rtk::templates())
+        list.append(QVariantMap{{QStringLiteral("key"), t.key}, {QStringLiteral("text"), t.title},
+                                {QStringLiteral("weeks"), t.weeks}, {QStringLiteral("buildUp"), t.buildUp},
+                                {QStringLiteral("peak"), t.peak}});
+    return list;
 }
 
 bool Plan::removeMaz(const QString &id)

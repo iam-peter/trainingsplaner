@@ -27,8 +27,12 @@ public:
 
     Q_INVOKABLE QVariantMap maz(const QString &id) const;
     // m: {id, name, shortName, sex, from, to, buildUp, peakPhase (week labels), note}
-    // Returns {id, error}
+    // and for a new MAZ maybe template: an RTK template's key, its RO then
+    // filled in. Returns {id, error}
     Q_INVOKABLE QVariantMap saveMaz(const QVariantMap &m);
+    // The RTK's templates for a new MAZ: [{key, text, weeks, buildUp, peak}],
+    // buildUp and peak the week of the MAZ they begin in (1 the first), 0 none
+    Q_INVOKABLE QVariantList rtkTemplates() const;
     Q_INVOKABLE bool removeMaz(const QString &id);
     Q_INVOKABLE QVariantList mazAthletes(const QString &mazId) const;
     Q_INVOKABLE bool saveMazAthlete(const QVariantMap &a);

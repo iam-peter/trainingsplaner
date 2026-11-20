@@ -16,6 +16,31 @@ RowLayout {
 
     signal openFramework(string mazId)
 
+    // A new MAZ from a template of the RTK (Plan.rtkTemplates), null for
+    // none: it gives the name, the weeks and the phases from "von" on, and
+    // with "Hinzufügen" its Rahmenorientierung
+    property var template: null
+
+    function applyTemplate() {
+        const t = template
+        if (!t)
+            return
+        if (nameField.text.trim() === "")
+            nameField.text = "RTK " + t.key
+        if (shortField.text.trim() === "")
+            shortField.text = t.key
+        if (noteField.text.trim() === "")
+            noteField.text = "Rahmenorientierung der RTK 2019, " + t.key
+        if (fromField.monday === "")
+            fromField.text = Store.weekLabel(Store.mondayOf(Store.today()))
+        const week = n => Store.weekLabel(Store.addWeeks(fromField.monday, n))
+        toField.text = week(t.weeks - 1)
+        // U13 has no phases, U20's the RTK leaves to the coach
+        buildUpField.text = t.buildUp > 0 ? week(t.buildUp - 1) : ""
+        peakField.text = t.peak > 0 ? week(t.peak - 1) : ""
+        dirty = true
+    }
+
     function select(id) {
         mazId = id
         const m = id !== "" ? Plan.maz(id) : null
@@ -28,6 +53,8 @@ RowLayout {
         buildUpField.text = m ? m.buildUp : ""
         peakField.text = m ? m.peakPhase : ""
         noteField.text = m ? m.note : ""
+        template = null
+        templateBox.currentIndex = 0
         error = ""
         dirty = false
         reloadAthletes()
@@ -41,7 +68,7 @@ RowLayout {
         const r = Plan.saveMaz({
             id: mazId, name: nameField.text, shortName: shortField.text, sex: women.checked ? 1 : 0,
             from: fromField.text, to: toField.text, buildUp: buildUpField.text, peakPhase: peakField.text,
-            note: noteField.text
+            note: noteField.text, template: pane.mazId === "" && pane.template ? pane.template.key : ""
         })
         error = r.error
         if (error === "")
@@ -100,7 +127,7 @@ RowLayout {
                     font.pixelSize: 16
                 }
                 Label { text: "Bezeichnung:" }
-                TextField { id: nameField; Layout.preferredWidth: 260; onTextEdited: pane.dirty = true }
+                TextField { id: nameField; objectName: "mazName"; Layout.preferredWidth: 260; onTextEdited: pane.dirty = true }
                 Label { text: "Kurzbezeichnung:" }
                 TextField { id: shortField; Layout.preferredWidth: 100; onTextEdited: pane.dirty = true }
                 Label { text: "Für:" }
@@ -109,17 +136,39 @@ RowLayout {
                     RadioButton { id: men; text: "Männer"; onToggled: pane.dirty = true }
                     RadioButton { id: women; text: "Frauen"; onToggled: pane.dirty = true }
                 }
-                Item {}
-                Item {}
+                // Only for a new MAZ; kept in the grid, so the rows stay
+                Label { text: "Vorlage:"; opacity: templateBox.enabled ? 1 : 0 }
+                ComboBox {
+                    id: templateBox
+                    objectName: "templateBox"
+                    enabled: pane.mazId === ""
+                    opacity: enabled ? 1 : 0
+                    Layout.preferredWidth: 220
+                    model: [{ key: "", text: "keine" }].concat(Plan.rtkTemplates())
+                    textRole: "text"
+                    valueRole: "key"
+                    onActivated: {
+                        pane.template = currentIndex > 0 ? model[currentIndex] : null
+                        pane.applyTemplate()
+                    }
+                }
                 Label { text: "Woche von:" }
-                WeekField { id: fromField; onTextEdited: pane.dirty = true }
+                WeekField {
+                    id: fromField
+                    objectName: "mazFrom"
+                    onTextEdited: {
+                        pane.dirty = true
+                        if (pane.template && monday !== "")
+                            pane.applyTemplate()
+                    }
+                }
                 Label { text: "bis:" }
-                WeekField { id: toField; onTextEdited: pane.dirty = true }
+                WeekField { id: toField; objectName: "mazTo"; onTextEdited: pane.dirty = true }
                 RangeLink { from: fromField; to: toField; kind: "week" }
                 Label { text: "Aufbauphase ab:" }
-                WeekField { id: buildUpField; onTextEdited: pane.dirty = true }
+                WeekField { id: buildUpField; objectName: "mazBuildUp"; onTextEdited: pane.dirty = true }
                 Label { text: "Leistungsausprägung ab:" }
-                WeekField { id: peakField; onTextEdited: pane.dirty = true }
+                WeekField { id: peakField; objectName: "mazPeak"; onTextEdited: pane.dirty = true }
                 Label { text: "Bemerkung:" }
                 TextField { id: noteField; Layout.columnSpan: 3; Layout.fillWidth: true; onTextEdited: pane.dirty = true }
             }

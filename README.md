@@ -91,7 +91,9 @@ updates and uninstalling.
   framework plan (RO) in percent, opened from its MAZ; the athlete's
   individual training plan (ITP) per week and exercise or group with the
   week's load as h / m / g; planned weight steps; templates (RO to ITP
-  with the athlete's targets).
+  with the athlete's targets). A new MAZ can start from the framework
+  plans of the BVDG's Rahmentrainingskonzeption 2019 (U13, U15, U17,
+  U20): weeks, phases, load, WH per complex and MHG/BW per exercise.
 - **Analyse**: section analysis (WH, MHG, BW, set size with totals and
   trends, in kg or percent of the targets, comparisons, all MAZ, reps per
   weight), group analysis of a MAZ, data check, and charts. Reports show

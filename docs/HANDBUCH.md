@@ -298,6 +298,23 @@ und **Zielleistung** im Reißen und Stoßen.
 > Aufbau- und drei Wochen Leistungsausprägungsphase. Mira:
 > Gewichtsklasse 69, Ziel Reißen 76 kg, Stoßen 94 kg.
 
+**Vorlage:** Ein neuer MAZ kann aus einer Vorlage der
+Rahmentrainingskonzeption 2019 entstehen: RTK U13 (6 Wochen), U15 und U17
+(13 Wochen) oder U20 (17 Wochen). Die Vorlage füllt Bezeichnung, die
+Wochen ab „Woche von“ und die Phasen aus. Mit **Hinzufügen** trägt sie
+die Rahmenorientierung der RTK ein: je Woche die Belastung, LG/WK/HWK,
+die Wiederholungen der Komplexe K1 bis K7 und je Übung MHG % und BW % mit
+Wiederholungen und Sätzen beim Bestwert. Die RTK gibt die Wiederholungen
+nur je Komplex vor; die Spalten WH der Übungen bleiben deshalb leer.
+Für U15 und U17 gelten ihre Phasen (sechs Wochen Grundlagen-, vier
+Aufbau-, drei Leistungsausprägungsphase). U13 hat keine Phasen, für U20
+nennt die RTK keine Längen: dort setzt man sie selbst.
+
+> **Beispiel:** Vorlage „RTK U17“, Woche von 2/2027: bis 14/2027,
+> Aufbauphase ab 8/2027, Leistungsausprägung ab 12/2027. In der
+> Rahmenorientierung steht in der ersten Woche Reißen MHG 65 %, BW 70 %
+> bei 3 Wiederholungen in 2 Sätzen, K1 70 WH.
+
 ### Rahmenorientierung
 
 ![Rahmenorientierung](handbuch/bilder/13-planung-rahmenorientierung.png)

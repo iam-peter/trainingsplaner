@@ -27,12 +27,15 @@ add_library(tpcore STATIC
     src/weekreport.cpp  src/weekreport.h
     src/report.cpp      src/report.h
     src/youth.cpp       src/youth.h
+    src/rtk.cpp         src/rtk.h
     src/demo.cpp        src/demo.h
     src/update.cpp      src/update.h
 )
 target_include_directories(tpcore PUBLIC src)
 # The database layout
 qt_add_resources(tpcore "sql" PREFIX "/" FILES sql/schema.sql)
+# The RTK's Rahmenorientierungen, templates for a new MAZ
+qt_add_resources(tpcore "rtk" PREFIX "/" BASE rtk FILES rtk/rtk-ro.json)
 target_link_libraries(tpcore PUBLIC Qt6::Core Qt6::Gui Qt6::Sql)
 
 # Fonts (Inter, JetBrains Mono) and Lucide icons go into the resources.
