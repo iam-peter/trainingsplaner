@@ -30,6 +30,7 @@ AppDialog {
         weekNote.checked = printOpts.weekNote
         weekNoteCentered.checked = printOpts.weekNoteCentered
         figures.checked = printOpts.figures
+        tonnage.checked = printOpts.tonnage
         sessionNoteCentered.checked = printOpts.sessionNoteCentered
         fraction.checked = printOpts.notation !== "slash"
         slash.checked = printOpts.notation === "slash"
@@ -101,6 +102,7 @@ AppDialog {
             weekNote: weekNote.checked,
             weekNoteCentered: weekNoteCentered.checked,
             figures: figures.checked,
+            tonnage: tonnage.checked,
             sessionNoteCentered: sessionNoteCentered.checked,
             notation: slash.checked ? "slash" : "fraction",
             blankHeader: blankHeader.value,
@@ -190,6 +192,7 @@ AppDialog {
                         CheckBox { id: weekNoteCentered; text: "zentriert"; enabled: weekNote.checked }
                         CheckBox { id: figures; text: "Kennziffern der Woche (K1–K7)" }
                         CheckBox { id: sessionNoteCentered; text: "TE-Bemerkung zentriert" }
+                        CheckBox { id: tonnage; objectName: "printTonnage"; text: "Tonnage je Übung (t)" }
                     }
 
                     Label { text: "Laststufen:"; Layout.rightMargin: 8 }

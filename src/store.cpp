@@ -593,7 +593,7 @@ void Store::setOrganisation(const QString &v)
 
 namespace {
 
-const char *kPrintBool[] = {"weekNote", "weekNoteCentered", "figures", "sessionNoteCentered", "landscape"};
+const char *kPrintBool[] = {"weekNote", "weekNoteCentered", "figures", "tonnage", "sessionNoteCentered", "landscape"};
 const char *kPrintInt[] = {"blankHeader", "blankPerSession", "blankAfterNote", "marginTop", "marginLeft",
                            "marginRight", "marginBottom"};
 const char *kPrintReal[] = {"fontSmall", "fontNormal", "fontLarge"};
@@ -609,6 +609,7 @@ WeekReport::Options readPrintOptions()
     o.weekNote = s.value(QStringLiteral("weekNote"), o.weekNote).toBool();
     o.weekNoteCentered = s.value(QStringLiteral("weekNoteCentered"), o.weekNoteCentered).toBool();
     o.figures = s.value(QStringLiteral("figures"), o.figures).toBool();
+    o.tonnage = s.value(QStringLiteral("tonnage"), o.tonnage).toBool();
     o.sessionNoteCentered = s.value(QStringLiteral("sessionNoteCentered"), o.sessionNoteCentered).toBool();
     o.landscape = s.value(QStringLiteral("landscape"), o.landscape).toBool();
     const QString paper = s.value(QStringLiteral("paper")).toString();
@@ -643,6 +644,7 @@ QVariantMap Store::printOptions() const
         {QStringLiteral("weekNote"), o.weekNote},
         {QStringLiteral("weekNoteCentered"), o.weekNoteCentered},
         {QStringLiteral("figures"), o.figures},
+        {QStringLiteral("tonnage"), o.tonnage},
         {QStringLiteral("sessionNoteCentered"), o.sessionNoteCentered},
         {QStringLiteral("landscape"), o.landscape},
         {QStringLiteral("paper"), std::find_if(kPapers.begin(), kPapers.end(), [&](const auto &p) {

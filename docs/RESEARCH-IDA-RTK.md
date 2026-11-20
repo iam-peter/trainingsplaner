@@ -130,7 +130,7 @@ M days, L a week or more.
 
 | # | Idea | Source | Size |
 |---|---|---|---|
-| 13 | Print: tonnage per exercise line, AMKT WH in the header, creation date | IDA p.17 | S |
+| 13 | Print: tonnage per exercise line, AMKT WH in the header, creation date (done, November 2026: a "t" column as an option of Ausdruck, AMKT WH beside K1-7 and K1-5 in the week's figures, "erstellt am" at the top) | IDA p.17 | S |
 | 14 | "Letzter Eintrag": jump to the last week with data | IDA p.14 | S |
 | 15 | A note per exercise line, not only per session | IDA p.15 | S–M |
 | 16 | Colour per K group on the lines of week and month | IDA p.15–16 | S |

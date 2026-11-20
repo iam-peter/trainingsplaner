@@ -801,10 +801,24 @@ void TestCore::printWithAllOptions()
     Entry e;
     e.exercise = 8;
     e.steps = {{13, 4, 3, 1}, {15, 3, 2, 0}};
-    s.entries = {e};
+    // General strength: a weight line and a text line with its reps
+    Entry bench;
+    bench.exercise = 31;
+    bench.steps = {{40, 10, 3, 0}};
+    Entry pullUps;
+    pullUps.kind = Entry::ExerciseText;
+    pullUps.exercise = 33;
+    pullUps.text = QStringLiteral("3x8");
+    pullUps.totalReps = 24;
+    s.entries = {e, bench, pullUps};
     w.sessions = {s};
+    // A line's tonnage in t; the AMKT reps of the week; the date printed
+    QCOMPARE(WeekReport::tonnageText(e.stats()), QStringLiteral("0,25"));  // 13*12 + 15*6 = 246 kg
+    QCOMPARE(WeekReport::tonnageText(Stats()), QString());
+    QCOMPARE(WeekReport::amktReps(w), 30 + 24);
+    QCOMPARE(WeekReport::createdText(QDate(2026, 11, 14)), QStringLiteral("erstellt am 14.11.2026"));
     WeekReport::Options o;
-    o.weekNote = o.weekNoteCentered = o.figures = o.sessionNoteCentered = o.landscape = true;
+    o.weekNote = o.weekNoteCentered = o.figures = o.tonnage = o.sessionNoteCentered = o.landscape = true;
     o.notation = WeekReport::Options::Slash;
     o.blankHeader = 2;
     o.blankPerSession = 3;

@@ -1,6 +1,7 @@
 #include "weekreport.h"
 
 #include <QFontMetricsF>
+#include <QLocale>
 #include <QImage>
 #include <QPageLayout>
 #include <QPainter>
@@ -135,8 +136,9 @@ void drawSession(Page &pg, const Options &o, const Session &s)
     QPainter *p = pg.painter();
     const double W = pg.width();
     const double cTu = pg.mm(9), cWh = pg.mm(10), cMhg = pg.mm(11), cBw = pg.mm(10);
-    const double cContent = W - cTu - cWh - cMhg - cBw;
-    const double xContent = cTu, xWh = cTu + cContent, xMhg = xWh + cWh, xBw = xMhg + cMhg;
+    const double cT = o.tonnage ? pg.mm(11) : 0;
+    const double cContent = W - cTu - cWh - cMhg - cBw - cT;
+    const double xContent = cTu, xWh = cTu + cContent, xMhg = xWh + cWh, xBw = xMhg + cMhg, xT = xBw + cBw;
     const double scale = o.fontNormal / 10.0;
     const double headH = pg.mm(6 * scale);
     const double weightH = pg.mm((o.notation == Options::Slash ? 6.5 : 10) * scale);
@@ -156,6 +158,8 @@ void drawSession(Page &pg, const Options &o, const Session &s)
         p->drawRect(QRectF(0, top, W, h));
         for (double x : {xContent, xWh, xMhg, xBw})
             p->drawLine(QPointF(x, top), QPointF(x, top + h));
+        if (o.tonnage)
+            p->drawLine(QPointF(xT, top), QPointF(xT, top + h));
     };
 
     auto drawHeader = [&]() {
@@ -169,6 +173,8 @@ void drawSession(Page &pg, const Options &o, const Session &s)
         p->drawText(QRectF(xWh, top, cWh, headH), Qt::AlignCenter, QStringLiteral("WH"));
         p->drawText(QRectF(xMhg, top, cMhg, headH), Qt::AlignCenter, QStringLiteral("MHG"));
         p->drawText(QRectF(xBw, top, cBw, headH), Qt::AlignCenter, QStringLiteral("BW"));
+        if (o.tonnage)
+            p->drawText(QRectF(xT, top, cT, headH), Qt::AlignCenter, QStringLiteral("t"));
         pg.y += headH;
     };
 
@@ -200,6 +206,8 @@ void drawSession(Page &pg, const Options &o, const Session &s)
             p->drawText(QRectF(xWh, top, cWh, h), Qt::AlignCenter, num(stats.wh));
             p->drawText(QRectF(xMhg, top, cMhg, h), Qt::AlignCenter, num(stats.mhg));
             p->drawText(QRectF(xBw, top, cBw, h), Qt::AlignCenter, num(stats.bw));
+            if (o.tonnage)
+                p->drawText(QRectF(xT, top, cT, h), Qt::AlignCenter, WeekReport::tonnageText(stats));
         } else {
             p->setFont(font(o.fontNormal));
             QString text = e.text;
@@ -253,13 +261,22 @@ void drawSummary(Page &pg, const Options &o, const Week &week)
 
     p->setPen(QPen(Qt::black, pg.mm(0.25)));
     double top = pg.y;
+    // K1-7 and K1-5, and the general strength exercises' reps when there
+    // are any (AMKT, groups 8 and 9)
+    const int amkt = WeekReport::amktReps(week);
+    QStringList cells{QStringLiteral("K1-7: ") + sum.groups1to7.summary(),
+                      QStringLiteral("K1-5: ") + sum.groups1to5.summary()};
+    if (amkt > 0)
+        cells.append(QStringLiteral("AMKT: %1Wh").arg(amkt));
+    const double cellW = W / cells.size();
     p->drawRect(QRectF(0, top, W, topH));
-    p->drawLine(QPointF(W / 2, top), QPointF(W / 2, top + topH));
     p->setFont(font(o.fontNormal, true));
-    p->drawText(QRectF(pg.mm(2), top, W / 2 - pg.mm(4), topH), Qt::AlignLeft | Qt::AlignVCenter,
-                QStringLiteral("K1-7: ") + sum.groups1to7.summary());
-    p->drawText(QRectF(W / 2 + pg.mm(2), top, W / 2 - pg.mm(4), topH),
-                Qt::AlignLeft | Qt::AlignVCenter, QStringLiteral("K1-5: ") + sum.groups1to5.summary());
+    for (int i = 0; i < cells.size(); ++i) {
+        if (i > 0)
+            p->drawLine(QPointF(cellW * i, top), QPointF(cellW * i, top + topH));
+        p->drawText(QRectF(cellW * i + pg.mm(2), top, cellW - pg.mm(4), topH), Qt::AlignLeft | Qt::AlignVCenter,
+                    cells[i]);
+    }
     top += topH;
 
     const double colW = W / Catalog::summaryGroups;
@@ -294,6 +311,30 @@ void drawSummary(Page &pg, const Options &o, const Week &week)
 } // namespace
 
 namespace WeekReport {
+
+QString tonnageText(const Stats &stats)
+{
+    return stats.tonnage > 0 ? QLocale(QLocale::German).toString(stats.tonnage / 1000.0, 'f', 2) : QString();
+}
+
+int amktReps(const Week &week)
+{
+    int reps = 0;
+    for (const Session &s : week.sessions) {
+        for (const Entry &e : s.entries) {
+            const Exercise *ex = Catalog::find(e.exercise);
+            if (!ex || (ex->group != 8 && ex->group != 9))
+                continue;
+            reps += e.kind == Entry::Weights ? e.stats().wh : e.kind == Entry::ExerciseText ? e.totalReps : 0;
+        }
+    }
+    return reps;
+}
+
+QString createdText(const QDate &day)
+{
+    return QStringLiteral("erstellt am ") + day.toString(QStringLiteral("dd.MM.yyyy"));
+}
 
 QPageLayout Options::pageLayout() const
 {
@@ -331,6 +372,9 @@ void render(QPagedPaintDevice *device, const Week &week, const Header &header, c
                     QStringLiteral("Trainer: ") + header.trainer);
     p->drawText(QRectF(W / 2, 0, W / 2, lineH), Qt::AlignRight | Qt::AlignVCenter,
                 header.organisation);
+    // When it was printed: which version of the plan hangs on the wall
+    p->setFont(font(o.fontSmall));
+    p->drawText(QRectF(W / 4, 0, W / 2, lineH), Qt::AlignCenter, WeekReport::createdText(QDate::currentDate()));
     pg.y += lineH;
 
     const double titleH = pg.mm(7 * o.fontLarge / 12.0);

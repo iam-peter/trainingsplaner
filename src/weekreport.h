@@ -31,6 +31,7 @@ struct Options
     bool weekNote = false;          // print the week note
     bool weekNoteCentered = false;
     bool figures = false;           // weekly figures K1-K7
+    bool tonnage = false;           // a column "t" with each line's tonnage
     bool sessionNoteCentered = false;
     Notation notation = Fraction;
     int blankHeader = 0;            // empty lines below the header
@@ -50,6 +51,13 @@ struct Options
 
     QPageLayout pageLayout() const;
 };
+
+// What the printout shows beside the old program's: a line's tonnage in
+// t ("0,66"), the week's AMKT reps (groups 8 and 9: the reps of weight
+// lines and the totals of text lines), and the creation line
+QString tonnageText(const Stats &stats);
+int amktReps(const Week &week);
+QString createdText(const QDate &day);
 
 // Paints all pages onto `device` (a QPrinter or QPdfWriter that is already
 // set up with pageLayout()).

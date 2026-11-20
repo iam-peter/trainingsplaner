@@ -227,6 +227,17 @@ Seitenvorschau wie im alten Programm. Dort lassen sich der Drucker und das
 Papier wählen. Was auf dem Ausdruck steht, legen die
 [Einstellungen › Ausdruck](#9-einstellungen) fest.
 
+Oben in der Mitte steht klein, wann der Plan gedruckt wurde („erstellt
+am 14.11.2026“): so ist klar, welche Fassung an der Wand hängt. Mit
+**Tonnage je Übung** bekommt jede Zeile eine Spalte **t**, die bewegte
+Last der Zeile in Tonnen. Die **Kennziffern der Woche** nennen neben
+K1-7 und K1-5 auch die Wiederholungen der allgemeinen Kraftübungen
+(**AMKT**, Gruppen 8 und 9), wenn es welche gibt.
+
+> **Beispiel:** Miras Woche 45/2026 (Ist): Reißen am Montag 13 WH,
+> MHG 56, BW 62, t 0,73; in der Woche K1-7 129 WH, K1-5 114 WH und
+> AMKT 24 WH (Klimmzüge 3×8).
+
 ---
 
 ## 4. Monat und Wettkampftermine
@@ -624,7 +635,8 @@ die der Junioren und Aktiven.
 
 *Hantel-Menü › Einstellungen…*
 
-- **Ausdruck**: Trainer und Kopfzeile, was auf den Wochenplan kommt,
+- **Ausdruck**: Trainer und Kopfzeile, was auf den Wochenplan kommt
+  (auch die Tonnage je Übung),
   Schriftgrößen, Papier und Ränder, Logo.
 - **Trainingszeiten**: die üblichen Zeiten der 1., 2. und 3. TE und wie
   viele Einheiten pro Tag die Woche zeigt.
