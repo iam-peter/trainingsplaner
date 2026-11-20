@@ -19,6 +19,7 @@ struct Header
     QString trainer;
     QString organisation; // shown top right, may be empty
     QString athleteName;
+    int load = 0;         // the week's load from the ITP (Planning::loadText), 0 none
 };
 
 struct Options
@@ -58,6 +59,8 @@ struct Options
 QString tonnageText(const Stats &stats);
 int amktReps(const Week &week);
 QString createdText(const QDate &day);
+// "Belastung: hoch" (mittel, gesenkt) under the title; "" without a load
+QString loadLine(int load);
 
 // Paints all pages onto `device` (a QPrinter or QPdfWriter that is already
 // set up with pageLayout()).

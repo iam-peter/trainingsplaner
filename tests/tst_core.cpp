@@ -817,6 +817,11 @@ void TestCore::printWithAllOptions()
     QCOMPARE(WeekReport::tonnageText(Stats()), QString());
     QCOMPARE(WeekReport::amktReps(w), 30 + 24);
     QCOMPARE(WeekReport::createdText(QDate(2026, 11, 14)), QStringLiteral("erstellt am 14.11.2026"));
+    // The week's load under the title, as the coach asked
+    QCOMPARE(WeekReport::loadLine(3), QStringLiteral("Belastung: hoch"));
+    QCOMPARE(WeekReport::loadLine(2), QStringLiteral("Belastung: mittel"));
+    QCOMPARE(WeekReport::loadLine(1), QStringLiteral("Belastung: gesenkt"));
+    QCOMPARE(WeekReport::loadLine(0), QString());
     WeekReport::Options o;
     o.weekNote = o.weekNoteCentered = o.figures = o.tonnage = o.sessionNoteCentered = o.landscape = true;
     o.notation = WeekReport::Options::Slash;
@@ -830,7 +835,7 @@ void TestCore::printWithAllOptions()
     QCOMPARE(o.pageLayout().orientation(), QPageLayout::Landscape);
     QCOMPARE(WeekReport::Options().pageLayout().pageSize().id(), QPageSize::A4);
     const QString path = m_dir.filePath(QStringLiteral("all.pdf"));
-    QVERIFY(WeekReport::writePdf(path, w, {QStringLiteral("T"), QStringLiteral("V"), QStringLiteral("A B")}, o));
+    QVERIFY(WeekReport::writePdf(path, w, {QStringLiteral("T"), QStringLiteral("V"), QStringLiteral("A B"), 3}, o));
     QVERIFY(QFileInfo(path).size() > 1000);
 }
 

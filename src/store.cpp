@@ -2388,6 +2388,19 @@ bool Store::printImage(const QImage &image, const QString &title)
     });
 }
 
+namespace {
+
+// Trainer, organisation, athlete, and the week's load from the ITP
+WeekReport::Header printHeader(const Store &store, const QString &athleteId, const QDate &monday)
+{
+    WeekReport::Header h{store.trainer(), store.organisation(), Database::athlete(athleteId).fullName()};
+    for (const WeekMeta &w : Planning::meta(athleteId, monday, monday))
+        h.load = w.load;
+    return h;
+}
+
+} // namespace
+
 bool Store::printWeek(const QString &athleteId, const QString &monday, const QString &variant)
 {
     const WeekReport::Options options = readPrintOptions();
@@ -2397,7 +2410,7 @@ bool Store::printWeek(const QString &athleteId, const QString &monday, const QSt
     const QString title = QStringLiteral("Wochenplan %1 %2").arg(a.fullName(), weekLabel(monday));
     printer.setDocName(title);
     const Week week = loadWeek(athleteId, monday, variant);
-    const WeekReport::Header header{trainer(), organisation(), a.fullName()};
+    const WeekReport::Header header = printHeader(*this, athleteId, toDate(monday));
     return PrintPreview::show(&printer, title, [&](QPrinter *device) {
         WeekReport::render(device, week, header, options);
     });
@@ -2420,9 +2433,8 @@ QString Store::exportPdf(const QString &athleteId, const QString &monday, const 
     const QString path = file.toLocalFile();
     if (path.isEmpty())
         return QStringLiteral("Kein Dateiname angegeben.");
-    const Athlete a = Database::athlete(athleteId);
-    if (!WeekReport::writePdf(path, loadWeek(athleteId, monday, variant),
-                              {trainer(), organisation(), a.fullName()}, readPrintOptions()))
+    if (!WeekReport::writePdf(path, loadWeek(athleteId, monday, variant), printHeader(*this, athleteId, toDate(monday)),
+                              readPrintOptions()))
         return QStringLiteral("PDF konnte nicht geschrieben werden.");
     if (!QFileInfo::exists(path))
         return QStringLiteral("PDF konnte nicht geschrieben werden: ") + QDir::toNativeSeparators(path);

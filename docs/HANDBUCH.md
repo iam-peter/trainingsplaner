@@ -228,13 +228,15 @@ Papier wählen. Was auf dem Ausdruck steht, legen die
 [Einstellungen › Ausdruck](#9-einstellungen) fest.
 
 Oben in der Mitte steht klein, wann der Plan gedruckt wurde („erstellt
-am 14.11.2026“): so ist klar, welche Fassung an der Wand hängt. Mit
+am 14.11.2026“): so ist klar, welche Fassung an der Wand hängt. Unter dem
+Titel steht die Belastung der Woche aus dem ITP: **Belastung: hoch**,
+**mittel** oder **gesenkt**; ohne Belastung im ITP bleibt die Zeile weg. Mit
 **Tonnage je Übung** bekommt jede Zeile eine Spalte **t**, die bewegte
 Last der Zeile in Tonnen. Die **Kennziffern der Woche** nennen neben
 K1-7 und K1-5 auch die Wiederholungen der allgemeinen Kraftübungen
 (**AMKT**, Gruppen 8 und 9), wenn es welche gibt.
 
-> **Beispiel:** Miras Woche 45/2026 (Ist): Reißen am Montag 13 WH,
+> **Beispiel:** Miras Woche 45/2026 (Ist), „Belastung: hoch“: Reißen am Montag 13 WH,
 > MHG 56, BW 62, t 0,73; in der Woche K1-7 129 WH, K1-5 114 WH und
 > AMKT 24 WH (Klimmzüge 3×8).
 

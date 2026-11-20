@@ -1,5 +1,7 @@
 #include "weekreport.h"
 
+#include "planning.h"
+
 #include <QFontMetricsF>
 #include <QLocale>
 #include <QImage>
@@ -331,6 +333,18 @@ int amktReps(const Week &week)
     return reps;
 }
 
+QString loadLine(int load)
+{
+    const QString letter = Planning::loadText(load);
+    if (letter.isEmpty())
+        return {};
+    const QString word = letter == QLatin1String("h")   ? QStringLiteral("hoch")
+                         : letter == QLatin1String("m") ? QStringLiteral("mittel")
+                         : letter == QLatin1String("g") ? QStringLiteral("gesenkt")
+                                                        : letter;
+    return QStringLiteral("Belastung: ") + word;
+}
+
 QString createdText(const QDate &day)
 {
     return QStringLiteral("erstellt am ") + day.toString(QStringLiteral("dd.MM.yyyy"));
@@ -383,6 +397,14 @@ void render(QPagedPaintDevice *device, const Week &week, const Header &header, c
                 week.variant == Variant::Plan ? QStringLiteral("WOCHENPLAN")
                                               : QStringLiteral("TRAININGSWOCHE (IST)"));
     pg.y += titleH;
+
+    // Which kind of week it is, as the coach asked: under the title
+    const QString load = WeekReport::loadLine(header.load);
+    if (!load.isEmpty()) {
+        p->setFont(font(o.fontNormal + 1, true));
+        p->drawText(QRectF(0, pg.y, W, lineH), Qt::AlignCenter, load);
+        pg.y += lineH;
+    }
 
     p->setFont(font(o.fontNormal + 1, true));
     p->drawText(QRectF(0, pg.y, W / 2, lineH), Qt::AlignLeft | Qt::AlignVCenter, header.athleteName);
