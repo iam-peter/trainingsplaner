@@ -23,6 +23,10 @@ Item {
     readonly property color mhgColor: "#0f766e"
     readonly property var loadColor: ({ h: "#5b6b7f", m: "#9aa8b8", g: "#d5dde6" })
     readonly property color normColor: "#7c3aed"
+    // The RTK's intensity band of the exercise, {has, low, high, ...}, in %
+    property var band: ({})
+    readonly property color bandColor: "#16a34a"
+    onBandChanged: canvas.requestPaint()
     readonly property bool hasNorm: (course.norm || []).some(v => v)
 
     onCourseChanged: canvas.requestPaint()
@@ -105,6 +109,10 @@ Item {
                 lo = 0
                 hi = 100
             }
+            if (chart.band && chart.band.has) {
+                lo = Math.min(lo, chart.band.low)
+                hi = Math.max(hi, chart.band.high)
+            }
             const step = 5
             lo = Math.floor((lo - 3) / step) * step
             hi = Math.ceil((hi + 3) / step) * step
@@ -120,6 +128,14 @@ Item {
                     whMax = Math.max(whMax, v)
             whMax = whMax > 0 ? Math.ceil(whMax * 1.1 / 50) * 50 : 100
             const yBottom = v => chart.bottomTop + chart.bottomHeight * (1 - v / whMax)
+
+            // The intensity band across the weights
+            if (chart.band && chart.band.has) {
+                ctx.fillStyle = chart.bandColor
+                ctx.globalAlpha = 0.10
+                ctx.fillRect(chart.plotLeft, yTop(chart.band.high), chart.plotWidth, yTop(chart.band.low) - yTop(chart.band.high))
+                ctx.globalAlpha = 1
+            }
 
             // Lowered weeks shaded, in both plots
             for (let i = 0; i < n; ++i) {

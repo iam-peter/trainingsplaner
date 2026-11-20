@@ -519,6 +519,15 @@ Page {
                     if (avg && chBw.checked) l.push({ name: "BW Ø", color: Styles.TokenInterface.semantics.chart_series[0], values: chartTab.groupAverage.bw || [], trend: false })
                     return l
                 }
+                // The RTK's intensity band, while the weights are in % of the target
+                bands: {
+                    const band = chZiel.checked ? Plan.intensityBand(parseInt(chEx.text) || 0) : null
+                    const n = (chartTab.first.labels || []).length
+                    return band && band.has && n > 0
+                           ? [{ name: band.name + " " + band.low + "–" + band.high + " %", color: "#16a34a",
+                                lower: Array(n).fill(band.low), upper: Array(n).fill(band.high) }]
+                           : []
+                }
                 bars: {
                     const b = []
                     if (chVolume.currentIndex > 0) {

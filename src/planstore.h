@@ -33,6 +33,9 @@ public:
     // The RTK's templates for a new MAZ: [{key, text, weeks, buildUp, peak}],
     // buildUp and peak the week of the MAZ they begin in (1 the first), 0 none
     Q_INVOKABLE QVariantList rtkTemplates() const;
+    // The RTK's intensity band of an exercise (Aufbautraining): {has, name,
+    // low, high (percent of the competition target), text}
+    Q_INVOKABLE QVariantMap intensityBand(int exercise) const;
     // A MAZ target against the athlete's development curve (Sandau 2018,
     // from the competitions before the MAZ) for the year of its main
     // competition. A hint, never a block:

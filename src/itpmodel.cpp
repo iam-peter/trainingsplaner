@@ -2,6 +2,7 @@
 
 #include "catalog.h"
 #include "database.h"
+#include "rtk.h"
 #include "tmk.h"
 #include "youth.h"
 
@@ -215,6 +216,15 @@ QString ItpModel::warning(int row, int column) const
     if (value(row, column) <= cap)
         return {};
     return text + QStringLiteral(", %1 kg bei %2 kg Ziel.").arg(cap).arg(target);
+}
+
+QString ItpModel::bandTip(int exercise, int kind) const
+{
+    const Rtk::IntensityBand b = Rtk::intensityBand(exercise);
+    if (b.name.isEmpty() || (kind != Mhg && kind != Bw))
+        return {};
+    return QStringLiteral("\nIntensität nach RTK (Aufbautraining): %1 %2–%3 % des Wettkampfziels")
+        .arg(b.name).arg(b.low).arg(b.high);
 }
 
 QString ItpModel::normTip(int complex) const
@@ -442,7 +452,8 @@ QVariantMap ItpModel::columnInfo(int column) const
             {QStringLiteral("first"), k == Wh},
             {QStringLiteral("exercise"), e},
             {QStringLiteral("readOnly"), false},
-            {QStringLiteral("tip"), e < 0 ? QStringLiteral("Komplex K%1").arg(-e) + normTip(e) : Catalog::name(e)}};
+            {QStringLiteral("tip"), e < 0 ? QStringLiteral("Komplex K%1").arg(-e) + normTip(e)
+                                          : Catalog::name(e) + bandTip(e, k)}};
 }
 
 QString ItpModel::rowLabel(int row) const

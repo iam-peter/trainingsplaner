@@ -354,7 +354,14 @@ vorsieht. Sie finden ihn an drei Stellen:
 > Trainingseinheiten.
 
 Oben lassen sich **Übung** und **MAZ** wählen. **Gewichte** schaltet
-zwischen kg, % des MAZ-Ziels und % des Wettkampfergebnisses um.
+zwischen kg, % des MAZ-Ziels und % des Wettkampfergebnisses um. In
+**% MAZ-Ziel** zeigt ein grünes Feld den **Intensitätsbereich** der
+Rahmentrainingskonzeption für das Aufbautraining: für die Zugübungen
+(13, 14, 22, 24) Schnellkraft mit 55–100 % des Wettkampfziels, für die
+Kniebeugen (18–21) und die Übungen des Komplexes K4 (15–17) Maximalkraft
+mit 65–110 %. Die Wettkampfübungen und ihre Teile dienen beidem, für sie
+gibt es keinen eigenen Bereich. Der Bereich ist ein Anhalt, keine
+Grenze: die Rahmenorientierungen der RTK liegen nicht immer darin.
 **Tabelle** zeigt dieselben Zahlen als Tabelle. Beim Darüberfahren
 erscheinen die Werte.
 
@@ -607,7 +614,8 @@ ohne Ist der Plan; leere Wochen bleiben ohne Markierung.
 
 Eine Übung über die Wochen: MHG und BW als Linien (mit Trend), der
 Umfang als Balken. Ein zweiter Sportler oder Zeitraum lässt sich zum
-Vergleich dazunehmen. **Ist + Plan** zeigt beides in einer Grafik: das
+Vergleich dazunehmen. Mit **% Ziel** steht der Intensitätsbereich der
+Übung als grünes Band dahinter (siehe Belastungsverlauf). **Ist + Plan** zeigt beides in einer Grafik: das
 Ist durchgezogen, den Plan gestrichelt in derselben Farbe, die
 Wiederholungen des Plans als helle violette Balken.
 

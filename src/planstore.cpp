@@ -412,6 +412,17 @@ QVariantMap Plan::loadCourse(const QString &athleteId, const QString &mazId, con
     return result;
 }
 
+QVariantMap Plan::intensityBand(int exercise) const
+{
+    const Rtk::IntensityBand b = Rtk::intensityBand(exercise);
+    if (b.name.isEmpty())
+        return {{QStringLiteral("has"), false}};
+    return {{QStringLiteral("has"), true}, {QStringLiteral("name"), b.name},
+            {QStringLiteral("low"), b.low}, {QStringLiteral("high"), b.high},
+            {QStringLiteral("text"), QStringLiteral("%1: %2–%3 % des Wettkampfziels (RTK, Aufbautraining)")
+                                         .arg(b.name).arg(b.low).arg(b.high)}};
+}
+
 QVariantMap Plan::targetCheck(const QString &mazId, const QString &athleteId, int targetSnatch,
                               int targetCleanJerk) const
 {

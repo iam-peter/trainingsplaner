@@ -169,7 +169,7 @@ AppDialog {
                           + "des Wochenbestwerts, „Min zum WoBW“; mit „Anw“: in wie vielen "
                           + "Einheiten eine Übung vorkommt), auf Wunsch mit dem "
                           + "höchsten Gewicht je Satzgröße (1–10 Wdh.), Grafik je Übung (auch Ist und Plan zusammen, oder "
-                          + "gegen den Durchschnitt eines Kaders, Vereins oder MAZ), "
+                          + "gegen den Durchschnitt eines Kaders, Vereins oder MAZ; in % des Ziels mit dem Intensitätsbereich der RTK), "
                           + "Zeiträume per Knopf: die letzten 1, 2, 4 Wochen oder 1, 3, 6 Monate, "
                           + "Belastungstabellen. Die Datenprüfung zeigt rot die Wochen mit mehr oder weniger Einheiten, als die "
                           + "Trainingsetappe (AGA, GLT, ABT, AST, HLT nach der AK) vorsieht. Die Tabellen stehen sofort da und folgen den Einstellungen. „Kopieren“ "

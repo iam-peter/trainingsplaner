@@ -28,4 +28,20 @@ Template find(const QString &key);
 // RO in those weeks stays unless the template sets it.
 bool fillRo(const QString &mazId, const QString &key);
 
+// The intensity of the Aufbautraining's focuses (RTK-Online, Ziele des
+// Aufbautrainings, after Lippmann 2005): Schnellkraft by pulls with extra
+// loads of 55 to 100 % of the competition target (Wettkampfziel, WKZ),
+// Maximalkraft by strength exercises with 65 to 110 %. Bands for the
+// exercises that clearly belong to one: the pulls 13, 14, 22, 24
+// (Schnellkraft); the squats 18 to 21 and the K4 exercises 15 to 17
+// (Maximalkraft). The competition lifts and their parts serve both, the
+// presses and Kraftreißen neither clearly: none for them.
+struct IntensityBand
+{
+    QString name; // "Schnellkraft", "Maximalkraft"; empty for none
+    int low = 0;  // percent of the competition target
+    int high = 0;
+};
+IntensityBand intensityBand(int exercise);
+
 } // namespace Rtk

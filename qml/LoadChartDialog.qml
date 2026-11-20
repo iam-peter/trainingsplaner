@@ -154,6 +154,8 @@ AppDialog {
             Layout.fillHeight: true
             Layout.minimumHeight: 320
             course: dialog.course
+            // The RTK's intensity band, while the weights are in % of the target
+            band: dialog.reference === "ziel" && dialog.course.unit === "%" ? Plan.intensityBand(dialog.exercise) : ({})
         }
 
         // What the lines mean
@@ -172,6 +174,7 @@ AppDialog {
                     { text: "schattiert: gesenkte Woche", color: "#b8c6d6", style: "bar" }
                 ].concat(chart.hasNorm ? [{ text: "Richtwert WH K1-7 je Woche (TMK 2018, im Mittel)",
                                             color: chart.normColor, style: "dash" }] : [])
+                 .concat(chart.band && chart.band.has ? [{ text: chart.band.text, color: chart.bandColor, style: "bar" }] : [])
                 Row {
                     required property var modelData
                     spacing: 6

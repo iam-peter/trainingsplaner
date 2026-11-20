@@ -112,4 +112,16 @@ bool fillRo(const QString &mazId, const QString &key)
     return db.commit();
 }
 
+IntensityBand intensityBand(int exercise)
+{
+    switch (exercise) {
+    case 13: case 14: case 22: case 24:
+        return {QStringLiteral("Schnellkraft"), 55, 100};
+    case 15: case 16: case 17: case 18: case 19: case 20: case 21:
+        return {QStringLiteral("Maximalkraft"), 65, 110};
+    default:
+        return {};
+    }
+}
+
 } // namespace Rtk

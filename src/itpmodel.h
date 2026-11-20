@@ -91,6 +91,8 @@ private:
     // The TMK's WH a week of a complex (0: K1-7) for the age in the first
     // week, as a line for a column's tip; "" without one
     QString normTip(int complex) const;
+    // The RTK's intensity band of an exercise for the MHG and BW columns
+    QString bandTip(int exercise, int kind) const;
     // The RO's value for a cell as text, "" without one
     QString proposal(int row, int column) const;
 
