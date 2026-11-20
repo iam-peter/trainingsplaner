@@ -473,13 +473,18 @@ links.
 ![Individualanalyse](handbuch/bilder/16-analyse-individual.png)
 
 Die **Abschnittsanalyse** eines Sportlers: je Übung WH, Mhg, BW und SG
-Woche für Woche, rechts Summe, Durchschnitt und Entwicklung. Als
+Woche für Woche, rechts Summe, Durchschnitt und Entwicklung. Die Zeile
+**Anw** zählt, in wie vielen Trainingseinheiten die Übung vorkommt: je
+Woche, zusammen, pro Woche und als Anteil an allen Einheiten (in %). Bei
+den Komplexen K1–K7 zählt eine Einheit einmal, auch wenn mehrere Übungen
+des Komplexes darin stehen. Als
 Zeitraum lassen sich Wochen oder eine MAZ wählen. Als Bezug Ist, Plan
 oder ITP, in kg oder in % des Ziels. Dazu wahlweise ein Vergleich mit
 einem anderen Zeitraum.
 
 > **Beispiel:** Mira, 12 Wochen ab 35/2026, Ist: Reißen WKÜ mit 14 WH in
-> den Wochen 39–42 und 20 WH in den Wochen 43–45, zusammen 116 WH.
+> den Wochen 39–42 und 20 WH in den Wochen 43–45, zusammen 116 WH. Es
+> kommt in 10 der 20 Einheiten vor (Anw 10, 0,9 pro Woche, 50 %).
 > Woche 38 ist grau: Es ist die Woche eines Wettkampfs (15.09.), die nur
 > mit *WK-Woche einschließen* mitzählt. Deshalb steht oben „11/12 Wochen“.
 

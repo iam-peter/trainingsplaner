@@ -674,7 +674,7 @@ QList<WeightLine> weightLines(const QString &athleteId, Variant variant, const Q
 {
     QList<WeightLine> list;
     QSqlQuery q(db());
-    q.prepare(QStringLiteral("SELECT monday, day, exercise, content FROM session_entries WHERE athlete_id = ?"
+    q.prepare(QStringLiteral("SELECT monday, day, exercise, content, number FROM session_entries WHERE athlete_id = ?"
                              " AND variant = ? AND kind = 0 AND exercise > 0 AND monday BETWEEN ? AND ?"
                              " ORDER BY monday, day, number, position"));
     q.addBindValue(athleteId);
@@ -689,6 +689,7 @@ QList<WeightLine> weightLines(const QString &athleteId, Variant variant, const Q
         l.day = q.value(1).toInt();
         l.exercise = q.value(2).toInt();
         l.steps = Steps::parse(q.value(3).toString());
+        l.number = q.value(4).toInt();
         if (!l.steps.isEmpty())
             list.append(l);
     }

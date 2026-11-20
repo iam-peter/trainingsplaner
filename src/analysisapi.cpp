@@ -114,6 +114,9 @@ QList<Cells> sectionTable(const Section &s, bool summary, bool itp)
         line(QStringLiteral("BW"), r.bw, d, r.bwMax, r.mhgTop30, r.bwTrend, d, d, 1, false);
         if (!itp)
             line(QStringLiteral("SG"), r.sg, 1, r.sgMean, r.sgTop30, r.failed, 1, 1, 0, false, false);
+        // In how many sessions it is: IDA's "Anw"
+        if (!itp && !r.anw.isEmpty())
+            line(QStringLiteral("Anw"), r.anw, 0, r.anwTotal, r.anwPerWeek, r.anwShare, 0, 1, 0, false, false);
     }
     return rows;
 }
@@ -125,7 +128,9 @@ QString legend(bool itp)
         "Mhg: 1) höchstes Wochen-Mhg; 2) Mhg des Abschnitts; 3) durchschnittlicher Zuwachs von Woche zu Woche\n"
         "BW: 1) höchstes BW; 2) Mhg der 30 schwersten Versuche; 3) durchschnittlicher Zuwachs von Woche zu Woche");
     if (!itp)
-        l += QStringLiteral("\nSG: 1) mittlere Satzgröße; 2) mittlere Satzgröße der 30 schwersten Versuche; 3) ungültige Versuche");
+        l += QStringLiteral("\nSG: 1) mittlere Satzgröße; 2) mittlere Satzgröße der 30 schwersten Versuche; 3) ungültige Versuche"
+                            "\nAnw: in wie vielen Einheiten die Übung vorkommt: 1) zusammen; 2) pro Woche; "
+                            "3) Anteil an allen Einheiten in %");
     return l;
 }
 

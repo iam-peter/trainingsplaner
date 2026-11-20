@@ -37,6 +37,7 @@ struct Row
     int key = 0;      // exercise, or -1..-7 for K1..K7
     QString name;
     QList<double> wh, mhg, bw, sg; // per week, none = no value
+    QList<double> anw;             // sessions with the row a week (IDA's "Anw")
     // Summaries, as the old program's legend:
     // WH:  total, per week, trend per week
     // MHG: best week, period MHG, trend per week
@@ -46,6 +47,8 @@ struct Row
     double mhgMax = none, mhgPeriod = none, mhgTrend = none;
     double bwMax = none, mhgTop30 = none, bwTrend = none;
     double sgMean = none, sgTop30 = none, failed = none;
+    // Anw: sessions with it, per week, share of all sessions in percent
+    double anwTotal = none, anwPerWeek = none, anwShare = none;
     bool percent = false; // MHG/BW values in percent of the reference
 };
 

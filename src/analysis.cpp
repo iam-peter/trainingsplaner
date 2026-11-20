@@ -5,6 +5,7 @@
 #include "database.h"
 
 #include <QMap>
+#include <QSet>
 #include <QSqlQuery>
 
 #include <algorithm>
@@ -17,6 +18,7 @@ using namespace Analysis;
 struct WeekBucket
 {
     QList<Step> steps;
+    QSet<int> sessions; // day * 10 + number, the sessions it is in
     WeekTarget target; // ITP basis
     bool hasTarget = false;
 };
@@ -98,8 +100,11 @@ Section section(const Params &p)
         const Variant v = p.basis == Basis::Plan ? Variant::Plan : Variant::Actual;
         for (const Database::WeightLine &l : Database::weightLines(p.athleteId, v, p.from, to)) {
             const int key = keyFor(l.exercise, p.groups);
-            if (key != 0)
-                buckets[key][int(p.from.daysTo(l.monday) / 7)].steps += l.steps;
+            if (key == 0)
+                continue;
+            WeekBucket &b = buckets[key][int(p.from.daysTo(l.monday) / 7)];
+            b.steps += l.steps;
+            b.sessions.insert(l.day * 10 + l.number);
         }
         for (int i = 0; i < p.weeks; ++i) {
             if (s.excluded[i])
@@ -137,12 +142,12 @@ Section section(const Params &p)
         auto scale = [&](double kg) { return has(kg) && r.percent ? kg * 100.0 / refKg : kg; };
 
         QList<Step> allSteps;
-        double whSum = 0, tonnage = 0, sets = 0;
+        double whSum = 0, tonnage = 0, sets = 0, anwSum = 0;
         QList<QPair<int, int>> attempts; // (kg, set size), one per repetition
         for (int i = 0; i < p.weeks; ++i) {
             const WeekBucket b = it.value().value(i);
             if (s.excluded[i]) {
-                r.wh.append(none); r.mhg.append(none); r.bw.append(none); r.sg.append(none);
+                r.wh.append(none); r.mhg.append(none); r.bw.append(none); r.sg.append(none); r.anw.append(none);
                 continue;
             }
             if (p.basis == Basis::Itp) {
@@ -151,6 +156,7 @@ Section section(const Params &p)
                 r.mhg.append(b.hasTarget && t.mhg > 0 ? scale(t.mhg) : none);
                 r.bw.append(b.hasTarget && t.bw > 0 ? scale(t.bw) : none);
                 r.sg.append(none);
+                r.anw.append(none);
                 if (b.hasTarget && t.wh > 0) {
                     whSum += t.wh;
                     tonnage += double(t.wh) * t.mhg;
@@ -159,7 +165,7 @@ Section section(const Params &p)
             }
             const Stats st = Steps::compute(b.steps);
             if (st.wh == 0) {
-                r.wh.append(none); r.mhg.append(none); r.bw.append(none); r.sg.append(none);
+                r.wh.append(none); r.mhg.append(none); r.bw.append(none); r.sg.append(none); r.anw.append(none);
                 continue;
             }
             int weekSets = 0;
@@ -176,6 +182,8 @@ Section section(const Params &p)
             r.mhg.append(scale(st.tonnage / st.wh));
             r.bw.append(scale(st.bw));
             r.sg.append(weekSets > 0 ? double(st.wh) / weekSets : none);
+            r.anw.append(double(b.sessions.size()));
+            anwSum += b.sessions.size();
         }
         if (whSum <= 0)
             continue;
@@ -203,6 +211,9 @@ Section section(const Params &p)
             for (const Step &x : allSteps)
                 failed += x.failed;
             r.failed = failed;
+            r.anwTotal = anwSum;
+            r.anwPerWeek = s.countedWeeks > 0 ? anwSum / s.countedWeeks : none;
+            r.anwShare = s.sessions > 0 ? anwSum * 100.0 / s.sessions : none;
         }
         s.rows.append(r);
     }

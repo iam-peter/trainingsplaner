@@ -120,6 +120,7 @@ struct WeightLine
 {
     QDate monday;
     int day = 1;
+    int number = 1; // the session of the day
     int exercise = 0;
     QList<Step> steps;
 };
