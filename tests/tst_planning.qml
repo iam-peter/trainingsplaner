@@ -36,8 +36,8 @@ Item {
             compare(model.percent, true)
             compare(model.rowCount(), 4)           // 3 weeks + average
             // The snatch's WH, MHG, BW, K2's WH, the sums K1-7 and K1-5,
-            // load and WK-Lage
-            compare(model.columnCount(), 3 + 1 + 2 + 2)
+            // load, WK-Lage and Tr.-Wo.
+            compare(model.columnCount(), 3 + 1 + 2 + 3)
             compare(model.rowLabel(0), "10/2028 A")
             compare(model.rowLabel(2), "12/2028 L")
             verify(model.setData(model.index(0, 0), "30", editRole))   // WH

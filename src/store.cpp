@@ -1589,7 +1589,9 @@ QVariantMap Store::weekContext(const QString &athleteId, const QString &monday) 
             maz = {{QStringLiteral("has"), true}, {QStringLiteral("name"), z.name},
                    {QStringLiteral("shortName"), z.shortName},
                    {QStringLiteral("week"), int(z.from.daysTo(m) / 7) + 1},
-                   {QStringLiteral("weeks"), z.weeks()}, {QStringLiteral("phase"), phase}};
+                   {QStringLiteral("weeks"), z.weeks()}, {QStringLiteral("phase"), phase},
+                   {QStringLiteral("countdown"),
+                    Planning::trainingWeek(z, Planning::mainCompetitionWeek(z, athleteId), m)}};
             break;
         }
     }
@@ -1724,17 +1726,25 @@ QVariantMap Store::month(const QString &athleteId, const QString &firstOfMonth, 
         const int whPlan = plan.summary().groups1to7.wh;
         const int whActual = actual.summary().groups1to7.wh;
         int load = 0;
-        if (!allAthletes && !athleteId.isEmpty())
-            for (const WeekMeta &m : Planning::meta(athleteId, monday, monday))
+        QString position;
+        if (!allAthletes && !athleteId.isEmpty()) {
+            for (const WeekMeta &m : Planning::meta(athleteId, monday, monday)) {
                 load = m.load;
+                position = m.position;
+            }
+        }
         QString phase;
+        int countdown = 0;
         for (const Maz &z : std::as_const(mazs)) {
             if (z.from.isValid() && z.to.isValid() && monday >= z.from && monday <= z.to) {
                 phase = phaseOf(z, monday);
+                countdown = Planning::trainingWeek(z, Planning::mainCompetitionWeek(z, athleteId), monday);
                 break;
             }
         }
         w.insert(QStringLiteral("load"), Planning::loadText(load));
+        w.insert(QStringLiteral("position"), position);
+        w.insert(QStringLiteral("countdown"), countdown);
         w.insert(QStringLiteral("whPlan"), whPlan);
         w.insert(QStringLiteral("whActual"), whActual);
         w.insert(QStringLiteral("phase"), phase);

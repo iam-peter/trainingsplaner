@@ -104,8 +104,8 @@ Item {
             grid.fromMonday = Plan.maz(r.id).fromMonday
             grid.weeks = 13
             grid.exercises = [-1, -2, -3, -4, -5, -6, -7]
-            // One column per complex, then K1-7, K1-5, Bel., WK
-            compare(grid.columnCount(), 7 + 2 + 2)
+            // One column per complex, then K1-7, K1-5, Bel., WK, Tr.-Wo.
+            compare(grid.columnCount(), 7 + 2 + 3)
             compare(grid.columnInfo(0).title, "K1")
             compare(grid.columnInfo(1).title, "K2")
             compare(grid.columnInfo(7).title, "K1-7")
@@ -123,7 +123,7 @@ Item {
             verify(grid.setData(grid.index(0, 0), "70", editRole))
             // An exercise keeps WH, MHG and BW
             grid.exercises = [1, -1]
-            compare(grid.columnCount(), 3 + 1 + 2 + 2)
+            compare(grid.columnCount(), 3 + 1 + 2 + 3)
             compare(grid.columnInfo(2).sub, "BW %")
             compare(grid.columnInfo(3).title, "K1")
             grid.owner = ""

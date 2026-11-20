@@ -305,8 +305,14 @@ QVariantMap Plan::loadCourse(const QString &athleteId, const QString &mazId, con
             groupWh[t.monday][e->group] += t.wh;
     }
     QMap<QDate, int> load;
-    for (const WeekMeta &m : Planning::meta(athleteId, from, to))
+    QMap<QDate, QString> position;
+    for (const WeekMeta &m : Planning::meta(athleteId, from, to)) {
         load.insert(m.monday, m.load);
+        position.insert(m.monday, m.position);
+    }
+    // Tr.-Wo.: in a MAZ, the weeks to its main competition
+    const Maz cycle = inMaz ? Planning::maz(mazId) : Maz();
+    const QDate mainWeek = Planning::mainCompetitionWeek(cycle, athleteId);
 
     // Done and planned: the exercise, and the reps of K1-7
     struct Done { QMap<QDate, QList<Step>> exercise; QMap<QDate, int> wh17; };
@@ -326,7 +332,7 @@ QVariantMap Plan::loadCourse(const QString &athleteId, const QString &mazId, con
 
     const QDate todayMonday = Weeks::mondayOf(QDate::currentDate());
     int todayIndex = -1;
-    QVariantList labels, mondays, loads, norms;
+    QVariantList labels, mondays, loads, norms, positions, countdowns;
     QVariantList zMhg, zBw, zWh, iMhg, iBw, iWh, pMhg, pBw, pWh;
     // The TMK's K1-7 a week for the athlete's age in each week
     const QDate born = Database::athlete(athleteId).born;
@@ -336,7 +342,7 @@ QVariantMap Plan::loadCourse(const QString &athleteId, const QString &mazId, con
     const QString exName = Catalog::name(exercise);
     doc.title = QStringLiteral("Belastungsverlauf TÜ %1 %2").arg(exercise).arg(exName);
     QList<Report::Cells> rows;
-    rows.append(Report::cells({QStringLiteral("KW"), QStringLiteral("Bel."),
+    rows.append(Report::cells({QStringLiteral("KW"), QStringLiteral("Tr.-Wo."), QStringLiteral("WK"), QStringLiteral("Bel."),
                                QStringLiteral("BW Ziel"), QStringLiteral("BW Ist"), QStringLiteral("BW Plan"),
                                QStringLiteral("MHG Ziel"), QStringLiteral("MHG Ist"), QStringLiteral("MHG Plan"),
                                QStringLiteral("WH K1-7 Ziel"), QStringLiteral("WH K1-7 Ist"), QStringLiteral("WH K1-7 Plan")}));
@@ -348,6 +354,9 @@ QVariantMap Plan::loadCourse(const QString &athleteId, const QString &mazId, con
         labels.append(QString::number(m.weekNumber()));
         mondays.append(m.toString(Qt::ISODate));
         loads.append(Planning::loadText(load.value(m)));
+        positions.append(position.value(m));
+        const int countdown = Planning::trainingWeek(cycle, mainWeek, m);
+        countdowns.append(countdown > 0 ? QVariant(countdown) : QVariant());
         if (born.isValid()) {
             const Tmk::Stage stage = Tmk::stage(Youth::ageClass(born, m));
             norms.append(Tmk::weeklyWh(0, stage));
@@ -372,7 +381,8 @@ QVariantMap Plan::loadCourse(const QString &athleteId, const QString &mazId, con
         pMhg.append(weight(p.mhg));
         pBw.append(weight(p.bw));
         pWh.append(opt(planned.wh17.value(m)));
-        rows.append(Report::cells({QString::number(m.weekNumber()), Planning::loadText(load.value(m)),
+        rows.append(Report::cells({QString::number(m.weekNumber()), text(countdowns.last()), position.value(m),
+                                   Planning::loadText(load.value(m)),
                                    text(zBw.last()), text(iBw.last()), text(pBw.last()),
                                    text(zMhg.last()), text(iMhg.last()), text(pMhg.last()),
                                    text(zWh.last()), text(iWh.last()), text(pWh.last())}));
@@ -389,7 +399,8 @@ QVariantMap Plan::loadCourse(const QString &athleteId, const QString &mazId, con
         doc.note(normText);
     doc.table(rows);
     result = {{QStringLiteral("labels"), labels},
-              {QStringLiteral("norm"), norms}, {QStringLiteral("normText"), normText}, {QStringLiteral("mondays"), mondays}, {QStringLiteral("load"), loads},
+              {QStringLiteral("norm"), norms}, {QStringLiteral("normText"), normText},
+              {QStringLiteral("position"), positions}, {QStringLiteral("countdown"), countdowns}, {QStringLiteral("mondays"), mondays}, {QStringLiteral("load"), loads},
               {QStringLiteral("todayIndex"), todayIndex}, {QStringLiteral("unit"), unit},
               {QStringLiteral("reference"), ref},
               {QStringLiteral("target"), QVariantMap{{QStringLiteral("mhg"), zMhg}, {QStringLiteral("bw"), zBw}, {QStringLiteral("wh"), zWh}}},

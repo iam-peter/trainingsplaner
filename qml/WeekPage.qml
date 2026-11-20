@@ -101,7 +101,8 @@ Page {
         const parts = []
         const z = context.maz
         if (z && z.has)
-            parts.push(z.name + (z.phase ? " · " + z.phase : "") + " · Woche " + z.week + " von " + z.weeks)
+            parts.push(z.name + (z.phase ? " · " + z.phase : "") + " · Woche " + z.week + " von " + z.weeks
+                       + (z.countdown > 0 ? " · Tr.-Wo. " + z.countdown : ""))
         if (context.load > 0)
             parts.push("Belastung " + context.loadText)
         if (context.position)
@@ -785,20 +786,30 @@ Page {
                 // fit, the area scrolls sideways instead of squeezing the text.
                 // Where the week stands: its MAZ and phase, the ITP's load, the next
                 // competition
+                // It takes the width there is and shortens its texts (…),
+                // so a long line never widens the week and squeezes the
+                // panel beside it
                 RowLayout {
                     objectName: "cycleLine"
                     visible: page.cycleText !== "" || page.nextCompetitionText !== ""
                     Layout.fillWidth: true
+                    Layout.preferredWidth: 0
                     spacing: 24
                     Label {
                         text: page.cycleText
                         visible: text !== ""
                         font.bold: true
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true
+                        Layout.maximumWidth: implicitWidth
                     }
                     Label {
                         text: page.nextCompetitionText
                         visible: text !== ""
                         color: Styles.TokenInterface.semantics.primary_default
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true
+                        Layout.maximumWidth: implicitWidth
                     }
                     Item { Layout.fillWidth: true }
                 }

@@ -113,6 +113,13 @@ Item {
                         }
                         ToolTip.visible: weekHover.hovered
                         ToolTip.text: "Woche " + weekRow.modelData.label + " öffnen"
+                                      + (weekRow.modelData.countdown > 0
+                                         ? "\nTr.-Wo. " + weekRow.modelData.countdown
+                                           + (weekRow.modelData.countdown === 1 ? ": Woche des Hauptwettkampfs"
+                                                                                 : ": noch " + weekRow.modelData.countdown
+                                                                                   + " Wochen bis zum Hauptwettkampf")
+                                         : "")
+                                      + (weekRow.modelData.position ? "\nWK-Lage " + weekRow.modelData.position : "")
                         ColumnLayout {
                             anchors.centerIn: parent
                             spacing: 4
@@ -137,6 +144,24 @@ Item {
                                     font.pixelSize: 11
                                     color: weekRow.modelData.load === "h" || weekRow.modelData.load === "m" ? "white" : view.s.text_default
                                 }
+                            }
+                            // LG, WK, HWK of the ITP, and the RTK's
+                            // countdown to the main competition
+                            Label {
+                                objectName: "weekPosition"
+                                Layout.alignment: Qt.AlignHCenter
+                                visible: text !== ""
+                                text: weekRow.modelData.position || ""
+                                font.bold: true
+                                font.pixelSize: 11
+                            }
+                            Label {
+                                objectName: "weekCountdown"
+                                Layout.alignment: Qt.AlignHCenter
+                                visible: weekRow.modelData.countdown > 0
+                                text: "Tr.-Wo. " + weekRow.modelData.countdown
+                                font.pixelSize: 10
+                                color: view.s.text_muted
                             }
                         }
                     }

@@ -118,8 +118,14 @@ Bemerkung und die Auswertung der Woche.
 
 Darunter fasst eine Zeile die Woche zusammen:
 
-> Beispiel-MAZ Frauen · Aufbauphase · Woche 9 von 13 · Belastung h ·
-> Nächster Wettkampf: Landesmeisterschaft, 21.11.2026 (in 7 Tagen)
+> Beispiel-MAZ Frauen · Aufbauphase · Woche 9 von 13 · Tr.-Wo. 5 ·
+> Belastung h · Nächster Wettkampf: Landesmeisterschaft, 21.11.2026 (in 7 Tagen)
+
+**Tr.-Wo.** zählt wie die Rahmentrainingskonzeption die Trainingswochen
+bis zum Hauptwettkampf: 1 ist seine Woche, 2 die davor. Der
+Hauptwettkampf ist die Woche mit der WK-Lage **HWK** im ITP (sonst in
+der Rahmenorientierung), ohne HWK die letzte Woche des MAZ. Ist das
+Fenster schmal, kürzt das Programm die Zeile mit „…“.
 
 ### Eine Zeile lesen
 
@@ -214,8 +220,9 @@ Papier wählen. Was auf dem Ausdruck steht, legen die
 
 **Monat** zeigt vier bis sechs Wochen auf einmal:
 
-- links je Woche die Kalenderwoche mit ihrer **Belastung** (h/m/g farbig)
-  und den Wiederholungen **Plan / Ist** (`129 / 126`);
+- links je Woche die Kalenderwoche mit ihrer **Belastung** (h/m/g farbig),
+  der WK-Lage aus dem ITP (LG, WK, HWK), **Tr.-Wo.** (die Wochen bis zum
+  Hauptwettkampf) und den Wiederholungen **Plan / Ist** (`129 / 126`);
 - in den Tagen die Einheiten: ● Ist nach Plan, ◆ Ist ohne Plan, ○ geplant,
   ◌ offen (geplant, aber ohne Ist, in Rot);
 - rechts die **Termine**, also die kommenden Wettkämpfe.
@@ -266,6 +273,8 @@ vorsieht. Sie finden ihn an drei Stellen:
   im Alter des Sportlers: Kinder 200, Schüler 280, Jugend 350, Junioren
   300, U23 320, Senioren 300. Er gilt im Mittel über den Zyklus; die
   hohen Wochen liegen darüber, die gesenkten darunter.
+- Über den Balken steht die WK-Lage der Woche (LG, WK, HWK); beim
+  Darüberfahren auch Tr.-Wo., die Wochen bis zum Hauptwettkampf.
 - **Grau schattiert** sind die gesenkten Wochen (g).
 - Die senkrechte Linie **heute** trennt Vergangenheit und Zukunft.
 
@@ -352,8 +361,12 @@ Programm, eintragen lassen sie sich nicht.
 Das ITP ist der Plan eines Sportlers in kg. **Vorlage** berechnet es aus
 der Rahmenorientierung und der Zielleistung des Sportlers, gerundet auf
 den Gewichtsschritt (2,5 kg). Jede Zahl lässt sich danach von Hand ändern.
-Weiter rechts stehen die Spalten **Bel.** (Belastung h/m/g) und **WK**
-(Wettkampflage).
+Weiter rechts stehen die Spalten **Bel.** (Belastung h/m/g), **WK**
+(Wettkampflage: LG, WK oder HWK für den Hauptwettkampf) und **Tr.-Wo.**:
+die Trainingswochen bis zum Hauptwettkampf wie in der
+Rahmentrainingskonzeption, 1 in seiner Woche. Das Programm zählt sie
+selbst; ein anderes HWK in der Spalte WK zählt sofort neu. Dieselben
+Spalten hat die Rahmenorientierung.
 
 > **Beispiel:** Woche 38/2026 für Mira: Reißen 16 WH, MHG 50 kg
 > (65 % von 76), BW 52 kg (70 % von 76, auf 2,5 kg gerundet).

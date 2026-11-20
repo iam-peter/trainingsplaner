@@ -114,6 +114,14 @@ enum ScaleValue { ScaleWh = 1, ScaleMhg = 2, ScaleBw = 4 };
 int scaleTargets(const QString &owner, const QDate &fromMonday, const QDate &toMonday, const QList<int> &exercises,
                  int values, double factor, double step);
 
+// The week of a MAZ's main competition: the last week whose WK-Lage is
+// "HWK" in the owner's plan (an athlete's ITP or a RO), else in the RO,
+// else the MAZ's last week
+QDate mainCompetitionWeek(const Maz &m, const QString &owner);
+// The RTK's "Tr.-Wo.", the training weeks to the main competition: 1 in
+// its week, 2 the week before, and so on; 0 outside the MAZ or after it
+int trainingWeek(const Maz &m, const QDate &mainWeek, const QDate &monday);
+
 // Rounds kg to the weight step as whole kg (2.5: 100, 102, 105, 107 ...)
 int roundToStep(double kg, double step);
 // The weight step of the settings: 2.5 kg, or 1 kg

@@ -73,8 +73,9 @@ private:
     void load();
     // The columns: per exercise WH, MHG and BW; per complex (K1..K7) its
     // WH only, as the RTK and WinWoTA plan them; then the week's K1-7 and
-    // K1-5, the sums of the complexes; then load and WK-Lage
-    enum Kind { Wh, Mhg, Bw, Load, Position, Sum17, Sum15 };
+    // K1-5, the sums of the complexes; then load and WK-Lage, and the
+    // RTK's "Tr.-Wo.", the weeks to the main competition
+    enum Kind { Wh, Mhg, Bw, Load, Position, Sum17, Sum15, Countdown };
     struct Column
     {
         Kind kind;
@@ -100,6 +101,7 @@ private:
     QList<Column> m_columns;
     QString m_mazId;
     Maz m_maz;
+    QDate m_mainWeek; // the MAZ's main competition, for Tr.-Wo.
     bool m_averageAll = false;
     QMap<QPair<QDate, int>, WeekTarget> m_targets;
     QMap<QDate, WeekMeta> m_meta;

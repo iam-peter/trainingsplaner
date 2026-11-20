@@ -71,7 +71,10 @@ Item {
         function test_tabClickAndSave() {
             const table = findChild(grid, "itpTable")
             waitForRendering(table)
-            const last = table.columns - 1
+            // The last cell typed into: WK, before Tr.-Wo., which is not
+            const last = table.columns - 2
+            verify(grid.model.columnInfo(last + 1).readOnly)
+            compare(grid.model.columnInfo(last + 1).title, "Tr.-Wo.")
             table.focusCell(0, last)
             tryVerify(() => editorAt(0, last) && editorAt(0, last).activeFocus)
             keyClick(Qt.Key_Tab)

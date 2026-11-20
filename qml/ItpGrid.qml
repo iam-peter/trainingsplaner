@@ -271,25 +271,36 @@ Item {
                         table.focusCell(cell.row + 1, cell.column)
                     }
                     // Tab goes on along the row, then to the next week's
-                    // first cell; past the last cell it leaves the grid
+                    // first cell; past the last cell it leaves the grid.
+                    // Columns not typed (the sums, Tr.-Wo.) are passed.
                     Keys.onTabPressed: (event) => {
-                        if (cell.column + 1 < table.columns)
-                            table.focusCell(cell.row, cell.column + 1)
+                        const next = table.editable(cell.column + 1, 1)
+                        if (next < table.columns)
+                            table.focusCell(cell.row, next)
                         else if (cell.row + 1 < itp.weeks)
-                            table.focusCell(cell.row + 1, 0)
+                            table.focusCell(cell.row + 1, table.editable(0, 1))
                         else
                             event.accepted = false
                     }
                     Keys.onBacktabPressed: (event) => {
-                        if (cell.column > 0)
-                            table.focusCell(cell.row, cell.column - 1)
+                        const before = table.editable(cell.column - 1, -1)
+                        if (before >= 0)
+                            table.focusCell(cell.row, before)
                         else if (cell.row > 0)
-                            table.focusCell(cell.row - 1, table.columns - 1)
+                            table.focusCell(cell.row - 1, table.editable(table.columns - 1, -1))
                         else
                             event.accepted = false
                     }
                 }
             }
+        }
+
+        // The first column from c on, in the direction of step, that is
+        // typed into; past the end when there is none
+        function editable(c, step) {
+            while (c >= 0 && c < columns && itp.columnInfo(c).readOnly)
+                c += step
+            return c
         }
 
         function focusCell(r, c) {

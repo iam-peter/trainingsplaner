@@ -165,6 +165,16 @@ Item {
             const every = chart.slot < 26 ? 2 : 1
             for (let i = 0; i < n; i += every)
                 ctx.fillText(c.labels[i], chart.xAt(i), chart.bottomTop + chart.bottomHeight + 6)
+            // LG, WK, HWK of the ITP above the reps, at the top of the
+            // lower plot
+            ctx.save()
+            ctx.font = "bold 10px sans-serif"
+            ctx.fillStyle = chart.s.text_default
+            ctx.textBaseline = "bottom"
+            for (let i = 0; i < n; ++i)
+                if (c.position && c.position[i])
+                    ctx.fillText(c.position[i], chart.xAt(i), chart.bottomTop - 2)
+            ctx.restore()
 
             // Today
             if (c.todayIndex >= 0) {
@@ -336,7 +346,9 @@ Item {
                     return ""
                 const v = x => x === undefined || x === null ? "–" : x
                 const u = c.unit === "%" ? " %" : ""
-                return "KW " + c.labels[i] + (c.load[i] ? " · Belastung " + c.load[i] : "")
+                return "KW " + c.labels[i] + (c.countdown && c.countdown[i] ? " · Tr.-Wo. " + c.countdown[i] : "")
+                       + (c.position && c.position[i] ? " · " + c.position[i] : "")
+                       + (c.load[i] ? " · Belastung " + c.load[i] : "")
                        + "\nBW   Ziel " + v(c.target.bw[i]) + u + " · Ist " + v(c.actual.bw[i]) + u + " · Plan " + v(c.planned.bw[i]) + u
                        + "\nMHG  Ziel " + v(c.target.mhg[i]) + u + " · Ist " + v(c.actual.mhg[i]) + u + " · Plan " + v(c.planned.mhg[i]) + u
                        + "\nWH K1-7  Ziel " + v(c.target.wh[i]) + " · Ist " + v(c.actual.wh[i]) + " · Plan " + v(c.planned.wh[i])

@@ -64,6 +64,7 @@ private slots:
     void planningBasics();
     void itpFromRo();
     void scalePlan();
+    void countdown();
     void sectionAnalysis();
     void exerciseWeekApply();
     void compareVersions();
@@ -1278,6 +1279,43 @@ void TestCore::scalePlan()
     QCOMPARE(Planning::scaleTargets(owner, w2, w1, {1}, Planning::ScaleBw, 0.9, 1), -1);
     QCOMPARE(Planning::scaleTargets(owner, w1, w2, {1}, 0, 0.9, 1), -1);
     QCOMPARE(Planning::scaleTargets(QString(), w1, w2, {1}, Planning::ScaleBw, 0.9, 1), -1);
+}
+
+// The RTK's Tr.-Wo.: weeks to the main competition, the last HWK of the
+// plan, else of the RO, else the MAZ's last week
+void TestCore::countdown()
+{
+    Maz z;
+    z.name = QStringLiteral("Countdown");
+    z.from = QDate(2029, 1, 1);
+    z.to = QDate(2029, 3, 26); // 13 weeks
+    z.id = Planning::saveMaz(z);
+    QVERIFY(!z.id.isEmpty());
+    const QString athlete = QStringLiteral("countdown_athlete");
+
+    // No HWK: the MAZ's last week is the main competition
+    QDate main = Planning::mainCompetitionWeek(z, athlete);
+    QCOMPARE(main, z.to);
+    QCOMPARE(Planning::trainingWeek(z, main, z.from), 13);
+    QCOMPARE(Planning::trainingWeek(z, main, z.to), 1);
+    QCOMPARE(Planning::trainingWeek(z, main, z.from.addDays(-7)), 0);
+    QCOMPARE(Planning::trainingWeek(z, main, z.to.addDays(7)), 0);
+
+    // An HWK in the RO, week 11: the weeks after it count 0
+    QVERIFY(Planning::setMeta(Planning::roOwner(z.id), {QDate(2029, 3, 12), 0, QStringLiteral("HWK"), {}}));
+    main = Planning::mainCompetitionWeek(z, athlete);
+    QCOMPARE(main, QDate(2029, 3, 12));
+    QCOMPARE(Planning::trainingWeek(z, main, z.from), 11);
+    QCOMPARE(Planning::trainingWeek(z, main, z.to), 0);
+    // The athlete's own HWK (any case) goes first, the last of two
+    QVERIFY(Planning::setMeta(athlete, {QDate(2029, 2, 5), 0, QStringLiteral("hwk"), {}}));
+    QVERIFY(Planning::setMeta(athlete, {QDate(2029, 2, 19), 0, QStringLiteral(" HWK"), {}}));
+    QVERIFY(Planning::setMeta(athlete, {QDate(2029, 2, 26), 0, QStringLiteral("WK"), {}}));
+    QCOMPARE(Planning::mainCompetitionWeek(z, athlete), QDate(2029, 2, 19));
+    // Without a MAZ, nothing
+    QCOMPARE(Planning::mainCompetitionWeek(Maz(), athlete), QDate());
+    QCOMPARE(Planning::trainingWeek(Maz(), QDate(), z.from), 0);
+    QVERIFY(Planning::removeMaz(z.id));
 }
 
 void TestCore::sectionAnalysis()

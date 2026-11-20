@@ -26,6 +26,7 @@ void ItpModel::layColumns()
     m_columns.append({Sum15, 0});
     m_columns.append({Load, 0});
     m_columns.append({Position, 0});
+    m_columns.append({Countdown, 0});
 }
 
 void ItpModel::setOwner(const QString &v)
@@ -112,6 +113,7 @@ void ItpModel::load()
     m_targets.clear();
     m_meta.clear();
     m_maz = m_mazId.isEmpty() ? Maz() : Planning::maz(m_mazId);
+    m_mainWeek = Planning::mainCompetitionWeek(m_maz, m_owner);
     if (!m_owner.isEmpty() && m_from.isValid() && m_weeks > 0) {
         const QDate to = m_from.addDays(7 * (m_weeks - 1));
         for (const WeekTarget &t : Planning::targets(m_owner, m_from, to))
@@ -292,6 +294,8 @@ int ItpModel::value(int row, int column) const
     const Kind k = kindOf(column);
     if (k == Load)
         return m_meta.value(monday).load;
+    if (k == Countdown)
+        return Planning::trainingWeek(m_maz, m_mainWeek, monday);
     if (k == Sum17 || k == Sum15)
         return complexSum(monday, k == Sum17 ? 7 : 5);
     const WeekTarget t = m_targets.value({monday, exerciseOf(column)});
@@ -319,7 +323,7 @@ QVariant ItpModel::data(const QModelIndex &index, int role) const
     case Qt::DisplayRole:
     case EditRole: {
         if (average) {
-            if (k == Position || k == Load)
+            if (k == Position || k == Load || k == Countdown)
                 return QString();
             // Averages: of the weeks with a value, or of all weeks
             double sum = 0;
@@ -351,8 +355,8 @@ bool ItpModel::setData(const QModelIndex &index, const QVariant &value, int role
         return false;
     const QDate monday = m_from.addDays(7 * index.row());
     const Kind k = kindOf(index.column());
-    // The sums follow their complexes
-    if (k == Sum17 || k == Sum15)
+    // The sums follow their complexes, Tr.-Wo. the main competition
+    if (k == Sum17 || k == Sum15 || k == Countdown)
         return false;
     const QString text = value.toString().trimmed();
     bool ok = true;
@@ -381,9 +385,17 @@ bool ItpModel::setData(const QModelIndex &index, const QVariant &value, int role
     }
     if (ok) {
         emit dataChanged(index, index);
-        // A competition in the week lifts the cap of Reißen and Stoßen
-        if (k == Position)
+        // A competition in the week lifts the cap of Reißen and Stoßen;
+        // an HWK moves the main competition, and Tr.-Wo. with it
+        if (k == Position) {
             emit dataChanged(this->index(index.row(), 0), this->index(index.row(), columnCount() - 1));
+            const QDate main = Planning::mainCompetitionWeek(m_maz, m_owner);
+            if (main != m_mainWeek) {
+                m_mainWeek = main;
+                const int c = int(m_columns.size()) - 1;
+                emit dataChanged(this->index(0, c), this->index(m_weeks - 1, c));
+            }
+        }
         const QModelIndex avg = this->index(m_weeks, index.column());
         emit dataChanged(avg, avg);
         // A complex's WH: the week's sums and their averages too
@@ -415,7 +427,12 @@ QVariantMap ItpModel::columnInfo(int column) const
     if (k == Position)
         return {{QStringLiteral("title"), QStringLiteral("WK")}, {QStringLiteral("sub"), QString()},
                 {QStringLiteral("first"), true}, {QStringLiteral("exercise"), 0}, {QStringLiteral("readOnly"), false},
-                {QStringLiteral("tip"), QStringLiteral("Wettkampflage")}};
+                {QStringLiteral("tip"), QStringLiteral("Wettkampflage: LG, WK oder HWK (Hauptwettkampf)")}};
+    if (k == Countdown)
+        return {{QStringLiteral("title"), QStringLiteral("Tr.-Wo.")}, {QStringLiteral("sub"), QString()},
+                {QStringLiteral("first"), true}, {QStringLiteral("exercise"), 0}, {QStringLiteral("readOnly"), true},
+                {QStringLiteral("tip"), QStringLiteral("Trainingswochen bis zum Hauptwettkampf: 1 in der Woche mit WK „HWK“,"
+                                                       " ohne HWK in der letzten Woche des MAZ")}};
     const int e = exerciseOf(column);
     const QString title = e < 0 ? QStringLiteral("K%1").arg(-e) : QString::number(e);
     const QString unit = percent() && k != Wh ? QStringLiteral(" %") : QString();

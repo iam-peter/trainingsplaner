@@ -426,6 +426,31 @@ int scaleTargets(const QString &owner, const QDate &fromMonday, const QDate &toM
     return d.commit() ? changed : -1;
 }
 
+QDate mainCompetitionWeek(const Maz &m, const QString &owner)
+{
+    if (!m.from.isValid() || !m.to.isValid())
+        return {};
+    for (const QString &o : {owner, roOwner(m.id)}) {
+        if (o.isEmpty())
+            continue;
+        QDate last;
+        for (const WeekMeta &w : meta(o, m.from, m.to)) {
+            if (w.position.trimmed().compare(QLatin1String("HWK"), Qt::CaseInsensitive) == 0 && w.monday > last)
+                last = w.monday;
+        }
+        if (last.isValid())
+            return last;
+    }
+    return m.to;
+}
+
+int trainingWeek(const Maz &m, const QDate &mainWeek, const QDate &monday)
+{
+    if (!m.from.isValid() || !mainWeek.isValid() || monday < m.from || monday > mainWeek)
+        return 0;
+    return int(monday.daysTo(mainWeek) / 7) + 1;
+}
+
 int roundToStep(double kg, double step)
 {
     if (step <= 0)
