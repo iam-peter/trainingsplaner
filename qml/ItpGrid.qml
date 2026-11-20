@@ -84,6 +84,11 @@ Item {
                 text: (itp.percent, itp.rowLabel(row))
                 font.bold: row === itp.weeks
             }
+            TapHandler {
+                enabled: itp.proposals && row < itp.weeks
+                acceptedButtons: Qt.RightButton
+                onTapped: (point) => proposalMenu.show(row, -1, point.position.x, point.position.y, parent)
+            }
         }
     }
 
@@ -132,6 +137,8 @@ Item {
             required property bool average
             // Against the Trainingsmittelkatalog for the athlete's age
             required property string warning
+            // The RO's value, what "Vorlage" would make of it
+            required property string proposal
             readonly property bool first: itp.columnInfo(column).first
             // K1-7 and K1-5: sums of the complexes, not typed
             readonly property bool readOnly: itp.columnInfo(column).readOnly
@@ -174,12 +181,16 @@ Item {
             Text {
                 anchors.fill: area
                 visible: !cell.editing
-                text: cell.display
+                // An empty cell shows the RO's proposal, grey and slanted
+                readonly property bool proposed: cell.display === "" && cell.proposal !== ""
+                text: proposed ? cell.proposal : cell.display
+                font.italic: proposed
                 font.bold: cell.average || cell.warning !== ""
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 color: cell.warning !== "" ? Styles.TokenInterface.semantics.danger_default
-                                           : Styles.TokenInterface.semantics.text_default
+                       : proposed ? Styles.TokenInterface.semantics.text_muted
+                                  : Styles.TokenInterface.semantics.text_default
             }
             HoverHandler {
                 id: hover
@@ -191,6 +202,12 @@ Item {
             TapHandler {
                 enabled: !cell.average && !cell.editing && !cell.readOnly
                 onTapped: table.focusCell(cell.row, cell.column)
+            }
+            TapHandler {
+                enabled: itp.proposals && !cell.average
+                acceptedButtons: Qt.RightButton
+                onTapped: (point) => proposalMenu.show(cell.row, cell.readOnly ? -1 : cell.column,
+                                                       point.position.x, point.position.y, cell)
             }
             Loader {
                 id: editorLoader
@@ -206,6 +223,7 @@ Item {
                 id: editorComponent
                 TextField {
                     text: cell.display
+                    placeholderText: cell.proposal
                     horizontalAlignment: TextInput.AlignHCenter
                     // Without the focus (a click outside the grid) it looks like
                     // the other cells; a Tab into the grid comes back here
@@ -239,7 +257,19 @@ Item {
                         else
                             event.accepted = false
                     }
-                    Keys.onReturnPressed: { commit(); table.focusCell(cell.row + 1, cell.column) }
+                    // Ctrl+Enter takes the RO's proposal (and with BW its
+                    // reps and sets)
+                    Keys.onReturnPressed: (event) => {
+                        if ((event.modifiers & Qt.ControlModifier) && cell.proposal !== "") {
+                            // Taken, the field shows it, so leaving it
+                            // saves nothing else
+                            itp.takeProposal(cell.row, cell.column)
+                            text = cell.display
+                        } else {
+                            commit()
+                        }
+                        table.focusCell(cell.row + 1, cell.column)
+                    }
                     // Tab goes on along the row, then to the next week's
                     // first cell; past the last cell it leaves the grid
                     Keys.onTabPressed: (event) => {
@@ -282,6 +312,47 @@ Item {
                     item.editor.selectAll()
                 }
             })
+        }
+    }
+
+    // Right click in an ITP of a MAZ: the RO's proposal for the cell, or
+    // for the whole week
+    Menu {
+        id: proposalMenu
+        objectName: "proposalMenu"
+        property int row: -1
+        property int column: -1
+        readonly property string proposal: column >= 0 && opened ? itp.data(itp.index(row, column), proposalRole) : ""
+        readonly property string current: column >= 0 && opened ? itp.data(itp.index(row, column), Qt.DisplayRole) : ""
+        readonly property int proposalRole: Qt.UserRole + 6
+
+        function show(r, c, x, y, item) {
+            // What is typed is saved, and the editing ends: a taken value
+            // would otherwise be overwritten by the editor's old text
+            const before = table.itemAtCell(table.current)
+            if (before && before.editor)
+                before.editor.commit()
+            table.current = Qt.point(-1, -1)
+            row = r
+            column = c
+            popup(item, x, y)
+        }
+
+        KeyMenuItem {
+            objectName: "takeProposal"
+            visible: proposalMenu.column >= 0
+            height: visible ? implicitHeight : 0
+            text: proposalMenu.proposal !== "" ? "Vorschlag der RO übernehmen: " + proposalMenu.proposal
+                                               : "Kein Vorschlag der RO"
+            keys: "Strg+Eingabe"
+            enabled: proposalMenu.proposal !== "" && proposalMenu.proposal !== proposalMenu.current
+            onTriggered: itp.takeProposal(proposalMenu.row, proposalMenu.column)
+        }
+        MenuItem {
+            objectName: "takeWeek"
+            text: "Woche " + (proposalMenu.row >= 0 ? itp.rowLabel(proposalMenu.row).split(" ")[0] : "")
+                  + " aus der RO übernehmen"
+            onTriggered: itp.takeWeek(proposalMenu.row)
         }
     }
 

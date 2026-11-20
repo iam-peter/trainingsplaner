@@ -23,9 +23,12 @@ class ItpModel : public QAbstractTableModel
     Q_PROPERTY(QString mazId READ mazId WRITE setMazId NOTIFY configChanged)
     Q_PROPERTY(bool averageAllWeeks READ averageAllWeeks WRITE setAverageAllWeeks NOTIFY configChanged)
     Q_PROPERTY(bool percent READ percent NOTIFY configChanged)
+    // An ITP of an athlete in its MAZ: each cell has the RO's value as a
+    // proposal, what "Vorlage" would make of it
+    Q_PROPERTY(bool proposals READ proposals NOTIFY configChanged)
 
 public:
-    enum Roles { EditRole = Qt::UserRole + 1, AverageRole, KindRole, ExerciseRole, WarningRole };
+    enum Roles { EditRole = Qt::UserRole + 1, AverageRole, KindRole, ExerciseRole, WarningRole, ProposalRole };
 
     explicit ItpModel(QObject *parent = nullptr);
 
@@ -42,6 +45,7 @@ public:
     bool averageAllWeeks() const { return m_averageAll; }
     void setAverageAllWeeks(bool v);
     bool percent() const { return Planning::isRoOwner(m_owner); }
+    bool proposals() const { return m_hasRo; }
 
     int rowCount(const QModelIndex &parent = {}) const override;
     int columnCount(const QModelIndex &parent = {}) const override;
@@ -55,6 +59,11 @@ public:
     Q_INVOKABLE QString rowLabel(int row) const;
     Q_INVOKABLE QString rowMonday(int row) const;
     Q_INVOKABLE void reload();
+    // The RO's proposal into a cell; with BW its reps and sets too
+    Q_INVOKABLE bool takeProposal(int row, int column);
+    // Every proposal of a week the grid shows, Bel. and WK too, where it
+    // differs; the cells without one stay. Returns how many changed.
+    Q_INVOKABLE int takeWeek(int row);
 
 signals:
     void configChanged();
@@ -81,6 +90,8 @@ private:
     // The TMK's WH a week of a complex (0: K1-7) for the age in the first
     // week, as a line for a column's tip; "" without one
     QString normTip(int complex) const;
+    // The RO's value for a cell as text, "" without one
+    QString proposal(int row, int column) const;
 
     QString m_owner;
     QDate m_from;
@@ -96,4 +107,8 @@ private:
     // the MAZ for a RO, and the athlete's targets in the MAZ
     QDate m_born;
     MazAthlete m_athlete;
+    // The RO of the athlete's MAZ in kg, for the proposals
+    bool m_hasRo = false;
+    QMap<QPair<QDate, int>, WeekTarget> m_ro;
+    QMap<QDate, WeekMeta> m_roMeta;
 };

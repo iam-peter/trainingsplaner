@@ -5,6 +5,8 @@
 #include "tmk.h"
 #include "youth.h"
 
+#include <QSqlDatabase>
+
 ItpModel::ItpModel(QObject *parent) : QAbstractTableModel(parent)
 {
     layColumns();
@@ -135,6 +137,19 @@ void ItpModel::load()
             }
         }
     }
+    m_hasRo = false;
+    m_ro.clear();
+    m_roMeta.clear();
+    if (!percent() && !m_owner.isEmpty() && m_athlete.athleteId == m_owner && m_from.isValid() && m_weeks > 0) {
+        const QString ro = Planning::roOwner(m_mazId);
+        const QDate to = m_from.addDays(7 * (m_weeks - 1));
+        const double step = Planning::weightStep();
+        for (const WeekTarget &t : Planning::targets(ro, m_from, to))
+            m_ro.insert({t.monday, t.exercise}, Planning::fromRo(t, m_athlete, step));
+        for (const WeekMeta &m : Planning::meta(ro, m_from, to))
+            m_roMeta.insert(m.monday, m);
+        m_hasRo = true;
+    }
 }
 
 int ItpModel::rowCount(const QModelIndex &parent) const
@@ -211,6 +226,66 @@ QString ItpModel::normTip(int complex) const
     return QStringLiteral("\nRichtwert TMK 2018 für %1: %2 WH je Woche im Mittel").arg(Tmk::stageName(stage)).arg(wh);
 }
 
+QString ItpModel::proposal(int row, int column) const
+{
+    if (!m_hasRo || row < 0 || row >= m_weeks)
+        return {};
+    const QDate monday = m_from.addDays(7 * row);
+    const Kind k = kindOf(column);
+    if (k == Load)
+        return Planning::loadText(m_roMeta.value(monday).load);
+    if (k == Position)
+        return m_roMeta.value(monday).position;
+    if (k != Wh && k != Mhg && k != Bw)
+        return {};
+    const WeekTarget t = m_ro.value({monday, exerciseOf(column)});
+    const int v = k == Wh ? t.wh : k == Mhg ? t.mhg : t.bw;
+    return v > 0 ? QString::number(v) : QString();
+}
+
+bool ItpModel::takeProposal(int row, int column)
+{
+    const QString p = proposal(row, column);
+    if (p.isEmpty() || !setData(index(row, column), p, EditRole))
+        return false;
+    if (kindOf(column) != Bw)
+        return true;
+    const QDate monday = m_from.addDays(7 * row);
+    const int exercise = exerciseOf(column);
+    const WeekTarget ro = m_ro.value({monday, exercise});
+    WeekTarget t = m_targets.value({monday, exercise});
+    if (t.bwReps == ro.bwReps && t.bwSets == ro.bwSets)
+        return true;
+    t.bwReps = ro.bwReps;
+    t.bwSets = ro.bwSets;
+    if (!Planning::setTarget(m_owner, t))
+        return false;
+    m_targets.insert({monday, exercise}, t);
+    return true;
+}
+
+int ItpModel::takeWeek(int row)
+{
+    if (!m_hasRo || row < 0 || row >= m_weeks)
+        return 0;
+    QSqlDatabase db = QSqlDatabase::database();
+    db.transaction();
+    int changed = 0;
+    for (int c = 0; c < m_columns.size(); ++c) {
+        const QString p = proposal(row, c);
+        if (p.isEmpty() || p == data(index(row, c), Qt::DisplayRole).toString())
+            continue;
+        if (!takeProposal(row, c)) {
+            db.rollback();
+            reload();
+            return 0;
+        }
+        ++changed;
+    }
+    db.commit();
+    return changed;
+}
+
 int ItpModel::value(int row, int column) const
 {
     const QDate monday = m_from.addDays(7 * row);
@@ -239,6 +314,8 @@ QVariant ItpModel::data(const QModelIndex &index, int role) const
         return exerciseOf(col);
     case WarningRole:
         return average ? QString() : warning(row, col);
+    case ProposalRole:
+        return average ? QString() : proposal(row, col);
     case Qt::DisplayRole:
     case EditRole: {
         if (average) {
@@ -387,5 +464,6 @@ QHash<int, QByteArray> ItpModel::roleNames() const
             {AverageRole, "average"},
             {KindRole, "kind"},
             {ExerciseRole, "exercise"},
-            {WarningRole, "warning"}};
+            {WarningRole, "warning"},
+            {ProposalRole, "proposal"}};
 }

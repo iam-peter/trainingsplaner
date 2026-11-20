@@ -358,6 +358,21 @@ Weiter rechts stehen die Spalten **Bel.** (Belastung h/m/g) und **WK**
 > **Beispiel:** Woche 38/2026 für Mira: Reißen 16 WH, MHG 50 kg
 > (65 % von 76), BW 52 kg (70 % von 76, auf 2,5 kg gerundet).
 
+Statt alles auf einmal lässt sich die Rahmenorientierung auch Zelle für
+Zelle übernehmen. Gehört der Sportler zum MAZ, zeigt jede leere Zelle
+grau und schräg den **Vorschlag der RO**: den Wert, den **Vorlage**
+eintragen würde. **Strg+Eingabe** in der Zelle übernimmt ihn, bei der
+BW mit Wiederholungen und Sätzen. Ein Rechtsklick auf eine Zelle bietet
+**Vorschlag der RO übernehmen** und **Woche … aus der RO übernehmen**,
+ein Rechtsklick auf die Woche links nur das Zweite. Die ganze Woche
+übernimmt alle Spalten, die das Raster zeigt, auch Bel. und WK; Zellen,
+für die die RO nichts vorsieht, bleiben, wie sie sind.
+
+> **Beispiel:** Zielleistung im Reißen 80 kg, RTK U17, Woche 2: Die
+> leere MHG-Zelle zeigt grau 52 (67 % von 80, auf 2,5 kg gerundet), die
+> BW 57. Eine selbst eingetragene BW 50 bleibt stehen, bis man den
+> Vorschlag oder die ganze Woche übernimmt.
+
 Die Liste oben links wählt, welche Übungen das Raster zeigt (z. B. die
 Hauptübungen). *Durchschnitt über alle Wochen* ändert die Ø-Zeile.
 **Grafik** öffnet den Belastungsverlauf.

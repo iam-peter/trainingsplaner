@@ -453,6 +453,14 @@ int targetFor(const MazAthlete &a, int exercise)
     return a.targetCleanJerk;
 }
 
+WeekTarget fromRo(WeekTarget ro, const MazAthlete &a, double weightStep)
+{
+    const int target = targetFor(a, ro.exercise);
+    ro.mhg = ro.mhg > 0 ? roundToStep(ro.mhg * target / 100.0, weightStep) : 0;
+    ro.bw = ro.bw > 0 ? roundToStep(ro.bw * target / 100.0, weightStep) : 0;
+    return ro;
+}
+
 bool itpFromRo(const QString &mazId, const QString &athleteId, double weightStep)
 {
     const Maz m = maz(mazId);
@@ -475,12 +483,8 @@ bool itpFromRo(const QString &mazId, const QString &athleteId, double weightStep
     QSqlDatabase d = QSqlDatabase::database();
     d.transaction();
     bool ok = true;
-    for (WeekTarget t : targets(athleteId, m.from, m.to)) {
-        const int target = targetFor(athlete, t.exercise);
-        t.mhg = t.mhg > 0 ? roundToStep(t.mhg * target / 100.0, weightStep) : 0;
-        t.bw = t.bw > 0 ? roundToStep(t.bw * target / 100.0, weightStep) : 0;
-        ok = ok && setTarget(athleteId, t);
-    }
+    for (const WeekTarget &t : targets(athleteId, m.from, m.to))
+        ok = ok && setTarget(athleteId, fromRo(t, athlete, weightStep));
     QSqlQuery q;
     q.prepare(QStringLiteral("SELECT monday, exercise, steps FROM planned_steps WHERE owner = ? AND monday BETWEEN ? AND ?"));
     q.addBindValue(athleteId);

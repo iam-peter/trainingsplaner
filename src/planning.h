@@ -120,6 +120,10 @@ int roundToStep(double kg, double step);
 double weightStep();
 // The target performance an exercise's percentages refer to
 int targetFor(const MazAthlete &a, int exercise);
+// A week target of the RO in the athlete's kg: MHG and BW as percent of
+// the athlete's target, rounded to the weight step; WH, reps and sets as
+// they are
+WeekTarget fromRo(WeekTarget ro, const MazAthlete &a, double weightStep);
 // ITP of an athlete from the RO of a MAZ: percentages to kg with the
 // athlete's targets, rounded to the weight step. Replaces the athlete's
 // plan in the MAZ weeks.
