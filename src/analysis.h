@@ -29,6 +29,9 @@ struct Params
     bool includeCompetitionWeeks = false;
     Reference reference = Reference::Absolute;
     QString mazId;                // for the reference values
+    // IDA's "Min zum WoBW": only steps at or above this percent of their
+    // exercise's best weight of the week count; 0 all
+    int minWeekBest = 0;
 };
 
 // One exercise or group over the weeks of a period
@@ -87,7 +90,7 @@ struct SetSizeBests
     QList<int> kg; // [reps - 1], 0 = no set of that size
 };
 QList<SetSizeBests> bestBySetSize(const QString &athleteId, Variant variant, const QDate &from, int weeks,
-                                  const QList<QDate> &skip = {});
+                                  const QList<QDate> &skip = {}, int minWeekBest = 0);
 
 // Sessions with entries per athlete and week: [athlete][week]
 QList<int> sessionCounts(const QString &athleteId, const QDate &from, int weeks, Variant variant);

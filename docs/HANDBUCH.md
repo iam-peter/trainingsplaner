@@ -558,6 +558,15 @@ einem anderen Zeitraum.
 > Woche 38 ist grau: Es ist die Woche eines Wettkampfs (15.09.), die nur
 > mit *WK-Woche einschließen* mitzählt. Deshalb steht oben „11/12 Wochen“.
 
+**Min zum WoBW** (wie in IDA) zählt nur die Laststufen ab 60, 70, 80, 90
+oder 100 % des Wochenbestwerts (WoBW) der jeweiligen Übung: so zeigen WH,
+Mhg, SG und Anw nur die schweren Wiederholungen. Der Bestwert jeder Woche
+bleibt, bei den Komplexen misst jede Übung an ihrem eigenen. Im ITP gibt
+es keine Laststufen, dort gilt die Auswahl nicht.
+
+> **Beispiel:** Mira, Reißen WKÜ, 12 Wochen ab 35/2026: mit allem 116 WH
+> bei einem Mhg des Abschnitts von 52 kg, mit „80 %“ 110 WH bei 53 kg.
+
 **BW je Satzgröße (1–10 Wdh.)** hängt eine Tabelle an: je Übung das
 höchste Gewicht, das im Zeitraum in Sätzen zu 1, 2 … 10 Wiederholungen
 bewältigt wurde, aus dem Ist oder dem Plan (das ITP hat keine Sätze).

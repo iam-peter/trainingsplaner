@@ -47,6 +47,7 @@ Page {
             compareBasis: ["I", "P", "T", "R"][iCompareBasis.currentIndex],
             allMaz: iAllMaz.checked,
             setSizes: iSetSizes.checked,
+            minWeekBest: [0, 60, 70, 80, 90, 100][iWeekBest.currentIndex],
             loadExercise: iLoad.checked ? (parseInt(iLoadEx.text) || 0) : 0
         }
     }
@@ -175,6 +176,21 @@ Page {
                     }
                     CheckBox { id: iGroups; text: "Komplexe K1–K7 statt Übungen" }
                     CheckBox { id: iSummary; text: "Zusammenfassung (ohne Wochenwerte)" }
+                    // IDA's "Min zum WoBW": only the steps at or above a
+                    // share of the exercise's best weight of the week
+                    RowLayout {
+                        spacing: 8
+                        enabled: !iItp.checked
+                        Label { text: "Min zum WoBW" }
+                        ComboBox {
+                            id: iWeekBest
+                            objectName: "weekBestBox"
+                            Layout.fillWidth: true
+                            model: ["alles", "60 %", "70 %", "80 %", "90 %", "100 %"]
+                            ToolTip.visible: hovered
+                            ToolTip.text: "Nur Laststufen ab diesem Anteil des Wochenbestwerts der Übung zählen"
+                        }
+                    }
                     Label { text: "Vergleich"; font.bold: true }
                     ComboBox {
                         id: iCompare

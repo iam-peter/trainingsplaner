@@ -141,7 +141,7 @@ M days, L a week or more.
 | # | Idea | Source | Size |
 |---|---|---|---|
 | 18 | **Best weight per set size** (BW at 1…10 reps) per exercise over a period (done, November 2026: "BW je Satzgröße" in the Abschnittsanalyse, Ist or Plan, competition weeks as the main table, steps with only failed attempts left out) | IDA p.18 | S–M |
-| 19 | "Min zum WoBW": count only reps at or above X % of the week's best | IDA p.18 | M |
+| 19 | "Min zum WoBW": count only reps at or above X % of the week's best (done, November 2026: in the Abschnittsanalyse, 60 to 100 %, each exercise against its own best of the week, also in the K view and for BW je Satzgröße; not for the ITP) | IDA p.18 | M |
 | 20 | "Anw": in how many sessions a week an exercise appears (done, November 2026: an Anw line per exercise or complex in the Abschnittsanalyse, per week, in all, per week and as a share of all sessions; Ist and Plan) | IDA p.18 | S |
 | 21 | Quick ranges (1/2/4 weeks, 1/3/6 months); Plan and Ist in one chart (done, November 2026: the buttons in Individualanalyse, Datenprüfung and Grafik, up to this week, the range shown marked; "Ist + Plan" in the Grafik, the plan dashed) | IDA p.19 | S |
 | 22 | Compare one athlete with the **average of a group** (done, November 2026: "Ø Gruppe" in the Grafik, a Kader, a Verein or the athletes of a MAZ, without the athlete compared, per week of those with values; in percent only athletes with a target in the MAZ) | IDA p.19 | M |

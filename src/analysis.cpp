@@ -38,6 +38,35 @@ QString nameFor(int key)
     return QStringLiteral("%1 %2").arg(key).arg(Catalog::name(key));
 }
 
+// The lines with only the steps at or above `percent` of their
+// exercise's best weight of the week (IDA's "Min zum WoBW"); lines left
+// without steps go
+QList<Database::WeightLine> fromWeekBest(QList<Database::WeightLine> lines, int percent)
+{
+    if (percent <= 0)
+        return lines;
+    QMap<QPair<QDate, int>, int> best;
+    for (const Database::WeightLine &l : std::as_const(lines)) {
+        int &b = best[{l.monday, l.exercise}];
+        for (const Step &st : l.steps)
+            b = qMax(b, st.kg);
+    }
+    QList<Database::WeightLine> kept;
+    for (Database::WeightLine l : std::as_const(lines)) {
+        const int b = best.value({l.monday, l.exercise});
+        QList<Step> steps;
+        for (const Step &st : std::as_const(l.steps)) {
+            if (st.kg * 100 >= percent * b)
+                steps.append(st);
+        }
+        if (!steps.isEmpty()) {
+            l.steps = steps;
+            kept.append(l);
+        }
+    }
+    return kept;
+}
+
 double maxOf(const QList<double> &v)
 {
     double m = none;
@@ -98,7 +127,7 @@ Section section(const Params &p)
         }
     } else {
         const Variant v = p.basis == Basis::Plan ? Variant::Plan : Variant::Actual;
-        for (const Database::WeightLine &l : Database::weightLines(p.athleteId, v, p.from, to)) {
+        for (const Database::WeightLine &l : fromWeekBest(Database::weightLines(p.athleteId, v, p.from, to), p.minWeekBest)) {
             const int key = keyFor(l.exercise, p.groups);
             if (key == 0)
                 continue;
@@ -257,12 +286,13 @@ LoadTable loadTable(const QString &athleteId, Variant variant, int exercise, con
 }
 
 QList<SetSizeBests> bestBySetSize(const QString &athleteId, Variant variant, const QDate &from, int weeks,
-                                  const QList<QDate> &skip)
+                                  const QList<QDate> &skip, int minWeekBest)
 {
     QMap<int, QList<int>> best;
     if (weeks <= 0)
         return {};
-    for (const Database::WeightLine &l : Database::weightLines(athleteId, variant, from, from.addDays(7 * (weeks - 1)))) {
+    for (const Database::WeightLine &l : fromWeekBest(
+             Database::weightLines(athleteId, variant, from, from.addDays(7 * (weeks - 1))), minWeekBest)) {
         if (skip.contains(l.monday) || !Catalog::isWeightExercise(l.exercise))
             continue;
         for (const Step &st : l.steps) {

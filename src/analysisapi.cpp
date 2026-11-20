@@ -249,6 +249,7 @@ QVariantMap AnalysisApi::individual(const QVariantMap &p) const
     params.includeCompetitionWeeks = p.value(QStringLiteral("competitionWeeks")).toBool();
     params.reference = referenceFrom(p.value(QStringLiteral("reference")).toString());
     params.mazId = p.value(QStringLiteral("mazId")).toString();
+    params.minWeekBest = qBound(0, p.value(QStringLiteral("minWeekBest")).toInt(), 100);
     const bool summary = p.value(QStringLiteral("summary")).toBool();
     const bool itp = params.basis == Basis::Itp;
 
@@ -256,6 +257,9 @@ QVariantMap AnalysisApi::individual(const QVariantMap &p) const
                                           : maz.name;
     const Section s = section(params);
     doc.heading(sectionTitle(a.fullName(), what, weeks, s, basisName(basis)));
+    if (params.minWeekBest > 0 && !itp)
+        doc.note(QStringLiteral("Nur Laststufen ab %1 % des Wochenbestwerts (WoBW) der Übung (Min zum WoBW).")
+                     .arg(params.minWeekBest));
     if (params.reference != Reference::Absolute)
         doc.note(QStringLiteral("Mhg und BW in % der %1 im MAZ.")
                      .arg(params.reference == Reference::MazTarget ? QStringLiteral("Zielleistung")
@@ -332,7 +336,8 @@ QVariantMap AnalysisApi::individual(const QVariantMap &p) const
                 skip.append(s.weeks[i]);
         }
         const QList<SetSizeBests> bests =
-            bestBySetSize(athleteId, params.basis == Basis::Plan ? Variant::Plan : Variant::Actual, from, weeks, skip);
+            bestBySetSize(athleteId, params.basis == Basis::Plan ? Variant::Plan : Variant::Actual, from, weeks, skip,
+                          params.minWeekBest);
         doc.heading(QStringLiteral("BW je Satzgröße (kg, %1)").arg(basisName(basis)));
         if (bests.isEmpty()) {
             doc.note(QStringLiteral("Keine Sätze im Zeitraum."));
