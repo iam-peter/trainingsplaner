@@ -30,7 +30,7 @@ jobs:
       id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy-again.outputs.page_url }}
     steps:
       - uses: actions/checkout@v5
 
@@ -49,5 +49,18 @@ jobs:
         with:
           path: site
 
+      # Right after its upload the artifact is at times not yet found
+      # ("No artifacts named github-pages"). Then the deployment is tried
+      # once more in the same run, after a pause. Re-running the failed
+      # run instead uploads a second artifact, which fails for good.
       - id: deploy
+        continue-on-error: true
+        uses: actions/deploy-pages@v5
+
+      - name: Pause before the second try
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 60
+
+      - id: deploy-again
+        if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v5
