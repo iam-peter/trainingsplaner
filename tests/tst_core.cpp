@@ -1179,7 +1179,10 @@ void TestCore::calendarEvents()
     test.kind = CalendarEvents::Diagnostik;
     test.first = QDate(2028, 1, 10);
     test.last = QDate(2028, 1, 1); // before the first: one day
-    QVERIFY(!CalendarEvents::save(test).isEmpty());
+    const QString testId = CalendarEvents::save(test);
+    QVERIFY(!testId.isEmpty());
+    // Saved right after one another: two entries, not one replacing the other
+    QVERIFY(testId != camp.id);
 
     // Touching the days asked for, over the turn of the year
     QCOMPARE(CalendarEvents::between(id, QDate(2028, 1, 1), QDate(2028, 1, 7)).size(), 1);
@@ -1484,6 +1487,18 @@ void TestCore::countdown()
     QCOMPARE(Planning::mainCompetitionWeek(Maz(), athlete), QDate());
     QCOMPARE(Planning::trainingWeek(Maz(), QDate(), z.from), 0);
     QVERIFY(Planning::removeMaz(z.id));
+
+    // Two made one right after the other get ids of their own
+    Maz a, b;
+    a.name = QStringLiteral("Erster");
+    b.name = QStringLiteral("Zweiter");
+    a.from = b.from = QDate(2029, 1, 1);
+    a.to = b.to = QDate(2029, 2, 26);
+    a.id = Planning::saveMaz(a);
+    b.id = Planning::saveMaz(b);
+    QVERIFY(a.id != b.id);
+    QCOMPARE(Planning::maz(a.id).name, QStringLiteral("Erster"));
+    QVERIFY(Planning::removeMaz(a.id) && Planning::removeMaz(b.id));
 }
 
 // Sandau's Gompertz model: a known curve back from its points, a noisy

@@ -125,9 +125,15 @@ Maz maz(const QString &id)
 
 QString saveMaz(const Maz &m)
 {
-    const QString id = m.id.isEmpty()
-                           ? QStringLiteral("maz_") + QString::number(QDateTime::currentMSecsSinceEpoch())
-                           : m.id;
+    QString id = m.id;
+    if (id.isEmpty()) {
+        // The time in ms, one up while taken: two made in the same
+        // millisecond must not share an id, or the second replaces the first
+        qint64 n = QDateTime::currentMSecsSinceEpoch();
+        do
+            id = QStringLiteral("maz_") + QString::number(n++);
+        while (!maz(id).id.isEmpty());
+    }
     QSqlQuery q;
     q.prepare(QStringLiteral("INSERT OR REPLACE INTO macrocycles (id, sex, name, short_name, first_monday,"
                              " last_monday, build_up_monday, peak_monday, note, changed_by, changed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));

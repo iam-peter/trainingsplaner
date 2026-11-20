@@ -3,6 +3,7 @@
 #include "database.h"
 
 #include <QDateTime>
+#include <QUuid>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QVariant>
@@ -77,7 +78,8 @@ QString save(const Event &e)
 {
     if (e.athleteId.isEmpty() || !e.first.isValid())
         return {};
-    const QString id = e.id.isEmpty() ? QStringLiteral("termin_") + QString::number(QDateTime::currentMSecsSinceEpoch())
+    // Unique, also for two saved in the same millisecond
+    const QString id = e.id.isEmpty() ? QStringLiteral("termin_") + QUuid::createUuid().toString(QUuid::WithoutBraces)
                                       : e.id;
     const QDate last = e.last.isValid() && e.last >= e.first ? e.last : e.first;
     QSqlQuery q;
