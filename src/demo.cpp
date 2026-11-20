@@ -6,7 +6,6 @@
 #include "planning.h"
 
 #include <QMap>
-#include <QSettings>
 #include <QtMath>
 
 namespace {
@@ -195,8 +194,7 @@ void createMaz(const QString &id, const Person &p, const QDate &monday)
         Planning::setMeta(ro, roMeta);
     }
     // The ITP: what "Vorlage" makes of the RO, on the program's weight step
-    const double step = QSettings().value(QStringLiteral("general/weightStep"), 2.5).toDouble() == 1.0 ? 1.0 : 2.5;
-    Planning::itpFromRo(z.id, id, step);
+    Planning::itpFromRo(z.id, id, Planning::weightStep());
 
     QMap<QDate, WeekTarget> itp;
     for (const WeekTarget &t : Planning::targets(id, z.from, z.to)) {

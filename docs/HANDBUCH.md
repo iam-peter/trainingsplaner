@@ -261,6 +261,11 @@ vorsieht. Sie finden ihn an drei Stellen:
   Linien rechts sind geplante Wochen.
 - **Unten die Balken:** die Wiederholungen K1–K7 laut ITP, beschriftet mit
   der Belastung der Woche (h / m / g). Die Punkte darauf sind das Ist.
+- Die violett gestrichelte Linie ist der **Richtwert** des
+  Trainingsmittelkatalogs (TMK 2018) für die Wiederholungen K1-7 je Woche
+  im Alter des Sportlers: Kinder 200, Schüler 280, Jugend 350, Junioren
+  300, U23 320, Senioren 300. Er gilt im Mittel über den Zyklus; die
+  hohen Wochen liegen darüber, die gesenkten darunter.
 - **Grau schattiert** sind die gesenkten Wochen (g).
 - Die senkrechte Linie **heute** trennt Vergangenheit und Zukunft.
 
@@ -269,6 +274,9 @@ vorsieht. Sie finden ihn an drei Stellen:
 > in den gesenkten zurück. Miras Ist (durchgezogen) folgt dem Ziel
 > (gestrichelt) bis Woche 45 mit wenigen Kilo Abstand. Ab heute zeigen
 > dünne Linien, was für die nächsten Wochen geplant ist.
+> Mira ist 2026 in der AK 19, ihr Richtwert liegt bei 300 WH. Die
+> erfundenen Beispieldaten planen bewusst weniger, passend zu ihren
+> Trainingseinheiten.
 
 Oben lassen sich **Übung** und **MAZ** wählen. **Gewichte** schaltet
 zwischen kg, % des MAZ-Ziels und % des Wettkampfergebnisses um.
@@ -374,6 +382,11 @@ des TMK mit der Zielleistung in kg um und rundet wie **Vorlage**. In
 einer Woche mit Wettkampf (WK-Lage **WK** oder **HWK**) dürfen Reißen
 und Stoßen darüber liegen, denn der Wettkampf selbst geht bis 100 % und
 mehr. Die rote Zahl ist ein Hinweis: sie bleibt, wie sie eingetragen ist.
+
+Mit der Maus über den Spaltenköpfen **K1** bis **K6** und **K1-7** steht
+außerdem der Richtwert des TMK für die Wiederholungen je Woche, z. B. für
+die Jugend K1-7 350 und K3 80. Die Vorlagen der RTK treffen ihn im Mittel
+(U17: 358 WH K1-7 je Woche).
 
 > **Beispiel:** Die Vorlagen der RTK bleiben in allen Trainingswochen
 > innerhalb des TMK. Setzt man in „RTK U17“ für eine Sportlerin der

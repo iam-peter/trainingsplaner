@@ -41,6 +41,7 @@ private slots:
     void jumpOnHalfGrid();
     void youthRules();
     void tmkCaps();
+    void tmkVolumes();
     void statsMatchOldProgram();
     void entryEncoding();
     void weekLabels();
@@ -177,6 +178,44 @@ void TestCore::tmkCaps()
         }
     }
     QVERIFY(checked > 500);
+}
+
+// The TMK's WH a week per stage, and the RTK's framework plans around it
+// on average: the norm is a mean over the cycle, not a cap
+void TestCore::tmkVolumes()
+{
+    QList<int> k17;
+    for (int s = Tmk::Kinder; s <= Tmk::Senioren; ++s)
+        k17.append(Tmk::weeklyWh(0, Tmk::Stage(s)));
+    QCOMPARE(k17, QList<int>({200, 280, 350, 300, 320, 300}));
+    QCOMPARE(Tmk::weeklyWh(-1, Tmk::Kinder), 85);
+    QCOMPARE(Tmk::weeklyWh(-3, Tmk::Kinder), 0);
+    QCOMPARE(Tmk::weeklyWh(-4, Tmk::Junioren), 30);
+    QCOMPARE(Tmk::weeklyWh(-6, Tmk::Senioren), 70);
+    QCOMPARE(Tmk::weeklyWh(-7, Tmk::Jugend), 0);
+    QCOMPARE(Tmk::weeklyWh(-8, Tmk::Jugend), 0);
+
+    QFile f(QStringLiteral(":/rtk-ro.json"));
+    QVERIFY(f.open(QIODevice::ReadOnly));
+    const QJsonArray templates = QJsonDocument::fromJson(f.readAll()).object().value(QStringLiteral("templates")).toArray();
+    const Tmk::Stage stages[] = {Tmk::Kinder, Tmk::Schueler, Tmk::Jugend, Tmk::Junioren};
+    for (int i = 0; i < 4; ++i) {
+        const QJsonArray rows = templates[i].toObject().value(QStringLiteral("rows")).toArray();
+        int sum = 0, max = 0;
+        for (const QJsonValue &r : rows) {
+            int week = 0;
+            const QJsonObject complexes = r.toObject().value(QStringLiteral("complexes")).toObject();
+            for (auto it = complexes.begin(); it != complexes.end(); ++it)
+                week += it.value().toInt();
+            sum += week;
+            max = qMax(max, week);
+        }
+        const double mean = double(sum) / rows.size();
+        const int norm = Tmk::weeklyWh(0, stages[i]);
+        // U13 201 for 200, U15 289 for 280, U17 358 for 350, U20 299 for 300
+        QVERIFY2(qAbs(mean - norm) <= 10, qPrintable(QString::number(mean)));
+        QVERIFY(max > norm);
+    }
 }
 
 void TestCore::youthRules()

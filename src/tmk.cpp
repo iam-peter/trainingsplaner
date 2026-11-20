@@ -143,6 +143,23 @@ QString notForStage(int exercise, Stage s)
     return QStringLiteral("%1 ist im TMK 2018 nicht für %2 vorgesehen.").arg(name, stageName(s));
 }
 
+int weeklyWh(int complex, Stage s)
+{
+    // K1-7, then K1..K7; the WH/Wo of the TMK's group rows
+    static const int volumes[8][6] = {
+        {200, 280, 350, 300, 320, 300},
+        {85, 80, 70, 40, 40, 40},
+        {85, 70, 60, 40, 40, 30},
+        {0, 55, 80, 60, 70, 60},
+        {0, 0, 0, 30, 30, 30},
+        {30, 75, 90, 70, 80, 70},
+        {0, 0, 50, 60, 60, 70},
+        {0, 0, 0, 0, 0, 0},
+    };
+    const int row = -complex;
+    return row >= 0 && row < 8 ? volumes[row][s] : 0;
+}
+
 bool exemptInCompetition(int exercise, const QString &position)
 {
     const QString p = position.trimmed().toUpper();

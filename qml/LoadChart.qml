@@ -9,7 +9,8 @@ import Trainingsplaner
 // as planned for the weeks ahead (thin), and an ideal line straight from
 // the first week done to the last target. Below, the reps of K1-7: the
 // target as bars in the colour of the week's load (h / m / g), done as
-// dots. Lowered weeks are shaded, today is marked.
+// dots, and the TMK's K1-7 a week for the athlete's age as a dashed
+// reference line. Lowered weeks are shaded, today is marked.
 Item {
     id: chart
 
@@ -21,6 +22,8 @@ Item {
     readonly property color bwColor: "#c2410c"
     readonly property color mhgColor: "#0f766e"
     readonly property var loadColor: ({ h: "#5b6b7f", m: "#9aa8b8", g: "#d5dde6" })
+    readonly property color normColor: "#7c3aed"
+    readonly property bool hasNorm: (course.norm || []).some(v => v)
 
     onCourseChanged: canvas.requestPaint()
     onWidthChanged: canvas.requestPaint()
@@ -112,6 +115,9 @@ Item {
                 for (const v of set.wh)
                     if (v)
                         whMax = Math.max(whMax, v)
+            for (const v of c.norm || [])
+                if (v)
+                    whMax = Math.max(whMax, v)
             whMax = whMax > 0 ? Math.ceil(whMax * 1.1 / 50) * 50 : 100
             const yBottom = v => chart.bottomTop + chart.bottomHeight * (1 - v / whMax)
 
@@ -199,6 +205,39 @@ Item {
                     ctx.strokeStyle = chart.s.text_muted
                     ctx.lineWidth = 1.5
                     ctx.beginPath(); ctx.arc(chart.xAt(i), yBottom(p), 3.5, 0, 2 * Math.PI); ctx.stroke()
+                }
+            }
+
+            // The TMK's K1-7 a week, a step where the age changes; its
+            // number at the right end
+            if (chart.hasNorm) {
+                ctx.save()
+                ctx.strokeStyle = chart.normColor
+                ctx.lineWidth = 1.5
+                ctx.setLineDash([6, 3])
+                ctx.beginPath()
+                let last = null
+                for (let i = 0; i < n; ++i) {
+                    const v = c.norm[i]
+                    if (!v) {
+                        last = null
+                        continue
+                    }
+                    const x0 = chart.plotLeft + chart.slot * i
+                    if (last === null) ctx.moveTo(x0, yBottom(v))
+                    else ctx.lineTo(x0, yBottom(v))
+                    ctx.lineTo(x0 + chart.slot, yBottom(v))
+                    last = v
+                }
+                ctx.stroke()
+                ctx.restore()
+                const end = c.norm[n - 1]
+                if (end) {
+                    ctx.fillStyle = chart.normColor
+                    ctx.textAlign = "right"
+                    ctx.textBaseline = "bottom"
+                    ctx.fillText("TMK " + end, chart.width - chart.plotRight, yBottom(end) - 2)
+                    ctx.textAlign = "center"
                 }
             }
 
@@ -301,6 +340,7 @@ Item {
                        + "\nBW   Ziel " + v(c.target.bw[i]) + u + " · Ist " + v(c.actual.bw[i]) + u + " · Plan " + v(c.planned.bw[i]) + u
                        + "\nMHG  Ziel " + v(c.target.mhg[i]) + u + " · Ist " + v(c.actual.mhg[i]) + u + " · Plan " + v(c.planned.mhg[i]) + u
                        + "\nWH K1-7  Ziel " + v(c.target.wh[i]) + " · Ist " + v(c.actual.wh[i]) + " · Plan " + v(c.planned.wh[i])
+                       + (c.norm && c.norm[i] ? " · TMK " + c.norm[i] : "")
             }
         }
     }

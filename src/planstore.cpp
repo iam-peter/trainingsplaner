@@ -6,6 +6,8 @@
 #include "planning.h"
 #include "report.h"
 #include "rtk.h"
+#include "tmk.h"
+#include "youth.h"
 
 #include <QSet>
 
@@ -303,8 +305,11 @@ QVariantMap Plan::loadCourse(const QString &athleteId, const QString &mazId, con
 
     const QDate todayMonday = Weeks::mondayOf(QDate::currentDate());
     int todayIndex = -1;
-    QVariantList labels, mondays, loads;
+    QVariantList labels, mondays, loads, norms;
     QVariantList zMhg, zBw, zWh, iMhg, iBw, iWh, pMhg, pBw, pWh;
+    // The TMK's K1-7 a week for the athlete's age in each week
+    const QDate born = Database::athlete(athleteId).born;
+    QStringList normTexts;
     auto opt = [](int v) { return v > 0 ? QVariant(v) : QVariant(); };
     Report::Document doc;
     const QString exName = Catalog::name(exercise);
@@ -322,6 +327,15 @@ QVariantMap Plan::loadCourse(const QString &athleteId, const QString &mazId, con
         labels.append(QString::number(m.weekNumber()));
         mondays.append(m.toString(Qt::ISODate));
         loads.append(Planning::loadText(load.value(m)));
+        if (born.isValid()) {
+            const Tmk::Stage stage = Tmk::stage(Youth::ageClass(born, m));
+            norms.append(Tmk::weeklyWh(0, stage));
+            const QString text = QStringLiteral("%1: %2 WH").arg(Tmk::stageName(stage)).arg(Tmk::weeklyWh(0, stage));
+            if (!normTexts.contains(text))
+                normTexts.append(text);
+        } else {
+            norms.append(QVariant());
+        }
         const WeekTarget t = target.value(m);
         int z17 = 0;
         for (int w : groupWh.value(m))
@@ -346,8 +360,15 @@ QVariantMap Plan::loadCourse(const QString &athleteId, const QString &mazId, con
                                                                ? QStringLiteral("% des MAZ-Ziels (%1 kg)").arg(ref)
                                                                : QStringLiteral("% des MAZ-Wettkampfs (%1 kg)").arg(ref))
                                                          : QStringLiteral("kg")));
+    const QString normText = normTexts.isEmpty()
+                                 ? QString()
+                                 : QStringLiteral("Richtwert K1-7 nach TMK 2018 im Mittel je Woche, %1")
+                                       .arg(normTexts.join(QStringLiteral(", ")));
+    if (!normText.isEmpty())
+        doc.note(normText);
     doc.table(rows);
-    result = {{QStringLiteral("labels"), labels}, {QStringLiteral("mondays"), mondays}, {QStringLiteral("load"), loads},
+    result = {{QStringLiteral("labels"), labels},
+              {QStringLiteral("norm"), norms}, {QStringLiteral("normText"), normText}, {QStringLiteral("mondays"), mondays}, {QStringLiteral("load"), loads},
               {QStringLiteral("todayIndex"), todayIndex}, {QStringLiteral("unit"), unit},
               {QStringLiteral("reference"), ref},
               {QStringLiteral("target"), QVariantMap{{QStringLiteral("mhg"), zMhg}, {QStringLiteral("bw"), zBw}, {QStringLiteral("wh"), zWh}}},

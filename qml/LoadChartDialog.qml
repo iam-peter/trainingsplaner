@@ -170,7 +170,8 @@ AppDialog {
                     { text: "dünn: geplante Wochen", color: "#888888", style: "thin" },
                     { text: "Balken: WH K1-7 Ziel in h / m / g, Punkte: Ist", color: "#5b6b7f", style: "bar" },
                     { text: "schattiert: gesenkte Woche", color: "#b8c6d6", style: "bar" }
-                ]
+                ].concat(chart.hasNorm ? [{ text: "Richtwert WH K1-7 je Woche (TMK 2018, im Mittel)",
+                                            color: chart.normColor, style: "dash" }] : [])
                 Row {
                     required property var modelData
                     spacing: 6

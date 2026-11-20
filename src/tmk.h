@@ -30,6 +30,12 @@ Entry entry(int exercise, Stage s);
 // vorgesehen."; "" when it is
 QString notForStage(int exercise, Stage s);
 
+// The TMK's weekly volume of a stage as a reference: the WH a week of a
+// complex (-1..-6), or of K1-7 for 0; 0 when the TMK gives none (K7 is
+// optional). It is the average over a cycle, as the RTK's framework plans
+// show, not a cap on each week.
+int weeklyWh(int complex, Stage s);
+
 // Reißen and Stoßen in a week with a competition (WK-Lage "WK" or "HWK"):
 // the competition goes to 100 % and more, so no cap
 bool exemptInCompetition(int exercise, const QString &position);

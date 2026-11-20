@@ -115,4 +115,28 @@ TestCase {
         compare(warning(0, 2), "")
         grid.owner = Plan.roOwner(mazId)
     }
+
+    // The TMK's WH a week: the reference line of the Belastungsverlauf and
+    // the tips of the complexes in the grid
+    function test_3_volume() {
+        // Jule is a Junior now (AK 18): K1-7 300 a week
+        const c = Plan.loadCourse(athletes[0], mazId, "", 0, 1, "kg")
+        compare(c.norm.length, 13)
+        compare(c.norm[0], 300)
+        compare(c.norm[12], 300)
+        compare(c.normText, "Richtwert K1-7 nach TMK 2018 im Mittel je Woche, Junioren (AK 18–20): 300 WH")
+        verify(JSON.stringify(c.report).indexOf("Junioren (AK 18–20): 300 WH") >= 0)
+
+        // The RO goes by the youngest, Sami (AK 14): K3 55, no K4
+        compare(grid.columnInfo(8).tip, "Summe der Komplexe K1 bis K7, aus deren WH"
+                                        + "\nRichtwert TMK 2018 für Schüler (AK 14–15): 280 WH je Woche im Mittel")
+        compare(grid.columnInfo(7).tip, "Komplex K3\nRichtwert TMK 2018 für Schüler (AK 14–15): 55 WH je Woche im Mittel")
+        compare(grid.columnInfo(6).tip, "Komplex K4")
+        compare(grid.columnInfo(9).tip, "Summe der Komplexe K1 bis K5, aus deren WH")
+
+        // Without a birth date: no line
+        const none = Store.saveAthlete({ lastName: "Katalog", firstName: "Ohne", sex: 0 })
+        athletes.push(none)
+        compare(Plan.loadCourse(none, "", Plan.maz(mazId).fromMonday, 4, 1, "kg").norm, [undefined, undefined, undefined, undefined])
+    }
 }

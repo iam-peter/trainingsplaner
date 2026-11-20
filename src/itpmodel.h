@@ -78,6 +78,9 @@ private:
     int complexSum(const QDate &monday, int last) const;
     // What the TMK 2018 says against a cell, "" when nothing
     QString warning(int row, int column) const;
+    // The TMK's WH a week of a complex (0: K1-7) for the age in the first
+    // week, as a line for a column's tip; "" without one
+    QString normTip(int complex) const;
 
     QString m_owner;
     QDate m_from;

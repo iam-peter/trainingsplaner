@@ -200,6 +200,17 @@ QString ItpModel::warning(int row, int column) const
     return text + QStringLiteral(", %1 kg bei %2 kg Ziel.").arg(cap).arg(target);
 }
 
+QString ItpModel::normTip(int complex) const
+{
+    if (!m_born.isValid() || !m_from.isValid())
+        return {};
+    const Tmk::Stage stage = Tmk::stage(Youth::ageClass(m_born, m_from));
+    const int wh = Tmk::weeklyWh(complex, stage);
+    if (wh <= 0)
+        return {};
+    return QStringLiteral("\nRichtwert TMK 2018 für %1: %2 WH je Woche im Mittel").arg(Tmk::stageName(stage)).arg(wh);
+}
+
 int ItpModel::value(int row, int column) const
 {
     const QDate monday = m_from.addDays(7 * row);
@@ -318,7 +329,7 @@ QVariantMap ItpModel::columnInfo(int column) const
         return {{QStringLiteral("title"), k == Sum17 ? QStringLiteral("K1-7") : QStringLiteral("K1-5")},
                 {QStringLiteral("sub"), QStringLiteral("WH")}, {QStringLiteral("first"), true},
                 {QStringLiteral("exercise"), 0}, {QStringLiteral("readOnly"), true},
-                {QStringLiteral("tip"), k == Sum17 ? QStringLiteral("Summe der Komplexe K1 bis K7, aus deren WH")
+                {QStringLiteral("tip"), k == Sum17 ? QStringLiteral("Summe der Komplexe K1 bis K7, aus deren WH") + normTip(0)
                                                    : QStringLiteral("Summe der Komplexe K1 bis K5, aus deren WH")}};
     if (k == Load)
         return {{QStringLiteral("title"), QStringLiteral("Bel.")}, {QStringLiteral("sub"), QString()},
@@ -337,7 +348,7 @@ QVariantMap ItpModel::columnInfo(int column) const
             {QStringLiteral("first"), k == Wh},
             {QStringLiteral("exercise"), e},
             {QStringLiteral("readOnly"), false},
-            {QStringLiteral("tip"), e < 0 ? QStringLiteral("Komplex K%1").arg(-e) : Catalog::name(e)}};
+            {QStringLiteral("tip"), e < 0 ? QStringLiteral("Komplex K%1").arg(-e) + normTip(e) : Catalog::name(e)}};
 }
 
 QString ItpModel::rowLabel(int row) const
