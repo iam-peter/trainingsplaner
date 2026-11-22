@@ -376,7 +376,25 @@ Page {
                 Item { Layout.preferredWidth: 12 }
                 CheckBox { id: showValues; text: "Werte"; checked: true }
                 CheckBox { id: showTrend; text: "Trend" }
-                CheckBox { id: showNorm; text: "Norm Bundeskader"; enabled: (page.trend.norm || 0) > 0 }
+                // The reference total: the BVDG's KET 2026 (NK1, PK) or the
+                // old program's table of 2005, in the order the Store gives
+                CheckBox {
+                    id: showNorm
+                    objectName: "showNorm"
+                    text: "Norm"
+                    enabled: normBox.value > 0
+                }
+                ComboBox {
+                    id: normBox
+                    objectName: "normBox"
+                    readonly property var norm: (page.trend.norms || [])[currentIndex]
+                    readonly property int value: norm ? norm.value : 0
+                    model: ["KET NK1", "KET PK", "WinWoTA 2005"]
+                    displayText: currentText + (value > 0 ? ": " + value + " kg" : ": –")
+                    ToolTip.visible: hovered
+                    ToolTip.delay: 500
+                    ToolTip.text: norm ? norm.tip : ""
+                }
                 Item { Layout.fillWidth: true }
                 IconButton {
                     iconName: "file-down"
@@ -429,8 +447,9 @@ Page {
                 }
                 references: body
                             ? (page.trend.classLimits || []).map(v => ({ name: "Klasse " + v + " kg", color: Styles.TokenInterface.semantics.chart_series[3], value: v }))
-                            : showNorm.checked && page.trend.norm > 0
-                              ? [{ name: "Norm " + page.trend.norm + " kg", color: Styles.TokenInterface.semantics.chart_series[3], value: page.trend.norm }] : []
+                            : showNorm.checked && normBox.value > 0
+                              ? [{ name: "Norm " + normBox.currentText + " " + normBox.value + " kg", color: Styles.TokenInterface.semantics.chart_series[3],
+                                   value: normBox.value }] : []
             }
             Label {
                 objectName: "curveText"

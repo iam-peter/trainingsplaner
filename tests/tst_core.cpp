@@ -7,6 +7,7 @@
 #include "database.h"
 #include "development.h"
 #include "exerciseweek.h"
+#include "ket.h"
 #include "model.h"
 #include "steps.h"
 #include "tmk.h"
@@ -1307,6 +1308,23 @@ void TestCore::competitions()
     QCOMPARE(Competitions::norm(Sex::Female, 16, 70.0), 140);   // above the last limit: "+" class
     QCOMPARE(Competitions::norm(Sex::Female, 25, 58.0), 150);   // oldest class
     QCOMPARE(Competitions::norm(Sex::Male, 16, 58.0), 0);     // no table for men here
+
+    // KET 2026: the youth's classes up to 17, the adults' from 18
+    QCOMPARE(Ket::norm(Ket::NK1, Sex::Male, 17, 88.4), 277);     // -95
+    QCOMPARE(Ket::norm(Ket::NK1, Sex::Male, 18, 88.4), 291);     // -95, adults
+    QCOMPARE(Ket::norm(Ket::NK1, Sex::Male, 15, 50.0), 166);     // below the lightest: -55
+    QCOMPARE(Ket::norm(Ket::NK1, Sex::Male, 18, 55.0), 219);     // -60 from 18, no -55
+    QCOMPARE(Ket::norm(Ket::NK1, Sex::Male, 17, 100.0), 291);    // +95
+    QCOMPARE(Ket::norm(Ket::NK1, Sex::Male, 24, 120.0), 358);    // +110: the first of three (Ü1)
+    QCOMPARE(Ket::norm(Ket::NK1, Sex::Female, 15, 45.0), 120);   // the limit belongs to the class
+    QCOMPARE(Ket::norm(Ket::NK1, Sex::Female, 20, 90.0), 207);   // +86
+    QCOMPARE(Ket::norm(Ket::PK, Sex::Male, 20, 85.0), 328);
+    QCOMPARE(Ket::norm(Ket::PK, Sex::Female, 28, 49.0), 189);
+    QCOMPARE(Ket::norm(Ket::NK1, Sex::Male, 14, 70.0), 0);       // outside the ages
+    QCOMPARE(Ket::norm(Ket::NK1, Sex::Male, 25, 70.0), 0);
+    QCOMPARE(Ket::norm(Ket::PK, Sex::Male, 18, 70.0), 0);
+    QCOMPARE(Ket::norm(Ket::PK, Sex::Male, 29, 70.0), 0);
+    QCOMPARE(Ket::norm(Ket::PK, Sex::Male, 20, 0.0), 0);         // no body weight
 
     QVERIFY(Competitions::remove(c.athleteId, c.date, c.time));
     QCOMPARE(Competitions::forAthlete(c.athleteId).size(), 2);

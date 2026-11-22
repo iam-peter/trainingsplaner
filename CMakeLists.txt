@@ -21,6 +21,7 @@ add_library(tpcore STATIC
     src/bakexport.cpp   src/bakexport.h
     src/exerciseweek.cpp src/exerciseweek.h
     src/competition.cpp src/competition.h
+    src/ket.cpp         src/ket.h
     src/planning.cpp    src/planning.h
     src/analysis.cpp    src/analysis.h
     src/bakimport.cpp   src/bakimport.h

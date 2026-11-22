@@ -194,7 +194,8 @@ public:
     Q_INVOKABLE QString saveCompetition(const QVariantMap &c, const QString &oldDate, const QString &oldTime);
     Q_INVOKABLE bool removeCompetition(const QString &athleteId, const QString &date, const QString &time);
     // Totals over years: period 0 each, 1 half year, 2 year; types: indexes to include.
-    // {labels, total, snatch, cleanJerk, norm}
+    // {labels, total, snatch, cleanJerk, norms}; norms: [{key ("nk1", "pk",
+    // "winwota"), name, value (kg, 0 none), tip}] for the latest competition
     // The best results per competition, half year or year. With curve and
     // yearly results also the development curve after Sandau (2018), a
     // Gompertz fit, for the total and the body weight: two years ahead

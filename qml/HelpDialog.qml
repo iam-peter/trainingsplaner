@@ -179,7 +179,8 @@ AppDialog {
                           + "legt sie für eine Tabellenkalkulation in die Zwischenablage, „Speichern unter“ schreibt ein PDF "
                           + "oder eine CSV-Datei. Grafiken zeigen beim Darüberfahren die Werte und lassen sich als Bild speichern.<br><br>"
                           + "<b>Wettkämpfe:</b> Versuche eintragen, einen Fehlversuch mit der Leertaste oder einem Rechtsklick im Feld als ungültig markieren (rot, durchgestrichen), und die Entwicklung als Grafik ansehen, jährlich auch mit der Entwicklungskurve (Gompertz nach Sandau) "
-                          + "zwei Jahre voraus, für Zweikampf oder Körpergewicht.<br><br>"
+                          + "zwei Jahre voraus, für Zweikampf oder Körpergewicht. „Norm“ zeichnet die Kadernorm ein: KET 2026 des BVDG "
+                          + "für NK1 oder PK, oder die Normtabelle des alten Programms (2005).<br><br>"
                           + "<b>Datensicherung:</b> Hantel-Menü › Exportieren schreibt eine Datei im Format des alten Programms."
                 }
             }

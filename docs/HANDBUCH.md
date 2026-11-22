@@ -698,6 +698,27 @@ Jahre, der Standardfehler und die Prognose. Die Kurve braucht Ergebnisse
 aus mindestens vier Jahren; einen Verlauf, der noch keine Sättigung
 erkennen lässt, zeichnet sie nicht.
 
+**Norm** zeichnet die Kadernorm als waagerechte Linie, für das Alter und
+das Körpergewicht im letzten Wettkampf der Grafik. Zur Wahl stehen:
+
+- **KET NK1** und **KET PK**: die Kader- und Entwicklungstabelle des
+  BVDG, Normsystem 2026 (Stand 05.12.2025), für den Nachwuchskader 1
+  (15–24 Jahre) und den Perspektivkader (19–28 Jahre). Das Alter zählt
+  nach Jahrgang (Jahr des Wettkampfs minus Geburtsjahr); die
+  Gewichtsklasse ist die leichteste, in die das Körpergewicht passt, bis
+  17 Jahre die der Jugend, danach die der Junioren und Aktiven. Für
+  110+ kg (Männer) und 86+ kg (Frauen) nennt die KET drei Werte (Ü1,
+  Ü2), ohne sie zu erklären; das Programm nimmt den ersten.
+- **WinWoTA 2005**: die Normtabelle des alten Programms, mit seinen
+  Daten importiert (Gewichtsklassen bis 2018).
+
+Die Auswahl zeigt den Wert gleich mit („KET NK1: 181 kg“), ein Strich,
+wenn es für Alter oder Klasse keinen gibt. Die Maus darüber nennt Klasse,
+Alter und den Wettkampf, aus dem sie stammen.
+
+> **Beispiel:** Nora, Jahrgang 2006, wiegt bei der DM im März 2026
+> 60,8 kg: Alter 20, Klasse −61. KET NK1 verlangt 181 kg, KET PK 196 kg.
+
 Statt **Leistung** zeigt **Körpergewicht** das Körpergewicht beim
 jeweils besten Zweikampf, mit seiner eigenen Kurve und den
 Gewichtsklassen ringsum als Linien: bis AK 17 die der Jugend, danach

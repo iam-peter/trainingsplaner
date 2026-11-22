@@ -9,6 +9,7 @@
 #include "demo.h"
 #include "development.h"
 #include "exerciseweek.h"
+#include "ket.h"
 #include "planning.h"
 #include "printpreview.h"
 #include "report.h"
@@ -32,6 +33,7 @@
 #include <QStandardPaths>
 #include <QUrl>
 
+#include <algorithm>
 #include <cmath>
 
 namespace {
@@ -1624,20 +1626,63 @@ QVariantMap Store::competitionTrend(const QString &athleteId, int fromYear, int 
         result.insert(QStringLiteral("bodyText"), bText);
         result.insert(QStringLiteral("classLimits"), limits);
     }
-    // The reference total for the latest competition's class
-    int normValue = 0;
-    if (!list.isEmpty()) {
-        const Competition &last = list.last();
-        const Athlete a = Database::athlete(athleteId);
-        normValue = Competitions::norm(a.sex, a.born.isValid() ? last.date.year() - a.born.year() : 0,
-                                       last.bodyWeight);
+    // The reference totals for the age and body weight of the latest
+    // competition with a body weight: the BVDG's KET 2026 for NK1 and PK, and the old program's
+    // table of 2005 (reference_totals, its weight classes up to 2018)
+    QVariantList norms;
+    {
+        int age = 0;
+        double weight = 0;
+        Sex sex = Sex::Male;
+        QString basis;
+        // The latest with a body weight: an upcoming one has none yet
+        auto weighed = std::find_if(list.crbegin(), list.crend(), [](const Competition &c) { return c.bodyWeight > 0; });
+        if (weighed != list.crend()) {
+            const Competition &last = *weighed;
+            const Athlete a = Database::athlete(athleteId);
+            sex = a.sex;
+            age = a.born.isValid() ? last.date.year() - a.born.year() : 0;
+            weight = last.bodyWeight;
+            if (age > 0 && weight > 0)
+                basis = QStringLiteral("Alter %1 (Jahr des Wettkampfs minus Geburtsjahr), %2 kg Körpergewicht "
+                                       "im letzten Wettkampf (%3)")
+                            .arg(age)
+                            .arg(QLocale(QLocale::German).toString(weight, 'f', 1),
+                                 last.date.toString(QStringLiteral("dd.MM.yyyy")));
+        }
+        auto add = [&](const QString &key, const QString &name, int value, const QString &tip) {
+            norms.append(QVariantMap{{QStringLiteral("key"), key},
+                                     {QStringLiteral("name"), name},
+                                     {QStringLiteral("value"), value},
+                                     {QStringLiteral("tip"), tip}});
+        };
+        const QString cls = Youth::weightClassFor(int(sex), age, weight);
+        for (Ket::Level level : {Ket::NK1, Ket::PK}) {
+            const int value = Ket::norm(level, sex, age, weight);
+            QString tip = QStringLiteral("Kader- und Entwicklungstabelle des BVDG, Normsystem 2026 (Stand 05.12.2025). ");
+            if (basis.isEmpty())
+                tip += QStringLiteral("Ohne Geburtsdatum oder Körpergewicht keine Norm.");
+            else if (value == 0)
+                tip += QStringLiteral("Nur für %1 bis %2 Jahre; ").arg(Ket::firstAge(level)).arg(Ket::lastAge(level)) + basis + QLatin1Char('.');
+            else
+                tip += QStringLiteral("Klasse %1 kg; ").arg(cls) + basis + QLatin1Char('.');
+            if (value > 0 && cls.startsWith(QLatin1Char('+')) && age >= 18)
+                tip += QStringLiteral(" Die KET gibt für %1 kg drei Werte (Ü1, Ü2); dies ist der erste.").arg(cls);
+            add(level == Ket::NK1 ? QStringLiteral("nk1") : QStringLiteral("pk"), Ket::name(level), value, tip);
+        }
+        const int old = Competitions::norm(sex, age, weight);
+        add(QStringLiteral("winwota"), QStringLiteral("WinWoTA 2005"), old,
+            QStringLiteral("Normtabelle des alten Programms (IAT, 15.08.2005), Gewichtsklassen bis 2018. ")
+                + (basis.isEmpty() ? QStringLiteral("Ohne Geburtsdatum oder Körpergewicht keine Norm.")
+                   : old == 0      ? QStringLiteral("Keine Normtabelle geladen (Daten › Importieren aus WinWoTA).")
+                                   : basis + QLatin1Char('.')));
     }
     result.insert(QStringLiteral("labels"), labels);
     result.insert(QStringLiteral("total"), total);
     result.insert(QStringLiteral("snatch"), snatch);
     result.insert(QStringLiteral("cleanJerk"), cleanJerk);
     result.insert(QStringLiteral("bodyWeight"), bodyWeight);
-    result.insert(QStringLiteral("norm"), normValue);
+    result.insert(QStringLiteral("norms"), norms);
     return result;
 }
 

@@ -82,7 +82,8 @@ updates and uninstalling.
   trainers with their history over time; a filter by Kader and sex.
 - **Wettkämpfe**: results with six attempts (valid/invalid), total, and a
   chart over the years with best results per half year or year, trends
-  and the reference total of the athlete's class. For youth athletes the
+  and the cadre norm of the athlete's age and class: the BVDG's KET 2026
+  for NK1 or PK, or the old program's table of 2005. For youth athletes the
   rules of the DGJ: its competitions to pick, a warning for a second
   competition in a week up to AK 17, and the DM Nachwuchs norm (AK 14–17:
   by weight class from AK 16, by body weight below) against the year's
@@ -208,7 +209,8 @@ To release: bump `project(... VERSION ...)` in `CMakeLists.txt`, wait for
 | `src/tables.*` | the old program's table and column names for each table, for import, export and the deletion log |
 | `src/bakimport.*`, `src/bakexport.*` | import and export in the old program's format |
 | `src/exerciseweek.*` | one exercise across a week (Erfassung TÜ) |
-| `src/competition.*` | competitions, totals, best results, reference totals |
+| `src/competition.*` | competitions, totals, best results, the old program's reference totals |
+| `src/ket.*` | the BVDG's cadre norms, KET 2026 (NK1, PK) |
 | `src/planning.*` | MAZ, framework plan, ITP, planned weight steps |
 | `src/analysis.*` | section analysis and load tables |
 | `src/weekreport.*` | printed / PDF week plan |
