@@ -77,10 +77,14 @@ gespeichert, einen Knopf „Speichern“ braucht es deshalb nicht. Das Programm
 
 ![Sportler](handbuch/bilder/03-sportler.png)
 
-Links steht die Liste der Sportler mit einem Suchfeld darüber, rechts die
-Angaben des gewählten Sportlers. **Neuer Sportler** legt einen an,
+Links steht die Liste der Sportler mit einem Suchfeld darüber, unter jedem
+Namen Altersklasse, Kader und Verein (`AK 19 · Beispielverein`), rechts
+die Angaben des gewählten Sportlers. **Neuer Sportler** legt einen an,
 **Speichern** übernimmt Änderungen, **Wochenplan öffnen** springt zu seiner
-Woche. Pflichtfelder tragen ein Sternchen (*): Ohne Namen wird das Feld rot
+Woche. Wer ohne Speichern einen anderen Sportler wählt, verliert nichts:
+Die Änderungen werden dabei gespeichert, wie in der Trainingseinheit
+(„Wird beim Wechsel gespeichert“ steht dann unten rechts); ebenso beim
+Wettkampf und beim MAZ, und beim Schließen des Programms. Pflichtfelder tragen ein Sternchen (*): Ohne Namen wird das Feld rot
 umrandet, darunter steht „Bitte einen Namen eingeben.“, bis einer
 eingetragen ist.
 
@@ -160,7 +164,15 @@ Darunter fasst eine Zeile die Woche zusammen:
 bis zum Hauptwettkampf: 1 ist seine Woche, 2 die davor. Der
 Hauptwettkampf ist die Woche mit der WK-Lage **HWK** im ITP (sonst in
 der Rahmenorientierung), ohne HWK die letzte Woche des MAZ. Ist das
-Fenster schmal, kürzt das Programm die Zeile mit „…“.
+Fenster schmal, kürzt das Programm die Zeile mit „…“; der ganze Text
+steht beim Darüberfahren.
+
+Rechts in dieser Zeile stehen in Rot die geplanten Einheiten bis heute,
+die noch kein Ist haben, z. B. „4 Einheiten ohne Ist: Mo, Mi, Fr, Sa“.
+**Ist = Plan** daneben übernimmt sie alle auf einmal als Ist und zeigt
+dann das Ist: Nur was anders lief, ist noch zu ändern. Strg+Z nimmt es
+in einem Schritt zurück. Für eine einzelne Einheit gibt es „Ist = Plan“
+weiter im Rechtsklick-Menü und unten in der Trainingseinheit.
 
 ### Eine Zeile lesen
 
@@ -183,6 +195,12 @@ unter der Woche tragen oben dieselben Farben.
 > „Technik: Zugphase“, Zug breit (gelb), Kniebeuge vorn (türkis) und
 > Klimmzüge (grau).
 
+**Verschieben:** Eine Einheit lässt sich mit der Maus auf einen anderen
+Tag oder eine andere TE derselben Woche ziehen, die noch frei ist; der
+freie Platz wird umrahmt, ein Hinweis neben der Maus nennt ihn. Mit
+gedrückter Strg-Taste beim Loslassen wird sie dorthin kopiert. Strg+Z
+nimmt beides zurück.
+
 ### Eine Trainingseinheit bearbeiten
 
 ![Trainingseinheit](handbuch/bilder/05-trainingseinheit.png)
@@ -195,6 +213,13 @@ Wiederholungen/Sätze (SG/ANZ).
 > angefügt und 65 kg eingetippt. Das Programm schlägt die folgenden
 > Laststufen grau vor; Pfeiltasten (↑/↓) zählen Wiederholungen und Sätze
 > hoch und runter, Enter geht weiter.
+
+**Eine ganze Zeile tippen:** Ein „/“ nach dem Gewicht öffnet ein Feld
+für alle Laststufen der Übung, in der Schreibweise des Ausdrucks:
+`65/3/2 70/2/2 74/1/1` (kg/SG/ANZ, im Ist als vierte Zahl die UG). Enter
+oder Tab übernimmt die Zeile, Esc bricht ab; was sich nicht lesen lässt,
+wird rot umrandet. Auch Einfügen (Strg+V) in ein Gewichtsfeld öffnet
+dieses Feld, etwa für eine Zeile aus einer Tabelle.
 
 Unter jeder Übung steht, was sie in der Woche ergibt und was die Vorwoche
 und das ITP dazu sagen. Das Stift-Symbol einer Übung öffnet eine
@@ -249,8 +274,9 @@ Ganz unten wertet das Programm die Woche wie das alte Programm aus:
 > **Beispiel (Woche 46, Plan):**
 > `K1-7: 129Wh / 66kg / 8,5t`: alle Übungsgruppen zusammen 129
 > Wiederholungen, im Mittel 66 kg, 8,5 Tonnen bewegt.
-> Rot darunter der Vergleich: Vorwoche (Ist) 129 WH / 72 kg, ITP 110 WH,
-> die Woche liegt also 17 % über dem ITP.
+> Darunter der Vergleich: Vorwoche (Ist) 129 WH / 72 kg, ITP 110 WH,
+> die Woche liegt also 17 % über dem ITP. Ab 10 % Abweichung steht diese
+> Abweichung rot.
 > Je Gruppe K1 … K7 die Übungen der Gruppe, mit Vorwoche (VW) und ITP:
 > `K1: 33 · VW 33 · ITP 28`.
 
@@ -292,7 +318,8 @@ K1-7 und K1-5 auch die Wiederholungen der allgemeinen Kraftübungen
   Hauptwettkampf) und den Wiederholungen **Plan / Ist** (`129 / 126`);
 - in den Tagen die Einheiten: ● Ist nach Plan, ◆ Ist ohne Plan, ○ geplant,
   ◌ offen (geplant, aber ohne Ist, in Rot); darunter ein schmaler Balken
-  mit den Wiederholungen der Einheit nach Komplexen, in deren Farben;
+  mit den Wiederholungen der Einheit nach Komplexen, in deren Farben. Ein
+  Klick auf eine offene Einheit übernimmt sie als Ist (Ist = Plan);
 - rechts die **Termine**: die kommenden Wettkämpfe, Lehrgänge und
   Diagnostiken. Oben darüber lassen sich **Wettkämpfe**, **Lehrgänge**
   und **Diagnostik** ein- und ausblenden, im Kalender wie in der Liste.
@@ -680,7 +707,8 @@ der fünf Jahre davor, so hat die Entwicklungskurve genug Jahre.
 > geschafft), Zweikampf 69 + 87 = **156**.
 
 Kommende Termine (hier Landesmeisterschaft und Deutsche Meisterschaft)
-stehen ohne Ergebnis in der Liste, bis sie eingetragen sind.
+stehen oben unter **Anstehend**, der nächste zuerst, ohne Ergebnis; die
+Ergebnisse darunter unter **Ergebnisse**, das neueste zuerst.
 
 ### Grafik
 
@@ -760,6 +788,8 @@ die der Junioren und Aktiven.
 | Strg+S | Einheit oder Formular speichern |
 | Strg+P | Drucken (mit Vorschau) |
 | ↑ / ↓ in Gewichtsfeldern | nächstes Gewicht im Gewichtsschritt |
+| / im Gewichtsfeld | die ganze Zeile tippen: `70/3/2 80/2/2` |
+| Strg beim Loslassen einer gezogenen Einheit | kopieren statt verschieben |
 | ↑ / ↓ in Wdh/Sätze | zählen |
 | Leertaste im Versuchsfeld | Fehlversuch |
 | Strg+N / Strg+O / Strg+Umschalt+S | neues Projekt / öffnen / speichern unter |

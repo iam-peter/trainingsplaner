@@ -47,6 +47,16 @@ Page {
             chooseMaz(id)
     }
 
+    // Saves the MAZ form's edits; false when they cannot be saved, and
+    // the MAZ tab is shown with the reason
+    function leave() {
+        if (mazPane.leave())
+            return true
+        roMode = false
+        tabs.currentIndex = 0
+        return false
+    }
+
     function closeFramework() {
         roMode = false
         tabs.currentIndex = 0
@@ -215,6 +225,7 @@ Page {
             Layout.fillHeight: true
 
             MazPane {
+                id: mazPane
                 objectName: "mazPane"
                 onOpenFramework: (id) => page.openFramework(id)
             }

@@ -1,5 +1,6 @@
 import QtQuick
 import QtTest
+import TrainingsplanerStyle as Styles
 import Trainingsplaner
 
 // A week seen against last week and the ITP: per exercise line in the
@@ -101,7 +102,11 @@ Item {
             const cmp = findChild(page, "weekComparison")
             verify(cmp.text.indexOf("Vorwoche 12/2031 (Ist): 10Wh / 54kg") >= 0)
             verify(cmp.text.indexOf("ITP: 50Wh / 78kg") >= 0)
-            verify(cmp.text.indexOf("−50 % WH") >= 0)
+            const deviation = findChild(page, "weekDeviation")
+            verify(deviation.text.indexOf("Woche gegen ITP: −50 % WH") >= 0)
+            // Only the deviation is marked, the figures before it stay grey
+            compare(deviation.color, Styles.TokenInterface.semantics.danger_default)
+            compare(cmp.color, Styles.TokenInterface.semantics.text_muted)
             compare(page.groupComparison(0), "VW 10 · ITP 20")
         }
 

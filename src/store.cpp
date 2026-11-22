@@ -303,6 +303,8 @@ QVariantList Store::athletes() const
             {QStringLiteral("sex"), int(a.sex)},
             {QStringLiteral("born"), Dates::text(a.born)},
             {QStringLiteral("age"), age},
+            // AK: the age the athlete reaches this year
+            {QStringLiteral("ageClass"), a.born.isValid() ? Youth::ageClass(a.born, today) : -1},
             // The training stage of this year's age class
             {QStringLiteral("etappe"), Tmk::etappe(Youth::ageClass(a.born, today)).code},
             {QStringLiteral("etappeText"), Tmk::etappeText(Youth::ageClass(a.born, today))},
@@ -1135,6 +1137,31 @@ bool Store::removeSession(const QString &athleteId, const QString &monday,
     });
 }
 
+bool Store::moveSession(const QString &athleteId, const QString &monday, const QString &variant,
+                        int fromDay, int fromNumber, int toDay, int toNumber, bool copy)
+{
+    if (toDay < 1 || toDay > 7 || toNumber < 1 || toNumber > 3
+        || (fromDay == toDay && fromNumber == toNumber))
+        return false;
+    const Week w = loadWeek(athleteId, monday, variant);
+    const Session *s = w.session(fromDay, fromNumber);
+    if (!s || w.session(toDay, toNumber))
+        return false;
+    Session moved = *s;
+    moved.day = toDay;
+    moved.number = toNumber;
+    const QString label = sessionTitle(fromDay, fromNumber)
+                          + (copy ? QStringLiteral(" kopiert nach ") : QStringLiteral(" verschoben nach "))
+                          + sessionTitle(toDay, toNumber);
+    return changeWeek(label, athleteId, monday, variant, [&] {
+        const QDate m = toDate(monday);
+        const Variant v = toVariant(variant);
+        if (!Database::saveSession(athleteId, m, v, moved))
+            return false;
+        return copy || Database::removeSession(athleteId, m, v, fromDay, fromNumber);
+    });
+}
+
 void Store::copySession(const QString &athleteId, const QString &monday, const QString &variant,
                         int day, int number)
 {
@@ -1174,6 +1201,46 @@ bool Store::planToActual(const QString &athleteId, const QString &monday, int da
                       QStringLiteral("I"), [&] {
         return Database::saveSession(athleteId, toDate(monday), Variant::Actual, copy);
     });
+}
+
+QVariantList Store::openSessions(const QString &athleteId, const QString &monday,
+                                const QString &until) const
+{
+    const QDate first = toDate(monday);
+    const QDate last = toDate(until);
+    if (!first.isValid() || !last.isValid() || last < first)
+        return {};
+    const Week plan = loadWeek(athleteId, monday, QStringLiteral("P"));
+    const Week actual = loadWeek(athleteId, monday, QStringLiteral("I"));
+    QVariantList open;
+    for (const Session &s : plan.sessions) {
+        if (first.addDays(s.day - 1) > last || actual.session(s.day, s.number))
+            continue;
+        open.append(QVariantMap{{QStringLiteral("day"), s.day}, {QStringLiteral("number"), s.number}});
+    }
+    return open;
+}
+
+int Store::openToActual(const QString &athleteId, const QString &monday, const QString &until)
+{
+    const QVariantList open = openSessions(athleteId, monday, until);
+    if (open.isEmpty())
+        return 0;
+    const Week plan = loadWeek(athleteId, monday, QStringLiteral("P"));
+    int taken = 0;
+    const QString label = open.size() == 1 ? QStringLiteral("1 Einheit: Ist = Plan")
+                                           : QString::number(open.size()) + QStringLiteral(" Einheiten: Ist = Plan");
+    changeWeek(label, athleteId, monday, QStringLiteral("I"), [&] {
+        for (const QVariant &v : open) {
+            const QVariantMap m = v.toMap();
+            const Session *s = plan.session(m.value(QStringLiteral("day")).toInt(),
+                                            m.value(QStringLiteral("number")).toInt());
+            if (s && Database::saveSession(athleteId, toDate(monday), Variant::Actual, *s))
+                ++taken;
+        }
+        return taken > 0;
+    });
+    return taken;
 }
 
 namespace {

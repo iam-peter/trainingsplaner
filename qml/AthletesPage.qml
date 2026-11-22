@@ -27,7 +27,8 @@ Page {
         // here, and a new athlete kept the last one's other fields
         femaleButton.checked = !!a && a.sex === 1
         bornField.text = a ? a.born : ""
-        phoneField.text = a ? a.phone : ""
+        // One line; numbers typed on several lines before stand side by side
+        phoneField.text = a ? a.phone.trim().replace(/\s*\n\s*/g, ", ") : ""
         addressField.text = a ? a.address : ""
         const attrs = a ? a.attributes : ({})
         for (let i = 0; i < attributeRepeater.count; ++i) {
@@ -69,6 +70,15 @@ Page {
             Store.setAthleteAttributes(id, values)
             select(id)
         }
+    }
+
+    // Before another athlete is shown: what was edited is saved, as the
+    // session panel does. False when it cannot be (no name, a date that
+    // is none); the form then stays and says why.
+    function leave() {
+        if (dirty)
+            save()
+        return !dirty
     }
 
     Shortcut {
@@ -156,14 +166,39 @@ Page {
             emptyText: Store.athletes.length === 0 ? "Noch keine Sportler." : "Niemand gefunden."
             addText: "Neuer Sportler"
             addIcon: "user-plus"
-            onAddClicked: page.select("")
+            onAddClicked: if (page.leave()) page.select("")
             delegate: ListRow {
+                id: athleteRow
                 required property var modelData
                 text: modelData.displayName
                 highlighted: modelData.id === page.selectedId
                 deleteToolTip: "Sportler löschen"
-                onClicked: page.select(modelData.id)
+                onClicked: if (page.leave()) page.select(modelData.id)
                 onDeleteRequested: page.askRemove(modelData.id)
+                // Under the name what tells a group apart: AK, Kader, Verein
+                readonly property string details: {
+                    const parts = []
+                    if (modelData.ageClass > 0)
+                        parts.push("AK " + modelData.ageClass)
+                    const attrs = modelData.attributes || {}
+                    for (const art of ["Kader", "Verein"])
+                        if (attrs[art])
+                            parts.push(attrs[art])
+                    return parts.join("  ·  ")
+                }
+                contentItem: ColumnLayout {
+                    spacing: 0
+                    Label { text: modelData.displayName; elide: Text.ElideRight; Layout.fillWidth: true }
+                    Label {
+                        objectName: "athleteDetails"
+                        visible: text !== ""
+                        text: athleteRow.details
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true
+                        font.pixelSize: 11
+                        color: Styles.TokenInterface.semantics.text_muted
+                    }
+                }
             }
         }
 
@@ -236,14 +271,13 @@ Page {
                 }
             }
 
-            Label { text: "Telefon:"; Layout.alignment: Qt.AlignTop }
-            TextArea {
+            Label { text: "Telefon:" }
+            TextField {
                 id: phoneField
+                objectName: "phoneField"
                 Layout.fillWidth: true
                 Layout.maximumWidth: Theme.fieldWidth
-                Layout.preferredHeight: 60
-                wrapMode: TextEdit.Wrap
-                onTextChanged: if (activeFocus) page.dirty = true
+                onTextEdited: page.dirty = true
             }
 
             Label { text: "Adresse:"; Layout.alignment: Qt.AlignTop }
@@ -328,10 +362,18 @@ Page {
                     iconName: "calendar-days"
                     text: "Wochenplan öffnen"
                     enabled: page.selectedId !== ""
-                    onClicked: page.openWeekPlan(page.selectedId)
+                    onClicked: if (page.leave()) page.openWeekPlan(page.selectedId)
                 },
                 Label {
                     text: "* Pflichtfeld"
+                    font.pixelSize: 11
+                    color: Styles.TokenInterface.semantics.text_muted
+                },
+                Item { Layout.fillWidth: true },
+                Label {
+                    objectName: "saveNote"
+                    visible: page.dirty
+                    text: "Wird beim Wechsel gespeichert"
                     font.pixelSize: 11
                     color: Styles.TokenInterface.semantics.text_muted
                 }

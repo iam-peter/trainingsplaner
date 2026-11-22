@@ -32,6 +32,13 @@ Item {
         return item.isEvent ? (item.kind === 2 ? showDiagnostik : showLehrgang) : showCompetitions
     }
 
+    // A planned session of a day becomes its Ist ("Ist = Plan")
+    function takeSession(date, number) {
+        const monday = Store.mondayOf(date)
+        const day = (new Date(date + "T12:00:00").getDay() + 6) % 7 + 1
+        Store.planToActual(athleteId, monday, day, number)
+    }
+
     function reload() {
         monthData = month !== "" && (allAthletes || athleteId !== "") ? Store.month(athleteId, month, allAthletes) : {}
     }
@@ -373,6 +380,25 @@ Item {
                                               + (modelData.wh > 0 ? modelData.wh + " Wh" : modelData.number + ". TE")
                                         color: modelData.state === "open" ? view.s.danger_default
                                                : modelData.state === "planned" ? view.s.text_muted : view.s.text_default
+                                        // An open session becomes its Ist with a click, as
+                                        // "Ist = Plan" in the week; Strg+Z takes it back
+                                        readonly property bool takeable: modelData.state === "open" && view.athleteId !== ""
+                                        font.underline: takeable && openHover.hovered
+                                        HoverHandler {
+                                            id: openHover
+                                            enabled: sessionLabel.takeable
+                                            cursorShape: Qt.PointingHandCursor
+                                        }
+                                        ToolTip.visible: openHover.hovered
+                                        ToolTip.text: "Klick: Ist = Plan, als trainiert übernehmen (Strg+Z nimmt es zurück)"
+                                        ToolTip.delay: 400
+                                        MouseArea {
+                                            objectName: "takeOpen"
+                                            anchors.fill: parent
+                                            enabled: sessionLabel.takeable
+                                            onClicked: view.takeSession(dayCell.modelData.date, sessionItem.modelData.number)
+                                            onDoubleClicked: {}
+                                        }
                                     }
                                     // Its reps by complex, in the complexes' colours
                                     Row {

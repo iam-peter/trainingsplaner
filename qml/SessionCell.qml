@@ -34,6 +34,45 @@ Rectangle {
     signal menuRequested(int exercise, real x, real y)
     // A weight exercise line was clicked: edit that exercise for the week
     signal exerciseClicked(int exercise)
+    // A filled session dragged to another place in the week, with the
+    // pointer in the cell's coordinates; ended(copy) with Ctrl held
+    signal dragStarted()
+    signal dragMoved(real x, real y)
+    signal dragEnded(real x, real y, bool copy)
+    // Being dragged, and a place it may be dropped on
+    property bool dragged: false
+    property bool dropTarget: false
+
+    // The drag starts from the cell or from one of its lines, once the
+    // pointer has moved past the system's drag distance; the click that
+    // ends it opens nothing
+    property point pressPoint
+    property bool dragging: false
+    property bool dragEndedClick: false
+    function dragPress(item, m) {
+        pressPoint = item.mapToItem(cell, m.x, m.y)
+        dragging = false
+        dragEndedClick = false
+    }
+    function dragMove(item, m) {
+        if (!filled || readOnly || !(m.buttons & Qt.LeftButton))
+            return
+        const p = item.mapToItem(cell, m.x, m.y)
+        if (!dragging && Math.hypot(p.x - pressPoint.x, p.y - pressPoint.y) > Qt.styleHints.startDragDistance) {
+            dragging = true
+            dragStarted()
+        }
+        if (dragging)
+            dragMoved(p.x, p.y)
+    }
+    function dragRelease(item, m) {
+        if (!dragging)
+            return
+        const p = item.mapToItem(cell, m.x, m.y)
+        dragging = false
+        dragEndedClick = true
+        dragEnded(p.x, p.y, (m.modifiers & Qt.ControlModifier) !== 0)
+    }
 
     readonly property bool filled: session !== null
 
@@ -60,6 +99,8 @@ Rectangle {
         part: Styles.StylePart.Indicator
     }
 
+    // Faded while it is being dragged
+    opacity: dragged ? 0.4 : 1
     radius: _cellStyle.radius.value
     color: _cellStyle.background
     border.color: _cellStyle.border.color
@@ -97,9 +138,16 @@ Rectangle {
         id: mouse
         anchors.fill: parent
         hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
+        cursorShape: cell.dragging ? Qt.ClosedHandCursor : Qt.PointingHandCursor
         acceptedButtons: Qt.LeftButton | Qt.RightButton
+        // The grid's sideways scrolling does not take over a drag
+        preventStealing: true
+        onPressed: (mouseEvent) => cell.dragPress(mouse, mouseEvent)
+        onPositionChanged: (mouseEvent) => cell.dragMove(mouse, mouseEvent)
+        onReleased: (mouseEvent) => cell.dragRelease(mouse, mouseEvent)
         onClicked: (mouseEvent) => {
+            if (cell.dragEndedClick)
+                return
             if (cell.readOnly) {
                 if (mouseEvent.button === Qt.LeftButton)
                     cell.clicked()
@@ -181,10 +229,17 @@ Rectangle {
                     id: lineMouse
                     anchors.fill: parent
                     hoverEnabled: true
-                    cursorShape: line.weights ? Qt.PointingHandCursor : Qt.ArrowCursor
+                    cursorShape: cell.dragging ? Qt.ClosedHandCursor
+                                               : line.weights ? Qt.PointingHandCursor : Qt.ArrowCursor
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
+                    preventStealing: true
+                    onPressed: (mouseEvent) => cell.dragPress(lineMouse, mouseEvent)
+                    onPositionChanged: (mouseEvent) => cell.dragMove(lineMouse, mouseEvent)
+                    onReleased: (mouseEvent) => cell.dragRelease(lineMouse, mouseEvent)
                     // Other lines pass clicks on to the cell (open the session)
                     onClicked: (mouseEvent) => {
+                        if (cell.dragEndedClick)
+                            return
                         if (cell.readOnly) {
                             if (mouseEvent.button === Qt.LeftButton)
                                 cell.clicked()
@@ -281,7 +336,19 @@ Rectangle {
         color: _cellStyle.text.color
     }
 
-    ToolTip.visible: mouse.containsMouse && (readOnly || (filled ? session.note !== "" : narrow))
+    // The place a dragged session would go: framed and tinted
+    Rectangle {
+        objectName: "dropMark"
+        anchors.fill: parent
+        visible: cell.dropTarget
+        radius: cell.radius
+        color: Styles.TokenInterface.semantics.background_accent
+        opacity: 0.6
+        border.color: Styles.TokenInterface.semantics.primary_default
+        border.width: 2
+    }
+
+    ToolTip.visible: !cell.dragging && mouse.containsMouse && (readOnly || (filled ? session.note !== "" : narrow))
     ToolTip.text: readOnly ? "Zu dieser Woche wechseln" : filled ? session.note : sessionNumber + ". TE anlegen"
     ToolTip.delay: 600
 }

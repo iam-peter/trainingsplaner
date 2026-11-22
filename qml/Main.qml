@@ -227,13 +227,31 @@ ApplicationWindow {
         }
     }
 
-    // Projects. What the session panel holds is saved into the open one
-    // first, as on closing; the pages then show the other file's athletes.
-    function switchProject(open) {
+    // Saves what the session panel and the forms (Sportler, MAZ,
+    // Wettkampf) hold. False when something cannot be saved; its page is
+    // then shown with the reason.
+    function saveAll() {
         if (!weekPage.closePanel()) {
             tabs.currentIndex = weekTab
             return false
         }
+        const forms = [[athletesPage, athletesTab], [planningPage, planningTab],
+                       [competitionsPage, competitionsTab]]
+        for (const [form, tab] of forms) {
+            if (form && !form.leave()) {
+                tabs.currentIndex = tab
+                return false
+            }
+        }
+        return true
+    }
+
+    // Projects. What the session panel and the forms hold is saved into
+    // the open one first, as on closing; the pages then show the other
+    // file's athletes.
+    function switchProject(open) {
+        if (!saveAll())
+            return false
         const error = open()
         if (error !== "") {
             projectError.text = error
@@ -328,14 +346,10 @@ ApplicationWindow {
         onActivated: if (weekPage.savePanel()) window.showChange(Store.redo())
     }
 
-    // What the session panel holds is saved before the program ends; when
-    // it cannot be (an impossible time), the program stays open on it
-    onClosing: (close) => {
-        if (!weekPage.closePanel()) {
-            close.accepted = false
-            tabs.currentIndex = weekTab
-        }
-    }
+    // What the session panel and the forms hold is saved before the
+    // program ends; when it cannot be (an impossible time, a missing
+    // name), the program stays open on it
+    onClosing: (close) => close.accepted = saveAll()
 
     function showChange(change) {
         if (!change.athleteId)

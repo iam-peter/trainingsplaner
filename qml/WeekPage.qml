@@ -122,6 +122,30 @@ Page {
         return "Nächster Wettkampf: " + n.name + ", " + n.date
                + (n.days === 0 ? " (heute)" : n.days === 1 ? " (morgen)" : " (in " + n.days + " Tagen)")
     }
+    // The planned sessions up to today without an Ist ("offen", with
+    // today's): [{day, number}]
+    readonly property var openSessions: hasAthlete && !monthMode
+                                        ? (Store.dataVersion, Store.openSessions(athleteId, monday, Store.today())) : []
+    readonly property string openSessionsText: {
+        const names = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+        const days = []
+        for (const o of openSessions) {
+            const name = names[o.day - 1]
+            if (days.indexOf(name) < 0)
+                days.push(name)
+        }
+        return (openSessions.length === 1 ? "1 Einheit ohne Ist: " : openSessions.length + " Einheiten ohne Ist: ")
+               + days.join(", ")
+    }
+    // Takes them all over as one step to undo, then shows the Ist to
+    // correct what went differently
+    function takeOpenSessions() {
+        if (!savePanel())
+            return
+        if (Store.openToActual(athleteId, monday, Store.today()) > 0)
+            variant = "I"
+    }
+
     // "Vorwoche 45/2026 (Ist): 241Wh / 63kg   ·   ITP: 230Wh / 66kg   ·   Woche gegen ITP: −7 % WH"
     readonly property var comparison: {
         const parts = []
@@ -131,16 +155,17 @@ Page {
                        + p.k17.wh + "Wh / " + p.k17.mhg + "kg")
         const t = context.target
         let deviation = 0
+        let deviationText = ""
         if (t && t.has && t.k17.wh > 0) {
             parts.push("ITP: " + t.k17.wh + "Wh" + (t.k17.mhg > 0 ? " / " + t.k17.mhg + "kg" : ""))
             const cur = weekData.k17Stats ? weekData.k17Stats.wh : 0
             if (cur > 0) {
                 deviation = Math.round((cur - t.k17.wh) * 100 / t.k17.wh)
-                parts.push("Woche gegen ITP: " + (deviation > 0 ? "+" : deviation < 0 ? "−" : "±")
-                           + Math.abs(deviation) + " % WH")
+                deviationText = "Woche gegen ITP: " + (deviation > 0 ? "+" : deviation < 0 ? "−" : "±")
+                                + Math.abs(deviation) + " % WH"
             }
         }
-        return { text: parts.join("   ·   "), deviation: deviation }
+        return { text: parts.join("   ·   "), deviation: deviation, deviationText: deviationText }
     }
     // A group's figures beside its own: "VW 36 · ITP 32"
     function groupComparison(index) {
@@ -387,6 +412,48 @@ Page {
         removeConfirm.day = day
         removeConfirm.number = number
         removeConfirm.open()
+    }
+
+    // A session dragged to another place of the week: where it comes from,
+    // where it would go ({day, number}, null while the pointer is over no
+    // free place) and the pointer, for the label beside it
+    property var dragFrom: null
+    property var dropAt: null
+    property point dragPoint
+    readonly property var dayNames: ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Sonnabend", "Sonntag"]
+
+    function cellAt(source, x, y) {
+        for (let i = 0; i < cells.count; ++i) {
+            const c = cells.itemAt(i)
+            if (!c || c.number <= 0)
+                continue
+            const p = c.mapFromItem(source, x, y)
+            if (p.x >= 0 && p.y >= 0 && p.x < c.width && p.y < c.height)
+                return c
+        }
+        return null
+    }
+
+    function dragSessionTo(source, x, y) {
+        if (!dragFrom)
+            return
+        const c = cellAt(source, x, y)
+        dropAt = c && !c.filled ? { day: c.day, number: c.number } : null
+        dragPoint = source.mapToItem(page, x, y)
+    }
+
+    // Dropped: moved there, or copied with Ctrl, as one step to undo
+    function dropSession(source, x, y, copy) {
+        dragSessionTo(source, x, y)
+        const from = dragFrom, to = dropAt
+        dragFrom = null
+        dropAt = null
+        if (!from || !to || !hasAthlete || !savePanel())
+            return
+        // The panel would otherwise go on showing the place it left
+        if (!copy && isEdited(from.day, from.number) && !closePanel())
+            return
+        Store.moveSession(athleteId, monday, variant, from.day, from.number, to.day, to.number, copy)
     }
 
     function copySession(day, number) {
@@ -658,7 +725,10 @@ Page {
                 elide: Text.ElideRight
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
-                Layout.maximumWidth: implicitWidth
+                // Whole pixels: the layout rounds widths down, and a
+                // text a fraction wider than its room was shortened (…)
+                Layout.preferredWidth: Math.ceil(implicitWidth)
+                Layout.maximumWidth: Math.ceil(implicitWidth)
                 HoverHandler { id: rangeHover }
                 ToolTip.visible: rangeHover.hovered && truncated
                 ToolTip.text: text
@@ -847,9 +917,14 @@ Page {
                 // It takes the width there is and shortens its texts (…),
                 // so a long line never widens the week and squeezes the
                 // panel beside it
+                // A shortened text shows in full under the pointer.
+                // At its end the planned sessions up to today without an
+                // Ist, to take over at once ("confirm unless different")
                 RowLayout {
+                    id: cycleLine
                     objectName: "cycleLine"
                     visible: page.cycleText !== "" || page.nextCompetitionText !== ""
+                             || page.openSessions.length > 0
                     Layout.fillWidth: true
                     Layout.preferredWidth: 0
                     spacing: 24
@@ -859,7 +934,14 @@ Page {
                         font.bold: true
                         elide: Text.ElideRight
                         Layout.fillWidth: true
-                        Layout.maximumWidth: implicitWidth
+                        // Whole pixels: the layout rounds widths down, and a
+                        // text a fraction wider than its room was shortened (…)
+                        Layout.preferredWidth: Math.ceil(implicitWidth)
+                        Layout.maximumWidth: Math.ceil(implicitWidth)
+                        HoverHandler { id: cycleHover }
+                        ToolTip.visible: cycleHover.hovered && truncated
+                        ToolTip.text: text
+                        ToolTip.delay: 400
                     }
                     Label {
                         text: page.nextCompetitionText
@@ -867,9 +949,46 @@ Page {
                         color: Styles.TokenInterface.semantics.primary_default
                         elide: Text.ElideRight
                         Layout.fillWidth: true
-                        Layout.maximumWidth: implicitWidth
+                        // Whole pixels: the layout rounds widths down, and a
+                        // text a fraction wider than its room was shortened (…)
+                        Layout.preferredWidth: Math.ceil(implicitWidth)
+                        Layout.maximumWidth: Math.ceil(implicitWidth)
+                        HoverHandler { id: nextHover }
+                        ToolTip.visible: nextHover.hovered && truncated
+                        ToolTip.text: text
+                        ToolTip.delay: 400
                     }
                     Item { Layout.fillWidth: true }
+                    RowLayout {
+                        objectName: "openSessions"
+                        visible: page.openSessions.length > 0
+                        spacing: 4
+                        // Short beside the session panel, where the MAZ and the
+                        // competition need the room; in full under the pointer
+                        Label {
+                            objectName: "openSessionsText"
+                            readonly property bool short: cycleLine.width < 1000
+                            text: short ? page.openSessions.length + " ohne Ist" : page.openSessionsText
+                            color: Styles.TokenInterface.semantics.danger_default
+                            HoverHandler { id: openHover }
+                            ToolTip.visible: openHover.hovered && short
+                            ToolTip.text: page.openSessionsText
+                            ToolTip.delay: 400
+                        }
+                        IconToolButton {
+                            objectName: "openToActual"
+                            text: "Ist = Plan"
+                            // As high as the line, so it does not move the days
+                            implicitHeight: 22
+                            topPadding: 0
+                            bottomPadding: 0
+                            Layout.topMargin: -3
+                            Layout.bottomMargin: -3
+                            toolTip: "Die geplanten Einheiten bis heute ohne Ist als Ist übernehmen,"
+                                     + "\ndanach korrigieren, was anders war (Strg+Z nimmt es zurück)"
+                            onClicked: page.takeOpenSessions()
+                        }
+                    }
                 }
 
                 Flickable {
@@ -1016,6 +1135,11 @@ Page {
                                 onDeleteRequested: page.askRemoveSession(day, number)
                                 onMoveRequested: (days, sessions) => page.focusRow(day + days, row + sessions)
                                 onCopyRequested: page.copySession(day, number)
+                                dragged: page.dragFrom !== null && page.dragFrom.day === day && page.dragFrom.number === number
+                                dropTarget: page.dropAt !== null && page.dropAt.day === day && page.dropAt.number === number
+                                onDragStarted: page.dragFrom = { day: day, number: number }
+                                onDragMoved: (x, y) => page.dragSessionTo(this, x, y)
+                                onDragEnded: (x, y, copy) => page.dropSession(this, x, y, copy)
                                 onPasteRequested: page.pasteSession(day, number)
                                 onMenuRequested: (exercise, x, y) => sessionMenu.show(this, day, number, exercise, x, y)
                                 // Keep a cell reached by the keys in view
@@ -1171,19 +1295,36 @@ Page {
                                 ToolTip.text: "Gruppen K1–K5: WH / MHG / Tonnage"
                             }
                         }
-                        // Last week and the ITP's targets, and how far the week is off
-                        Label {
-                            objectName: "weekComparison"
-                            visible: text !== ""
+                        // Last week and the ITP's targets, and how far the week is
+                        // off: only that in red, from 10 %, the figures stay grey
+                        RowLayout {
+                            visible: page.comparison.text !== ""
                             Layout.fillWidth: true
                             Layout.leftMargin: 8
                             Layout.rightMargin: 8
                             Layout.bottomMargin: 6
                             Layout.topMargin: -4
-                            text: page.comparison.text
-                            elide: Text.ElideRight
-                            color: Math.abs(page.comparison.deviation) >= 10 ? Styles.TokenInterface.semantics.danger_default
-                                                                             : Styles.TokenInterface.semantics.text_muted
+                            spacing: 0
+                            Label {
+                                objectName: "weekComparison"
+                                text: page.comparison.text
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
+                                // Whole pixels: the layout rounds widths down, and a
+                                // text a fraction wider than its room was shortened (…)
+                                Layout.preferredWidth: Math.ceil(implicitWidth)
+                                Layout.maximumWidth: Math.ceil(implicitWidth)
+                                color: Styles.TokenInterface.semantics.text_muted
+                            }
+                            Label {
+                                objectName: "weekDeviation"
+                                visible: text !== ""
+                                text: "   ·   " + page.comparison.deviationText
+                                font.bold: Math.abs(page.comparison.deviation) >= 10
+                                color: Math.abs(page.comparison.deviation) >= 10 ? Styles.TokenInterface.semantics.danger_default
+                                                                                 : Styles.TokenInterface.semantics.text_muted
+                            }
+                            Item { Layout.fillWidth: true }
                         }
                         Rectangle { Layout.fillWidth: true; height: 1; color: Styles.TokenInterface.semantics.stroke_subtle }
                         // The complexes side by side; where their lines do not
@@ -1566,5 +1707,29 @@ Page {
         title: "Fehler"
         standardButtons: Dialog.Ok
         Label { id: errorLabel }
+    }
+
+    // Beside the pointer while a session is dragged: where it would go
+    Rectangle {
+        objectName: "dragLabel"
+        visible: page.dragFrom !== null
+        z: 100
+        x: page.dragPoint.x + 16
+        y: page.dragPoint.y + 12
+        width: dragText.implicitWidth + 16
+        height: dragText.implicitHeight + 8
+        radius: 4
+        color: Styles.TokenInterface.semantics.background_elevated
+        border.color: Styles.TokenInterface.semantics.stroke_subtle
+        Label {
+            id: dragText
+            anchors.centerIn: parent
+            font.pixelSize: 11
+            text: !page.dragFrom ? ""
+                  : page.dropAt ? "Nach " + page.dayNames[page.dropAt.day - 1] + " " + page.dropAt.number
+                                  + ". TE verschieben · mit Strg kopieren"
+                  : "Auf eine freie Einheit ziehen"
+            color: page.dropAt ? Styles.TokenInterface.semantics.text_default : Styles.TokenInterface.semantics.text_muted
+        }
     }
 }

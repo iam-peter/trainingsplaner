@@ -37,6 +37,71 @@ RowLayout {
 
     signal changed()
 
+    // The whole line typed as notation, "70/3/2 80/2/2" (kg/SG/ANZ, in
+    // the Ist /UG as fourth), as the Laststufen tab reads it: "/" typed in
+    // a weight, or a paste there, opens one field for the line in place
+    // of the steps; Enter or Tab takes it, Esc goes back unchanged
+    property bool notationMode: false
+    readonly property bool notationValid: parseNotation(notationField.text) !== null
+
+    // The steps as notation, without proposed weights
+    function notation() {
+        return value().map(s => s.kg + "/" + Math.max(1, s.reps) + "/" + Math.max(1, s.sets)
+                           + (actual && s.failed > 0 ? "/" + s.failed : "")).join(" ")
+    }
+
+    // [{kg, reps, sets, failed}], or null when a part is no step. An
+    // empty text is no step at all.
+    function parseNotation(text) {
+        const parts = text.split(/[\s;,]+/).filter(x => x !== "")
+        const list = []
+        for (const part of parts) {
+            // A step still being typed ("74/1/") is not wrong yet
+            const n = part.replace(/\/+$/, "").split("/")
+            if (n.length > (actual ? 4 : 3) || n.some(x => !/^\d+$/.test(x)))
+                return null
+            const step = { kg: parseInt(n[0]), reps: n.length > 1 ? parseInt(n[1]) : 1,
+                           sets: n.length > 2 ? parseInt(n[2]) : 1, failed: n.length > 3 ? parseInt(n[3]) : 0 }
+            if (step.kg <= 0 || step.kg > 999 || step.reps <= 0 || step.reps > 999
+                || step.sets <= 0 || step.sets > 99 || step.failed > 9)
+                return null
+            list.push(step)
+        }
+        return list
+    }
+
+    // From the weight of a step: the line so far, with what that field
+    // holds as the start of the step being typed
+    function startNotation(index, kgText, typedText) {
+        const isStep = (s, i) => s && s.kg > 0 && proposed.indexOf(i) < 0
+        const before = steps.filter((s, i) => i < index && isStep(s, i))
+        let text = before.map(s => s.kg + "/" + Math.max(1, s.reps) + "/" + Math.max(1, s.sets)
+                                   + (actual && s.failed > 0 ? "/" + s.failed : "")).join(" ")
+        if (steps.some((s, i) => i > index && isStep(s, i)))
+            text = notation()   // in the middle: the whole line
+        else if (kgText !== "")
+            text += (text !== "" ? " " : "") + kgText + typedText
+        notationField.text = text
+        notationMode = true
+        notationField.forceActiveFocus()
+        notationField.cursorPosition = text.length
+    }
+
+    // True when the line was taken (or there was nothing to take)
+    function applyNotation() {
+        const list = parseNotation(notationField.text)
+        if (list === null)
+            return false
+        notationMode = false
+        takeSuggestion(list)
+        return true
+    }
+
+    function cancelNotation() {
+        notationMode = false
+        focusFirst()
+    }
+
     // A weight typed into a step proposes the next one, weight + jump, as
     // long as that one was not typed itself; clearing it takes it back
     function propose(index) {
@@ -131,8 +196,33 @@ RowLayout {
         Label { text: root.actual ? "SG/ANZ/UG:" : "SG/ANZ:"; font.pixelSize: 11; Layout.preferredHeight: 26; verticalAlignment: Text.AlignVCenter }
     }
 
+    TextField {
+        id: notationField
+        objectName: "notationField"
+        visible: root.notationMode
+        Layout.fillWidth: true
+        Layout.alignment: Qt.AlignTop
+        implicitHeight: 30
+        font.pixelSize: 15
+        font.bold: true
+        placeholderText: root.actual ? "z. B. 70/3/2 80/2/2/1 (kg/SG/ANZ/UG)" : "z. B. 70/3/2 80/2/2 (kg/SG/ANZ)"
+        // What cannot be read is framed red and not taken
+        error: !root.notationValid
+        ToolTip.visible: activeFocus
+        ToolTip.text: root.notationValid ? "Enter oder Tab übernimmt die Zeile, Esc bricht ab"
+                                         : "Je Laststufe kg/SG/ANZ" + (root.actual ? "/UG" : "") + ", durch Leerzeichen getrennt"
+        Keys.onReturnPressed: root.applyNotation()
+        Keys.onEnterPressed: root.applyNotation()
+        Keys.onEscapePressed: root.cancelNotation()
+        Keys.onTabPressed: (event) => { event.accepted = !root.applyNotation() }
+        // Leaving it takes a line that can be read; one that cannot
+        // stays shown until it is put right or Esc
+        onActiveFocusChanged: if (!activeFocus && root.notationMode && root.notationValid) root.applyNotation()
+    }
+
     Flow {
         id: stepsFlow
+        visible: !root.notationMode
         Layout.fillWidth: true
         spacing: 8
         Repeater {
@@ -159,6 +249,11 @@ RowLayout {
                     color: root.proposed.indexOf(stepItem.index) >= 0
                            ? Styles.TokenInterface.semantics.text_muted : Styles.TokenInterface.semantics.text_default
                     onActiveFocusChanged: if (activeFocus && root.proposed.indexOf(stepItem.index) >= 0) selectAll()
+                    // In an empty line: how to type it whole
+                    ToolTip.visible: activeFocus && stepItem.index === 0 && root.fresh && !root.notationMode
+                                     && !(stepSuggestions.item && stepSuggestions.item.visible)
+                    ToolTip.text: "„/“ nach dem Gewicht tippt die ganze Zeile, z. B. 70/3/2 80/2/2"
+                    ToolTip.delay: 600
                     validator: IntValidator { bottom: 0; top: 999 }
                     text: root.stepValue(stepItem.index, "kg")
                     onTextEdited: {
@@ -180,7 +275,18 @@ RowLayout {
                         else
                             stepBy(-1)
                     }
-                    Keys.onPressed: (event) => { if (stepSuggestions.item) stepSuggestions.item.handleKey(event) }
+                    Keys.onPressed: (event) => {
+                        // "/" or a paste: the line as notation
+                        if (event.text === "/" || event.matches(StandardKey.Paste)) {
+                            root.startNotation(stepItem.index, kgField.text, event.text === "/" ? "/" : "")
+                            if (event.matches(StandardKey.Paste))
+                                notationField.paste()
+                            event.accepted = true
+                            return
+                        }
+                        if (stepSuggestions.item)
+                            stepSuggestions.item.handleKey(event)
+                    }
                     Loader {
                         id: stepSuggestions
                         active: stepItem.index === 0 && root.suggestions.length > 0

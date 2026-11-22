@@ -12,6 +12,9 @@ Page {
     property var list: []
     property var current: null   // the competition being edited, null = new
     property bool dirty: false
+    // The athlete whose competition the form holds: it is saved to them
+    // when another athlete is chosen meanwhile
+    property string formAthlete
     property string error
     property var trend: ({})
 
@@ -33,6 +36,20 @@ Page {
         reloadTrend()
     }
 
+    // The list with the competitions to come under their own heading,
+    // the next one first, above the results, the latest first; headings
+    // only when there are some to come
+    readonly property var groupedList: {
+        const today = Store.today()
+        const coming = c => c.date > today || (c.date === today && c.total <= 0)
+        const ahead = list.filter(coming)
+        if (ahead.length === 0)
+            return list
+        // The list comes latest first: the ones to come reversed
+        return ahead.slice().reverse().map(c => Object.assign({}, c, { group: "Anstehend" }))
+               .concat(list.filter(c => !coming(c)).map(c => Object.assign({}, c, { group: "Ergebnisse" })))
+    }
+
     function reloadTrend() {
         const types = []
         for (let i = 0; i < typeChecks.count; ++i)
@@ -49,6 +66,7 @@ Page {
 
     function edit(c) {
         current = c
+        formAthlete = athleteId
         error = ""
         dateField.text = c ? c.dateText : Store.formatDate(Store.today())
         timeField.text = c ? c.time : ""
@@ -87,8 +105,9 @@ Page {
     }
 
     function save() {
+        const owner = formAthlete !== "" ? formAthlete : athleteId
         error = Store.saveCompetition({
-            athleteId: athleteId,
+            athleteId: owner,
             date: dateField.text,
             time: timeField.time,
             type: typeBox.currentIndex,
@@ -100,13 +119,33 @@ Page {
             note: noteField.text
         }, current ? current.date : "", current ? current.time : "")
         if (error === "") {
-            // The list is new already: the save changed the data
+            dirty = false
+            if (owner !== athleteId)
+                return
+            // Read anew: a hidden page only marks its list as stale
+            reload()
             const date = Store.parseDate(dateField.text)
             edit(list.find(c => c.date === date) || null)
         }
     }
 
-    onAthleteIdChanged: { reload(); edit(null) }
+    // Before another competition or athlete is shown: what was edited is
+    // saved, as the session panel does. False when it cannot be; the form
+    // then stays and says why.
+    function leave() {
+        if (dirty)
+            save()
+        return !dirty
+    }
+
+    // Chosen on another page while this form had edits: they go to the
+    // athlete they were made for
+    onAthleteIdChanged: {
+        if (dirty && formAthlete !== "" && formAthlete !== athleteId)
+            save()
+        reload()
+        edit(null)
+    }
     Connections {
         target: Store
         function onAthletesChanged() { page.selectDefaultAthlete() }
@@ -133,11 +172,17 @@ Page {
             anchors.leftMargin: 8
             anchors.rightMargin: 8
             ValueComboBox {
+                id: athleteBox
                 Layout.preferredWidth: 220
                 model: Store.selectableAthletes
                 value: page.athleteId
                 displayText: currentIndex < 0 ? "Sportler wählen" : currentText
-                onChosen: (v) => page.athleteId = v
+                onChosen: (v) => {
+                    if (page.leave())
+                        page.athleteId = v
+                    else
+                        athleteBox.sync()
+                }
             }
             AppTabBar {
                 id: tabs
@@ -178,16 +223,17 @@ Page {
                 objectName: "competitionList"
                 Layout.preferredWidth: 380
                 Layout.fillHeight: true
-                model: page.list
+                model: page.groupedList
+                sectionField: page.groupedList.length > 0 && page.groupedList[0].group ? "group" : ""
                 emptyText: "Noch keine Wettkämpfe."
                 addText: "Neuer Wettkampf"
-                onAddClicked: page.edit(null)
+                onAddClicked: if (page.leave()) page.edit(null)
                 delegate: ListRow {
                     required property var modelData
                     highlighted: page.current && page.current.date === modelData.date
                                  && page.current.time === modelData.time
                     deleteToolTip: "Wettkampf löschen"
-                    onClicked: page.edit(modelData)
+                    onClicked: if (page.leave()) page.edit(modelData)
                     onDeleteRequested: {
                         deleteConfirm.competition = modelData
                         deleteConfirm.open()
@@ -299,6 +345,14 @@ Page {
                         visible: page.error !== ""
                         text: page.error
                         color: Styles.TokenInterface.semantics.danger_default
+                    },
+                    Item { Layout.fillWidth: true },
+                    Label {
+                        objectName: "saveNote"
+                        visible: page.dirty
+                        text: "Wird beim Wechsel gespeichert"
+                        font.pixelSize: 11
+                        color: Styles.TokenInterface.semantics.text_muted
                     }
                 ]
             }

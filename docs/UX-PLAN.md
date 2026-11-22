@@ -150,6 +150,14 @@ session in the past without an Ist is marked "offen" (in the month view
 too), and "Ist = Plan" turns it into its Ist with one click, ready to
 correct what differed. No new states or workflow.
 
+**All open sessions at once** (done). The line above the days names the
+planned sessions up to today without an Ist ("4 Einheiten ohne Ist: Mo,
+Mi, Fr, Sa"); "Ist = Plan" beside it takes them all over as one step to
+undo and shows the Ist. LiftLog's "confirm unless different" for the
+whole week, for a coach who records once a week. In the month a click on an
+"offen" session takes that one over; beside the session panel the line
+says only "4 ohne Ist", the days under the pointer.
+
 ### 3.2 Trainingseinheit (the session panel)
 
 Done. The session dialog was modal and covered the week; it is now a
@@ -325,7 +333,7 @@ is still to ask him (section 9, question 1).
 ### 3.6 Wettkämpfe
 
 - **Coming competitions** (dates entered in the month view) at the top of
-  the list, results below as now.
+  the list under "Anstehend", results below under "Ergebnisse" (done).
 - **Youth competitions** of the DGJ to pick (done): offered as names
   while typing a competition (with the month they usually are in), each
   mapped onto one of WinWoTA's types (NT, DM, IT …), so the old export
@@ -386,6 +394,11 @@ and every later form follow:
   of the exercise under the first weight, earlier texts of an AMKT
   exercise, earlier notes. ↓ / ↑ and Enter or a click take one; Esc
   closes the list.
+- **Nothing typed is lost.** The forms beside a list (Sportler, MAZ,
+  Wettkampf) save their edits when another entry, athlete or project is
+  chosen and when the program closes, as the session panel does ("Wird
+  beim Wechsel gespeichert"); a form that cannot be saved stays and says
+  why. Before, choosing another entry dropped the edits silently.
 - **Empty means the default.** An empty sets field counts as one set, as
   in WinWoTA; it shows no placeholder.
 - **Ranges stay in order.** "von" never after "bis": when an edit puts one
@@ -395,9 +408,11 @@ Next in the same spirit:
 
 - **"Wie letzte Woche"** for a whole session: the lines of the same
   weekday last week as a proposal (W1), from the panel's "Vorlage …".
-- **A line typed as notation**: `70/3/2 80/2/2 85/1/2` typed or pasted
-  into a line fills its steps, as the Laststufen tab already reads it
-  (Liftosaur's idea).
+- **A line typed as notation** (done): `70/3/2 80/2/2 85/1/2` typed or
+  pasted into a line fills its steps, as the Laststufen tab already reads
+  it (Liftosaur's idea). "/" after a weight, or a paste into one, opens a
+  field for the whole line in place of the steps; Enter or Tab takes it,
+  Esc goes back; the Ist takes UG as a fourth number.
 - **"Für die restlichen Laststufen"**: in the Ist, a changed reps or sets
   value can be applied to the remaining steps of the line with one key
   (LiftLog's "this set / remaining / all").
@@ -539,9 +554,10 @@ Kept for later, and only if the coach wants them:
 - **An Übersicht start page** and **the ITP as a timeline** of phases,
   load and events. The month view gives most of this in a form he
   already uses on paper.
-- **Moving and repeating**: drag a session to another day in the week or
-  the month; repeat a week to the following weeks (GoldenCheetah). Today
-  copy and paste do this.
+- **Moving and repeating**: dragging a session to a free place of the
+  week is done (Ctrl copies); dragging in the month and repeating a week
+  to the following weeks (GoldenCheetah) are left. Copy and paste do the
+  rest.
 - **Athletes at a glance**: a tile per athlete with this week planned
   against done, for a coach with a group (GoldenCheetah's athlete view).
 - **Sessions shared by several athletes**, and athletes entering their own

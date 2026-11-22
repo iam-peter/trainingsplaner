@@ -41,6 +41,7 @@ Panel {
 
         RowLayout {
             id: buttonRow
+            Layout.fillWidth: true
             spacing: 8
         }
     }

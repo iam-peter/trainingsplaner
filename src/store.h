@@ -158,6 +158,11 @@ public:
                                  const QString &variant, const QVariantMap &session);
     Q_INVOKABLE bool removeSession(const QString &athleteId, const QString &monday,
                                    const QString &variant, int day, int number);
+    // A session dragged to another place of the same week, or copied there
+    // (Ctrl held); only onto a place without a session. One step to undo.
+    Q_INVOKABLE bool moveSession(const QString &athleteId, const QString &monday,
+                                 const QString &variant, int fromDay, int fromNumber, int toDay,
+                                 int toNumber, bool copy = false);
     Q_INVOKABLE bool saveWeekNote(const QString &athleteId, const QString &monday,
                                   const QString &variant, const QString &note, bool injured);
     Q_INVOKABLE void copyWeek(const QString &athleteId, const QString &monday,
@@ -173,6 +178,16 @@ public:
     // Takes the planned session over as the actual one ("Ist = Plan")
     Q_INVOKABLE bool planToActual(const QString &athleteId, const QString &monday, int day,
                                   int number);
+    // The planned sessions of the week up to a date (ISO, inclusive)
+    // without an actual one: [{day, number}]. "offen" in the month view
+    // counts the days before today only; here today belongs to them, so
+    // the evening's session can be taken over too.
+    Q_INVOKABLE QVariantList openSessions(const QString &athleteId, const QString &monday,
+                                          const QString &until) const;
+    // Takes them all over as actual ones, as one step to undo. Returns
+    // how many.
+    Q_INVOKABLE int openToActual(const QString &athleteId, const QString &monday,
+                                 const QString &until);
 
     // Undo and redo the changes to sessions (save, delete, paste, Ist = Plan).
     // Return the week that changed {athleteId, monday, variant, label}, or an

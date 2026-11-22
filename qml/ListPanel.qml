@@ -19,6 +19,21 @@ Panel {
     // The button below; none without a text
     property string addText
     property string addIcon: "plus"
+    // Rows grouped under headings: the field of the rows that names their
+    // group; none without
+    property string sectionField
+
+    readonly property Component sectionHeading: Label {
+        required property string section
+        width: ListView.view ? ListView.view.width : implicitWidth
+        leftPadding: Theme.rowInsetX + 8
+        topPadding: 8
+        bottomPadding: 2
+        text: section
+        font.pixelSize: 11
+        font.bold: true
+        color: Styles.TokenInterface.semantics.text_muted
+    }
 
     signal addClicked()
 
@@ -40,6 +55,8 @@ Panel {
             topMargin: Theme.listMargin
             bottomMargin: Theme.listMargin
             ScrollBar.vertical: AppScrollBar {}
+            section.property: panel.sectionField
+            section.delegate: panel.sectionField !== "" ? panel.sectionHeading : null
 
             Label {
                 anchors.centerIn: parent

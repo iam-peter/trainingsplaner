@@ -88,6 +88,15 @@ RowLayout {
             select(r.id)
     }
 
+    // Before another MAZ or its Rahmenorientierung is shown: what was
+    // edited is saved, as the session panel does. False when it cannot
+    // be; the form then stays and says why.
+    function leave() {
+        if (dirty)
+            save()
+        return !dirty
+    }
+
     spacing: 8
 
     ListPanel {
@@ -97,12 +106,12 @@ RowLayout {
         model: Plan.mazList
         emptyText: "Noch kein MAZ."
         addText: "Neuer MAZ"
-        onAddClicked: pane.select("")
+        onAddClicked: if (pane.leave()) pane.select("")
         delegate: ListRow {
             required property var modelData
             highlighted: modelData.id === pane.mazId
             deleteToolTip: "MAZ löschen"
-            onClicked: pane.select(modelData.id)
+            onClicked: if (pane.leave()) pane.select(modelData.id)
             onDeleteRequested: {
                 deleteConfirm.mazId = modelData.id
                 deleteConfirm.name = modelData.displayName
@@ -249,7 +258,7 @@ RowLayout {
                     iconName: "target"
                     text: "Rahmenorientierung"
                     enabled: pane.mazId !== ""
-                    onClicked: pane.openFramework(pane.mazId)
+                    onClicked: if (pane.leave()) pane.openFramework(pane.mazId)
                 }
                 IconButton {
                     iconName: "file-down"
@@ -263,6 +272,13 @@ RowLayout {
                 // Errors without a field (saving, the export)
                 Label { text: pane.error; color: Styles.TokenInterface.semantics.danger_default; visible: pane.error !== "" && pane.errorField === "" }
                 Item { Layout.fillWidth: true }
+                Label {
+                    objectName: "saveNote"
+                    visible: pane.dirty
+                    text: "Wird beim Wechsel gespeichert"
+                    font.pixelSize: 11
+                    color: Styles.TokenInterface.semantics.text_muted
+                }
                 Label { text: "* Pflichtfeld"; font.pixelSize: 11; color: Styles.TokenInterface.semantics.text_muted }
             }
 
