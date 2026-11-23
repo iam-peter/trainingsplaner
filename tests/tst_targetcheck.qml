@@ -75,8 +75,9 @@ Item {
             planning.showTab("maz")
             const pane = findChild(planning, "mazPane")
             pane.select(mazId)
-            // The rows the list replaced go first
-            wait(50)
+            // The rows laid out and those the list replaced gone: a click
+            // on a row still to be polished goes nowhere
+            waitForRendering(pane)
             tryVerify(() => findChild(pane, "targetHint") !== null && findChild(pane, "targetHint").visible)
             const hint = findChild(pane, "targetHint")
             verify(hint.text.indexOf("Vorschlag") > 0)
